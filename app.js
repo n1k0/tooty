@@ -10452,7 +10452,7 @@ var _n1k0$tooty$Mastodon$getAccessToken = F2(
 					_elm_lang$http$Http$expectJson(
 						_n1k0$tooty$Mastodon$accessTokenDecoder(registration)),
 					_lukewestby$elm_http_builder$HttpBuilder$post(
-						A2(_elm_lang$core$Basics_ops['++'], registration.server, '/oauth/access_token')))));
+						A2(_elm_lang$core$Basics_ops['++'], registration.server, '/oauth/token')))));
 	});
 var _n1k0$tooty$Mastodon$AppRegistered = function (a) {
 	return {ctor: 'AppRegistered', _0: a};
