@@ -1,6 +1,8 @@
 # tooty
 
-An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
+An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm. It is not usable yet.
+
+![](http://i.imgur.com/nR843q3.png)
 
 ### Setting up the development environment
 

@@ -7,6 +7,7 @@ module Mastodon
         , Client
         , Error(..)
         , Mention
+        , Reblog(..)
         , Status
         , Tag
         , register
@@ -15,6 +16,7 @@ module Mastodon
         , getAuthorizationUrl
         , getAccessToken
         , fetchPublicTimeline
+        , fetchLocalTimeline
         , fetchUserTimeline
         , send
         )
@@ -164,7 +166,6 @@ type alias AccessTokenResult =
 
 
 
--- | LocalTimeline (Result Http.Error (List Status))
 -- Encoders
 
 
@@ -400,12 +401,11 @@ fetchUserTimeline client =
     fetchStatusList client "/api/v1/timelines/home"
 
 
+fetchLocalTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
+fetchLocalTimeline client =
+    fetchStatusList client "/api/v1/timelines/public?local=true"
+
+
 fetchPublicTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchPublicTimeline client =
     fetchStatusList client "/api/v1/timelines/public"
-
-
-
--- fetchLocalTimeline : Client -> Cmd Msg
--- fetchLocalTimeline client =
---     fetchStatusList client "/api/v1/timelines/public?local" LocalTimeline

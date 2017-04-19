@@ -4,6 +4,8 @@ import Json.Encode as Encode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import HtmlParser
+import HtmlParser.Util exposing (textContent)
 import Navigation
 import Ports
 import Mastodon
@@ -21,6 +23,7 @@ type Msg
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
     | AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | ServerChange String
     | UrlChange Navigation.Location
@@ -31,6 +34,7 @@ type alias Model =
     , registration : Maybe Mastodon.AppRegistration
     , client : Maybe Mastodon.Client
     , userTimeline : List Mastodon.Status
+    , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
     , errors : List String
     , location : Navigation.Location
@@ -57,6 +61,7 @@ init flags location =
         , registration = flags.registration
         , client = flags.client
         , userTimeline = []
+        , localTimeline = []
         , publicTimeline = []
         , errors = []
         , location = location
@@ -117,6 +122,7 @@ loadTimelines : Mastodon.Client -> Cmd Msg
 loadTimelines client =
     Cmd.batch
         [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
+        , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
         , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
         ]
 
@@ -187,6 +193,14 @@ update msg model =
                 Err error ->
                     { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
+        LocalTimeline result ->
+            case result of
+                Ok localTimeline ->
+                    { model | localTimeline = localTimeline } ! []
+
+                Err error ->
+                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
+
         PublicTimeline result ->
             case result of
                 Ok publicTimeline ->
@@ -194,14 +208,6 @@ update msg model =
 
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
-
-
-statusView : Mastodon.Status -> Html Msg
-statusView status =
-    li []
-        [ strong [] [ text status.account.username ]
-        , span [] [ text status.content ]
-        ]
 
 
 errorView : String -> Html Msg
@@ -219,13 +225,49 @@ errorsListView model =
             div [] <| List.map errorView model.errors
 
 
+statusView : Mastodon.Status -> Html Msg
+statusView status =
+    case status.reblog of
+        Just (Mastodon.Reblog reblog) ->
+            div [ class "reblog" ]
+                [ p []
+                    [ a [ href status.account.url ] [ text <| "@" ++ status.account.username ]
+                    , text " reblogged"
+                    ]
+                , statusView reblog
+                ]
+
+        Nothing ->
+            div [ class "status" ]
+                [ img [ class "avatar", src status.account.avatar ] []
+                , div [ class "username" ] [ text status.account.username ]
+                , div [ class "status-text" ]
+                    [ HtmlParser.parse status.content |> textContent |> text ]
+                ]
+
+
+timelineView : List Mastodon.Status -> String -> Html Msg
+timelineView statuses label =
+    div [ class "col-sm-4" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ] [ text label ]
+            , ul [ class "list-group" ] <|
+                List.map
+                    (\s ->
+                        li [ class "list-group-item status" ]
+                            [ statusView s ]
+                    )
+                    statuses
+            ]
+        ]
+
+
 homepageView : Model -> Html Msg
 homepageView model =
-    div []
-        [ h2 [] [ text "Home timeline" ]
-        , ul [] <| List.map statusView model.userTimeline
-        , h2 [] [ text "Public timeline" ]
-        , ul [] <| List.map statusView model.publicTimeline
+    div [ class "row" ]
+        [ timelineView model.userTimeline "Home timeline"
+        , timelineView model.localTimeline "Local timeline"
+        , timelineView model.publicTimeline "Public timeline"
         ]
 
 
@@ -250,7 +292,7 @@ authView model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
+    div [ class "container-fluid" ]
         [ h1 [] [ text "tooty" ]
         , errorsListView model
         , case model.client of
