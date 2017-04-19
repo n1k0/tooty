@@ -121,6 +121,22 @@ loadTimelines client =
         ]
 
 
+errorText : Mastodon.Error -> String
+errorText error =
+    case error of
+        Mastodon.MastodonError statusCode statusMsg errorMsg ->
+            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+
+        Mastodon.ServerError statusCode statusMsg errorMsg ->
+            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+
+        Mastodon.TimeoutError ->
+            "Request timed out."
+
+        Mastodon.NetworkError ->
+            "Unreachable host."
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -145,7 +161,7 @@ update msg model =
                           ]
 
                 Err error ->
-                    { model | errors = (toString error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         AccessToken result ->
             case result of
@@ -161,7 +177,7 @@ update msg model =
                               ]
 
                 Err error ->
-                    { model | errors = (toString error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         UserTimeline result ->
             case result of
@@ -169,7 +185,7 @@ update msg model =
                     { model | userTimeline = userTimeline } ! []
 
                 Err error ->
-                    { model | userTimeline = [], errors = (toString error) :: model.errors } ! []
+                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         PublicTimeline result ->
             case result of
@@ -177,7 +193,7 @@ update msg model =
                     { model | publicTimeline = publicTimeline } ! []
 
                 Err error ->
-                    { model | publicTimeline = [], errors = (toString error) :: model.errors } ! []
+                    { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
 
 
 statusView : Mastodon.Status -> Html Msg
@@ -188,19 +204,19 @@ statusView status =
         ]
 
 
-errorView : Model -> Html Msg
-errorView model =
+errorView : String -> Html Msg
+errorView error =
+    div [ class "alert alert-danger" ] [ text error ]
+
+
+errorsListView : Model -> Html Msg
+errorsListView model =
     case model.errors of
         [] ->
             text ""
 
         errors ->
-            ul [] <|
-                List.map
-                    (\err ->
-                        li [ class "alert alert-danger" ] [ text err ]
-                    )
-                    model.errors
+            div [] <| List.map errorView model.errors
 
 
 homepageView : Model -> Html Msg
@@ -215,7 +231,7 @@ homepageView model =
 
 authView : Model -> Html Msg
 authView model =
-    Html.form [ onSubmit Register ]
+    Html.form [ class "form", onSubmit Register ]
         [ label []
             [ span [] [ text "Mastodon server root URL" ]
             , input
@@ -234,9 +250,9 @@ authView model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "container" ]
         [ h1 [] [ text "tooty" ]
-        , errorView model
+        , errorsListView model
         , case model.client of
             Just client ->
                 homepageView model

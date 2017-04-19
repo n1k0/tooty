@@ -5,7 +5,7 @@ module Mastodon
         , AppRegistration
         , Attachment
         , Client
-        , Error
+        , Error(..)
         , Mention
         , Status
         , Tag
@@ -66,8 +66,8 @@ type alias Client =
 type Error
     = MastodonError StatusCode StatusMsg String
     | ServerError StatusCode StatusMsg String
-    | TimeoutError Http.Error
-    | NetworkError Http.Error
+    | TimeoutError
+    | NetworkError
 
 
 type alias AppRegistration =
@@ -316,18 +316,17 @@ extractError error =
         Http.BadStatus { status, body } ->
             extractMastodonError status.code status.message body
 
-        Http.BadPayload str { status, body } ->
+        Http.BadPayload str { status } ->
             ServerError
                 status.code
                 status.message
-                ("failed decoding json: "
-                    ++ str
-                    ++ "\n\nBody received from server: "
-                    ++ body
-                )
+                ("Failed decoding JSON: " ++ str)
 
-        anyError ->
-            NetworkError anyError
+        Http.Timeout ->
+            TimeoutError
+
+        _ ->
+            NetworkError
 
 
 toResponse : Result Http.Error a -> Result Error a
