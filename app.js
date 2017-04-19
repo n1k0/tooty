@@ -10039,7 +10039,7 @@ var _n1k0$tooty$Mastodon$authorizationCodeEncoder = F2(
 							_0: {
 								ctor: '_Tuple2',
 								_0: 'redirect_uri',
-								_1: _elm_lang$core$Json_Encode$string('urn:ietf:wg:oauth:2.0:oob')
+								_1: _elm_lang$core$Json_Encode$string(registration.redirect_uri)
 							},
 							_1: {
 								ctor: '::',
