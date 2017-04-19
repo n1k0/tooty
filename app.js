@@ -10031,10 +10031,26 @@ var _n1k0$tooty$Mastodon$authorizationCodeEncoder = F2(
 						ctor: '::',
 						_0: {
 							ctor: '_Tuple2',
-							_0: 'code',
-							_1: _elm_lang$core$Json_Encode$string(authCode)
+							_0: 'grant_type',
+							_1: _elm_lang$core$Json_Encode$string('authorization_code')
 						},
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'redirect_uri',
+								_1: _elm_lang$core$Json_Encode$string('urn:ietf:wg:oauth:2.0:oob')
+							},
+							_1: {
+								ctor: '::',
+								_0: {
+									ctor: '_Tuple2',
+									_0: 'code',
+									_1: _elm_lang$core$Json_Encode$string(authCode)
+								},
+								_1: {ctor: '[]'}
+							}
+						}
 					}
 				}
 			});
