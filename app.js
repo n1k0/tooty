@@ -9910,6 +9910,11 @@ var _n1k0$tooty$Ports$saveRegistration = _elm_lang$core$Native_Platform.outgoing
 	function (v) {
 		return v;
 	});
+var _n1k0$tooty$Ports$saveClient = _elm_lang$core$Native_Platform.outgoingPort(
+	'saveClient',
+	function (v) {
+		return v;
+	});
 
 var _n1k0$tooty$Mastodon$registrationEncoder = function (registration) {
 	return _elm_lang$core$Json_Encode$object(
@@ -9960,6 +9965,26 @@ var _n1k0$tooty$Mastodon$registrationEncoder = function (registration) {
 						}
 					}
 				}
+			}
+		});
+};
+var _n1k0$tooty$Mastodon$clientEncoder = function (client) {
+	return _elm_lang$core$Json_Encode$object(
+		{
+			ctor: '::',
+			_0: {
+				ctor: '_Tuple2',
+				_0: 'server',
+				_1: _elm_lang$core$Json_Encode$string(client.server)
+			},
+			_1: {
+				ctor: '::',
+				_0: {
+					ctor: '_Tuple2',
+					_0: 'token',
+					_1: _elm_lang$core$Json_Encode$string(client.token)
+				},
+				_1: {ctor: '[]'}
 			}
 		});
 };
@@ -10578,6 +10603,13 @@ var _n1k0$tooty$Main$saveRegistration = function (registration) {
 			0,
 			_n1k0$tooty$Mastodon$registrationEncoder(registration)));
 };
+var _n1k0$tooty$Main$saveClient = function (client) {
+	return _n1k0$tooty$Ports$saveClient(
+		A2(
+			_elm_lang$core$Json_Encode$encode,
+			0,
+			_n1k0$tooty$Mastodon$clientEncoder(client)));
+};
 var _n1k0$tooty$Main$extractAuthCode = function (_p1) {
 	var _p2 = _p1;
 	var _p3 = A2(_elm_lang$core$String$split, '?code=', _p2.search);
@@ -10587,15 +10619,40 @@ var _n1k0$tooty$Main$extractAuthCode = function (_p1) {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
-var _n1k0$tooty$Main$Flags = function (a) {
-	return {registration: a};
-};
+var _n1k0$tooty$Main$Flags = F2(
+	function (a, b) {
+		return {client: a, registration: b};
+	});
 var _n1k0$tooty$Main$Model = F7(
 	function (a, b, c, d, e, f, g) {
 		return {server: a, registration: b, client: c, userTimeline: d, publicTimeline: e, error: f, location: g};
 	});
 var _n1k0$tooty$Main$MastodonMsg = function (a) {
 	return {ctor: 'MastodonMsg', _0: a};
+};
+var _n1k0$tooty$Main$registerApp = function (server) {
+	return A2(
+		_elm_lang$core$Platform_Cmd$map,
+		_n1k0$tooty$Main$MastodonMsg,
+		A4(_n1k0$tooty$Mastodon$register, server, 'tooty', 'https://n1k0.github.io/tooty/', 'read write follow'));
+};
+var _n1k0$tooty$Main$loadTimelines = function (client) {
+	return _elm_lang$core$Platform_Cmd$batch(
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$core$Platform_Cmd$map,
+				_n1k0$tooty$Main$MastodonMsg,
+				_n1k0$tooty$Mastodon$fetchUserTimeline(client)),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$core$Platform_Cmd$map,
+					_n1k0$tooty$Main$MastodonMsg,
+					_n1k0$tooty$Mastodon$fetchPublicTimeline(client)),
+				_1: {ctor: '[]'}
+			}
+		});
 };
 var _n1k0$tooty$Main$init = F2(
 	function (flags, location) {
@@ -10605,7 +10662,7 @@ var _n1k0$tooty$Main$init = F2(
 			{
 				server: 'https://mamot.fr',
 				registration: flags.registration,
-				client: _elm_lang$core$Maybe$Nothing,
+				client: flags.client,
 				userTimeline: {ctor: '[]'},
 				publicTimeline: {ctor: '[]'},
 				error: _elm_lang$core$Maybe$Nothing,
@@ -10628,20 +10685,23 @@ var _n1k0$tooty$Main$init = F2(
 						return {ctor: '[]'};
 					}
 				} else {
-					return {ctor: '[]'};
+					var _p6 = flags.client;
+					if (_p6.ctor === 'Just') {
+						return {
+							ctor: '::',
+							_0: _n1k0$tooty$Main$loadTimelines(_p6._0),
+							_1: {ctor: '[]'}
+						};
+					} else {
+						return {ctor: '[]'};
+					}
 				}
 			}());
 	});
-var _n1k0$tooty$Main$registerApp = function (server) {
-	return A2(
-		_elm_lang$core$Platform_Cmd$map,
-		_n1k0$tooty$Main$MastodonMsg,
-		A4(_n1k0$tooty$Mastodon$register, server, 'tooty', 'https://n1k0.github.io/tooty/', 'read write follow'));
-};
 var _n1k0$tooty$Main$update = F2(
 	function (msg, model) {
-		var _p6 = msg;
-		switch (_p6.ctor) {
+		var _p7 = msg;
+		switch (_p7.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -10652,7 +10712,7 @@ var _n1k0$tooty$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{server: _p6._0}),
+						{server: _p7._0}),
 					{ctor: '[]'});
 			case 'UrlChange':
 				return A2(
@@ -10669,26 +10729,26 @@ var _n1k0$tooty$Main$update = F2(
 						_1: {ctor: '[]'}
 					});
 			default:
-				var _p7 = _p6._0;
-				switch (_p7.ctor) {
+				var _p8 = _p7._0;
+				switch (_p8.ctor) {
 					case 'AppRegistered':
-						var _p8 = _p7._0;
-						if (_p8.ctor === 'Ok') {
-							var _p9 = _p8._0;
+						var _p9 = _p8._0;
+						if (_p9.ctor === 'Ok') {
+							var _p10 = _p9._0;
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										registration: _elm_lang$core$Maybe$Just(_p9)
+										registration: _elm_lang$core$Maybe$Just(_p10)
 									}),
 								{
 									ctor: '::',
-									_0: _n1k0$tooty$Main$saveRegistration(_p9),
+									_0: _n1k0$tooty$Main$saveRegistration(_p10),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$navigation$Navigation$load(
-											_n1k0$tooty$Mastodon$getAuthorizationUrl(_p9)),
+											_n1k0$tooty$Mastodon$getAuthorizationUrl(_p10)),
 										_1: {ctor: '[]'}
 									}
 								});
@@ -10699,14 +10759,14 @@ var _n1k0$tooty$Main$update = F2(
 									model,
 									{
 										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p8._0))
+											_elm_lang$core$Basics$toString(_p9._0))
 									}),
 								{ctor: '[]'});
 						}
 					case 'AccessToken':
-						var _p10 = _p7._0;
-						if (_p10.ctor === 'Ok') {
-							var client = A2(_n1k0$tooty$Mastodon$Client, _p10._0.server, _p10._0.access_token);
+						var _p11 = _p8._0;
+						if (_p11.ctor === 'Ok') {
+							var client = A2(_n1k0$tooty$Mastodon$Client, _p11._0.server, _p11._0.access_token);
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
@@ -10716,19 +10776,13 @@ var _n1k0$tooty$Main$update = F2(
 									}),
 								{
 									ctor: '::',
-									_0: A2(
-										_elm_lang$core$Platform_Cmd$map,
-										_n1k0$tooty$Main$MastodonMsg,
-										_n1k0$tooty$Mastodon$fetchUserTimeline(client)),
+									_0: _n1k0$tooty$Main$loadTimelines(client),
 									_1: {
 										ctor: '::',
-										_0: A2(
-											_elm_lang$core$Platform_Cmd$map,
-											_n1k0$tooty$Main$MastodonMsg,
-											_n1k0$tooty$Mastodon$fetchPublicTimeline(client)),
+										_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
+											_0: _n1k0$tooty$Main$saveClient(client),
 											_1: {ctor: '[]'}
 										}
 									}
@@ -10740,18 +10794,18 @@ var _n1k0$tooty$Main$update = F2(
 									model,
 									{
 										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p10._0))
+											_elm_lang$core$Basics$toString(_p11._0))
 									}),
 								{ctor: '[]'});
 						}
 					case 'UserTimeline':
-						var _p11 = _p7._0;
-						if (_p11.ctor === 'Ok') {
+						var _p12 = _p8._0;
+						if (_p12.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
-									{userTimeline: _p11._0}),
+									{userTimeline: _p12._0}),
 								{ctor: '[]'});
 						} else {
 							return A2(
@@ -10761,18 +10815,18 @@ var _n1k0$tooty$Main$update = F2(
 									{
 										userTimeline: {ctor: '[]'},
 										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p11._0))
+											_elm_lang$core$Basics$toString(_p12._0))
 									}),
 								{ctor: '[]'});
 						}
 					default:
-						var _p12 = _p7._0;
-						if (_p12.ctor === 'Ok') {
+						var _p13 = _p8._0;
+						if (_p13.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
-									{publicTimeline: _p12._0}),
+									{publicTimeline: _p13._0}),
 								{ctor: '[]'});
 						} else {
 							return A2(
@@ -10782,7 +10836,7 @@ var _n1k0$tooty$Main$update = F2(
 									{
 										publicTimeline: {ctor: '[]'},
 										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p12._0))
+											_elm_lang$core$Basics$toString(_p13._0))
 									}),
 								{ctor: '[]'});
 						}
@@ -10890,8 +10944,8 @@ var _n1k0$tooty$Main$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p13 = model.client;
-						if (_p13.ctor === 'Just') {
+						var _p14 = model.client;
+						if (_p14.ctor === 'Just') {
 							return _n1k0$tooty$Main$homepageView(model);
 						} else {
 							return _n1k0$tooty$Main$authView(model);
@@ -10913,13 +10967,64 @@ var _n1k0$tooty$Main$main = A2(
 	})(
 	A2(
 		_elm_lang$core$Json_Decode$andThen,
-		function (registration) {
-			return _elm_lang$core$Json_Decode$succeed(
-				{registration: registration});
+		function (client) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				function (registration) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{client: client, registration: registration});
+				},
+				A2(
+					_elm_lang$core$Json_Decode$field,
+					'registration',
+					_elm_lang$core$Json_Decode$oneOf(
+						{
+							ctor: '::',
+							_0: _elm_lang$core$Json_Decode$null(_elm_lang$core$Maybe$Nothing),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$core$Json_Decode$map,
+									_elm_lang$core$Maybe$Just,
+									A2(
+										_elm_lang$core$Json_Decode$andThen,
+										function (client_id) {
+											return A2(
+												_elm_lang$core$Json_Decode$andThen,
+												function (client_secret) {
+													return A2(
+														_elm_lang$core$Json_Decode$andThen,
+														function (id) {
+															return A2(
+																_elm_lang$core$Json_Decode$andThen,
+																function (redirect_uri) {
+																	return A2(
+																		_elm_lang$core$Json_Decode$andThen,
+																		function (scope) {
+																			return A2(
+																				_elm_lang$core$Json_Decode$andThen,
+																				function (server) {
+																					return _elm_lang$core$Json_Decode$succeed(
+																						{client_id: client_id, client_secret: client_secret, id: id, redirect_uri: redirect_uri, scope: scope, server: server});
+																				},
+																				A2(_elm_lang$core$Json_Decode$field, 'server', _elm_lang$core$Json_Decode$string));
+																		},
+																		A2(_elm_lang$core$Json_Decode$field, 'scope', _elm_lang$core$Json_Decode$string));
+																},
+																A2(_elm_lang$core$Json_Decode$field, 'redirect_uri', _elm_lang$core$Json_Decode$string));
+														},
+														A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int));
+												},
+												A2(_elm_lang$core$Json_Decode$field, 'client_secret', _elm_lang$core$Json_Decode$string));
+										},
+										A2(_elm_lang$core$Json_Decode$field, 'client_id', _elm_lang$core$Json_Decode$string))),
+								_1: {ctor: '[]'}
+							}
+						})));
 		},
 		A2(
 			_elm_lang$core$Json_Decode$field,
-			'registration',
+			'client',
 			_elm_lang$core$Json_Decode$oneOf(
 				{
 					ctor: '::',
@@ -10931,36 +11036,16 @@ var _n1k0$tooty$Main$main = A2(
 							_elm_lang$core$Maybe$Just,
 							A2(
 								_elm_lang$core$Json_Decode$andThen,
-								function (client_id) {
+								function (server) {
 									return A2(
 										_elm_lang$core$Json_Decode$andThen,
-										function (client_secret) {
-											return A2(
-												_elm_lang$core$Json_Decode$andThen,
-												function (id) {
-													return A2(
-														_elm_lang$core$Json_Decode$andThen,
-														function (redirect_uri) {
-															return A2(
-																_elm_lang$core$Json_Decode$andThen,
-																function (scope) {
-																	return A2(
-																		_elm_lang$core$Json_Decode$andThen,
-																		function (server) {
-																			return _elm_lang$core$Json_Decode$succeed(
-																				{client_id: client_id, client_secret: client_secret, id: id, redirect_uri: redirect_uri, scope: scope, server: server});
-																		},
-																		A2(_elm_lang$core$Json_Decode$field, 'server', _elm_lang$core$Json_Decode$string));
-																},
-																A2(_elm_lang$core$Json_Decode$field, 'scope', _elm_lang$core$Json_Decode$string));
-														},
-														A2(_elm_lang$core$Json_Decode$field, 'redirect_uri', _elm_lang$core$Json_Decode$string));
-												},
-												A2(_elm_lang$core$Json_Decode$field, 'id', _elm_lang$core$Json_Decode$int));
+										function (token) {
+											return _elm_lang$core$Json_Decode$succeed(
+												{server: server, token: token});
 										},
-										A2(_elm_lang$core$Json_Decode$field, 'client_secret', _elm_lang$core$Json_Decode$string));
+										A2(_elm_lang$core$Json_Decode$field, 'token', _elm_lang$core$Json_Decode$string));
 								},
-								A2(_elm_lang$core$Json_Decode$field, 'client_id', _elm_lang$core$Json_Decode$string))),
+								A2(_elm_lang$core$Json_Decode$field, 'server', _elm_lang$core$Json_Decode$string))),
 						_1: {ctor: '[]'}
 					}
 				}))));

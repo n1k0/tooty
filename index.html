@@ -12,7 +12,11 @@
     <script src="app.js"></script>
     <script>
     const app = Elm.Main.fullscreen({
+      client: JSON.parse(localStorage.getItem("tooty.client")),
       registration: JSON.parse(localStorage.getItem("tooty.registration"))
+    });
+    app.ports.saveClient.subscribe(json => {
+      localStorage.setItem("tooty.client", json);
     });
     app.ports.saveRegistration.subscribe(json => {
       localStorage.setItem("tooty.registration", json);
