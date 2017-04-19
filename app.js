@@ -16974,7 +16974,7 @@ var _n1k0$tooty$Main$init = F2(
 		return A2(
 			_elm_lang$core$Platform_Cmd_ops['!'],
 			{
-				server: 'https://mamot.fr',
+				server: '',
 				registration: flags.registration,
 				client: flags.client,
 				userTimeline: {ctor: '[]'},
@@ -17181,80 +17181,163 @@ var _n1k0$tooty$Main$update = F2(
 var _n1k0$tooty$Main$Register = {ctor: 'Register'};
 var _n1k0$tooty$Main$authView = function (model) {
 	return A2(
-		_elm_lang$html$Html$form,
+		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('form'),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Main$Register),
-				_1: {ctor: '[]'}
-			}
+			_0: _elm_lang$html$Html_Attributes$class('col-md-4 col-md-offset-4'),
+			_1: {ctor: '[]'}
 		},
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$html$Html$label,
-				{ctor: '[]'},
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+					_1: {ctor: '[]'}
+				},
 				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$span,
-						{ctor: '[]'},
+						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Mastodon server root URL'),
+							_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Authenticate'),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$input,
+							_elm_lang$html$Html$div,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$type_('url'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$required(true),
-									_1: {
+								_0: _elm_lang$html$Html_Attributes$class('panel-body'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$form,
+									{
 										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$placeholder('https://mastodon.social'),
+										_0: _elm_lang$html$Html_Attributes$class('form'),
 										_1: {
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$value(model.server),
-											_1: {
+											_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Main$Register),
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$pattern('https://.+'),
+												_0: _elm_lang$html$Html_Attributes$class('form-group'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$label,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$for('server'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Mastodon server root URL'),
+														_1: {ctor: '[]'}
+													}),
 												_1: {
 													ctor: '::',
-													_0: _elm_lang$html$Html_Events$onInput(_n1k0$tooty$Main$ServerChange),
-													_1: {ctor: '[]'}
+													_0: A2(
+														_elm_lang$html$Html$input,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$type_('url'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$id('server'),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$required(true),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$placeholder('https://mastodon.social'),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$value(model.server),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$pattern('https://.+'),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Events$onInput(_n1k0$tooty$Main$ServerChange),
+																						_1: {ctor: '[]'}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														},
+														{ctor: '[]'}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$p,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('help-block'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('You\'ll be redirected to that server to authenticate yourself. We don\'t have access to your password.'),
+																_1: {ctor: '[]'}
+															}),
+														_1: {ctor: '[]'}
+													}
 												}
-											}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$button,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$type_('submit'),
+														_1: {ctor: '[]'}
+													}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Sign into Tooty'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
 										}
-									}
-								}
-							},
-							{ctor: '[]'}),
+									}),
+								_1: {ctor: '[]'}
+							}),
 						_1: {ctor: '[]'}
 					}
 				}),
-			_1: {
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$button,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$type_('submit'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text('Sign into Tooty'),
-						_1: {ctor: '[]'}
-					}),
-				_1: {ctor: '[]'}
-			}
+			_1: {ctor: '[]'}
 		});
 };
 var _n1k0$tooty$Main$view = function (model) {
