@@ -57,7 +57,7 @@ init flags location =
         authCode =
             extractAuthCode location
     in
-        { server = "https://mamot.fr"
+        { server = ""
         , registration = flags.registration
         , client = flags.client
         , userTimeline = []
@@ -273,20 +273,32 @@ homepageView model =
 
 authView : Model -> Html Msg
 authView model =
-    Html.form [ class "form", onSubmit Register ]
-        [ label []
-            [ span [] [ text "Mastodon server root URL" ]
-            , input
-                [ type_ "url"
-                , required True
-                , placeholder "https://mastodon.social"
-                , value model.server
-                , pattern "https://.+"
-                , onInput ServerChange
+    div [ class "col-md-4 col-md-offset-4" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ] [ text "Authenticate" ]
+            , div [ class "panel-body" ]
+                [ Html.form [ class "form", onSubmit Register ]
+                    [ div [ class "form-group" ]
+                        [ label [ for "server" ] [ text "Mastodon server root URL" ]
+                        , input
+                            [ type_ "url"
+                            , class "form-control"
+                            , id "server"
+                            , required True
+                            , placeholder "https://mastodon.social"
+                            , value model.server
+                            , pattern "https://.+"
+                            , onInput ServerChange
+                            ]
+                            []
+                        , p [ class "help-block" ]
+                            [ text "You'll be redirected to that server to authenticate yourself. We don't have access to your password." ]
+                        ]
+                    , button [ class "btn btn-primary", type_ "submit" ]
+                        [ text "Sign into Tooty" ]
+                    ]
                 ]
-                []
             ]
-        , button [ type_ "submit" ] [ text "Sign into Tooty" ]
         ]
 
 
