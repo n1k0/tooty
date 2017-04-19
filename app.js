@@ -9988,6 +9988,7 @@ var _n1k0$tooty$Mastodon$clientEncoder = function (client) {
 			}
 		});
 };
+var _n1k0$tooty$Mastodon$mastodonErrorDecoder = A2(_elm_lang$core$Json_Decode$field, 'error', _elm_lang$core$Json_Decode$string);
 var _n1k0$tooty$Mastodon$encodeUrl = F2(
 	function (base, params) {
 		return A2(
@@ -10142,6 +10143,18 @@ var _n1k0$tooty$Mastodon$appRegistrationDecoder = F2(
 								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$hardcoded,
 								server,
 								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$AppRegistration)))))));
+	});
+var _n1k0$tooty$Mastodon$register = F4(
+	function (server, client_name, redirect_uri, scope) {
+		return A2(
+			_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
+			A3(_n1k0$tooty$Mastodon$appRegistrationEncoder, client_name, redirect_uri, scope),
+			A2(
+				_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+				_elm_lang$http$Http$expectJson(
+					A2(_n1k0$tooty$Mastodon$appRegistrationDecoder, server, scope)),
+				_lukewestby$elm_http_builder$HttpBuilder$post(
+					A2(_elm_lang$core$Basics_ops['++'], server, '/api/v1/apps'))));
 	});
 var _n1k0$tooty$Mastodon$Account = function (a) {
 	return function (b) {
@@ -10339,6 +10352,77 @@ var _n1k0$tooty$Mastodon$accessTokenDecoder = function (registration) {
 			registration.server,
 			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$AccessTokenResult)));
 };
+var _n1k0$tooty$Mastodon$getAccessToken = F2(
+	function (registration, authCode) {
+		return A2(
+			_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
+			A2(_n1k0$tooty$Mastodon$authorizationCodeEncoder, registration, authCode),
+			A2(
+				_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+				_elm_lang$http$Http$expectJson(
+					_n1k0$tooty$Mastodon$accessTokenDecoder(registration)),
+				_lukewestby$elm_http_builder$HttpBuilder$post(
+					A2(_elm_lang$core$Basics_ops['++'], registration.server, '/oauth/token'))));
+	});
+var _n1k0$tooty$Mastodon$NetworkError = function (a) {
+	return {ctor: 'NetworkError', _0: a};
+};
+var _n1k0$tooty$Mastodon$TimeoutError = function (a) {
+	return {ctor: 'TimeoutError', _0: a};
+};
+var _n1k0$tooty$Mastodon$ServerError = F3(
+	function (a, b, c) {
+		return {ctor: 'ServerError', _0: a, _1: b, _2: c};
+	});
+var _n1k0$tooty$Mastodon$MastodonError = F3(
+	function (a, b, c) {
+		return {ctor: 'MastodonError', _0: a, _1: b, _2: c};
+	});
+var _n1k0$tooty$Mastodon$extractMastodonError = F3(
+	function (statusCode, statusMsg, body) {
+		var _p2 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
+		if (_p2.ctor === 'Ok') {
+			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p2._0);
+		} else {
+			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p2._0);
+		}
+	});
+var _n1k0$tooty$Mastodon$extractError = function (error) {
+	var _p3 = error;
+	switch (_p3.ctor) {
+		case 'BadStatus':
+			var _p4 = _p3._0.status;
+			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p4.code, _p4.message, _p3._0.body);
+		case 'BadPayload':
+			var _p5 = _p3._1.status;
+			return A3(
+				_n1k0$tooty$Mastodon$ServerError,
+				_p5.code,
+				_p5.message,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'failed decoding json: ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_p3._0,
+						A2(_elm_lang$core$Basics_ops['++'], '\n\nBody received from server: ', _p3._1.body))));
+		default:
+			return _n1k0$tooty$Mastodon$NetworkError(_p3);
+	}
+};
+var _n1k0$tooty$Mastodon$toResponse = function (result) {
+	return A2(_elm_lang$core$Result$mapError, _n1k0$tooty$Mastodon$extractError, result);
+};
+var _n1k0$tooty$Mastodon$send = F2(
+	function (tagger, builder) {
+		return A2(
+			_lukewestby$elm_http_builder$HttpBuilder$send,
+			function (_p6) {
+				return tagger(
+					_n1k0$tooty$Mastodon$toResponse(_p6));
+			},
+			builder);
+	});
 var _n1k0$tooty$Mastodon$Reblog = function (a) {
 	return {ctor: 'Reblog', _0: a};
 };
@@ -10346,7 +10430,7 @@ var _n1k0$tooty$Mastodon$reblogDecoder = A2(
 	_elm_lang$core$Json_Decode$map,
 	_n1k0$tooty$Mastodon$Reblog,
 	_elm_lang$core$Json_Decode$lazy(
-		function (_p2) {
+		function (_p7) {
 			return _n1k0$tooty$Mastodon$statusDecoder;
 		}));
 var _n1k0$tooty$Mastodon$statusDecoder = A3(
@@ -10429,101 +10513,55 @@ var _n1k0$tooty$Mastodon$statusDecoder = A3(
 																			'account',
 																			_n1k0$tooty$Mastodon$accountDecoder,
 																			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$Status))))))))))))))))))));
-var _n1k0$tooty$Mastodon$fetchStatusList = F3(
-	function (client, endpoint, messenger) {
+var _n1k0$tooty$Mastodon$fetchStatusList = F2(
+	function (client, endpoint) {
 		return A2(
-			_lukewestby$elm_http_builder$HttpBuilder$send,
-			messenger,
-			A2(
-				_lukewestby$elm_http_builder$HttpBuilder$withExpect,
-				_elm_lang$http$Http$expectJson(
-					_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder)),
-				A3(
-					_lukewestby$elm_http_builder$HttpBuilder$withHeader,
-					'Authorization',
-					A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
-					_lukewestby$elm_http_builder$HttpBuilder$get(
-						A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint)))));
+			_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+			_elm_lang$http$Http$expectJson(
+				_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder)),
+			A3(
+				_lukewestby$elm_http_builder$HttpBuilder$withHeader,
+				'Authorization',
+				A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
+				_lukewestby$elm_http_builder$HttpBuilder$get(
+					A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint))));
 	});
+var _n1k0$tooty$Mastodon$fetchUserTimeline = function (client) {
+	return A2(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/home');
+};
+var _n1k0$tooty$Mastodon$fetchPublicTimeline = function (client) {
+	return A2(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/public');
+};
 var _n1k0$tooty$Mastodon$Result = F2(
 	function (a, b) {
 		return {ctor: 'Result', _0: a, _1: b};
 	});
-var _n1k0$tooty$Mastodon$PublicTimeline = function (a) {
-	return {ctor: 'PublicTimeline', _0: a};
-};
-var _n1k0$tooty$Mastodon$fetchPublicTimeline = function (client) {
-	return A3(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/public', _n1k0$tooty$Mastodon$PublicTimeline);
-};
-var _n1k0$tooty$Mastodon$UserTimeline = function (a) {
-	return {ctor: 'UserTimeline', _0: a};
-};
-var _n1k0$tooty$Mastodon$fetchUserTimeline = function (client) {
-	return A3(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/home', _n1k0$tooty$Mastodon$UserTimeline);
-};
-var _n1k0$tooty$Mastodon$AccessToken = function (a) {
-	return {ctor: 'AccessToken', _0: a};
-};
-var _n1k0$tooty$Mastodon$getAccessToken = F2(
-	function (registration, authCode) {
-		return A2(
-			_lukewestby$elm_http_builder$HttpBuilder$send,
-			_n1k0$tooty$Mastodon$AccessToken,
-			A2(
-				_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
-				A2(_n1k0$tooty$Mastodon$authorizationCodeEncoder, registration, authCode),
-				A2(
-					_lukewestby$elm_http_builder$HttpBuilder$withExpect,
-					_elm_lang$http$Http$expectJson(
-						_n1k0$tooty$Mastodon$accessTokenDecoder(registration)),
-					_lukewestby$elm_http_builder$HttpBuilder$post(
-						A2(_elm_lang$core$Basics_ops['++'], registration.server, '/oauth/token')))));
-	});
-var _n1k0$tooty$Mastodon$AppRegistered = function (a) {
-	return {ctor: 'AppRegistered', _0: a};
-};
-var _n1k0$tooty$Mastodon$register = F4(
-	function (server, client_name, redirect_uri, scope) {
-		return A2(
-			_lukewestby$elm_http_builder$HttpBuilder$send,
-			_n1k0$tooty$Mastodon$AppRegistered,
-			A2(
-				_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
-				A3(_n1k0$tooty$Mastodon$appRegistrationEncoder, client_name, redirect_uri, scope),
-				A2(
-					_lukewestby$elm_http_builder$HttpBuilder$withExpect,
-					_elm_lang$http$Http$expectJson(
-						A2(_n1k0$tooty$Mastodon$appRegistrationDecoder, server, scope)),
-					_lukewestby$elm_http_builder$HttpBuilder$post(
-						A2(_elm_lang$core$Basics_ops['++'], server, '/api/v1/apps')))));
-	});
 
 var _n1k0$tooty$Main$errorView = function (model) {
-	var _p0 = model.error;
-	if (_p0.ctor === 'Just') {
-		return A2(
-			_elm_lang$html$Html$pre,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$style(
-					{
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'white-space', _1: 'pre-wrap'},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'word-wrap', _1: 'break-word'},
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html$text(_p0._0),
-				_1: {ctor: '[]'}
-			});
-	} else {
+	var _p0 = model.errors;
+	if (_p0.ctor === '[]') {
 		return _elm_lang$html$Html$text('');
+	} else {
+		return A2(
+			_elm_lang$html$Html$ul,
+			{ctor: '[]'},
+			A2(
+				_elm_lang$core$List$map,
+				function (err) {
+					return A2(
+						_elm_lang$html$Html$li,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(err),
+							_1: {ctor: '[]'}
+						});
+				},
+				model.errors));
 	}
 };
 var _n1k0$tooty$Main$statusView = function (status) {
@@ -10625,59 +10663,54 @@ var _n1k0$tooty$Main$Flags = F2(
 	});
 var _n1k0$tooty$Main$Model = F7(
 	function (a, b, c, d, e, f, g) {
-		return {server: a, registration: b, client: c, userTimeline: d, publicTimeline: e, error: f, location: g};
+		return {server: a, registration: b, client: c, userTimeline: d, publicTimeline: e, errors: f, location: g};
 	});
-var _n1k0$tooty$Main$MastodonMsg = function (a) {
-	return {ctor: 'MastodonMsg', _0: a};
+var _n1k0$tooty$Main$UrlChange = function (a) {
+	return {ctor: 'UrlChange', _0: a};
 };
-var _n1k0$tooty$Main$registerApp = function (server) {
-	return A2(
-		_elm_lang$core$Platform_Cmd$map,
-		_n1k0$tooty$Main$MastodonMsg,
-		A4(_n1k0$tooty$Mastodon$register, server, 'tooty', 'https://n1k0.github.io/tooty/', 'read write follow'));
+var _n1k0$tooty$Main$ServerChange = function (a) {
+	return {ctor: 'ServerChange', _0: a};
+};
+var _n1k0$tooty$Main$PublicTimeline = function (a) {
+	return {ctor: 'PublicTimeline', _0: a};
+};
+var _n1k0$tooty$Main$UserTimeline = function (a) {
+	return {ctor: 'UserTimeline', _0: a};
 };
 var _n1k0$tooty$Main$loadTimelines = function (client) {
 	return _elm_lang$core$Platform_Cmd$batch(
 		{
 			ctor: '::',
 			_0: A2(
-				_elm_lang$core$Platform_Cmd$map,
-				_n1k0$tooty$Main$MastodonMsg,
+				_n1k0$tooty$Mastodon$send,
+				_n1k0$tooty$Main$UserTimeline,
 				_n1k0$tooty$Mastodon$fetchUserTimeline(client)),
 			_1: {
 				ctor: '::',
 				_0: A2(
-					_elm_lang$core$Platform_Cmd$map,
-					_n1k0$tooty$Main$MastodonMsg,
+					_n1k0$tooty$Mastodon$send,
+					_n1k0$tooty$Main$PublicTimeline,
 					_n1k0$tooty$Mastodon$fetchPublicTimeline(client)),
 				_1: {ctor: '[]'}
 			}
 		});
 };
-var _n1k0$tooty$Main$init = F2(
-	function (flags, location) {
-		var authCode = _n1k0$tooty$Main$extractAuthCode(location);
-		return A2(
-			_elm_lang$core$Platform_Cmd_ops['!'],
-			{
-				server: 'https://mamot.fr',
-				registration: flags.registration,
-				client: flags.client,
-				userTimeline: {ctor: '[]'},
-				publicTimeline: {ctor: '[]'},
-				error: _elm_lang$core$Maybe$Nothing,
-				location: location
-			},
+var _n1k0$tooty$Main$AccessToken = function (a) {
+	return {ctor: 'AccessToken', _0: a};
+};
+var _n1k0$tooty$Main$initCommands = F3(
+	function (registration, client, authCode) {
+		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
 				var _p4 = authCode;
 				if (_p4.ctor === 'Just') {
-					var _p5 = flags.registration;
+					var _p5 = registration;
 					if (_p5.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$core$Platform_Cmd$map,
-								_n1k0$tooty$Main$MastodonMsg,
+								_n1k0$tooty$Mastodon$send,
+								_n1k0$tooty$Main$AccessToken,
 								A2(_n1k0$tooty$Mastodon$getAccessToken, _p5._0, _p4._0)),
 							_1: {ctor: '[]'}
 						};
@@ -10685,7 +10718,7 @@ var _n1k0$tooty$Main$init = F2(
 						return {ctor: '[]'};
 					}
 				} else {
-					var _p6 = flags.client;
+					var _p6 = client;
 					if (_p6.ctor === 'Just') {
 						return {
 							ctor: '::',
@@ -10698,10 +10731,42 @@ var _n1k0$tooty$Main$init = F2(
 				}
 			}());
 	});
+var _n1k0$tooty$Main$init = F2(
+	function (flags, location) {
+		var authCode = _n1k0$tooty$Main$extractAuthCode(location);
+		return A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			{
+				server: 'https://mamot.fr',
+				registration: flags.registration,
+				client: flags.client,
+				userTimeline: {ctor: '[]'},
+				publicTimeline: {ctor: '[]'},
+				errors: {ctor: '[]'},
+				location: location
+			},
+			{
+				ctor: '::',
+				_0: A3(_n1k0$tooty$Main$initCommands, flags.registration, flags.client, authCode),
+				_1: {ctor: '[]'}
+			});
+	});
+var _n1k0$tooty$Main$AppRegistered = function (a) {
+	return {ctor: 'AppRegistered', _0: a};
+};
+var _n1k0$tooty$Main$registerApp = function (_p7) {
+	var _p8 = _p7;
+	var _p9 = _p8.location;
+	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p9.origin, _p9.pathname);
+	return A2(
+		_n1k0$tooty$Mastodon$send,
+		_n1k0$tooty$Main$AppRegistered,
+		A4(_n1k0$tooty$Mastodon$register, _p8.server, 'tooty', appUrl, 'read write follow'));
+};
 var _n1k0$tooty$Main$update = F2(
 	function (msg, model) {
-		var _p7 = msg;
-		switch (_p7.ctor) {
+		var _p10 = msg;
+		switch (_p10.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -10712,7 +10777,7 @@ var _n1k0$tooty$Main$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{server: _p7._0}),
+						{server: _p10._0}),
 					{ctor: '[]'});
 			case 'UrlChange':
 				return A2(
@@ -10725,130 +10790,132 @@ var _n1k0$tooty$Main$update = F2(
 					model,
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$Main$registerApp(model.server),
+						_0: _n1k0$tooty$Main$registerApp(model),
 						_1: {ctor: '[]'}
 					});
+			case 'AppRegistered':
+				var _p11 = _p10._0;
+				if (_p11.ctor === 'Ok') {
+					var _p12 = _p11._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								registration: _elm_lang$core$Maybe$Just(_p12)
+							}),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Main$saveRegistration(_p12),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$navigation$Navigation$load(
+									_n1k0$tooty$Mastodon$getAuthorizationUrl(_p12)),
+								_1: {ctor: '[]'}
+							}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _elm_lang$core$Basics$toString(_p11._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccessToken':
+				var _p13 = _p10._0;
+				if (_p13.ctor === 'Ok') {
+					var client = A2(_n1k0$tooty$Mastodon$Client, _p13._0.server, _p13._0.access_token);
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								client: _elm_lang$core$Maybe$Just(client)
+							}),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Main$loadTimelines(client),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
+								_1: {
+									ctor: '::',
+									_0: _n1k0$tooty$Main$saveClient(client),
+									_1: {ctor: '[]'}
+								}
+							}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _elm_lang$core$Basics$toString(_p13._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'UserTimeline':
+				var _p14 = _p10._0;
+				if (_p14.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{userTimeline: _p14._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								userTimeline: {ctor: '[]'},
+								errors: {
+									ctor: '::',
+									_0: _elm_lang$core$Basics$toString(_p14._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
 			default:
-				var _p8 = _p7._0;
-				switch (_p8.ctor) {
-					case 'AppRegistered':
-						var _p9 = _p8._0;
-						if (_p9.ctor === 'Ok') {
-							var _p10 = _p9._0;
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										registration: _elm_lang$core$Maybe$Just(_p10)
-									}),
-								{
+				var _p15 = _p10._0;
+				if (_p15.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{publicTimeline: _p15._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								publicTimeline: {ctor: '[]'},
+								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Main$saveRegistration(_p10),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$navigation$Navigation$load(
-											_n1k0$tooty$Mastodon$getAuthorizationUrl(_p10)),
-										_1: {ctor: '[]'}
-									}
-								});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p9._0))
-									}),
-								{ctor: '[]'});
-						}
-					case 'AccessToken':
-						var _p11 = _p8._0;
-						if (_p11.ctor === 'Ok') {
-							var client = A2(_n1k0$tooty$Mastodon$Client, _p11._0.server, _p11._0.access_token);
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										client: _elm_lang$core$Maybe$Just(client)
-									}),
-								{
-									ctor: '::',
-									_0: _n1k0$tooty$Main$loadTimelines(client),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
-										_1: {
-											ctor: '::',
-											_0: _n1k0$tooty$Main$saveClient(client),
-											_1: {ctor: '[]'}
-										}
-									}
-								});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p11._0))
-									}),
-								{ctor: '[]'});
-						}
-					case 'UserTimeline':
-						var _p12 = _p8._0;
-						if (_p12.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{userTimeline: _p12._0}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										userTimeline: {ctor: '[]'},
-										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p12._0))
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						var _p13 = _p8._0;
-						if (_p13.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{publicTimeline: _p13._0}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										publicTimeline: {ctor: '[]'},
-										error: _elm_lang$core$Maybe$Just(
-											_elm_lang$core$Basics$toString(_p13._0))
-									}),
-								{ctor: '[]'});
-						}
+									_0: _elm_lang$core$Basics$toString(_p15._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
 				}
 		}
 	});
-var _n1k0$tooty$Main$UrlChange = function (a) {
-	return {ctor: 'UrlChange', _0: a};
-};
-var _n1k0$tooty$Main$ServerChange = function (a) {
-	return {ctor: 'ServerChange', _0: a};
-};
 var _n1k0$tooty$Main$Register = {ctor: 'Register'};
 var _n1k0$tooty$Main$authView = function (model) {
 	return A2(
@@ -10944,8 +11011,8 @@ var _n1k0$tooty$Main$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p14 = model.client;
-						if (_p14.ctor === 'Just') {
+						var _p16 = model.client;
+						if (_p16.ctor === 'Just') {
 							return _n1k0$tooty$Main$homepageView(model);
 						} else {
 							return _n1k0$tooty$Main$authView(model);
