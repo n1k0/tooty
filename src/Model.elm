@@ -30,11 +30,6 @@ type Msg
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
-type alias Draft =
-    { status : String
-    }
-
-
 type alias Model =
     { server : String
     , registration : Maybe Mastodon.AppRegistration
@@ -42,7 +37,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
-    , draft : Draft
+    , draft : Mastodon.StatusRequestBody
     , errors : List String
     , location : Navigation.Location
     }
@@ -58,6 +53,16 @@ extractAuthCode { search } =
             Nothing
 
 
+defaultDraft : Mastodon.StatusRequestBody
+defaultDraft =
+    { status = ""
+    , in_reply_to_id = Nothing
+    , spoiler_text = Nothing
+    , sensitive = False
+    , visibility = "public"
+    }
+
+
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     let
@@ -70,7 +75,7 @@ init flags location =
         , userTimeline = []
         , localTimeline = []
         , publicTimeline = []
-        , draft = Draft ""
+        , draft = defaultDraft
         , errors = []
         , location = location
         }
@@ -135,6 +140,12 @@ loadTimelines client =
             Cmd.none
 
 
+postStatus : Mastodon.Client -> Mastodon.StatusRequestBody -> Cmd Msg
+postStatus client draft =
+    Mastodon.postStatus client draft
+        |> Mastodon.send StatusPosted
+
+
 errorText : Mastodon.Error -> String
 errorText error =
     case error of
@@ -151,7 +162,7 @@ errorText error =
             "Unreachable host."
 
 
-updateDraft : DraftMsg -> Draft -> Draft
+updateDraft : DraftMsg -> Mastodon.StatusRequestBody -> Mastodon.StatusRequestBody
 updateDraft draftMsg draft =
     -- TODO: later we'll probably want to handle more events like when the user
     --       wants to add CW, medias, etc.
@@ -206,9 +217,7 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.postStatus client (Mastodon.StatusRequestBody model.draft.status)
-                            |> Mastodon.send StatusPosted
-                        ]
+                        [ postStatus client model.draft ]
 
                     Nothing ->
                         []
@@ -238,4 +247,4 @@ update msg model =
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
-            { model | draft = Draft "" } ! [ loadTimelines model.client ]
+            { model | draft = defaultDraft } ! [ loadTimelines model.client ]

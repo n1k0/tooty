@@ -102,9 +102,9 @@ type alias Account =
 
 
 type alias Attachment =
+    -- type_: -- "image", "video", "gifv"
     { id : Int
-    , -- Type: "image", "video", "gifv"
-      type_ : String
+    , type_ : String
     , url : String
     , remote_url : String
     , preview_url : String
@@ -154,7 +154,17 @@ type Reblog
 
 
 type alias StatusRequestBody =
+    -- status: The text of the status
+    -- in_reply_to_id: local ID of the status you want to reply to
+    -- sensitive: set this to mark the media of the status as NSFW
+    -- spoiler_text: text to be shown as a warning before the actual content
+    -- visibility: either "direct", "private", "unlisted" or "public"
+    -- TODO: media_ids: array of media IDs to attach to the status (maximum 4)
     { status : String
+    , in_reply_to_id : Maybe Int
+    , spoiler_text : Maybe String
+    , sensitive : Bool
+    , visibility : String
     }
 
 
@@ -198,13 +208,13 @@ authorizationCodeEncoder registration authCode =
 
 statusRequestBodyEncoder : StatusRequestBody -> Encode.Value
 statusRequestBodyEncoder statusData =
-    -- status: The text of the status
-    -- in_reply_to_id (optional): local ID of the status you want to reply to
-    -- media_ids (optional): array of media IDs to attach to the status (maximum 4)
-    -- sensitive (optional): set this to mark the media of the status as NSFW
-    -- spoiler_text (optional): text to be shown as a warning before the actual content
-    -- visibility (optional): either "direct", "private", "unlisted" or "public"
-    Encode.object [ ( "status", Encode.string statusData.status ) ]
+    Encode.object
+        [ ( "status", Encode.string statusData.status )
+        , ( "in_reply_to_id", encodeMaybe Encode.int statusData.in_reply_to_id )
+        , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
+        , ( "sensitive", Encode.bool statusData.sensitive )
+        , ( "visibility", Encode.string statusData.visibility )
+        ]
 
 
 
@@ -305,6 +315,16 @@ statusDecoder =
 
 
 -- Internal helpers
+
+
+encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value
+encodeMaybe encode thing =
+    case thing of
+        Nothing ->
+            Encode.null
+
+        Just value ->
+            encode value
 
 
 encodeUrl : String -> List ( String, String ) -> String
