@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
-    "build": "node_modules/.bin/elm-make src/Main.elm --output=build/public/app.js && npm run copy-assets",
-    "copy-assets": "node_modules/.bin/copyfiles public/index.html public/css/style.css build/",
+    "build": "node_modules/.bin/elm-make src/Main.elm --output=build/app.js && npm run copy-assets",
+    "copy-assets": "cp public/index.html build/ && cp public/style.css build/",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
     "live": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/n1k0/tooty#readme",
   "devDependencies": {
-    "copyfiles": "^1.2.0",
     "elm": "^0.18.0",
     "elm-live": "^2.7.4",
     "gh-pages": "^0.12.0"
