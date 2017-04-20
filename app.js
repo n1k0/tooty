@@ -16058,6 +16058,18 @@ var _n1k0$tooty$Mastodon$clientEncoder = function (client) {
 			}
 		});
 };
+var _n1k0$tooty$Mastodon$fetch = F3(
+	function (client, endpoint, decoder) {
+		return A2(
+			_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+			_elm_lang$http$Http$expectJson(decoder),
+			A3(
+				_lukewestby$elm_http_builder$HttpBuilder$withHeader,
+				'Authorization',
+				A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
+				_lukewestby$elm_http_builder$HttpBuilder$get(
+					A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint))));
+	});
 var _n1k0$tooty$Mastodon$mastodonErrorDecoder = A2(_elm_lang$core$Json_Decode$field, 'error', _elm_lang$core$Json_Decode$string);
 var _n1k0$tooty$Mastodon$encodeUrl = F2(
 	function (base, params) {
@@ -16640,27 +16652,26 @@ var _n1k0$tooty$Mastodon$statusDecoder = A3(
 																			'account',
 																			_n1k0$tooty$Mastodon$accountDecoder,
 																			_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$Status))))))))))))))))))));
-var _n1k0$tooty$Mastodon$fetchStatusList = F2(
-	function (client, endpoint) {
-		return A2(
-			_lukewestby$elm_http_builder$HttpBuilder$withExpect,
-			_elm_lang$http$Http$expectJson(
-				_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder)),
-			A3(
-				_lukewestby$elm_http_builder$HttpBuilder$withHeader,
-				'Authorization',
-				A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
-				_lukewestby$elm_http_builder$HttpBuilder$get(
-					A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint))));
-	});
 var _n1k0$tooty$Mastodon$fetchUserTimeline = function (client) {
-	return A2(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/home');
+	return A3(
+		_n1k0$tooty$Mastodon$fetch,
+		client,
+		'/api/v1/timelines/home',
+		_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder));
 };
 var _n1k0$tooty$Mastodon$fetchLocalTimeline = function (client) {
-	return A2(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/public?local=true');
+	return A3(
+		_n1k0$tooty$Mastodon$fetch,
+		client,
+		'/api/v1/timelines/public?local=true',
+		_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder));
 };
 var _n1k0$tooty$Mastodon$fetchPublicTimeline = function (client) {
-	return A2(_n1k0$tooty$Mastodon$fetchStatusList, client, '/api/v1/timelines/public');
+	return A3(
+		_n1k0$tooty$Mastodon$fetch,
+		client,
+		'/api/v1/timelines/public',
+		_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon$statusDecoder));
 };
 var _n1k0$tooty$Mastodon$postStatus = F2(
 	function (client, statusRequestBody) {
@@ -16713,10 +16724,14 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					{
 						spoiler_text: _elm_lang$core$Maybe$Just(_p0._0)
 					});
-			default:
+			case 'UpdateStatus':
 				return _elm_lang$core$Native_Utils.update(
 					draft,
 					{status: _p0._0});
+			default:
+				return _elm_lang$core$Native_Utils.update(
+					draft,
+					{visibility: _p0._0});
 		}
 	});
 var _n1k0$tooty$Model$errorText = function (error) {
@@ -16788,6 +16803,9 @@ var _n1k0$tooty$Model$Model = F9(
 	function (a, b, c, d, e, f, g, h, i) {
 		return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, draft: g, errors: h, location: i};
 	});
+var _n1k0$tooty$Model$UpdateVisibility = function (a) {
+	return {ctor: 'UpdateVisibility', _0: a};
+};
 var _n1k0$tooty$Model$UpdateStatus = function (a) {
 	return {ctor: 'UpdateStatus', _0: a};
 };
@@ -17297,330 +17315,9 @@ var _n1k0$tooty$View$authView = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _n1k0$tooty$View$draftView = function (_p0) {
-	var _p1 = _p0;
-	var _p7 = _p1.draft;
-	var hasSpoiler = function () {
-		var _p2 = _p7.spoiler_text;
-		if (_p2.ctor === 'Nothing') {
-			return false;
-		} else {
-			return true;
-		}
-	}();
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text('Post a message'),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('panel-body'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$form,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('form'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Model$SubmitDraft),
-											_1: {ctor: '[]'}
-										}
-									},
-									{
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$div,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
-												_1: {ctor: '[]'}
-											},
-											{
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$label,
-													{ctor: '[]'},
-													{
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$input,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-																_1: {
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Events$onCheck(
-																		function (_p3) {
-																			return _n1k0$tooty$Model$DraftEvent(
-																				_n1k0$tooty$Model$ToggleSpoiler(_p3));
-																		}),
-																	_1: {
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$checked(hasSpoiler),
-																		_1: {ctor: '[]'}
-																	}
-																}
-															},
-															{ctor: '[]'}),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(' Add a spoiler'),
-															_1: {ctor: '[]'}
-														}
-													}),
-												_1: {ctor: '[]'}
-											}),
-										_1: {
-											ctor: '::',
-											_0: hasSpoiler ? A2(
-												_elm_lang$html$Html$div,
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$class('form-group'),
-													_1: {ctor: '[]'}
-												},
-												{
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$label,
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$for('spoiler'),
-															_1: {ctor: '[]'}
-														},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text('Visible part'),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$textarea,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$id('spoiler'),
-																_1: {
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$class('form-control'),
-																	_1: {
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$rows(5),
-																		_1: {
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$placeholder('This text will always be visible.'),
-																			_1: {
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p4) {
-																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSpoiler(_p4));
-																					}),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$required(true),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(
-																							A2(_elm_lang$core$Maybe$withDefault, '', _p7.spoiler_text)),
-																						_1: {ctor: '[]'}
-																					}
-																				}
-																			}
-																		}
-																	}
-																}
-															},
-															{ctor: '[]'}),
-														_1: {ctor: '[]'}
-													}
-												}) : _elm_lang$html$Html$text(''),
-											_1: {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$div,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('form-group'),
-														_1: {ctor: '[]'}
-													},
-													{
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$label,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$for('status'),
-																_1: {ctor: '[]'}
-															},
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html$text(
-																	hasSpoiler ? 'Hidden part' : 'Status'),
-																_1: {ctor: '[]'}
-															}),
-														_1: {
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$textarea,
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$id('status'),
-																	_1: {
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$class('form-control'),
-																		_1: {
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$rows(8),
-																			_1: {
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$placeholder(
-																					hasSpoiler ? 'This text with be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Events$onInput(
-																						function (_p5) {
-																							return _n1k0$tooty$Model$DraftEvent(
-																								_n1k0$tooty$Model$UpdateStatus(_p5));
-																						}),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$required(true),
-																						_1: {
-																							ctor: '::',
-																							_0: _elm_lang$html$Html_Attributes$value(_p7.status),
-																							_1: {ctor: '[]'}
-																						}
-																					}
-																				}
-																			}
-																		}
-																	}
-																},
-																{ctor: '[]'}),
-															_1: {ctor: '[]'}
-														}
-													}),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$div,
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
-															_1: {ctor: '[]'}
-														},
-														{
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$label,
-																{ctor: '[]'},
-																{
-																	ctor: '::',
-																	_0: A2(
-																		_elm_lang$html$Html$input,
-																		{
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-																			_1: {
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Events$onCheck(
-																					function (_p6) {
-																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSensitive(_p6));
-																					}),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$checked(_p7.sensitive),
-																					_1: {ctor: '[]'}
-																				}
-																			}
-																		},
-																		{ctor: '[]'}),
-																	_1: {
-																		ctor: '::',
-																		_0: _elm_lang$html$Html$text(' NSFW'),
-																		_1: {ctor: '[]'}
-																	}
-																}),
-															_1: {ctor: '[]'}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$p,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$class('text-right'),
-																_1: {ctor: '[]'}
-															},
-															{
-																ctor: '::',
-																_0: A2(
-																	_elm_lang$html$Html$button,
-																	{
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
-																		_1: {ctor: '[]'}
-																	},
-																	{
-																		ctor: '::',
-																		_0: _elm_lang$html$Html$text('Toot!'),
-																		_1: {ctor: '[]'}
-																	}),
-																_1: {ctor: '[]'}
-															}),
-														_1: {ctor: '[]'}
-													}
-												}
-											}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {ctor: '[]'}
-					}
-				}),
-			_1: {ctor: '[]'}
-		});
-};
 var _n1k0$tooty$View$statusView = function (status) {
-	var _p8 = status.reblog;
-	if (_p8.ctor === 'Just') {
+	var _p0 = status.reblog;
+	if (_p0.ctor === 'Just') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -17656,7 +17353,7 @@ var _n1k0$tooty$View$statusView = function (status) {
 					}),
 				_1: {
 					ctor: '::',
-					_0: _n1k0$tooty$View$statusView(_p8._0._0),
+					_0: _n1k0$tooty$View$statusView(_p0._0._0),
 					_1: {ctor: '[]'}
 				}
 			});
@@ -17788,6 +17485,450 @@ var _n1k0$tooty$View$timelineView = F2(
 				_1: {ctor: '[]'}
 			});
 	});
+var _n1k0$tooty$View$errorView = function (error) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(error),
+			_1: {ctor: '[]'}
+		});
+};
+var _n1k0$tooty$View$errorsListView = function (model) {
+	var _p1 = model.errors;
+	if (_p1.ctor === '[]') {
+		return _elm_lang$html$Html$text('');
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
+	}
+};
+var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
+	{
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'public', _1: 'post to public timelines'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'unlisted', _1: 'do not show in public timelines'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'private', _1: 'post to followers only'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'direct', _1: 'post to mentioned users only'},
+					_1: {ctor: '[]'}
+				}
+			}
+		}
+	});
+var _n1k0$tooty$View$draftView = function (_p2) {
+	var _p3 = _p2;
+	var _p13 = _p3.draft;
+	var visibilityOptionView = function (_p4) {
+		var _p5 = _p4;
+		var _p6 = _p5._0;
+		return A2(
+			_elm_lang$html$Html$option,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$value(_p6),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html$text(
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_p6,
+						A2(_elm_lang$core$Basics_ops['++'], ': ', _p5._1))),
+				_1: {ctor: '[]'}
+			});
+	};
+	var hasSpoiler = function () {
+		var _p7 = _p13.spoiler_text;
+		if (_p7.ctor === 'Nothing') {
+			return false;
+		} else {
+			return true;
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('Post a message'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('panel-body'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$form,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('form'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Model$SubmitDraft),
+											_1: {ctor: '[]'}
+										}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$label,
+													{ctor: '[]'},
+													{
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$input,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Events$onCheck(
+																		function (_p8) {
+																			return _n1k0$tooty$Model$DraftEvent(
+																				_n1k0$tooty$Model$ToggleSpoiler(_p8));
+																		}),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$checked(hasSpoiler),
+																		_1: {ctor: '[]'}
+																	}
+																}
+															},
+															{ctor: '[]'}),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html$text(' Add a spoiler'),
+															_1: {ctor: '[]'}
+														}
+													}),
+												_1: {ctor: '[]'}
+											}),
+										_1: {
+											ctor: '::',
+											_0: hasSpoiler ? A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('form-group'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$label,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$for('spoiler'),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('Visible part'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$textarea,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$id('spoiler'),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$rows(5),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$placeholder('This text will always be visible.'),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Events$onInput(
+																					function (_p9) {
+																						return _n1k0$tooty$Model$DraftEvent(
+																							_n1k0$tooty$Model$UpdateSpoiler(_p9));
+																					}),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$required(true),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Attributes$value(
+																							A2(_elm_lang$core$Maybe$withDefault, '', _p13.spoiler_text)),
+																						_1: {ctor: '[]'}
+																					}
+																				}
+																			}
+																		}
+																	}
+																}
+															},
+															{ctor: '[]'}),
+														_1: {ctor: '[]'}
+													}
+												}) : _elm_lang$html$Html$text(''),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$div,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('form-group'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$label,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$for('status'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text(
+																	hasSpoiler ? 'Hidden part' : 'Status'),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$textarea,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$id('status'),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$rows(8),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$placeholder(
+																					hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Events$onInput(
+																						function (_p10) {
+																							return _n1k0$tooty$Model$DraftEvent(
+																								_n1k0$tooty$Model$UpdateStatus(_p10));
+																						}),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Attributes$required(true),
+																						_1: {
+																							ctor: '::',
+																							_0: _elm_lang$html$Html_Attributes$value(_p13.status),
+																							_1: {ctor: '[]'}
+																						}
+																					}
+																				}
+																			}
+																		}
+																	}
+																},
+																{ctor: '[]'}),
+															_1: {ctor: '[]'}
+														}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$div,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class('form-group'),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$label,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$for('status'),
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text('Visibility'),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$select,
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$id('visibility'),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Events$onInput(
+																					function (_p11) {
+																						return _n1k0$tooty$Model$DraftEvent(
+																							_n1k0$tooty$Model$UpdateVisibility(_p11));
+																					}),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$required(true),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Attributes$value(_p13.visibility),
+																						_1: {ctor: '[]'}
+																					}
+																				}
+																			}
+																		}
+																	},
+																	A2(
+																		_elm_lang$core$List$map,
+																		visibilityOptionView,
+																		_elm_lang$core$Dict$toList(_n1k0$tooty$View$visibilities))),
+																_1: {ctor: '[]'}
+															}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$div,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$label,
+																	{ctor: '[]'},
+																	{
+																		ctor: '::',
+																		_0: A2(
+																			_elm_lang$html$Html$input,
+																			{
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Events$onCheck(
+																						function (_p12) {
+																							return _n1k0$tooty$Model$DraftEvent(
+																								_n1k0$tooty$Model$UpdateSensitive(_p12));
+																						}),
+																					_1: {
+																						ctor: '::',
+																						_0: _elm_lang$html$Html_Attributes$checked(_p13.sensitive),
+																						_1: {ctor: '[]'}
+																					}
+																				}
+																			},
+																			{ctor: '[]'}),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text(' This post is NSFW'),
+																			_1: {ctor: '[]'}
+																		}
+																	}),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$p,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$class('text-right'),
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$button,
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
+																			_1: {ctor: '[]'}
+																		},
+																		{
+																			ctor: '::',
+																			_0: _elm_lang$html$Html$text('Toot!'),
+																			_1: {ctor: '[]'}
+																		}),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {ctor: '[]'}
+														}
+													}
+												}
+											}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
 var _n1k0$tooty$View$homepageView = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -17814,31 +17955,6 @@ var _n1k0$tooty$View$homepageView = function (model) {
 			}
 		});
 };
-var _n1k0$tooty$View$errorView = function (error) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(error),
-			_1: {ctor: '[]'}
-		});
-};
-var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p9 = model.errors;
-	if (_p9.ctor === '[]') {
-		return _elm_lang$html$Html$text('');
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
-	}
-};
 var _n1k0$tooty$View$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -17863,8 +17979,8 @@ var _n1k0$tooty$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p10 = model.client;
-						if (_p10.ctor === 'Just') {
+						var _p14 = model.client;
+						if (_p14.ctor === 'Just') {
 							return _n1k0$tooty$View$homepageView(model);
 						} else {
 							return _n1k0$tooty$View$authView(model);
