@@ -145,9 +145,7 @@ draftView { draft } =
                                 []
                             ]
                         , div [ class "form-group" ]
-                            [ label [ for "status" ]
-                                [ text "Visibility"
-                                ]
+                            [ label [ for "visibility" ] [ text "Visibility" ]
                             , select
                                 [ id "visibility"
                                 , class "form-control"
