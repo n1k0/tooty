@@ -18,15 +18,14 @@ type alias Flags =
 
 
 type Msg
-    = NoOp
-    | Register
+    = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
-    | AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
-    | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Register
     | ServerChange String
     | UrlChange Navigation.Location
+    | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
 type alias Model =
@@ -146,9 +145,6 @@ errorText error =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            model ! []
-
         ServerChange server ->
             { model | server = server } ! []
 
@@ -171,10 +167,10 @@ update msg model =
 
         AccessToken result ->
             case result of
-                Ok { server, access_token } ->
+                Ok { server, accessToken } ->
                     let
                         client =
-                            Mastodon.Client server access_token
+                            Mastodon.Client server accessToken
                     in
                         { model | client = Just client }
                             ! [ loadTimelines client

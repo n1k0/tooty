@@ -161,7 +161,7 @@ type StatusListResult
 
 type alias AccessTokenResult =
     { server : Server
-    , access_token : Token
+    , accessToken : Token
     }
 
 
