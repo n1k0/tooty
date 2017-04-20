@@ -151,6 +151,11 @@ type Reblog
     = Reblog Status
 
 
+type alias StatusPostData =
+    { status : String
+    }
+
+
 
 -- Msg
 
@@ -187,6 +192,17 @@ authorizationCodeEncoder registration authCode =
         , ( "redirect_uri", Encode.string registration.redirect_uri )
         , ( "code", Encode.string authCode )
         ]
+
+
+statusEncoder : StatusPostData -> Encode.Value
+statusEncoder statusData =
+    -- status: The text of the status
+    -- in_reply_to_id (optional): local ID of the status you want to reply to
+    -- media_ids (optional): array of media IDs to attach to the status (maximum 4)
+    -- sensitive (optional): set this to mark the media of the status as NSFW
+    -- spoiler_text (optional): text to be shown as a warning before the actual content
+    -- visibility (optional): either "direct", "private", "unlisted" or "public"
+    Encode.object [ ( "status", Encode.string statusData.status ) ]
 
 
 
@@ -392,8 +408,7 @@ getAccessToken registration authCode =
 
 send : (Result Error a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
 send tagger builder =
-    builder
-        |> HttpBuilder.send (toResponse >> tagger)
+    builder |> HttpBuilder.send (toResponse >> tagger)
 
 
 fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)

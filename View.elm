@@ -47,7 +47,7 @@ statusView status =
 
 timelineView : List Mastodon.Status -> String -> Html Msg
 timelineView statuses label =
-    div [ class "col-sm-4" ]
+    div [ class "col-sm-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ text label ]
             , ul [ class "list-group" ] <|
@@ -61,10 +61,28 @@ timelineView statuses label =
         ]
 
 
+newPostView : Model -> Html Msg
+newPostView model =
+    div [ class "col-md-4 col-md-offset-4" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ] [ text "Authenticate" ]
+            , div [ class "panel-body" ]
+                [ Html.form [ class "form" ]
+                    [ div [ class "form-group" ]
+                        [ label [ for "status" ] [ text "Status" ]
+                        , textarea [ class "form-control" ] []
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+
 homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
-        [ timelineView model.userTimeline "Home timeline"
+        [ newPostView model
+        , timelineView model.userTimeline "Home timeline"
         , timelineView model.localTimeline "Local timeline"
         , timelineView model.publicTimeline "Public timeline"
         ]
