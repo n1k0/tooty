@@ -91,7 +91,10 @@ authView model =
                             ]
                             []
                         , p [ class "help-block" ]
-                            [ text "You'll be redirected to that server to authenticate yourself. We don't have access to your password." ]
+                            [ text <|
+                                "You'll be redirected to that server to authenticate yourself. "
+                                    ++ "We don't have access to your password."
+                            ]
                         ]
                     , button [ class "btn btn-primary", type_ "submit" ]
                         [ text "Sign into Tooty" ]

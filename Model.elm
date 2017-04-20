@@ -13,14 +13,14 @@ type alias Flags =
 
 
 type Msg
-    = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
-    | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
-    | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
-    | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    = AccessToken (Mastodon.Result Mastodon.AccessTokenResult)
+    | AppRegistered (Mastodon.Result Mastodon.AppRegistration)
+    | LocalTimeline (Mastodon.Result (List Mastodon.Status))
+    | PublicTimeline (Mastodon.Result (List Mastodon.Status))
     | Register
     | ServerChange String
     | UrlChange Navigation.Location
-    | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | UserTimeline (Mastodon.Result (List Mastodon.Status))
 
 
 type alias Model =

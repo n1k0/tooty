@@ -8,6 +8,7 @@ module Mastodon
         , Error(..)
         , Mention
         , Reblog(..)
+        , Result
         , Status
         , Tag
         , register
@@ -151,12 +152,8 @@ type Reblog
     = Reblog Status
 
 
-
--- Msg
-
-
-type StatusListResult
-    = Result Http.Error (List Status)
+type alias Result a =
+    Result.Result Error a
 
 
 type alias AccessTokenResult =
@@ -330,7 +327,7 @@ extractError error =
             NetworkError
 
 
-toResponse : Result Http.Error a -> Result Error a
+toResponse : Result.Result Http.Error a -> Result a
 toResponse result =
     Result.mapError extractError result
 
@@ -390,10 +387,9 @@ getAccessToken registration authCode =
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
 
 
-send : (Result Error a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
+send : (Result a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
 send tagger builder =
-    builder
-        |> HttpBuilder.send (toResponse >> tagger)
+    builder |> HttpBuilder.send (toResponse >> tagger)
 
 
 fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
