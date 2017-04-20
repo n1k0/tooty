@@ -169,12 +169,13 @@ type alias AccessTokenResult =
 -- Encoders
 
 
-appRegistrationEncoder : String -> String -> String -> Encode.Value
-appRegistrationEncoder client_name redirect_uris scope =
+appRegistrationEncoder : String -> String -> String -> String -> Encode.Value
+appRegistrationEncoder client_name redirect_uris scope website =
     Encode.object
         [ ( "client_name", Encode.string client_name )
         , ( "redirect_uris", Encode.string redirect_uris )
         , ( "scopes", Encode.string scope )
+        , ( "website", Encode.string website )
         ]
 
 
@@ -366,11 +367,11 @@ registrationEncoder registration =
         ]
 
 
-register : Server -> String -> String -> String -> HttpBuilder.RequestBuilder AppRegistration
-register server client_name redirect_uri scope =
+register : Server -> String -> String -> String -> String -> HttpBuilder.RequestBuilder AppRegistration
+register server client_name redirect_uri scope website =
     HttpBuilder.post (server ++ "/api/v1/apps")
         |> HttpBuilder.withExpect (Http.expectJson (appRegistrationDecoder server scope))
-        |> HttpBuilder.withJsonBody (appRegistrationEncoder client_name redirect_uri scope)
+        |> HttpBuilder.withJsonBody (appRegistrationEncoder client_name redirect_uri scope website)
 
 
 getAuthorizationUrl : AppRegistration -> String
