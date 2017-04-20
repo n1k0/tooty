@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Json.Decode as Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -26,25 +27,36 @@ errorsListView model =
 
 statusView : Mastodon.Status -> Html Msg
 statusView status =
-    case status.reblog of
-        Just (Mastodon.Reblog reblog) ->
-            div [ class "reblog" ]
-                [ p []
-                    [ a [ href status.account.url ] [ text <| "@" ++ status.account.username ]
-                    , text " reblogged"
+    let
+        accountLinkAttributes =
+            [ href status.account.url
+              -- When clicking on a status, we should not let the browser
+              -- redirect to a new. That's why we're preventing the default
+              -- behavior here
+            , onWithOptions "click"
+                { stopPropagation = True, preventDefault = True }
+                (Decode.succeed (OnLoadUserAccount status.account.id))
+            ]
+    in
+        case status.reblog of
+            Just (Mastodon.Reblog reblog) ->
+                div [ class "reblog" ]
+                    [ p []
+                        [ a accountLinkAttributes [ text <| "@" ++ status.account.username ]
+                        , text " reblogged"
+                        ]
+                    , statusView reblog
                     ]
-                , statusView reblog
-                ]
 
-        Nothing ->
-            div [ class "status" ]
-                [ img [ class "avatar", src status.account.avatar ] []
-                , div [ class "username" ]
-                    [ a [ href status.account.url ] [ text status.account.username ]
+            Nothing ->
+                div [ class "status" ]
+                    [ img [ class "avatar", src status.account.avatar ] []
+                    , div [ class "username" ]
+                        [ a accountLinkAttributes [ text status.account.username ]
+                        ]
+                    , div [ class "status-text" ]
+                        (HtmlParser.parse status.content |> toVirtualDom)
                     ]
-                , div [ class "status-text" ]
-                    (HtmlParser.parse status.content |> toVirtualDom)
-                ]
 
 
 timelineView : List Mastodon.Status -> String -> Html Msg

@@ -25,11 +25,13 @@ type Msg
     | DraftEvent DraftMsg
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | OnLoadUserAccount Mastodon.AccountId
     | Register
     | ServerChange String
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
     | UrlChange Navigation.Location
+    | UserAccount (Result Mastodon.Error Mastodon.Account)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
@@ -249,6 +251,15 @@ update msg model =
                 Err error ->
                     { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
+        OnLoadUserAccount accountId ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.fetchAccount client accountId |> Mastodon.send UserAccount ]
+
+                    Nothing ->
+                        []
+
         LocalTimeline result ->
             case result of
                 Ok localTimeline ->
@@ -264,6 +275,13 @@ update msg model =
 
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        UserAccount account ->
+            let
+                d =
+                    Debug.log "[UserAccount] Loaded " account
+            in
+                model ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]

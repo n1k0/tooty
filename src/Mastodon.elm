@@ -2,6 +2,7 @@ module Mastodon
     exposing
         ( AccessTokenResult
         , Account
+        , AccountId
         , AppRegistration
         , Attachment
         , Client
@@ -16,6 +17,7 @@ module Mastodon
         , clientEncoder
         , getAuthorizationUrl
         , getAccessToken
+        , fetchAccount
         , fetchPublicTimeline
         , fetchLocalTimeline
         , fetchUserTimeline
@@ -33,8 +35,8 @@ import Json.Encode as Encode
 -- Types
 
 
-type alias Server =
-    String
+type alias AccountId =
+    Int
 
 
 type alias AuthCode =
@@ -46,6 +48,10 @@ type alias ClientId =
 
 
 type alias ClientSecret =
+    String
+
+
+type alias Server =
     String
 
 
@@ -92,7 +98,7 @@ type alias Account =
     , followers_count : Int
     , following_count : Int
     , header : String
-    , id : Int
+    , id : AccountId
     , locked : Bool
     , note : String
     , statuses_count : Int
@@ -432,6 +438,11 @@ getAccessToken registration authCode =
 send : (Result Error a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
 send tagger builder =
     builder |> HttpBuilder.send (toResponse >> tagger)
+
+
+fetchAccount : Client -> AccountId -> HttpBuilder.RequestBuilder Account
+fetchAccount client accountId =
+    fetch client ("/api/v1/accounts/" ++ (accountId |> toString)) accountDecoder
 
 
 fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
