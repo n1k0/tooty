@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import HtmlParser
 import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
-import Model exposing (Model, Msg(..))
+import Model exposing (Model, DraftMsg(..), Msg(..))
 
 
 errorView : String -> Html Msg
@@ -61,16 +61,28 @@ timelineView statuses label =
         ]
 
 
-newPostView : Model -> Html Msg
-newPostView model =
-    div [ class "col-md-4 col-md-offset-4" ]
+draftView : Model -> Html Msg
+draftView model =
+    div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ text "Authenticate" ]
+            [ div [ class "panel-heading" ] [ text "Post a message" ]
             , div [ class "panel-body" ]
                 [ Html.form [ class "form" ]
                     [ div [ class "form-group" ]
                         [ label [ for "status" ] [ text "Status" ]
-                        , textarea [ class "form-control" ] []
+                        , textarea
+                            [ id "status"
+                            , class "form-control"
+                            , rows 8
+                            , placeholder "Once upon a time..."
+                            , onInput <| DraftEvent << UpdateStatus
+                            , required True
+                            ]
+                            []
+                        ]
+                    , p [ class "text-right" ]
+                        [ button [ class "btn btn-primary" ]
+                            [ text "Toot!" ]
                         ]
                     ]
                 ]
@@ -81,7 +93,7 @@ newPostView model =
 homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
-        [ newPostView model
+        [ draftView model
         , timelineView model.userTimeline "Home timeline"
         , timelineView model.localTimeline "Local timeline"
         , timelineView model.publicTimeline "Public timeline"

@@ -9,6 +9,7 @@ module Mastodon
         , Mention
         , Reblog(..)
         , Status
+        , StatusRequestBody
         , Tag
         , register
         , registrationEncoder
@@ -18,6 +19,7 @@ module Mastodon
         , fetchPublicTimeline
         , fetchLocalTimeline
         , fetchUserTimeline
+        , postStatus
         , send
         )
 
@@ -151,7 +153,7 @@ type Reblog
     = Reblog Status
 
 
-type alias StatusPostData =
+type alias StatusRequestBody =
     { status : String
     }
 
@@ -194,8 +196,8 @@ authorizationCodeEncoder registration authCode =
         ]
 
 
-statusEncoder : StatusPostData -> Encode.Value
-statusEncoder statusData =
+statusRequestBodyEncoder : StatusRequestBody -> Encode.Value
+statusRequestBodyEncoder statusData =
     -- status: The text of the status
     -- in_reply_to_id (optional): local ID of the status you want to reply to
     -- media_ids (optional): array of media IDs to attach to the status (maximum 4)
@@ -424,3 +426,11 @@ fetchLocalTimeline client =
 fetchPublicTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchPublicTimeline client =
     fetchStatusList client "/api/v1/timelines/public"
+
+
+postStatus : Client -> StatusRequestBody -> HttpBuilder.RequestBuilder Status
+postStatus client statusRequestBody =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+        |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)

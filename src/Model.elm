@@ -12,15 +12,26 @@ type alias Flags =
     }
 
 
+type DraftMsg
+    = UpdateStatus String
+
+
 type Msg
     = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
+    | DraftEvent DraftMsg
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Register
     | ServerChange String
+    | SubmitDraft
     | UrlChange Navigation.Location
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+
+
+type alias Draft =
+    { status : String
+    }
 
 
 type alias Model =
@@ -30,6 +41,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
+    , draft : Draft
     , errors : List String
     , location : Navigation.Location
     }
@@ -57,6 +69,7 @@ init flags location =
         , userTimeline = []
         , localTimeline = []
         , publicTimeline = []
+        , draft = Draft ""
         , errors = []
         , location = location
         }
@@ -137,6 +150,15 @@ errorText error =
             "Unreachable host."
 
 
+updateDraft : DraftMsg -> Draft -> Draft
+updateDraft draftMsg draft =
+    -- TODO: later we'll probably want to handle more events like when the user
+    --       wants to add CW, medias, etc.
+    case draftMsg of
+        UpdateStatus status ->
+            { draft | status = status }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -175,6 +197,12 @@ update msg model =
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
+
+        DraftEvent draftMsg ->
+            { model | draft = updateDraft draftMsg model.draft } ! []
+
+        SubmitDraft ->
+            model ! [ Mastodon.postStatus model.client model.draft.status ]
 
         UserTimeline result ->
             case result of
