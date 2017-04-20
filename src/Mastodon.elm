@@ -446,7 +446,7 @@ send tagger builder =
 
 fetchAccount : Client -> AccountId -> Request Account
 fetchAccount client accountId =
-    fetch client ("/api/v1/accounts/" ++ (accountId |> toString)) accountDecoder
+    fetch client ("/api/v1/accounts/" ++ (toString accountId)) accountDecoder
 
 
 fetchUserTimeline : Client -> Request (List Status)

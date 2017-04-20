@@ -10,6 +10,21 @@ import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
 
 
+-- Custom Events
+
+
+onClickWithPreventAndStop : msg -> Attribute msg
+onClickWithPreventAndStop msg =
+    onWithOptions
+        "click"
+        { preventDefault = True, stopPropagation = True }
+        (Decode.succeed msg)
+
+
+
+-- Views
+
+
 errorView : String -> Html Msg
 errorView error =
     div [ class "alert alert-danger" ] [ text error ]
@@ -31,11 +46,9 @@ statusView status =
         accountLinkAttributes =
             [ href status.account.url
               -- When clicking on a status, we should not let the browser
-              -- redirect to a new. That's why we're preventing the default
+              -- redirect to a new page. That's why we're preventing the default
               -- behavior here
-            , onWithOptions "click"
-                { stopPropagation = True, preventDefault = True }
-                (Decode.succeed (OnLoadUserAccount status.account.id))
+            , onClickWithPreventAndStop (OnLoadUserAccount status.account.id)
             ]
     in
         case status.reblog of
