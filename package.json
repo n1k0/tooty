@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
-    "build": "node_modules/.bin/elm-make Main.elm --output=build/app.js && npm run copy-assets",
-    "copy-assets": "node_modules/.bin/copyfiles index.html style.css build/",
+    "build": "node_modules/.bin/elm-make src/Main.elm --output=build/public/app.js && npm run copy-assets",
+    "copy-assets": "node_modules/.bin/copyfiles public/index.html public/css/style.css build/",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
-    "live": "node_modules/.bin/elm-live Main.elm --output=app.js --debug",
+    "live": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js --debug",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -4,7 +4,7 @@
     "repository": "https://github.com/n1k0/tooty.git",
     "license": "MIT",
     "source-directories": [
-        "."
+        "./src"
     ],
     "exposed-modules": [],
     "dependencies": {
