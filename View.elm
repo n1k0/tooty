@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import HtmlParser
-import HtmlParser.Util exposing (textContent)
+import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
 import Model exposing (Model, Msg(..))
 
@@ -41,7 +41,7 @@ statusView status =
                 [ img [ class "avatar", src status.account.avatar ] []
                 , div [ class "username" ] [ text status.account.username ]
                 , div [ class "status-text" ]
-                    [ HtmlParser.parse status.content |> textContent |> text ]
+                    (HtmlParser.parse status.content |> toVirtualDom)
                 ]
 
 
