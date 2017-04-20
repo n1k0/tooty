@@ -13,7 +13,9 @@ type alias Flags =
 
 
 type DraftMsg
-    = UpdateSensitive Bool
+    = ToggleSpoiler Bool
+    | UpdateSensitive Bool
+    | UpdateSpoiler String
     | UpdateStatus String
 
 
@@ -168,8 +170,20 @@ updateDraft draftMsg draft =
     -- TODO: later we'll probably want to handle more events like when the user
     --       wants to add CW, medias, etc.
     case draftMsg of
+        ToggleSpoiler enabled ->
+            { draft
+                | spoiler_text =
+                    if enabled then
+                        Just ""
+                    else
+                        Nothing
+            }
+
         UpdateSensitive sensitive ->
             { draft | sensitive = sensitive }
+
+        UpdateSpoiler spoiler_text ->
+            { draft | spoiler_text = Just spoiler_text }
 
         UpdateStatus status ->
             { draft | status = status }

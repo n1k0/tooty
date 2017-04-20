@@ -65,42 +65,81 @@ timelineView statuses label =
 
 draftView : Model -> Html Msg
 draftView model =
-    div [ class "col-md-3" ]
-        [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ text "Post a message" ]
-            , div [ class "panel-body" ]
-                [ Html.form [ class "form", onSubmit SubmitDraft ]
-                    [ div [ class "form-group" ]
-                        [ label [ for "status" ] [ text "Status" ]
-                        , textarea
-                            [ id "status"
-                            , class "form-control"
-                            , rows 8
-                            , placeholder "Once upon a time..."
-                            , onInput <| DraftEvent << UpdateStatus
-                            , required True
+    let
+        hasSpoiler =
+            case model.draft.spoiler_text of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+    in
+        div [ class "col-md-3" ]
+            [ div [ class "panel panel-default" ]
+                [ div [ class "panel-heading" ] [ text "Post a message" ]
+                , div [ class "panel-body" ]
+                    [ Html.form [ class "form", onSubmit SubmitDraft ]
+                        [ div [ class "form-group checkbox" ]
+                            [ label []
+                                [ input
+                                    [ type_ "checkbox"
+                                    , onCheck <| DraftEvent << ToggleSpoiler
+                                    , checked hasSpoiler
+                                    ]
+                                    []
+                                , text " Add a spoiler"
+                                ]
                             ]
-                            []
-                        ]
-                    , div [ class "form-group checkbox" ]
-                        [ label []
-                            [ input
-                                [ type_ "checkbox"
-                                , onCheck <| DraftEvent << UpdateSensitive
-                                , checked model.draft.sensitive
+                        , if hasSpoiler then
+                            div [ class "form-group" ]
+                                [ label [ for "spoiler" ] [ text "Spoiler" ]
+                                , textarea
+                                    [ id "spoiler"
+                                    , class "form-control"
+                                    , rows 5
+                                    , placeholder "This text will always be visible."
+                                    , onInput <| DraftEvent << UpdateSpoiler
+                                    , required True
+                                    ]
+                                    []
+                                ]
+                          else
+                            text ""
+                        , div [ class "form-group" ]
+                            [ label [ for "status" ] [ text "Status" ]
+                            , textarea
+                                [ id "status"
+                                , class "form-control"
+                                , rows 8
+                                , placeholder <|
+                                    if hasSpoiler then
+                                        "This text with be hidden by default, as you have enabled a spoiler."
+                                    else
+                                        "Once upon a time..."
+                                , onInput <| DraftEvent << UpdateStatus
+                                , required True
                                 ]
                                 []
-                            , text " add a Content Warning"
                             ]
-                        ]
-                    , p [ class "text-right" ]
-                        [ button [ class "btn btn-primary" ]
-                            [ text "Toot!" ]
+                        , div [ class "form-group checkbox" ]
+                            [ label []
+                                [ input
+                                    [ type_ "checkbox"
+                                    , onCheck <| DraftEvent << UpdateSensitive
+                                    , checked model.draft.sensitive
+                                    ]
+                                    []
+                                , text " NSFW"
+                                ]
+                            ]
+                        , p [ class "text-right" ]
+                            [ button [ class "btn btn-primary" ]
+                                [ text "Toot!" ]
+                            ]
                         ]
                     ]
                 ]
             ]
-        ]
 
 
 homepageView : Model -> Html Msg
