@@ -42,6 +42,7 @@ statusView status =
                 , div [ class "username" ] [ text status.account.username ]
                 , div [ class "status-text" ]
                     [ HtmlParser.parse status.content |> textContent |> text ]
+                , div [ style [ ( "clear", "both" ) ] ] []
                 ]
 
 
