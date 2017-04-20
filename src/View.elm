@@ -64,10 +64,10 @@ timelineView statuses label =
 
 
 draftView : Model -> Html Msg
-draftView model =
+draftView { draft } =
     let
         hasSpoiler =
-            case model.draft.spoiler_text of
+            case draft.spoiler_text of
                 Nothing ->
                     False
 
@@ -92,7 +92,7 @@ draftView model =
                             ]
                         , if hasSpoiler then
                             div [ class "form-group" ]
-                                [ label [ for "spoiler" ] [ text "Spoiler" ]
+                                [ label [ for "spoiler" ] [ text "Visible part" ]
                                 , textarea
                                     [ id "spoiler"
                                     , class "form-control"
@@ -100,13 +100,20 @@ draftView model =
                                     , placeholder "This text will always be visible."
                                     , onInput <| DraftEvent << UpdateSpoiler
                                     , required True
+                                    , value <| Maybe.withDefault "" draft.spoiler_text
                                     ]
                                     []
                                 ]
                           else
                             text ""
                         , div [ class "form-group" ]
-                            [ label [ for "status" ] [ text "Status" ]
+                            [ label [ for "status" ]
+                                [ text <|
+                                    if hasSpoiler then
+                                        "Hidden part"
+                                    else
+                                        "Status"
+                                ]
                             , textarea
                                 [ id "status"
                                 , class "form-control"
@@ -118,6 +125,7 @@ draftView model =
                                         "Once upon a time..."
                                 , onInput <| DraftEvent << UpdateStatus
                                 , required True
+                                , value draft.status
                                 ]
                                 []
                             ]
@@ -126,7 +134,7 @@ draftView model =
                                 [ input
                                     [ type_ "checkbox"
                                     , onCheck <| DraftEvent << UpdateSensitive
-                                    , checked model.draft.sensitive
+                                    , checked draft.sensitive
                                     ]
                                     []
                                 , text " NSFW"
