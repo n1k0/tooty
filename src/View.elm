@@ -39,7 +39,9 @@ statusView status =
         Nothing ->
             div [ class "status" ]
                 [ img [ class "avatar", src status.account.avatar ] []
-                , div [ class "username" ] [ text status.account.username ]
+                , div [ class "username" ]
+                    [ a [ href status.account.url ] [ text status.account.username ]
+                    ]
                 , div [ class "status-text" ]
                     (HtmlParser.parse status.content |> toVirtualDom)
                 ]
