@@ -374,11 +374,11 @@ toResponse result =
     Result.mapError extractError result
 
 
-fetchStatusList : Client -> String -> HttpBuilder.RequestBuilder (List Status)
-fetchStatusList client endpoint =
+fetch : Client -> String -> Decode.Decoder a -> HttpBuilder.RequestBuilder a
+fetch client endpoint decoder =
     HttpBuilder.get (client.server ++ endpoint)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson (Decode.list statusDecoder))
+        |> HttpBuilder.withExpect (Http.expectJson decoder)
 
 
 
@@ -436,17 +436,17 @@ send tagger builder =
 
 fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchUserTimeline client =
-    fetchStatusList client "/api/v1/timelines/home"
+    fetch client "/api/v1/timelines/home" (Decode.list statusDecoder)
 
 
 fetchLocalTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchLocalTimeline client =
-    fetchStatusList client "/api/v1/timelines/public?local=true"
+    fetch client "/api/v1/timelines/public?local=true" (Decode.list statusDecoder)
 
 
 fetchPublicTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchPublicTimeline client =
-    fetchStatusList client "/api/v1/timelines/public"
+    fetch client "/api/v1/timelines/public" (Decode.list statusDecoder)
 
 
 postStatus : Client -> StatusRequestBody -> HttpBuilder.RequestBuilder Status
