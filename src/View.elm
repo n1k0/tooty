@@ -82,6 +82,17 @@ draftView model =
                             ]
                             []
                         ]
+                    , div [ class "form-group checkbox" ]
+                        [ label []
+                            [ input
+                                [ type_ "checkbox"
+                                , onCheck <| DraftEvent << UpdateSensitive
+                                , checked model.draft.sensitive
+                                ]
+                                []
+                            , text " add a Content Warning"
+                            ]
+                        ]
                     , p [ class "text-right" ]
                         [ button [ class "btn btn-primary" ]
                             [ text "Toot!" ]

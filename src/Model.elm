@@ -13,7 +13,8 @@ type alias Flags =
 
 
 type DraftMsg
-    = UpdateStatus String
+    = UpdateSensitive Bool
+    | UpdateStatus String
 
 
 type Msg
@@ -167,6 +168,9 @@ updateDraft draftMsg draft =
     -- TODO: later we'll probably want to handle more events like when the user
     --       wants to add CW, medias, etc.
     case draftMsg of
+        UpdateSensitive sensitive ->
+            { draft | sensitive = sensitive }
+
         UpdateStatus status ->
             { draft | status = status }
 
