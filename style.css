@@ -1,5 +1,6 @@
 .status {
   min-height: 75px;
+  clear: both;
 }
 
 .reblog > p:first-of-type {
@@ -13,15 +14,12 @@
 .avatar {
   display: block;
   float: left;
-  width: 17%;
-  border-radius: 50%;
+  width: 50px;
+  border-radius: 5%;
   margin-right: .5em;
+  margin-bottom: .5em;
 }
 
 .username {
   font-weight: bold;
-}
-
-.status-text {
-  margin-left: 1em;
 }
