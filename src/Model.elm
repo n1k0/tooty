@@ -95,6 +95,7 @@ registerApp { server, location } =
             "tooty"
             appUrl
             "read write follow"
+            appUrl
             |> Mastodon.send AppRegistered
 
 
