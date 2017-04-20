@@ -174,6 +174,10 @@ type alias StatusRequestBody =
     }
 
 
+type alias Request a =
+    HttpBuilder.RequestBuilder a
+
+
 
 -- Msg
 
@@ -380,7 +384,7 @@ toResponse result =
     Result.mapError extractError result
 
 
-fetch : Client -> String -> Decode.Decoder a -> HttpBuilder.RequestBuilder a
+fetch : Client -> String -> Decode.Decoder a -> Request a
 fetch client endpoint decoder =
     HttpBuilder.get (client.server ++ endpoint)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
@@ -411,7 +415,7 @@ registrationEncoder registration =
         ]
 
 
-register : Server -> String -> String -> String -> String -> HttpBuilder.RequestBuilder AppRegistration
+register : Server -> String -> String -> String -> String -> Request AppRegistration
 register server client_name redirect_uri scope website =
     HttpBuilder.post (server ++ "/api/v1/apps")
         |> HttpBuilder.withExpect (Http.expectJson (appRegistrationDecoder server scope))
@@ -428,39 +432,39 @@ getAuthorizationUrl registration =
         ]
 
 
-getAccessToken : AppRegistration -> AuthCode -> HttpBuilder.RequestBuilder AccessTokenResult
+getAccessToken : AppRegistration -> AuthCode -> Request AccessTokenResult
 getAccessToken registration authCode =
     HttpBuilder.post (registration.server ++ "/oauth/token")
         |> HttpBuilder.withExpect (Http.expectJson (accessTokenDecoder registration))
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
 
 
-send : (Result Error a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
+send : (Result Error a -> msg) -> Request a -> Cmd msg
 send tagger builder =
     builder |> HttpBuilder.send (toResponse >> tagger)
 
 
-fetchAccount : Client -> AccountId -> HttpBuilder.RequestBuilder Account
+fetchAccount : Client -> AccountId -> Request Account
 fetchAccount client accountId =
     fetch client ("/api/v1/accounts/" ++ (accountId |> toString)) accountDecoder
 
 
-fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
+fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
     fetch client "/api/v1/timelines/home" (Decode.list statusDecoder)
 
 
-fetchLocalTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
+fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
     fetch client "/api/v1/timelines/public?local=true" (Decode.list statusDecoder)
 
 
-fetchPublicTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
+fetchPublicTimeline : Client -> Request (List Status)
 fetchPublicTimeline client =
     fetch client "/api/v1/timelines/public" (Decode.list statusDecoder)
 
 
-postStatus : Client -> StatusRequestBody -> HttpBuilder.RequestBuilder Status
+postStatus : Client -> StatusRequestBody -> Request Status
 postStatus client statusRequestBody =
     HttpBuilder.post (client.server ++ "/api/v1/statuses")
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
