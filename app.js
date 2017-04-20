@@ -17801,7 +17801,7 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 																_elm_lang$html$Html$label,
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$for('status'),
+																	_0: _elm_lang$html$Html_Attributes$for('visibility'),
 																	_1: {ctor: '[]'}
 																},
 																{
