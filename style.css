@@ -1,5 +1,6 @@
 .status {
   min-height: 75px;
+  clear: both;
 }
 
 .reblog > p:first-of-type {
