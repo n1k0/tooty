@@ -9,6 +9,7 @@ module Mastodon
         , Mention
         , Reblog(..)
         , Status
+        , StatusRequestBody
         , Tag
         , register
         , registrationEncoder
@@ -18,6 +19,7 @@ module Mastodon
         , fetchPublicTimeline
         , fetchLocalTimeline
         , fetchUserTimeline
+        , postStatus
         , send
         )
 
@@ -100,9 +102,9 @@ type alias Account =
 
 
 type alias Attachment =
+    -- type_: -- "image", "video", "gifv"
     { id : Int
-    , -- Type: "image", "video", "gifv"
-      type_ : String
+    , type_ : String
     , url : String
     , remote_url : String
     , preview_url : String
@@ -151,6 +153,21 @@ type Reblog
     = Reblog Status
 
 
+type alias StatusRequestBody =
+    -- status: The text of the status
+    -- in_reply_to_id: local ID of the status you want to reply to
+    -- sensitive: set this to mark the media of the status as NSFW
+    -- spoiler_text: text to be shown as a warning before the actual content
+    -- visibility: either "direct", "private", "unlisted" or "public"
+    -- TODO: media_ids: array of media IDs to attach to the status (maximum 4)
+    { status : String
+    , in_reply_to_id : Maybe Int
+    , spoiler_text : Maybe String
+    , sensitive : Bool
+    , visibility : String
+    }
+
+
 
 -- Msg
 
@@ -187,6 +204,17 @@ authorizationCodeEncoder registration authCode =
         , ( "grant_type", Encode.string "authorization_code" )
         , ( "redirect_uri", Encode.string registration.redirect_uri )
         , ( "code", Encode.string authCode )
+        ]
+
+
+statusRequestBodyEncoder : StatusRequestBody -> Encode.Value
+statusRequestBodyEncoder statusData =
+    Encode.object
+        [ ( "status", Encode.string statusData.status )
+        , ( "in_reply_to_id", encodeMaybe Encode.int statusData.in_reply_to_id )
+        , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
+        , ( "sensitive", Encode.bool statusData.sensitive )
+        , ( "visibility", Encode.string statusData.visibility )
         ]
 
 
@@ -288,6 +316,16 @@ statusDecoder =
 
 
 -- Internal helpers
+
+
+encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value
+encodeMaybe encode thing =
+    case thing of
+        Nothing ->
+            Encode.null
+
+        Just value ->
+            encode value
 
 
 encodeUrl : String -> List ( String, String ) -> String
@@ -393,8 +431,7 @@ getAccessToken registration authCode =
 
 send : (Result Error a -> msg) -> HttpBuilder.RequestBuilder a -> Cmd msg
 send tagger builder =
-    builder
-        |> HttpBuilder.send (toResponse >> tagger)
+    builder |> HttpBuilder.send (toResponse >> tagger)
 
 
 fetchUserTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
@@ -410,3 +447,11 @@ fetchLocalTimeline client =
 fetchPublicTimeline : Client -> HttpBuilder.RequestBuilder (List Status)
 fetchPublicTimeline client =
     fetchStatusList client "/api/v1/timelines/public"
+
+
+postStatus : Client -> StatusRequestBody -> HttpBuilder.RequestBuilder Status
+postStatus client statusRequestBody =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+        |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)

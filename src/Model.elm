@@ -12,13 +12,23 @@ type alias Flags =
     }
 
 
+type DraftMsg
+    = ToggleSpoiler Bool
+    | UpdateSensitive Bool
+    | UpdateSpoiler String
+    | UpdateStatus String
+
+
 type Msg
     = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
+    | DraftEvent DraftMsg
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Register
     | ServerChange String
+    | StatusPosted (Result Mastodon.Error Mastodon.Status)
+    | SubmitDraft
     | UrlChange Navigation.Location
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
@@ -30,6 +40,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
+    , draft : Mastodon.StatusRequestBody
     , errors : List String
     , location : Navigation.Location
     }
@@ -45,6 +56,16 @@ extractAuthCode { search } =
             Nothing
 
 
+defaultDraft : Mastodon.StatusRequestBody
+defaultDraft =
+    { status = ""
+    , in_reply_to_id = Nothing
+    , spoiler_text = Nothing
+    , sensitive = False
+    , visibility = "public"
+    }
+
+
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init flags location =
     let
@@ -57,6 +78,7 @@ init flags location =
         , userTimeline = []
         , localTimeline = []
         , publicTimeline = []
+        , draft = defaultDraft
         , errors = []
         , location = location
         }
@@ -76,12 +98,7 @@ initCommands registration client authCode =
                         []
 
             Nothing ->
-                case client of
-                    Just client ->
-                        [ loadTimelines client ]
-
-                    Nothing ->
-                        []
+                [ loadTimelines client ]
 
 
 registerApp : Model -> Cmd Msg
@@ -113,13 +130,24 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
-loadTimelines : Mastodon.Client -> Cmd Msg
+loadTimelines : Maybe Mastodon.Client -> Cmd Msg
 loadTimelines client =
-    Cmd.batch
-        [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
-        , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
-        , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
-        ]
+    case client of
+        Just client ->
+            Cmd.batch
+                [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
+                , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
+                , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
+                ]
+
+        Nothing ->
+            Cmd.none
+
+
+postStatus : Mastodon.Client -> Mastodon.StatusRequestBody -> Cmd Msg
+postStatus client draft =
+    Mastodon.postStatus client draft
+        |> Mastodon.send StatusPosted
 
 
 errorText : Mastodon.Error -> String
@@ -136,6 +164,30 @@ errorText error =
 
         Mastodon.NetworkError ->
             "Unreachable host."
+
+
+updateDraft : DraftMsg -> Mastodon.StatusRequestBody -> Mastodon.StatusRequestBody
+updateDraft draftMsg draft =
+    -- TODO: later we'll probably want to handle more events like when the user
+    --       wants to add CW, medias, etc.
+    case draftMsg of
+        ToggleSpoiler enabled ->
+            { draft
+                | spoiler_text =
+                    if enabled then
+                        Just ""
+                    else
+                        Nothing
+            }
+
+        UpdateSensitive sensitive ->
+            { draft | sensitive = sensitive }
+
+        UpdateSpoiler spoiler_text ->
+            { draft | spoiler_text = Just spoiler_text }
+
+        UpdateStatus status ->
+            { draft | status = status }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -169,13 +221,25 @@ update msg model =
                             Mastodon.Client server accessToken
                     in
                         { model | client = Just client }
-                            ! [ loadTimelines client
+                            ! [ loadTimelines <| Just client
                               , Navigation.modifyUrl model.location.pathname
                               , saveClient client
                               ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
+
+        DraftEvent draftMsg ->
+            { model | draft = updateDraft draftMsg model.draft } ! []
+
+        SubmitDraft ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ postStatus client model.draft ]
+
+                    Nothing ->
+                        []
 
         UserTimeline result ->
             case result of
@@ -200,3 +264,6 @@ update msg model =
 
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        StatusPosted _ ->
+            { model | draft = defaultDraft } ! [ loadTimelines model.client ]

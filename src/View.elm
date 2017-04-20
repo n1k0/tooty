@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import HtmlParser
 import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
-import Model exposing (Model, Msg(..))
+import Model exposing (Model, DraftMsg(..), Msg(..))
 
 
 errorView : String -> Html Msg
@@ -49,7 +49,7 @@ statusView status =
 
 timelineView : List Mastodon.Status -> String -> Html Msg
 timelineView statuses label =
-    div [ class "col-sm-4" ]
+    div [ class "col-sm-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ text label ]
             , ul [ class "list-group" ] <|
@@ -63,10 +63,98 @@ timelineView statuses label =
         ]
 
 
+draftView : Model -> Html Msg
+draftView { draft } =
+    let
+        hasSpoiler =
+            case draft.spoiler_text of
+                Nothing ->
+                    False
+
+                Just _ ->
+                    True
+    in
+        div [ class "col-md-3" ]
+            [ div [ class "panel panel-default" ]
+                [ div [ class "panel-heading" ] [ text "Post a message" ]
+                , div [ class "panel-body" ]
+                    [ Html.form [ class "form", onSubmit SubmitDraft ]
+                        [ div [ class "form-group checkbox" ]
+                            [ label []
+                                [ input
+                                    [ type_ "checkbox"
+                                    , onCheck <| DraftEvent << ToggleSpoiler
+                                    , checked hasSpoiler
+                                    ]
+                                    []
+                                , text " Add a spoiler"
+                                ]
+                            ]
+                        , if hasSpoiler then
+                            div [ class "form-group" ]
+                                [ label [ for "spoiler" ] [ text "Visible part" ]
+                                , textarea
+                                    [ id "spoiler"
+                                    , class "form-control"
+                                    , rows 5
+                                    , placeholder "This text will always be visible."
+                                    , onInput <| DraftEvent << UpdateSpoiler
+                                    , required True
+                                    , value <| Maybe.withDefault "" draft.spoiler_text
+                                    ]
+                                    []
+                                ]
+                          else
+                            text ""
+                        , div [ class "form-group" ]
+                            [ label [ for "status" ]
+                                [ text <|
+                                    if hasSpoiler then
+                                        "Hidden part"
+                                    else
+                                        "Status"
+                                ]
+                            , textarea
+                                [ id "status"
+                                , class "form-control"
+                                , rows 8
+                                , placeholder <|
+                                    if hasSpoiler then
+                                        "This text with be hidden by default, as you have enabled a spoiler."
+                                    else
+                                        "Once upon a time..."
+                                , onInput <| DraftEvent << UpdateStatus
+                                , required True
+                                , value draft.status
+                                ]
+                                []
+                            ]
+                        , div [ class "form-group checkbox" ]
+                            [ label []
+                                [ input
+                                    [ type_ "checkbox"
+                                    , onCheck <| DraftEvent << UpdateSensitive
+                                    , checked draft.sensitive
+                                    ]
+                                    []
+                                , text " NSFW"
+                                ]
+                            ]
+                        , p [ class "text-right" ]
+                            [ button [ class "btn btn-primary" ]
+                                [ text "Toot!" ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+
+
 homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
-        [ timelineView model.userTimeline "Home timeline"
+        [ draftView model
+        , timelineView model.userTimeline "Home timeline"
         , timelineView model.localTimeline "Local timeline"
         , timelineView model.publicTimeline "Public timeline"
         ]
