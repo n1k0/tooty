@@ -1,1 +1,4 @@
-elm-stuff
+/build
+/elm-stuff
+/node_modules
+/app.js
