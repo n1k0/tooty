@@ -24,6 +24,7 @@ type Msg
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Register
     | ServerChange String
+    | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
     | UrlChange Navigation.Location
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
@@ -89,12 +90,7 @@ initCommands registration client authCode =
                         []
 
             Nothing ->
-                case client of
-                    Just client ->
-                        [ loadTimelines client ]
-
-                    Nothing ->
-                        []
+                [ loadTimelines client ]
 
 
 registerApp : Model -> Cmd Msg
@@ -125,13 +121,18 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
-loadTimelines : Mastodon.Client -> Cmd Msg
+loadTimelines : Maybe Mastodon.Client -> Cmd Msg
 loadTimelines client =
-    Cmd.batch
-        [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
-        , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
-        , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
-        ]
+    case client of
+        Just client ->
+            Cmd.batch
+                [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
+                , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
+                , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
+                ]
+
+        Nothing ->
+            Cmd.none
 
 
 errorText : Mastodon.Error -> String
@@ -190,7 +191,7 @@ update msg model =
                             Mastodon.Client server accessToken
                     in
                         { model | client = Just client }
-                            ! [ loadTimelines client
+                            ! [ loadTimelines <| Just client
                               , Navigation.modifyUrl model.location.pathname
                               , saveClient client
                               ]
@@ -202,7 +203,15 @@ update msg model =
             { model | draft = updateDraft draftMsg model.draft } ! []
 
         SubmitDraft ->
-            model ! [ Mastodon.postStatus model.client model.draft.status ]
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.postStatus client (Mastodon.StatusRequestBody model.draft.status)
+                            |> Mastodon.send StatusPosted
+                        ]
+
+                    Nothing ->
+                        []
 
         UserTimeline result ->
             case result of
@@ -227,3 +236,6 @@ update msg model =
 
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        StatusPosted _ ->
+            { model | draft = Draft "" } ! [ loadTimelines model.client ]

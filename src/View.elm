@@ -69,7 +69,7 @@ draftView model =
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ text "Post a message" ]
             , div [ class "panel-body" ]
-                [ Html.form [ class "form" ]
+                [ Html.form [ class "form", onSubmit SubmitDraft ]
                     [ div [ class "form-group" ]
                         [ label [ for "status" ] [ text "Status" ]
                         , textarea
