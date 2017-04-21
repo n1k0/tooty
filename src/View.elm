@@ -20,6 +20,22 @@ visibilities =
         ]
 
 
+replace : String -> String -> String -> String
+replace from to str =
+    String.split from str |> String.join to
+
+
+formatContent : String -> List (Html msg)
+formatContent content =
+    content
+        |> replace "&apos;" "'"
+        |> replace " ?" "&nbsp;?"
+        |> replace " !" "&nbsp;!"
+        |> replace " :" "&nbsp;:"
+        |> HtmlParser.parse
+        |> toVirtualDom
+
+
 errorView : String -> Html Msg
 errorView error =
     div [ class "alert alert-danger" ] [ text error ]
@@ -35,34 +51,46 @@ errorsListView model =
             div [] <| List.map errorView model.errors
 
 
+icon : String -> Html Msg
+icon name =
+    i [ class <| "glyphicon glyphicon-" ++ name ] []
+
+
 statusView : Mastodon.Status -> Html Msg
-statusView status =
-    case status.reblog of
+statusView { account, content, reblog } =
+    case reblog of
         Just (Mastodon.Reblog reblog) ->
             div [ class "reblog" ]
                 [ p []
-                    [ a [ href status.account.url ] [ text <| "@" ++ status.account.username ]
-                    , text " reblogged"
+                    [ icon "fire"
+                    , a [ href account.url, class "reblogger" ]
+                        [ text <| " " ++ account.username ]
+                    , text " boosted"
                     ]
                 , statusView reblog
                 ]
 
         Nothing ->
             div [ class "status" ]
-                [ img [ class "avatar", src status.account.avatar ] []
+                [ img [ class "avatar", src account.avatar ] []
                 , div [ class "username" ]
-                    [ a [ href status.account.url ] [ text status.account.username ]
+                    [ a [ href account.url ]
+                        [ text account.display_name
+                        , span [ class "acct" ] [ text <| " @" ++ account.username ]
+                        ]
                     ]
-                , div [ class "status-text" ]
-                    (HtmlParser.parse status.content |> toVirtualDom)
+                , div [ class "status-text" ] <| formatContent content
                 ]
 
 
-timelineView : List Mastodon.Status -> String -> Html Msg
-timelineView statuses label =
-    div [ class "col-sm-3" ]
+timelineView : List Mastodon.Status -> String -> String -> Html Msg
+timelineView statuses label iconName =
+    div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ text label ]
+            [ div [ class "panel-heading" ]
+                [ icon iconName
+                , text label
+                ]
             , ul [ class "list-group" ] <|
                 List.map
                     (\s ->
@@ -91,7 +119,7 @@ draftView { draft } =
     in
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
-                [ div [ class "panel-heading" ] [ text "Post a message" ]
+                [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
                 , div [ class "panel-body" ]
                     [ Html.form [ class "form", onSubmit SubmitDraft ]
                         [ div [ class "form-group checkbox" ]
@@ -182,9 +210,9 @@ homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
         [ draftView model
-        , timelineView model.userTimeline "Home timeline"
-        , timelineView model.localTimeline "Local timeline"
-        , timelineView model.publicTimeline "Public timeline"
+        , timelineView model.userTimeline "Home timeline" "home"
+        , timelineView model.localTimeline "Local timeline" "th-large"
+        , timelineView model.publicTimeline "Public timeline" "globe"
         ]
 
 
@@ -209,7 +237,10 @@ authView model =
                             ]
                             []
                         , p [ class "help-block" ]
-                            [ text "You'll be redirected to that server to authenticate yourself. We don't have access to your password." ]
+                            [ text <|
+                                "You'll be redirected to that server to authenticate yourself. "
+                                    ++ "We don't have access to your password."
+                            ]
                         ]
                     , button [ class "btn btn-primary", type_ "submit" ]
                         [ text "Sign into Tooty" ]
