@@ -74,7 +74,7 @@ statusView { account, content, reblog } =
 
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
 timelineView statuses label iconName =
-    div [ class "col-sm-3" ]
+    div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
                 [ icon iconName
