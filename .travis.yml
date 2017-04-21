@@ -4,6 +4,5 @@ language:
 node_js:
 - "7"
 script:
-- npm install
 - node_modules/.bin/elm-package install -y
 - npm test

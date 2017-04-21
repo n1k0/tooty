@@ -7,7 +7,7 @@
     "copy-assets": "cp public/index.html build/ && cp public/style.css build/",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
     "live": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js --debug",
-    "test": "node_modules/.bin/elm-make src/Main.elm --report=json"
+    "test": "node_modules/.bin/elm-make src/Main.elm --warn --output /dev/null"
   },
   "repository": {
     "type": "git",
