@@ -19,6 +19,8 @@ formatContent content =
     content
         |> replace "&apos;" "'"
         |> replace " ?" "&nbsp;?"
+        |> replace " !" "&nbsp;!"
+        |> replace " :" "&nbsp;:"
         |> HtmlParser.parse
         |> toVirtualDom
 
