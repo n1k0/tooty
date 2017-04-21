@@ -45,8 +45,13 @@
   color: #efefef;
 }
 
-.status-text a, .u-url, .mention, .hashtag {
+.status-text a, .u-url, .mention, .hashtag, .tag {
   color: #9baec8;
+}
+
+.attachment {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .ellipsis {
