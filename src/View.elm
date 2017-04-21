@@ -25,6 +25,22 @@ onClickWithPreventAndStop msg =
 -- Views
 
 
+replace : String -> String -> String -> String
+replace from to str =
+    String.split from str |> String.join to
+
+
+formatContent : String -> List (Html msg)
+formatContent content =
+    content
+        |> replace "&apos;" "'"
+        |> replace " ?" "&nbsp;?"
+        |> replace " !" "&nbsp;!"
+        |> replace " :" "&nbsp;:"
+        |> HtmlParser.parse
+        |> toVirtualDom
+
+
 errorView : String -> Html Msg
 errorView error =
     div [ class "alert alert-danger" ] [ text error ]
@@ -40,43 +56,55 @@ errorsListView model =
             div [] <| List.map errorView model.errors
 
 
+icon : String -> Html Msg
+icon name =
+    i [ class <| "glyphicon glyphicon-" ++ name ] []
+
+
 statusView : Mastodon.Status -> Html Msg
-statusView status =
+statusView { account, content, reblog } =
     let
         accountLinkAttributes =
-            [ href status.account.url
+            [ href account.url
               -- When clicking on a status, we should not let the browser
               -- redirect to a new page. That's why we're preventing the default
               -- behavior here
-            , onClickWithPreventAndStop (OnLoadUserAccount status.account.id)
+            , onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
-        case status.reblog of
+        case reblog of
             Just (Mastodon.Reblog reblog) ->
                 div [ class "reblog" ]
                     [ p []
-                        [ a accountLinkAttributes [ text <| "@" ++ status.account.username ]
-                        , text " reblogged"
+                        [ icon "fire"
+                        , a (accountLinkAttributes ++ [ class "reblogger" ])
+                            [ text <| " " ++ account.username ]
+                        , text " boosted"
                         ]
                     , statusView reblog
                     ]
 
             Nothing ->
                 div [ class "status" ]
-                    [ img [ class "avatar", src status.account.avatar ] []
+                    [ img [ class "avatar", src account.avatar ] []
                     , div [ class "username" ]
-                        [ a accountLinkAttributes [ text status.account.username ]
+                        [ a accountLinkAttributes
+                            [ text account.display_name
+                            , span [ class "acct" ] [ text <| " @" ++ account.username ]
+                            ]
                         ]
-                    , div [ class "status-text" ]
-                        (HtmlParser.parse status.content |> toVirtualDom)
+                    , div [ class "status-text" ] <| formatContent content
                     ]
 
 
-timelineView : List Mastodon.Status -> String -> Html Msg
-timelineView statuses label =
+timelineView : List Mastodon.Status -> String -> String -> Html Msg
+timelineView statuses label iconName =
     div [ class "col-sm-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ text label ]
+            [ div [ class "panel-heading" ]
+                [ icon iconName
+                , text label
+                ]
             , ul [ class "list-group" ] <|
                 List.map
                     (\s ->
@@ -101,7 +129,7 @@ draftView { draft } =
     in
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
-                [ div [ class "panel-heading" ] [ text "Post a message" ]
+                [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
                 , div [ class "panel-body" ]
                     [ Html.form [ class "form", onSubmit SubmitDraft ]
                         [ div [ class "form-group checkbox" ]
@@ -179,9 +207,9 @@ homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
         [ draftView model
-        , timelineView model.userTimeline "Home timeline"
-        , timelineView model.localTimeline "Local timeline"
-        , timelineView model.publicTimeline "Public timeline"
+        , timelineView model.userTimeline "Home timeline" "home"
+        , timelineView model.localTimeline "Local timeline" "th-large"
+        , timelineView model.publicTimeline "Public timeline" "globe"
         ]
 
 
