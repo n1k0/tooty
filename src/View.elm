@@ -9,6 +9,20 @@ import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
 
 
+replace : String -> String -> String -> String
+replace from to str =
+    String.split from str |> String.join to
+
+
+formatContent : String -> List (Html msg)
+formatContent content =
+    content
+        |> replace "&apos;" "'"
+        |> replace " ?" "&nbsp;?"
+        |> HtmlParser.parse
+        |> toVirtualDom
+
+
 errorView : String -> Html Msg
 errorView error =
     div [ class "alert alert-danger" ] [ text error ]
@@ -52,8 +66,7 @@ statusView { account, content, reblog } =
                         , span [ class "acct" ] [ text <| " @" ++ account.username ]
                         ]
                     ]
-                , div [ class "status-text" ]
-                    (HtmlParser.parse content |> toVirtualDom)
+                , div [ class "status-text" ] <| formatContent content
                 ]
 
 
