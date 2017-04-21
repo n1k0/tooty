@@ -25,25 +25,30 @@ errorsListView model =
 
 
 statusView : Mastodon.Status -> Html Msg
-statusView status =
-    case status.reblog of
+statusView { account, content, reblog } =
+    case reblog of
         Just (Mastodon.Reblog reblog) ->
             div [ class "reblog" ]
                 [ p []
-                    [ a [ href status.account.url ] [ text <| "@" ++ status.account.username ]
-                    , text " reblogged"
+                    [ i [ class "glyphicon glyphicon-fire" ] []
+                    , a [ href account.url, class "reblogger" ]
+                        [ text <| " " ++ account.username ]
+                    , text " boosted"
                     ]
                 , statusView reblog
                 ]
 
         Nothing ->
             div [ class "status" ]
-                [ img [ class "avatar", src status.account.avatar ] []
+                [ img [ class "avatar", src account.avatar ] []
                 , div [ class "username" ]
-                    [ a [ href status.account.url ] [ text status.account.username ]
+                    [ a [ href account.url ]
+                        [ text account.display_name
+                        , span [ class "acct" ] [ text <| " @" ++ account.username ]
+                        ]
                     ]
                 , div [ class "status-text" ]
-                    (HtmlParser.parse status.content |> toVirtualDom)
+                    (HtmlParser.parse content |> toVirtualDom)
                 ]
 
 
