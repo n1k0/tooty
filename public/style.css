@@ -7,6 +7,10 @@ body {
   clear: both;
 }
 
+.nsfw {
+  background: #493438;
+}
+
 .reblog > p:first-of-type {
   color: #999;
 }
@@ -65,11 +69,36 @@ body {
   position: relative;
 }
 
+.attachment-entry {
+  margin-top: 5px;
+}
+
+.attachment-entry input {
+  display: none;
+}
+
+.attachment-entry label {
+  display: block;
+  background: #111;
+  opacity: .95;
+  font-weight: normal;
+  font-size: 95%;
+  height: 10vh;
+  margin-bottom: -10vh;
+  text-align: center;
+  padding-top: 2rem;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.attachment-entry input:checked + label {
+  display: none;
+}
+
 .attachment-image {
    display: block;
    width: 100%;
    height: 10vh;
-   margin-top: 5px;
    text-decoration: none;
    cursor: zoom-in;
    border-radius: 2px;

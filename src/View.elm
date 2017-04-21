@@ -56,31 +56,56 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
-attachmentPreview : Mastodon.Attachment -> Html Msg
-attachmentPreview { url, preview_url } =
-    li []
-        [ a
-            [ class "attachment-image"
-            , href url
-            , target "_blank"
-            , style
-                [ ( "background"
-                  , "url(" ++ preview_url ++ ") center center / cover no-repeat"
-                  )
+attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
+attachmentPreview sensitive ({ url, preview_url } as attachment) =
+    let
+        nsfw =
+            case sensitive of
+                Just sensitive ->
+                    sensitive
+
+                Nothing ->
+                    False
+
+        attId =
+            "att" ++ (toString attachment.id)
+
+        media =
+            a
+                [ class "attachment-image"
+                , href url
+                , target "_blank"
+                , style
+                    [ ( "background"
+                      , "url(" ++ preview_url ++ ") center center / cover no-repeat"
+                      )
+                    ]
                 ]
-            ]
-            []
-        ]
+                []
+    in
+        li [ class "attachment-entry" ] <|
+            if nsfw then
+                [ input [ type_ "radio", id attId ] []
+                , label [ for attId ]
+                    [ text "Sensitive content"
+                    , br [] []
+                    , br [] []
+                    , text "click to show image"
+                    ]
+                , media
+                ]
+            else
+                [ media ]
 
 
-attachmentListView : List Mastodon.Attachment -> Html Msg
-attachmentListView attachments =
-    case attachments of
+attachmentListView : Mastodon.Status -> Html Msg
+attachmentListView { media_attachments, sensitive } =
+    case media_attachments of
         [] ->
             text ""
 
         attachments ->
-            ul [ class "attachments" ] <| List.map attachmentPreview attachments
+            ul [ class "attachments" ] <| List.map (attachmentPreview sensitive) attachments
 
 
 statusContentView : Mastodon.Status -> Html Msg
@@ -89,7 +114,7 @@ statusContentView status =
         "" ->
             div [ class "status-text" ]
                 [ div [] <| formatContent status.content
-                , attachmentListView status.media_attachments
+                , attachmentListView status
                 ]
 
         spoiler ->
@@ -104,7 +129,7 @@ statusContentView status =
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ]
                         [ div [] <| formatContent status.content
-                        , attachmentListView status.media_attachments
+                        , attachmentListView status
                         ]
                     ]
 
@@ -136,6 +161,21 @@ statusView ({ account, media_attachments, content, reblog } as status) =
                 ]
 
 
+statusEntryView : Mastodon.Status -> Html Msg
+statusEntryView status =
+    let
+        nsfwClass =
+            case status.sensitive of
+                Just True ->
+                    "nsfw"
+
+                _ ->
+                    ""
+    in
+        li [ class <| "list-group-item " ++ nsfwClass ]
+            [ statusView status ]
+
+
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
 timelineView statuses label iconName =
     div [ class "col-md-3" ]
@@ -145,12 +185,7 @@ timelineView statuses label iconName =
                 , text label
                 ]
             , ul [ class "list-group" ] <|
-                List.map
-                    (\s ->
-                        li [ class "list-group-item status" ]
-                            [ statusView s ]
-                    )
-                    statuses
+                List.map statusEntryView statuses
             ]
         ]
 
@@ -159,12 +194,7 @@ draftView : Model -> Html Msg
 draftView { draft } =
     let
         hasSpoiler =
-            case draft.spoiler_text of
-                Nothing ->
-                    False
-
-                Just _ ->
-                    True
+            draft.spoiler_text /= Nothing
 
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
