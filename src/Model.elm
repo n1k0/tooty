@@ -17,6 +17,7 @@ type DraftMsg
     | UpdateSensitive Bool
     | UpdateSpoiler String
     | UpdateStatus String
+    | UpdateVisibility String
 
 
 type Msg
@@ -188,6 +189,9 @@ updateDraft draftMsg draft =
 
         UpdateStatus status ->
             { draft | status = status }
+
+        UpdateVisibility visibility ->
+            { draft | visibility = visibility }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

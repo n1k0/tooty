@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -7,6 +8,16 @@ import HtmlParser
 import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
+
+
+visibilities : Dict.Dict String String
+visibilities =
+    Dict.fromList
+        [ ( "public", "post to public timelines" )
+        , ( "unlisted", "do not show in public timelines" )
+        , ( "private", "post to followers only" )
+        , ( "direct", "post to mentioned users only" )
+        ]
 
 
 replace : String -> String -> String -> String
@@ -121,6 +132,10 @@ draftView { draft } =
 
                 Just _ ->
                     True
+
+        visibilityOptionView ( visibility, description ) =
+            option [ value visibility ]
+                [ text <| visibility ++ ": " ++ description ]
     in
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
@@ -168,7 +183,7 @@ draftView { draft } =
                                 , rows 8
                                 , placeholder <|
                                     if hasSpoiler then
-                                        "This text with be hidden by default, as you have enabled a spoiler."
+                                        "This text will be hidden by default, as you have enabled a spoiler."
                                     else
                                         "Once upon a time..."
                                 , onInput <| DraftEvent << UpdateStatus
@@ -176,6 +191,19 @@ draftView { draft } =
                                 , value draft.status
                                 ]
                                 []
+                            ]
+                        , div [ class "form-group" ]
+                            [ label [ for "visibility" ] [ text "Visibility" ]
+                            , select
+                                [ id "visibility"
+                                , class "form-control"
+                                , onInput <| DraftEvent << UpdateVisibility
+                                , required True
+                                , value draft.visibility
+                                ]
+                              <|
+                                List.map visibilityOptionView <|
+                                    Dict.toList visibilities
                             ]
                         , div [ class "form-group checkbox" ]
                             [ label []
@@ -185,7 +213,7 @@ draftView { draft } =
                                     , checked draft.sensitive
                                     ]
                                     []
-                                , text " NSFW"
+                                , text " This post is NSFW"
                                 ]
                             ]
                         , p [ class "text-right" ]
@@ -229,7 +257,10 @@ authView model =
                             ]
                             []
                         , p [ class "help-block" ]
-                            [ text "You'll be redirected to that server to authenticate yourself. We don't have access to your password." ]
+                            [ text <|
+                                "You'll be redirected to that server to authenticate yourself. "
+                                    ++ "We don't have access to your password."
+                            ]
                         ]
                     , button [ class "btn btn-primary", type_ "submit" ]
                         [ text "Sign into Tooty" ]
