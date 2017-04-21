@@ -44,6 +44,7 @@ type alias Model =
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
     , draft : Mastodon.StatusRequestBody
+    , account : Maybe Mastodon.Account
     , errors : List String
     , location : Navigation.Location
     }
@@ -82,6 +83,7 @@ init flags location =
         , localTimeline = []
         , publicTimeline = []
         , draft = defaultDraft
+        , account = Nothing
         , errors = []
         , location = location
         }
@@ -256,6 +258,11 @@ update msg model =
                     { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         OnLoadUserAccount accountId ->
+            {-
+               @TODO
+               When requesting a user profile, we should load a new "page"
+               so that the URL in the browser matches the user displayed
+            -}
             model
                 ! case model.client of
                     Just client ->
@@ -280,12 +287,13 @@ update msg model =
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
 
-        UserAccount account ->
-            let
-                d =
-                    Debug.log "[UserAccount] Loaded " account
-            in
-                model ! []
+        UserAccount result ->
+            case result of
+                Ok account ->
+                    { model | account = Just account } ! []
+
+                Err error ->
+                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]
