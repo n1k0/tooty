@@ -1,44 +1,11 @@
 module View exposing (view)
 
-import Json.Decode as Decode
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import HtmlParser
-import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
-
-
--- Custom Events
-
-
-onClickWithPreventAndStop : msg -> Attribute msg
-onClickWithPreventAndStop msg =
-    onWithOptions
-        "click"
-        { preventDefault = True, stopPropagation = True }
-        (Decode.succeed msg)
-
-
-
--- Views
-
-
-replace : String -> String -> String -> String
-replace from to str =
-    String.split from str |> String.join to
-
-
-formatContent : String -> List (Html msg)
-formatContent content =
-    content
-        |> replace "&apos;" "'"
-        |> replace " ?" "&nbsp;?"
-        |> replace " !" "&nbsp;!"
-        |> replace " :" "&nbsp;:"
-        |> HtmlParser.parse
-        |> toVirtualDom
+import ViewHelper exposing (formatContent, onClickWithPreventAndStop)
 
 
 errorView : String -> Html Msg
@@ -62,7 +29,7 @@ icon name =
 
 
 statusView : Mastodon.Status -> Html Msg
-statusView { account, content, reblog } =
+statusView { account, content, reblog, mentions } =
     let
         accountLinkAttributes =
             [ href account.url
@@ -93,7 +60,7 @@ statusView { account, content, reblog } =
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , div [ class "status-text" ] <| formatContent content
+                    , div [ class "status-text" ] (formatContent content mentions)
                     ]
 
 

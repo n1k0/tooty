@@ -119,7 +119,7 @@ type alias Attachment =
 
 
 type alias Mention =
-    { id : Int
+    { id : AccountId
     , url : String
     , username : String
     , acct : String
