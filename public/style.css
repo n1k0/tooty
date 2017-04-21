@@ -10,6 +10,9 @@
 .panel-heading {
   font-weight: bold;
 }
+.panel-heading > .glyphicon {
+  margin-right: 8px;
+}
 
 .avatar {
   display: block;

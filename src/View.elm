@@ -24,13 +24,18 @@ errorsListView model =
             div [] <| List.map errorView model.errors
 
 
+icon : String -> Html Msg
+icon name =
+    i [ class <| "glyphicon glyphicon-" ++ name ] []
+
+
 statusView : Mastodon.Status -> Html Msg
 statusView { account, content, reblog } =
     case reblog of
         Just (Mastodon.Reblog reblog) ->
             div [ class "reblog" ]
                 [ p []
-                    [ i [ class "glyphicon glyphicon-fire" ] []
+                    [ icon "fire"
                     , a [ href account.url, class "reblogger" ]
                         [ text <| " " ++ account.username ]
                     , text " boosted"
@@ -52,11 +57,14 @@ statusView { account, content, reblog } =
                 ]
 
 
-timelineView : List Mastodon.Status -> String -> Html Msg
-timelineView statuses label =
+timelineView : List Mastodon.Status -> String -> String -> Html Msg
+timelineView statuses label iconName =
     div [ class "col-sm-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ text label ]
+            [ div [ class "panel-heading" ]
+                [ icon iconName
+                , text label
+                ]
             , ul [ class "list-group" ] <|
                 List.map
                     (\s ->
@@ -81,7 +89,7 @@ draftView { draft } =
     in
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
-                [ div [ class "panel-heading" ] [ text "Post a message" ]
+                [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
                 , div [ class "panel-body" ]
                     [ Html.form [ class "form", onSubmit SubmitDraft ]
                         [ div [ class "form-group checkbox" ]
@@ -159,9 +167,9 @@ homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
         [ draftView model
-        , timelineView model.userTimeline "Home timeline"
-        , timelineView model.localTimeline "Local timeline"
-        , timelineView model.publicTimeline "Public timeline"
+        , timelineView model.userTimeline "Home timeline" "home"
+        , timelineView model.localTimeline "Local timeline" "th-large"
+        , timelineView model.publicTimeline "Public timeline" "globe"
         ]
 
 
