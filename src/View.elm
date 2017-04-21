@@ -56,11 +56,41 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+attachmentPreview : Mastodon.Attachment -> Html Msg
+attachmentPreview { url, preview_url } =
+    li []
+        [ a
+            [ class "attachment-image"
+            , href url
+            , target "_blank"
+            , style
+                [ ( "background"
+                  , "url(" ++ preview_url ++ ") center center / cover no-repeat"
+                  )
+                ]
+            ]
+            []
+        ]
+
+
+attachmentListView : List Mastodon.Attachment -> Html Msg
+attachmentListView attachments =
+    case attachments of
+        [] ->
+            text ""
+
+        attachments ->
+            ul [ class "attachments" ] <| List.map attachmentPreview attachments
+
+
 statusContentView : Mastodon.Status -> Html Msg
 statusContentView status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text" ] <| formatContent status.content
+            div [ class "status-text" ]
+                [ div [] <| formatContent status.content
+                , attachmentListView status.media_attachments
+                ]
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
@@ -72,12 +102,15 @@ statusContentView status =
                     [ div [ class "spoiler" ] <| formatContent status.spoiler_text
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
-                    , div [ class "spoiled-content" ] <| formatContent status.content
+                    , div [ class "spoiled-content" ]
+                        [ div [] <| formatContent status.content
+                        , attachmentListView status.media_attachments
+                        ]
                     ]
 
 
 statusView : Mastodon.Status -> Html Msg
-statusView ({ account, content, reblog } as status) =
+statusView ({ account, media_attachments, content, reblog } as status) =
     case reblog of
         Just (Mastodon.Reblog reblog) ->
             div [ class "reblog" ]
