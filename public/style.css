@@ -49,6 +49,44 @@
   color: #9baec8;
 }
 
+/* Spoiler */
+
+.spoiled input[type=checkbox] {
+  display: none;
+}
+
+.spoiled input[type=checkbox] + label {
+  display: block;
+  text-align: center;
+  margin-top: .5em;
+  font-weight: normal;
+  background: #222;
+  color: #fff;
+  padding: .3em;
+  border: 1px solid #444;
+  cursor: pointer;
+}
+
+
+.spoiled input[type=checkbox]:checked + label + .spoiled-content {
+  height: auto;
+  opacity: 1;
+  padding: 10px;
+}
+
+.spoiled .spoiled-content {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 10px;
+  background: #333;
+  border: 1px solid #777;
+  border-radius: 4px;
+  transition: all .6s;
+}
+
+/* Status text content rules */
+
 .attachment {
   white-space: pre-wrap;
   word-wrap: break-word;
