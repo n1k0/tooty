@@ -1,11 +1,22 @@
 module View exposing (view)
 
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
 import ViewHelper exposing (formatContent, onClickWithPreventAndStop)
+
+
+visibilities : Dict.Dict String String
+visibilities =
+    Dict.fromList
+        [ ( "public", "post to public timelines" )
+        , ( "unlisted", "do not show in public timelines" )
+        , ( "private", "post to followers only" )
+        , ( "direct", "post to mentioned users only" )
+        ]
 
 
 errorView : String -> Html Msg
@@ -28,8 +39,28 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+statusContentView : Mastodon.Status -> Html Msg
+statusContentView status =
+    case status.spoiler_text of
+        "" ->
+            div [ class "status-text" ] <| (formatContent status.content status.mentions)
+
+        spoiler ->
+            -- Note: Spoilers are dealt with using pure CSS.
+            let
+                statusId =
+                    "spoiler" ++ (toString status.id)
+            in
+                div [ class "status-text spoiled" ]
+                    [ div [ class "spoiler" ] <| (formatContent status.spoiler_text status.mentions)
+                    , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
+                    , label [ for statusId ] [ text "Reveal content" ]
+                    , div [ class "spoiled-content" ] <| (formatContent status.content status.mentions)
+                    ]
+
+
 statusView : Mastodon.Status -> Html Msg
-statusView { account, content, reblog, mentions } =
+statusView ({ account, content, reblog, mentions } as status) =
     let
         accountLinkAttributes =
             [ href account.url
@@ -60,7 +91,7 @@ statusView { account, content, reblog, mentions } =
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , div [ class "status-text" ] (formatContent content mentions)
+                    , statusContentView status
                     ]
 
 
@@ -93,6 +124,10 @@ draftView { draft } =
 
                 Just _ ->
                     True
+
+        visibilityOptionView ( visibility, description ) =
+            option [ value visibility ]
+                [ text <| visibility ++ ": " ++ description ]
     in
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
@@ -140,7 +175,7 @@ draftView { draft } =
                                 , rows 8
                                 , placeholder <|
                                     if hasSpoiler then
-                                        "This text with be hidden by default, as you have enabled a spoiler."
+                                        "This text will be hidden by default, as you have enabled a spoiler."
                                     else
                                         "Once upon a time..."
                                 , onInput <| DraftEvent << UpdateStatus
@@ -148,6 +183,19 @@ draftView { draft } =
                                 , value draft.status
                                 ]
                                 []
+                            ]
+                        , div [ class "form-group" ]
+                            [ label [ for "visibility" ] [ text "Visibility" ]
+                            , select
+                                [ id "visibility"
+                                , class "form-control"
+                                , onInput <| DraftEvent << UpdateVisibility
+                                , required True
+                                , value draft.visibility
+                                ]
+                              <|
+                                List.map visibilityOptionView <|
+                                    Dict.toList visibilities
                             ]
                         , div [ class "form-group checkbox" ]
                             [ label []
@@ -157,7 +205,7 @@ draftView { draft } =
                                     , checked draft.sensitive
                                     ]
                                     []
-                                , text " NSFW"
+                                , text " This post is NSFW"
                                 ]
                             ]
                         , p [ class "text-right" ]
@@ -201,7 +249,10 @@ authView model =
                             ]
                             []
                         , p [ class "help-block" ]
-                            [ text "You'll be redirected to that server to authenticate yourself. We don't have access to your password." ]
+                            [ text <|
+                                "You'll be redirected to that server to authenticate yourself. "
+                                    ++ "We don't have access to your password."
+                            ]
                         ]
                     , button [ class "btn btn-primary", type_ "submit" ]
                         [ text "Sign into Tooty" ]
