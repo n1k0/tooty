@@ -10,23 +10,57 @@
 .panel-heading {
   font-weight: bold;
 }
+.panel-heading > .glyphicon {
+  margin-right: 8px;
+}
 
 .avatar {
   display: block;
   float: left;
   width: 50px;
   border-radius: 5%;
-  margin-right: .5em;
-  margin-bottom: .5em;
+  margin-right: .10px;
+  margin-bottom: 10px;
+  margin-top: 2px;
 }
 
 .username {
   font-weight: bold;
+  margin-left: 65px;
+  margin-bottom: 4px;
+}
+
+.acct {
+  font-size: 97%;
+  font-weight: normal;
+  color: #a0a0a0;
+}
+
+.reblogger {
+  color: #ccc;
+}
+
+.status-text {
+  margin-left: 65px;
+  color: #efefef;
+}
+
+.status-text a, .u-url, .mention, .hashtag, .tag {
+  color: #9baec8;
+}
+
+.attachment {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.ellipsis {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .invisible {
-    font-size: 0;
-    line-height: 0;
-    display: inline-block;
-    width: 0;
+    display: none;
 }
