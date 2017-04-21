@@ -17681,9 +17681,17 @@ var _n1k0$tooty$View$formatContent = function (content) {
 		_jinjor$elm_html_parser$HtmlParser$parse(
 			A3(
 				_n1k0$tooty$View$replace,
-				' ?',
-				'&nbsp;?',
-				A3(_n1k0$tooty$View$replace, '&apos;', '\'', content))));
+				' :',
+				'&nbsp;:',
+				A3(
+					_n1k0$tooty$View$replace,
+					' !',
+					'&nbsp;!',
+					A3(
+						_n1k0$tooty$View$replace,
+						' ?',
+						'&nbsp;?',
+						A3(_n1k0$tooty$View$replace, '&apos;', '\'', content))))));
 };
 var _n1k0$tooty$View$statusView = function (_p9) {
 	var _p10 = _p9;

@@ -39,17 +39,23 @@
 .reblogger {
   color: #ccc;
 }
+
 .status-text {
   margin-left: 65px;
   color: #efefef;
 }
+
 .status-text a, .u-url, .mention, .hashtag {
   color: #9baec8;
 }
 
+.ellipsis {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .invisible {
-    font-size: 0;
-    line-height: 0;
-    display: inline-block;
-    width: 0;
+    display: none;
 }
