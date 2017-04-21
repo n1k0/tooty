@@ -16724,14 +16724,10 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					{
 						spoiler_text: _elm_lang$core$Maybe$Just(_p0._0)
 					});
-			case 'UpdateStatus':
-				return _elm_lang$core$Native_Utils.update(
-					draft,
-					{status: _p0._0});
 			default:
 				return _elm_lang$core$Native_Utils.update(
 					draft,
-					{visibility: _p0._0});
+					{status: _p0._0});
 		}
 	});
 var _n1k0$tooty$Model$errorText = function (error) {
@@ -16803,9 +16799,6 @@ var _n1k0$tooty$Model$Model = F9(
 	function (a, b, c, d, e, f, g, h, i) {
 		return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, draft: g, errors: h, location: i};
 	});
-var _n1k0$tooty$Model$UpdateVisibility = function (a) {
-	return {ctor: 'UpdateVisibility', _0: a};
-};
 var _n1k0$tooty$Model$UpdateStatus = function (a) {
 	return {ctor: 'UpdateStatus', _0: a};
 };
@@ -17315,245 +17308,23 @@ var _n1k0$tooty$View$authView = function (model) {
 			_1: {ctor: '[]'}
 		});
 };
-var _n1k0$tooty$View$statusView = function (status) {
-	var _p0 = status.reblog;
-	if (_p0.ctor === 'Just') {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('reblog'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$p,
-					{ctor: '[]'},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(status.account.url),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(
-									A2(_elm_lang$core$Basics_ops['++'], '@', status.account.username)),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(' reblogged'),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {
-					ctor: '::',
-					_0: _n1k0$tooty$View$statusView(_p0._0._0),
-					_1: {ctor: '[]'}
-				}
-			});
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('status'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$img,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('avatar'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$src(status.account.avatar),
-							_1: {ctor: '[]'}
-						}
-					},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('username'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$a,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$href(status.account.url),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(status.account.username),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('status-text'),
-								_1: {ctor: '[]'}
-							},
-							_jinjor$elm_html_parser$HtmlParser_Util$toVirtualDom(
-								_jinjor$elm_html_parser$HtmlParser$parse(status.content))),
-						_1: {ctor: '[]'}
-					}
-				}
-			});
-	}
-};
-var _n1k0$tooty$View$timelineView = F2(
-	function (statuses, label) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('col-sm-3'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(label),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$ul,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list-group'),
-									_1: {ctor: '[]'}
-								},
-								A2(
-									_elm_lang$core$List$map,
-									function (s) {
-										return A2(
-											_elm_lang$html$Html$li,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
-												_1: {ctor: '[]'}
-											},
-											{
-												ctor: '::',
-												_0: _n1k0$tooty$View$statusView(s),
-												_1: {ctor: '[]'}
-											});
-									},
-									statuses)),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
-var _n1k0$tooty$View$errorView = function (error) {
+var _n1k0$tooty$View$icon = function (name) {
 	return A2(
-		_elm_lang$html$Html$div,
+		_elm_lang$html$Html$i,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'glyphicon glyphicon-', name)),
 			_1: {ctor: '[]'}
 		},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(error),
-			_1: {ctor: '[]'}
-		});
+		{ctor: '[]'});
 };
-var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p1 = model.errors;
-	if (_p1.ctor === '[]') {
-		return _elm_lang$html$Html$text('');
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
-	}
-};
-var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
-	{
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'public', _1: 'post to public timelines'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'unlisted', _1: 'do not show in public timelines'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'private', _1: 'post to followers only'},
-				_1: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'direct', _1: 'post to mentioned users only'},
-					_1: {ctor: '[]'}
-				}
-			}
-		}
-	});
-var _n1k0$tooty$View$draftView = function (_p2) {
-	var _p3 = _p2;
-	var _p13 = _p3.draft;
-	var visibilityOptionView = function (_p4) {
-		var _p5 = _p4;
-		var _p6 = _p5._0;
-		return A2(
-			_elm_lang$html$Html$option,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$value(_p6),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html$text(
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						_p6,
-						A2(_elm_lang$core$Basics_ops['++'], ': ', _p5._1))),
-				_1: {ctor: '[]'}
-			});
-	};
+var _n1k0$tooty$View$draftView = function (_p0) {
+	var _p1 = _p0;
+	var _p7 = _p1.draft;
 	var hasSpoiler = function () {
-		var _p7 = _p13.spoiler_text;
-		if (_p7.ctor === 'Nothing') {
+		var _p2 = _p7.spoiler_text;
+		if (_p2.ctor === 'Nothing') {
 			return false;
 		} else {
 			return true;
@@ -17586,8 +17357,12 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 						},
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html$text('Post a message'),
-							_1: {ctor: '[]'}
+							_0: _n1k0$tooty$View$icon('envelope'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Post a message'),
+								_1: {ctor: '[]'}
+							}
 						}),
 					_1: {
 						ctor: '::',
@@ -17635,9 +17410,9 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 																_1: {
 																	ctor: '::',
 																	_0: _elm_lang$html$Html_Events$onCheck(
-																		function (_p8) {
+																		function (_p3) {
 																			return _n1k0$tooty$Model$DraftEvent(
-																				_n1k0$tooty$Model$ToggleSpoiler(_p8));
+																				_n1k0$tooty$Model$ToggleSpoiler(_p3));
 																		}),
 																	_1: {
 																		ctor: '::',
@@ -17697,9 +17472,9 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p9) {
+																					function (_p4) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSpoiler(_p9));
+																							_n1k0$tooty$Model$UpdateSpoiler(_p4));
 																					}),
 																				_1: {
 																					ctor: '::',
@@ -17707,7 +17482,7 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 																					_1: {
 																						ctor: '::',
 																						_0: _elm_lang$html$Html_Attributes$value(
-																							A2(_elm_lang$core$Maybe$withDefault, '', _p13.spoiler_text)),
+																							A2(_elm_lang$core$Maybe$withDefault, '', _p7.spoiler_text)),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -17760,20 +17535,20 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Attributes$placeholder(
-																					hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
+																					hasSpoiler ? 'This text with be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Events$onInput(
-																						function (_p10) {
+																						function (_p5) {
 																							return _n1k0$tooty$Model$DraftEvent(
-																								_n1k0$tooty$Model$UpdateStatus(_p10));
+																								_n1k0$tooty$Model$UpdateStatus(_p5));
 																						}),
 																					_1: {
 																						ctor: '::',
 																						_0: _elm_lang$html$Html_Attributes$required(true),
 																						_1: {
 																							ctor: '::',
-																							_0: _elm_lang$html$Html_Attributes$value(_p13.status),
+																							_0: _elm_lang$html$Html_Attributes$value(_p7.status),
 																							_1: {ctor: '[]'}
 																						}
 																					}
@@ -17792,130 +17567,70 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 														_elm_lang$html$Html$div,
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('form-group'),
+															_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
 															_1: {ctor: '[]'}
 														},
 														{
 															ctor: '::',
 															_0: A2(
 																_elm_lang$html$Html$label,
+																{ctor: '[]'},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$for('visibility'),
-																	_1: {ctor: '[]'}
-																},
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html$text('Visibility'),
-																	_1: {ctor: '[]'}
-																}),
-															_1: {
-																ctor: '::',
-																_0: A2(
-																	_elm_lang$html$Html$select,
-																	{
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$id('visibility'),
-																		_1: {
+																	_0: A2(
+																		_elm_lang$html$Html$input,
+																		{
 																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																			_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
 																			_1: {
 																				ctor: '::',
-																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p11) {
+																				_0: _elm_lang$html$Html_Events$onCheck(
+																					function (_p6) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateVisibility(_p11));
+																							_n1k0$tooty$Model$UpdateSensitive(_p6));
 																					}),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$required(true),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(_p13.visibility),
-																						_1: {ctor: '[]'}
-																					}
+																					_0: _elm_lang$html$Html_Attributes$checked(_p7.sensitive),
+																					_1: {ctor: '[]'}
 																				}
 																			}
-																		}
-																	},
-																	A2(
-																		_elm_lang$core$List$map,
-																		visibilityOptionView,
-																		_elm_lang$core$Dict$toList(_n1k0$tooty$View$visibilities))),
-																_1: {ctor: '[]'}
-															}
+																		},
+																		{ctor: '[]'}),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text(' NSFW'),
+																		_1: {ctor: '[]'}
+																	}
+																}),
+															_1: {ctor: '[]'}
 														}),
 													_1: {
 														ctor: '::',
 														_0: A2(
-															_elm_lang$html$Html$div,
+															_elm_lang$html$Html$p,
 															{
 																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
+																_0: _elm_lang$html$Html_Attributes$class('text-right'),
 																_1: {ctor: '[]'}
 															},
 															{
 																ctor: '::',
 																_0: A2(
-																	_elm_lang$html$Html$label,
-																	{ctor: '[]'},
+																	_elm_lang$html$Html$button,
 																	{
 																		ctor: '::',
-																		_0: A2(
-																			_elm_lang$html$Html$input,
-																			{
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Events$onCheck(
-																						function (_p12) {
-																							return _n1k0$tooty$Model$DraftEvent(
-																								_n1k0$tooty$Model$UpdateSensitive(_p12));
-																						}),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$checked(_p13.sensitive),
-																						_1: {ctor: '[]'}
-																					}
-																				}
-																			},
-																			{ctor: '[]'}),
-																		_1: {
-																			ctor: '::',
-																			_0: _elm_lang$html$Html$text(' This post is NSFW'),
-																			_1: {ctor: '[]'}
-																		}
+																		_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
+																		_1: {ctor: '[]'}
+																	},
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text('Toot!'),
+																		_1: {ctor: '[]'}
 																	}),
 																_1: {ctor: '[]'}
 															}),
-														_1: {
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$p,
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$class('text-right'),
-																	_1: {ctor: '[]'}
-																},
-																{
-																	ctor: '::',
-																	_0: A2(
-																		_elm_lang$html$Html$button,
-																		{
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
-																			_1: {ctor: '[]'}
-																		},
-																		{
-																			ctor: '::',
-																			_0: _elm_lang$html$Html$text('Toot!'),
-																			_1: {ctor: '[]'}
-																		}),
-																	_1: {ctor: '[]'}
-																}),
-															_1: {ctor: '[]'}
-														}
+														_1: {ctor: '[]'}
 													}
 												}
 											}
@@ -17929,6 +17644,246 @@ var _n1k0$tooty$View$draftView = function (_p2) {
 			_1: {ctor: '[]'}
 		});
 };
+var _n1k0$tooty$View$errorView = function (error) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(error),
+			_1: {ctor: '[]'}
+		});
+};
+var _n1k0$tooty$View$errorsListView = function (model) {
+	var _p8 = model.errors;
+	if (_p8.ctor === '[]') {
+		return _elm_lang$html$Html$text('');
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
+	}
+};
+var _n1k0$tooty$View$replace = F3(
+	function (from, to, str) {
+		return A2(
+			_elm_lang$core$String$join,
+			to,
+			A2(_elm_lang$core$String$split, from, str));
+	});
+var _n1k0$tooty$View$formatContent = function (content) {
+	return _jinjor$elm_html_parser$HtmlParser_Util$toVirtualDom(
+		_jinjor$elm_html_parser$HtmlParser$parse(
+			A3(
+				_n1k0$tooty$View$replace,
+				' ?',
+				'&nbsp;?',
+				A3(_n1k0$tooty$View$replace, '&apos;', '\'', content))));
+};
+var _n1k0$tooty$View$statusView = function (_p9) {
+	var _p10 = _p9;
+	var _p12 = _p10.account;
+	var _p11 = _p10.reblog;
+	if (_p11.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('reblog'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$p,
+					{ctor: '[]'},
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$View$icon('fire'),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(_p12.url),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('reblogger'),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], ' ', _p12.username)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' boosted'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _n1k0$tooty$View$statusView(_p11._0._0),
+					_1: {ctor: '[]'}
+				}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('status'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$img,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('avatar'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$src(_p12.avatar),
+							_1: {ctor: '[]'}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('username'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(_p12.url),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(_p12.display_name),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$span,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('acct'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													A2(_elm_lang$core$Basics_ops['++'], ' @', _p12.username)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('status-text'),
+								_1: {ctor: '[]'}
+							},
+							_n1k0$tooty$View$formatContent(_p10.content)),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	}
+};
+var _n1k0$tooty$View$timelineView = F3(
+	function (statuses, label, iconName) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('col-sm-3'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _n1k0$tooty$View$icon(iconName),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(label),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$ul,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('list-group'),
+									_1: {ctor: '[]'}
+								},
+								A2(
+									_elm_lang$core$List$map,
+									function (s) {
+										return A2(
+											_elm_lang$html$Html$li,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _n1k0$tooty$View$statusView(s),
+												_1: {ctor: '[]'}
+											});
+									},
+									statuses)),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
 var _n1k0$tooty$View$homepageView = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -17942,13 +17897,13 @@ var _n1k0$tooty$View$homepageView = function (model) {
 			_0: _n1k0$tooty$View$draftView(model),
 			_1: {
 				ctor: '::',
-				_0: A2(_n1k0$tooty$View$timelineView, model.userTimeline, 'Home timeline'),
+				_0: A3(_n1k0$tooty$View$timelineView, model.userTimeline, 'Home timeline', 'home'),
 				_1: {
 					ctor: '::',
-					_0: A2(_n1k0$tooty$View$timelineView, model.localTimeline, 'Local timeline'),
+					_0: A3(_n1k0$tooty$View$timelineView, model.localTimeline, 'Local timeline', 'th-large'),
 					_1: {
 						ctor: '::',
-						_0: A2(_n1k0$tooty$View$timelineView, model.publicTimeline, 'Public timeline'),
+						_0: A3(_n1k0$tooty$View$timelineView, model.publicTimeline, 'Public timeline', 'globe'),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -17979,8 +17934,8 @@ var _n1k0$tooty$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p14 = model.client;
-						if (_p14.ctor === 'Just') {
+						var _p13 = model.client;
+						if (_p13.ctor === 'Just') {
 							return _n1k0$tooty$View$homepageView(model);
 						} else {
 							return _n1k0$tooty$View$authView(model);
