@@ -56,8 +56,28 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+statusContentView : Mastodon.Status -> Html Msg
+statusContentView status =
+    case status.spoiler_text of
+        "" ->
+            div [ class "status-text" ] <| formatContent status.content
+
+        spoiler ->
+            -- Note: Spoilers are dealt with using pure CSS.
+            let
+                statusId =
+                    "spoiler" ++ (toString status.id)
+            in
+                div [ class "status-text spoiled" ]
+                    [ div [ class "spoiler" ] <| formatContent status.spoiler_text
+                    , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
+                    , label [ for statusId ] [ text "Reveal content" ]
+                    , div [ class "spoiled-content" ] <| formatContent status.content
+                    ]
+
+
 statusView : Mastodon.Status -> Html Msg
-statusView { account, content, reblog } =
+statusView ({ account, content, reblog } as status) =
     case reblog of
         Just (Mastodon.Reblog reblog) ->
             div [ class "reblog" ]
@@ -79,7 +99,7 @@ statusView { account, content, reblog } =
                         , span [ class "acct" ] [ text <| " @" ++ account.username ]
                         ]
                     ]
-                , div [ class "status-text" ] <| formatContent content
+                , statusContentView status
                 ]
 
 
