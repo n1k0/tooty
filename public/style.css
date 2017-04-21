@@ -63,13 +63,13 @@ body {
   width: 100%;
   box-sizing: border-box;
   position: relative;
-  max-height: 110px;
 }
 
 .attachment-image {
    display: block;
    width: 100%;
-   height: 110px;
+   height: 10vh;
+   margin-top: 5px;
    text-decoration: none;
    cursor: zoom-in;
    border-radius: 2px;
