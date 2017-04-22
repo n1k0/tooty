@@ -39,6 +39,15 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+accountLink : Mastodon.Account -> Html Msg
+accountLink account =
+    a
+        [ href account.url
+        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        ]
+        [ text <| "@" ++ account.username ]
+
+
 attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
 attachmentPreview sensitive ({ url, preview_url } as attachment) =
     let
@@ -227,6 +236,61 @@ timelineView statuses label iconName =
         ]
 
 
+notificationHeading : Mastodon.Account -> String -> String -> Html Msg
+notificationHeading account str iconType =
+    p [] <|
+        List.intersperse (text " ")
+            [ icon iconType, accountLink account, text str ]
+
+
+notificationStatusView : Mastodon.Status -> Mastodon.Notification -> Html Msg
+notificationStatusView status { type_, account } =
+    div [ class "notification mention" ]
+        [ case type_ of
+            "reblog" ->
+                notificationHeading account "boosted your toot" "fire"
+
+            "favourite" ->
+                notificationHeading account "favourited your toot" "star"
+
+            _ ->
+                text ""
+        , statusView status
+        ]
+
+
+notificationFollowView : Mastodon.Notification -> Html Msg
+notificationFollowView { account } =
+    div [ class "notification follow" ]
+        [ notificationHeading account "started following you" "user" ]
+
+
+notificationEntryView : Mastodon.Notification -> Html Msg
+notificationEntryView notification =
+    li [ class "list-group-item" ]
+        [ case notification.status of
+            Just status ->
+                notificationStatusView status notification
+
+            Nothing ->
+                notificationFollowView notification
+        ]
+
+
+notificationListView : List Mastodon.Notification -> Html Msg
+notificationListView notifications =
+    div [ class "col-md-3" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ]
+                [ icon "bell"
+                , text "Notifications"
+                ]
+            , ul [ class "list-group" ] <|
+                List.map notificationEntryView notifications
+            ]
+        ]
+
+
 draftView : Model -> Html Msg
 draftView { draft } =
     let
@@ -331,14 +395,16 @@ homepageView model =
     div [ class "row" ]
         [ draftView model
         , timelineView model.userTimeline "Home timeline" "home"
-        , timelineView model.localTimeline "Local timeline" "th-large"
+        , notificationListView model.notifications
         , case model.account of
             Just account ->
                 -- Todo: Load the user timeline
                 accountTimelineView account [] "Account" "user"
 
             Nothing ->
-                timelineView model.publicTimeline "Public timeline" "globe"
+                -- TODO: a toggler to switch between local & global timelines
+                -- timelineView model.publicTimeline "Public timeline" "globe"
+                timelineView model.localTimeline "Local timeline" "th-large"
         ]
 
 

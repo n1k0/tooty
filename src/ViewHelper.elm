@@ -11,7 +11,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
 import HtmlParser
-import HtmlParser.Util
 import Json.Decode as Decode
 import Mastodon
 import Model exposing (Msg(OnLoadUserAccount))

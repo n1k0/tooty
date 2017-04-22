@@ -25,8 +25,9 @@ type Msg
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
     | DraftEvent DraftMsg
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
-    | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
+    | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Register
     | ServerChange String
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
@@ -43,6 +44,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
+    , notifications : List Mastodon.Notification
     , draft : Mastodon.StatusRequestBody
     , account : Maybe Mastodon.Account
     , errors : List String
@@ -82,6 +84,7 @@ init flags location =
         , userTimeline = []
         , localTimeline = []
         , publicTimeline = []
+        , notifications = []
         , draft = defaultDraft
         , account = Nothing
         , errors = []
@@ -143,6 +146,7 @@ loadTimelines client =
                 [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
                 , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
                 , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
+                , Mastodon.fetchNotifications client |> Mastodon.send Notifications
                 ]
 
         Nothing ->
@@ -297,3 +301,11 @@ update msg model =
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]
+
+        Notifications result ->
+            case result of
+                Ok notifications ->
+                    { model | notifications = notifications } ! []
+
+                Err error ->
+                    { model | notifications = [], errors = (errorText error) :: model.errors } ! []

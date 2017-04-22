@@ -7,6 +7,7 @@ module Mastodon
         , Client
         , Error(..)
         , Mention
+        , Notification
         , Reblog(..)
         , Status
         , StatusRequestBody
@@ -17,8 +18,9 @@ module Mastodon
         , getAuthorizationUrl
         , getAccessToken
         , fetchAccount
-        , fetchPublicTimeline
         , fetchLocalTimeline
+        , fetchNotifications
+        , fetchPublicTimeline
         , fetchUserTimeline
         , postStatus
         , send
@@ -122,6 +124,22 @@ type alias Mention =
     , url : String
     , username : String
     , acct : String
+    }
+
+
+type alias Notification =
+    {-
+       - id: The notification ID
+       - type_: One of: "mention", "reblog", "favourite", "follow"
+       - created_at: The time the notification was created
+       - account: The Account sending the notification to the user
+       - status: The Status associated with the notification, if applicable
+    -}
+    { id : Int
+    , type_ : String
+    , created_at : String
+    , account : Account
+    , status : Maybe Status
     }
 
 
@@ -287,6 +305,16 @@ mentionDecoder =
         |> Pipe.required "acct" Decode.string
 
 
+notificationDecoder : Decode.Decoder Notification
+notificationDecoder =
+    Pipe.decode Notification
+        |> Pipe.required "id" Decode.int
+        |> Pipe.required "type" Decode.string
+        |> Pipe.required "created_at" Decode.string
+        |> Pipe.required "account" accountDecoder
+        |> Pipe.optional "status" (Decode.nullable statusDecoder) Nothing
+
+
 tagDecoder : Decode.Decoder Tag
 tagDecoder =
     Pipe.decode Tag
@@ -450,17 +478,22 @@ fetchAccount client accountId =
 
 fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
-    fetch client "/api/v1/timelines/home" (Decode.list statusDecoder)
+    fetch client "/api/v1/timelines/home" <| Decode.list statusDecoder
 
 
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
-    fetch client "/api/v1/timelines/public?local=true" (Decode.list statusDecoder)
+    fetch client "/api/v1/timelines/public?local=true" <| Decode.list statusDecoder
 
 
 fetchPublicTimeline : Client -> Request (List Status)
 fetchPublicTimeline client =
-    fetch client "/api/v1/timelines/public" (Decode.list statusDecoder)
+    fetch client "/api/v1/timelines/public" <| Decode.list statusDecoder
+
+
+fetchNotifications : Client -> Request (List Notification)
+fetchNotifications client =
+    fetch client "/api/v1/notifications" <| Decode.list notificationDecoder
 
 
 postStatus : Client -> StatusRequestBody -> Request Status
