@@ -168,8 +168,16 @@ accountTimelineView account statuses label iconName =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
-                [ icon iconName
-                , text label
+                [ div [ class "row" ]
+                    [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ]
+                    , div [ class "col-xs-3 text-right" ]
+                        [ a
+                            [ href ""
+                            , ViewHelper.onClickWithPreventAndStop ClearOpenedAccount
+                            ]
+                            [ icon "remove" ]
+                        ]
+                    ]
                 ]
             , div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
                 [ div [ class "opacity-layer" ]

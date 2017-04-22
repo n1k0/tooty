@@ -35,6 +35,7 @@ type Msg
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
     | UserAccount (Result Mastodon.Error Mastodon.Account)
+    | ClearOpenedAccount
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
@@ -304,6 +305,9 @@ update msg model =
 
                 Err error ->
                     { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
+
+        ClearOpenedAccount ->
+            { model | account = Nothing } ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]
