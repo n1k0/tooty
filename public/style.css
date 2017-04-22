@@ -3,7 +3,7 @@ body {
 }
 
 .status {
-  min-height: 75px;
+  min-height: 50px;
   clear: both;
 }
 
@@ -11,8 +11,17 @@ body {
   background: #493438;
 }
 
-.reblog > p:first-of-type {
+.reblog > p:first-of-type,
+.notification > p:first-of-type {
   color: #999;
+}
+.reblog > p:first-of-type > a,
+.notification > p:first-of-type > a {
+  color: #ccc;
+}
+
+.notification.follow > p {
+  margin-bottom: 0;
 }
 
 .panel-heading {
@@ -53,7 +62,7 @@ body {
   color: #efefef;
 }
 
-.status-text a, .u-url, .mention, .hashtag, .tag {
+.status-text a, .u-url, .status .mention, .hashtag, .tag {
   color: #9baec8;
 }
 

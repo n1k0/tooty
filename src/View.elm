@@ -39,6 +39,15 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+accountLink : Mastodon.Account -> Html Msg
+accountLink account =
+    a
+        [ href account.url
+        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        ]
+        [ text <| "@" ++ account.username ]
+
+
 attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
 attachmentPreview sensitive ({ url, preview_url } as attachment) =
     let
@@ -227,6 +236,61 @@ timelineView statuses label iconName =
         ]
 
 
+notificationHeading : Mastodon.Account -> String -> String -> Html Msg
+notificationHeading account str iconType =
+    p [] <|
+        List.intersperse (text " ")
+            [ icon iconType, accountLink account, text str ]
+
+
+notificationStatusView : Mastodon.Status -> Mastodon.Notification -> Html Msg
+notificationStatusView status { type_, account } =
+    div [ class "notification mention" ]
+        [ case type_ of
+            "reblog" ->
+                notificationHeading account "boosted your toot" "fire"
+
+            "favourite" ->
+                notificationHeading account "favourited your toot" "star"
+
+            _ ->
+                text ""
+        , statusView status
+        ]
+
+
+notificationFollowView : Mastodon.Notification -> Html Msg
+notificationFollowView { account } =
+    div [ class "notification follow" ]
+        [ notificationHeading account "started following you" "user" ]
+
+
+notificationEntryView : Mastodon.Notification -> Html Msg
+notificationEntryView notification =
+    li [ class "list-group-item" ]
+        [ case notification.status of
+            Just status ->
+                notificationStatusView status notification
+
+            Nothing ->
+                notificationFollowView notification
+        ]
+
+
+notificationListView : List Mastodon.Notification -> Html Msg
+notificationListView notifications =
+    div [ class "col-md-3" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ]
+                [ icon "bell"
+                , text "Notifications"
+                ]
+            , ul [ class "list-group" ] <|
+                List.map notificationEntryView notifications
+            ]
+        ]
+
+
 draftView : Model -> Html Msg
 draftView { draft } =
     let
@@ -237,108 +301,136 @@ draftView { draft } =
             option [ value visibility ]
                 [ text <| visibility ++ ": " ++ description ]
     in
-        div [ class "col-md-3" ]
-            [ div [ class "panel panel-default" ]
-                [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
-                , div [ class "panel-body" ]
-                    [ Html.form [ class "form", onSubmit SubmitDraft ]
-                        [ div [ class "form-group checkbox" ]
-                            [ label []
-                                [ input
-                                    [ type_ "checkbox"
-                                    , onCheck <| DraftEvent << ToggleSpoiler
-                                    , checked hasSpoiler
-                                    ]
-                                    []
-                                , text " Add a spoiler"
+        div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
+            , div [ class "panel-body" ]
+                [ Html.form [ class "form", onSubmit SubmitDraft ]
+                    [ div [ class "form-group checkbox" ]
+                        [ label []
+                            [ input
+                                [ type_ "checkbox"
+                                , onCheck <| DraftEvent << ToggleSpoiler
+                                , checked hasSpoiler
                                 ]
+                                []
+                            , text " Add a spoiler"
                             ]
-                        , if hasSpoiler then
-                            div [ class "form-group" ]
-                                [ label [ for "spoiler" ] [ text "Visible part" ]
-                                , textarea
-                                    [ id "spoiler"
-                                    , class "form-control"
-                                    , rows 5
-                                    , placeholder "This text will always be visible."
-                                    , onInput <| DraftEvent << UpdateSpoiler
-                                    , required True
-                                    , value <| Maybe.withDefault "" draft.spoiler_text
-                                    ]
-                                    []
-                                ]
-                          else
-                            text ""
-                        , div [ class "form-group" ]
-                            [ label [ for "status" ]
-                                [ text <|
-                                    if hasSpoiler then
-                                        "Hidden part"
-                                    else
-                                        "Status"
-                                ]
+                        ]
+                    , if hasSpoiler then
+                        div [ class "form-group" ]
+                            [ label [ for "spoiler" ] [ text "Visible part" ]
                             , textarea
-                                [ id "status"
+                                [ id "spoiler"
                                 , class "form-control"
-                                , rows 8
-                                , placeholder <|
-                                    if hasSpoiler then
-                                        "This text will be hidden by default, as you have enabled a spoiler."
-                                    else
-                                        "Once upon a time..."
-                                , onInput <| DraftEvent << UpdateStatus
+                                , rows 5
+                                , placeholder "This text will always be visible."
+                                , onInput <| DraftEvent << UpdateSpoiler
                                 , required True
-                                , value draft.status
+                                , value <| Maybe.withDefault "" draft.spoiler_text
                                 ]
                                 []
                             ]
-                        , div [ class "form-group" ]
-                            [ label [ for "visibility" ] [ text "Visibility" ]
-                            , select
-                                [ id "visibility"
-                                , class "form-control"
-                                , onInput <| DraftEvent << UpdateVisibility
-                                , required True
-                                , value draft.visibility
+                      else
+                        text ""
+                    , div [ class "form-group" ]
+                        [ label [ for "status" ]
+                            [ text <|
+                                if hasSpoiler then
+                                    "Hidden part"
+                                else
+                                    "Status"
+                            ]
+                        , textarea
+                            [ id "status"
+                            , class "form-control"
+                            , rows 8
+                            , placeholder <|
+                                if hasSpoiler then
+                                    "This text will be hidden by default, as you have enabled a spoiler."
+                                else
+                                    "Once upon a time..."
+                            , onInput <| DraftEvent << UpdateStatus
+                            , required True
+                            , value draft.status
+                            ]
+                            []
+                        ]
+                    , div [ class "form-group" ]
+                        [ label [ for "visibility" ] [ text "Visibility" ]
+                        , select
+                            [ id "visibility"
+                            , class "form-control"
+                            , onInput <| DraftEvent << UpdateVisibility
+                            , required True
+                            , value draft.visibility
+                            ]
+                          <|
+                            List.map visibilityOptionView <|
+                                Dict.toList visibilities
+                        ]
+                    , div [ class "form-group checkbox" ]
+                        [ label []
+                            [ input
+                                [ type_ "checkbox"
+                                , onCheck <| DraftEvent << UpdateSensitive
+                                , checked draft.sensitive
                                 ]
-                              <|
-                                List.map visibilityOptionView <|
-                                    Dict.toList visibilities
+                                []
+                            , text " This post is NSFW"
                             ]
-                        , div [ class "form-group checkbox" ]
-                            [ label []
-                                [ input
-                                    [ type_ "checkbox"
-                                    , onCheck <| DraftEvent << UpdateSensitive
-                                    , checked draft.sensitive
-                                    ]
-                                    []
-                                , text " This post is NSFW"
-                                ]
-                            ]
-                        , p [ class "text-right" ]
-                            [ button [ class "btn btn-primary" ]
-                                [ text "Toot!" ]
-                            ]
+                        ]
+                    , p [ class "text-right" ]
+                        [ button [ class "btn btn-primary" ]
+                            [ text "Toot!" ]
                         ]
                     ]
                 ]
             ]
 
 
+optionsView : Model -> Html Msg
+optionsView model =
+    div [ class "panel panel-default" ]
+        [ div [ class "panel-heading" ] [ icon "cog", text "options" ]
+        , div [ class "panel-body" ]
+            [ div [ class "checkbox" ]
+                [ label []
+                    [ input
+                        [ type_ "checkbox"
+                        , onCheck UseGlobalTimeline
+                        ]
+                        []
+                    , text " 4th column renders the global timeline"
+                    ]
+                ]
+            ]
+        ]
+
+
+sidebarView : Model -> Html Msg
+sidebarView model =
+    div [ class "col-md-3" ]
+        [ draftView model
+        , optionsView model
+        ]
+
+
 homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
-        [ draftView model
+        [ sidebarView model
         , timelineView model.userTimeline "Home timeline" "home"
-        , timelineView model.localTimeline "Local timeline" "th-large"
+        , notificationListView model.notifications
         , case model.account of
             Just account ->
                 -- Todo: Load the user timeline
                 accountTimelineView account [] "Account" "user"
 
             Nothing ->
-                timelineView model.publicTimeline "Public timeline" "globe"
+                if model.useGlobalTimeline then
+                    timelineView model.publicTimeline "Global timeline" "globe"
+                else
+                    timelineView model.localTimeline "Local timeline" "th-large"
         ]
 
 
