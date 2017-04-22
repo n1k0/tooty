@@ -74,9 +74,25 @@ body {
   margin-left: 65px;
   width: calc(100% - 65px);
 }
+
 .actions > .btn {
   border: none;
-  background: rgba(0,0,0,.1);
+  background: transparent;
+  color: #aaa;
+  padding: 0 2.4em 0 0;
+  text-align: left
+}
+
+.actions > .btn > .glyphicon {
+  margin-right: 5px;
+}
+
+.actions .favourited {
+  color: #d1ac0e;
+}
+
+.actions .reblogged {
+  color: #d56344;
 }
 
 /* Attachments */
