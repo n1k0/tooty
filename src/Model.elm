@@ -4,6 +4,8 @@ import Json.Encode as Encode
 import Navigation
 import Mastodon
 import Ports
+import Util
+import WebSocket
 
 
 type alias Flags =
@@ -37,6 +39,7 @@ type Msg
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | NewWebsocketUserMessage String
 
 
 type alias Model =
@@ -319,3 +322,28 @@ update msg model =
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
+
+        NewWebsocketUserMessage message ->
+            let
+                d =
+                    Debug.log "[Websocket] " message
+            in
+                model ! []
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch <|
+        case model.client of
+            Just client ->
+                let
+                    url =
+                        (Util.replace "http" "ws" client.server)
+                            ++ "/api/v1/streaming/?access_token="
+                            ++ client.token
+                            ++ "&stream=user"
+                in
+                    [ WebSocket.listen url NewWebsocketUserMessage ]
+
+            Nothing ->
+                []
