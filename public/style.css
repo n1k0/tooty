@@ -157,3 +157,42 @@ body {
 .invisible {
     display: none;
 }
+
+
+/* Account rules */
+.account-detail {
+    text-align:center;
+}
+.account-detail .opacity-layer{
+    background: rgba(49,53,67,0.9);
+}
+
+.account-detail img {
+    border-radius: 90px;
+    padding:20px;
+    display: block;
+    margin:0 auto 0;
+}
+
+
+.account-detail .account-display-name {
+    display: block;
+    font-size: 130%;
+    font-weight: bold;
+}
+
+
+.account-detail .account-username {
+    display: block;
+}
+
+
+.account-detail .account-note {
+    display: block;
+    padding: 5px 15px 15px 15px;
+}
+
+.account-infos {
+    text-align:center;
+    padding: 15px;
+}
