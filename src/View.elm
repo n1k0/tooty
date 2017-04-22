@@ -43,7 +43,7 @@ statusContentView : Mastodon.Status -> Html Msg
 statusContentView status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text" ] <| (ViewHelper.formatContent status.content status.mentions)
+            div [ class "status-text" ] <| ViewHelper.formatContent status.content status.mentions
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
@@ -52,7 +52,7 @@ statusContentView status =
                     "spoiler" ++ (toString status.id)
             in
                 div [ class "status-text spoiled" ]
-                    [ div [ class "spoiler" ] <| (ViewHelper.formatContent status.spoiler_text status.mentions)
+                    [ div [ class "spoiler" ] [ text status.spoiler_text ]
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ] <| (ViewHelper.formatContent status.content status.mentions)

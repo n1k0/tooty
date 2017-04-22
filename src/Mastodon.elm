@@ -2,7 +2,6 @@ module Mastodon
     exposing
         ( AccessTokenResult
         , Account
-        , AccountId
         , AppRegistration
         , Attachment
         , Client

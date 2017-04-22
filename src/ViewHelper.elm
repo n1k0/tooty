@@ -69,7 +69,11 @@ createLinkNode attrs children mentions =
     in
         case maybeMention of
             Just mention ->
-                Html.node "a" ((List.map toAttribute attrs) ++ [ onClickWithPreventAndStop (OnLoadUserAccount mention.id) ]) (toVirtualDom mentions children)
+                Html.node "a"
+                    ((List.map toAttribute attrs)
+                        ++ [ onClickWithPreventAndStop (OnLoadUserAccount mention.id) ]
+                    )
+                    (toVirtualDom mentions children)
 
             Nothing ->
                 Html.node "a" (List.map toAttribute attrs) (toVirtualDom mentions children)
@@ -87,18 +91,14 @@ getHrefLink attrs =
 
 getMentionForLink : List ( String, String ) -> List Mastodon.Mention -> Maybe Mastodon.Mention
 getMentionForLink attrs mentions =
-    let
-        maybeHref =
-            getHrefLink attrs
-    in
-        case maybeHref of
-            Just href ->
-                mentions
-                    |> List.filter (\m -> m.url == href)
-                    |> List.head
+    case getHrefLink attrs of
+        Just href ->
+            mentions
+                |> List.filter (\m -> m.url == href)
+                |> List.head
 
-            Nothing ->
-                Nothing
+        Nothing ->
+            Nothing
 
 
 toVirtualDomEach : List Mastodon.Mention -> HtmlParser.Node -> Html Msg
