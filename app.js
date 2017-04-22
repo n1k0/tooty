@@ -16119,7 +16119,9 @@ var _n1k0$tooty$Model$Model = function (a) {
 								return function (i) {
 									return function (j) {
 										return function (k) {
-											return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, notifications: g, draft: h, account: i, errors: j, location: k};
+											return function (l) {
+												return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, notifications: g, draft: h, account: i, errors: j, location: k, useGlobalTimeline: l};
+											};
 										};
 									};
 								};
@@ -16151,6 +16153,9 @@ var _n1k0$tooty$Model$UserTimeline = function (a) {
 };
 var _n1k0$tooty$Model$UserAccount = function (a) {
 	return {ctor: 'UserAccount', _0: a};
+};
+var _n1k0$tooty$Model$UseGlobalTimeline = function (a) {
+	return {ctor: 'UseGlobalTimeline', _0: a};
 };
 var _n1k0$tooty$Model$UrlChange = function (a) {
 	return {ctor: 'UrlChange', _0: a};
@@ -16402,6 +16407,13 @@ var _n1k0$tooty$Model$update = F2(
 							return {ctor: '[]'};
 						}
 					}());
+			case 'UseGlobalTimeline':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{useGlobalTimeline: _p10._0}),
+					{ctor: '[]'});
 			case 'LocalTimeline':
 				var _p17 = _p10._0;
 				if (_p17.ctor === 'Ok') {
@@ -16560,7 +16572,8 @@ var _n1k0$tooty$Model$init = F2(
 				draft: _n1k0$tooty$Model$defaultDraft,
 				account: _elm_lang$core$Maybe$Nothing,
 				errors: {ctor: '[]'},
-				location: location
+				location: location,
+				useGlobalTimeline: false
 			},
 			{
 				ctor: '::',
@@ -17729,6 +17742,83 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 			_1: {ctor: '[]'}
 		});
 };
+var _n1k0$tooty$View$optionsView = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _n1k0$tooty$View$icon('cog'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('options'),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel-body'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('checkbox'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$label,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$input,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html_Events$onCheck(_n1k0$tooty$Model$UseGlobalTimeline),
+													_1: {ctor: '[]'}
+												}
+											},
+											{ctor: '[]'}),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(' 4th column renders the global timeline'),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
 var _n1k0$tooty$View$errorView = function (error) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -17800,7 +17890,7 @@ var _n1k0$tooty$View$draftView = function (_p20) {
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+			_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
 			_1: {ctor: '[]'}
 		},
 		{
@@ -17809,96 +17899,218 @@ var _n1k0$tooty$View$draftView = function (_p20) {
 				_elm_lang$html$Html$div,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+					_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
 					_1: {ctor: '[]'}
 				},
 				{
 					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-							_1: {ctor: '[]'}
-						},
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$View$icon('envelope'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Post a message'),
-								_1: {ctor: '[]'}
-							}
-						}),
+					_0: _n1k0$tooty$View$icon('envelope'),
 					_1: {
 						ctor: '::',
+						_0: _elm_lang$html$Html$text('Post a message'),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel-body'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$div,
+							_elm_lang$html$Html$form,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('panel-body'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$class('form'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Model$SubmitDraft),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
 								_0: A2(
-									_elm_lang$html$Html$form,
+									_elm_lang$html$Html$div,
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('form'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html_Events$onSubmit(_n1k0$tooty$Model$SubmitDraft),
-											_1: {ctor: '[]'}
-										}
+										_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
+										_1: {ctor: '[]'}
 									},
 									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$label,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$input,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Events$onCheck(
+																function (_p25) {
+																	return _n1k0$tooty$Model$DraftEvent(
+																		_n1k0$tooty$Model$ToggleSpoiler(_p25));
+																}),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$checked(hasSpoiler),
+																_1: {ctor: '[]'}
+															}
+														}
+													},
+													{ctor: '[]'}),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(' Add a spoiler'),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: hasSpoiler ? A2(
+										_elm_lang$html$Html$div,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('form-group'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$label,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$for('spoiler'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Visible part'),
+													_1: {ctor: '[]'}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$textarea,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$id('spoiler'),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class('form-control'),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$rows(5),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$placeholder('This text will always be visible.'),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Events$onInput(
+																			function (_p26) {
+																				return _n1k0$tooty$Model$DraftEvent(
+																					_n1k0$tooty$Model$UpdateSpoiler(_p26));
+																			}),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Attributes$required(true),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$value(
+																					A2(_elm_lang$core$Maybe$withDefault, '', _p30.spoiler_text)),
+																				_1: {ctor: '[]'}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													},
+													{ctor: '[]'}),
+												_1: {ctor: '[]'}
+											}
+										}) : _elm_lang$html$Html$text(''),
+									_1: {
 										ctor: '::',
 										_0: A2(
 											_elm_lang$html$Html$div,
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
+												_0: _elm_lang$html$Html_Attributes$class('form-group'),
 												_1: {ctor: '[]'}
 											},
 											{
 												ctor: '::',
 												_0: A2(
 													_elm_lang$html$Html$label,
-													{ctor: '[]'},
 													{
 														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$input,
-															{
+														_0: _elm_lang$html$Html_Attributes$for('status'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(
+															hasSpoiler ? 'Hidden part' : 'Status'),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$textarea,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$id('status'),
+															_1: {
 																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+																_0: _elm_lang$html$Html_Attributes$class('form-control'),
 																_1: {
 																	ctor: '::',
-																	_0: _elm_lang$html$Html_Events$onCheck(
-																		function (_p25) {
-																			return _n1k0$tooty$Model$DraftEvent(
-																				_n1k0$tooty$Model$ToggleSpoiler(_p25));
-																		}),
+																	_0: _elm_lang$html$Html_Attributes$rows(8),
 																	_1: {
 																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$checked(hasSpoiler),
-																		_1: {ctor: '[]'}
+																		_0: _elm_lang$html$Html_Attributes$placeholder(
+																			hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
+																		_1: {
+																			ctor: '::',
+																			_0: _elm_lang$html$Html_Events$onInput(
+																				function (_p27) {
+																					return _n1k0$tooty$Model$DraftEvent(
+																						_n1k0$tooty$Model$UpdateStatus(_p27));
+																				}),
+																			_1: {
+																				ctor: '::',
+																				_0: _elm_lang$html$Html_Attributes$required(true),
+																				_1: {
+																					ctor: '::',
+																					_0: _elm_lang$html$Html_Attributes$value(_p30.status),
+																					_1: {ctor: '[]'}
+																				}
+																			}
+																		}
 																	}
 																}
-															},
-															{ctor: '[]'}),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(' Add a spoiler'),
-															_1: {ctor: '[]'}
-														}
-													}),
-												_1: {ctor: '[]'}
+															}
+														},
+														{ctor: '[]'}),
+													_1: {ctor: '[]'}
+												}
 											}),
 										_1: {
 											ctor: '::',
-											_0: hasSpoiler ? A2(
+											_0: A2(
 												_elm_lang$html$Html$div,
 												{
 													ctor: '::',
@@ -17911,263 +18123,148 @@ var _n1k0$tooty$View$draftView = function (_p20) {
 														_elm_lang$html$Html$label,
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$for('spoiler'),
+															_0: _elm_lang$html$Html_Attributes$for('visibility'),
 															_1: {ctor: '[]'}
 														},
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html$text('Visible part'),
+															_0: _elm_lang$html$Html$text('Visibility'),
 															_1: {ctor: '[]'}
 														}),
 													_1: {
 														ctor: '::',
 														_0: A2(
-															_elm_lang$html$Html$textarea,
+															_elm_lang$html$Html$select,
 															{
 																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$id('spoiler'),
+																_0: _elm_lang$html$Html_Attributes$id('visibility'),
 																_1: {
 																	ctor: '::',
 																	_0: _elm_lang$html$Html_Attributes$class('form-control'),
 																	_1: {
 																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$rows(5),
+																		_0: _elm_lang$html$Html_Events$onInput(
+																			function (_p28) {
+																				return _n1k0$tooty$Model$DraftEvent(
+																					_n1k0$tooty$Model$UpdateVisibility(_p28));
+																			}),
 																		_1: {
 																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$placeholder('This text will always be visible.'),
+																			_0: _elm_lang$html$Html_Attributes$required(true),
 																			_1: {
 																				ctor: '::',
-																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p26) {
-																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSpoiler(_p26));
-																					}),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$required(true),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(
-																							A2(_elm_lang$core$Maybe$withDefault, '', _p30.spoiler_text)),
-																						_1: {ctor: '[]'}
-																					}
-																				}
+																				_0: _elm_lang$html$Html_Attributes$value(_p30.visibility),
+																				_1: {ctor: '[]'}
 																			}
 																		}
 																	}
 																}
 															},
-															{ctor: '[]'}),
+															A2(
+																_elm_lang$core$List$map,
+																visibilityOptionView,
+																_elm_lang$core$Dict$toList(_n1k0$tooty$View$visibilities))),
 														_1: {ctor: '[]'}
 													}
-												}) : _elm_lang$html$Html$text(''),
+												}),
 											_1: {
 												ctor: '::',
 												_0: A2(
 													_elm_lang$html$Html$div,
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('form-group'),
+														_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
 														_1: {ctor: '[]'}
 													},
 													{
 														ctor: '::',
 														_0: A2(
 															_elm_lang$html$Html$label,
+															{ctor: '[]'},
 															{
 																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$for('status'),
-																_1: {ctor: '[]'}
-															},
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html$text(
-																	hasSpoiler ? 'Hidden part' : 'Status'),
-																_1: {ctor: '[]'}
-															}),
-														_1: {
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$textarea,
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$id('status'),
-																	_1: {
+																_0: A2(
+																	_elm_lang$html$Html$input,
+																	{
 																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																		_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
 																		_1: {
 																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$rows(8),
+																			_0: _elm_lang$html$Html_Events$onCheck(
+																				function (_p29) {
+																					return _n1k0$tooty$Model$DraftEvent(
+																						_n1k0$tooty$Model$UpdateSensitive(_p29));
+																				}),
 																			_1: {
 																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$placeholder(
-																					hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Events$onInput(
-																						function (_p27) {
-																							return _n1k0$tooty$Model$DraftEvent(
-																								_n1k0$tooty$Model$UpdateStatus(_p27));
-																						}),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$required(true),
-																						_1: {
-																							ctor: '::',
-																							_0: _elm_lang$html$Html_Attributes$value(_p30.status),
-																							_1: {ctor: '[]'}
-																						}
-																					}
-																				}
+																				_0: _elm_lang$html$Html_Attributes$checked(_p30.sensitive),
+																				_1: {ctor: '[]'}
 																			}
 																		}
-																	}
-																},
-																{ctor: '[]'}),
-															_1: {ctor: '[]'}
-														}
+																	},
+																	{ctor: '[]'}),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(' This post is NSFW'),
+																	_1: {ctor: '[]'}
+																}
+															}),
+														_1: {ctor: '[]'}
 													}),
 												_1: {
 													ctor: '::',
 													_0: A2(
-														_elm_lang$html$Html$div,
+														_elm_lang$html$Html$p,
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('form-group'),
+															_0: _elm_lang$html$Html_Attributes$class('text-right'),
 															_1: {ctor: '[]'}
 														},
 														{
 															ctor: '::',
 															_0: A2(
-																_elm_lang$html$Html$label,
+																_elm_lang$html$Html$button,
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$for('visibility'),
+																	_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
 																	_1: {ctor: '[]'}
 																},
 																{
 																	ctor: '::',
-																	_0: _elm_lang$html$Html$text('Visibility'),
-																	_1: {ctor: '[]'}
-																}),
-															_1: {
-																ctor: '::',
-																_0: A2(
-																	_elm_lang$html$Html$select,
-																	{
-																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$id('visibility'),
-																		_1: {
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$class('form-control'),
-																			_1: {
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p28) {
-																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateVisibility(_p28));
-																					}),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$required(true),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(_p30.visibility),
-																						_1: {ctor: '[]'}
-																					}
-																				}
-																			}
-																		}
-																	},
-																	A2(
-																		_elm_lang$core$List$map,
-																		visibilityOptionView,
-																		_elm_lang$core$Dict$toList(_n1k0$tooty$View$visibilities))),
-																_1: {ctor: '[]'}
-															}
-														}),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$div,
-															{
-																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$class('form-group checkbox'),
-																_1: {ctor: '[]'}
-															},
-															{
-																ctor: '::',
-																_0: A2(
-																	_elm_lang$html$Html$label,
-																	{ctor: '[]'},
-																	{
-																		ctor: '::',
-																		_0: A2(
-																			_elm_lang$html$Html$input,
-																			{
-																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-																				_1: {
-																					ctor: '::',
-																					_0: _elm_lang$html$Html_Events$onCheck(
-																						function (_p29) {
-																							return _n1k0$tooty$Model$DraftEvent(
-																								_n1k0$tooty$Model$UpdateSensitive(_p29));
-																						}),
-																					_1: {
-																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$checked(_p30.sensitive),
-																						_1: {ctor: '[]'}
-																					}
-																				}
-																			},
-																			{ctor: '[]'}),
-																		_1: {
-																			ctor: '::',
-																			_0: _elm_lang$html$Html$text(' This post is NSFW'),
-																			_1: {ctor: '[]'}
-																		}
-																	}),
-																_1: {ctor: '[]'}
-															}),
-														_1: {
-															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$p,
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$class('text-right'),
-																	_1: {ctor: '[]'}
-																},
-																{
-																	ctor: '::',
-																	_0: A2(
-																		_elm_lang$html$Html$button,
-																		{
-																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
-																			_1: {ctor: '[]'}
-																		},
-																		{
-																			ctor: '::',
-																			_0: _elm_lang$html$Html$text('Toot!'),
-																			_1: {ctor: '[]'}
-																		}),
+																	_0: _elm_lang$html$Html$text('Toot!'),
 																	_1: {ctor: '[]'}
 																}),
 															_1: {ctor: '[]'}
-														}
-													}
+														}),
+													_1: {ctor: '[]'}
 												}
 											}
 										}
-									}),
-								_1: {ctor: '[]'}
+									}
+								}
 							}),
 						_1: {ctor: '[]'}
-					}
-				}),
+					}),
+				_1: {ctor: '[]'}
+			}
+		});
+};
+var _n1k0$tooty$View$sidebarView = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
 			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _n1k0$tooty$View$draftView(model),
+			_1: {
+				ctor: '::',
+				_0: _n1k0$tooty$View$optionsView(model),
+				_1: {ctor: '[]'}
+			}
 		});
 };
 var _n1k0$tooty$View$homepageView = function (model) {
@@ -18180,7 +18277,7 @@ var _n1k0$tooty$View$homepageView = function (model) {
 		},
 		{
 			ctor: '::',
-			_0: _n1k0$tooty$View$draftView(model),
+			_0: _n1k0$tooty$View$sidebarView(model),
 			_1: {
 				ctor: '::',
 				_0: A3(_n1k0$tooty$View$timelineView, model.userTimeline, 'Home timeline', 'home'),
@@ -18199,7 +18296,7 @@ var _n1k0$tooty$View$homepageView = function (model) {
 									'Account',
 									'user');
 							} else {
-								return A3(_n1k0$tooty$View$timelineView, model.localTimeline, 'Local timeline', 'th-large');
+								return model.useGlobalTimeline ? A3(_n1k0$tooty$View$timelineView, model.publicTimeline, 'Global timeline', 'globe') : A3(_n1k0$tooty$View$timelineView, model.localTimeline, 'Local timeline', 'th-large');
 							}
 						}(),
 						_1: {ctor: '[]'}
