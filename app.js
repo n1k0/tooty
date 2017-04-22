@@ -16379,6 +16379,17 @@ var _n1k0$tooty$Mastodon$accountDecoder = A3(
 													'acct',
 													_elm_lang$core$Json_Decode$string,
 													_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$Account))))))))))))));
+var _n1k0$tooty$Mastodon$fetchAccount = F2(
+	function (client, accountId) {
+		return A3(
+			_n1k0$tooty$Mastodon$fetch,
+			client,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'/api/v1/accounts/',
+				_elm_lang$core$Basics$toString(accountId)),
+			_n1k0$tooty$Mastodon$accountDecoder);
+	});
 var _n1k0$tooty$Mastodon$Attachment = F6(
 	function (a, b, c, d, e, f) {
 		return {id: a, type_: b, url: c, remote_url: d, preview_url: e, text_url: f};
@@ -16799,10 +16810,27 @@ var _n1k0$tooty$Model$Flags = F2(
 	function (a, b) {
 		return {client: a, registration: b};
 	});
-var _n1k0$tooty$Model$Model = F9(
-	function (a, b, c, d, e, f, g, h, i) {
-		return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, draft: g, errors: h, location: i};
-	});
+var _n1k0$tooty$Model$Model = function (a) {
+	return function (b) {
+		return function (c) {
+			return function (d) {
+				return function (e) {
+					return function (f) {
+						return function (g) {
+							return function (h) {
+								return function (i) {
+									return function (j) {
+										return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, publicTimeline: f, draft: g, account: h, errors: i, location: j};
+									};
+								};
+							};
+						};
+					};
+				};
+			};
+		};
+	};
+};
 var _n1k0$tooty$Model$UpdateVisibility = function (a) {
 	return {ctor: 'UpdateVisibility', _0: a};
 };
@@ -16820,6 +16848,9 @@ var _n1k0$tooty$Model$ToggleSpoiler = function (a) {
 };
 var _n1k0$tooty$Model$UserTimeline = function (a) {
 	return {ctor: 'UserTimeline', _0: a};
+};
+var _n1k0$tooty$Model$UserAccount = function (a) {
+	return {ctor: 'UserAccount', _0: a};
 };
 var _n1k0$tooty$Model$UrlChange = function (a) {
 	return {ctor: 'UrlChange', _0: a};
@@ -16839,6 +16870,9 @@ var _n1k0$tooty$Model$ServerChange = function (a) {
 	return {ctor: 'ServerChange', _0: a};
 };
 var _n1k0$tooty$Model$Register = {ctor: 'Register'};
+var _n1k0$tooty$Model$OnLoadUserAccount = function (a) {
+	return {ctor: 'OnLoadUserAccount', _0: a};
+};
 var _n1k0$tooty$Model$PublicTimeline = function (a) {
 	return {ctor: 'PublicTimeline', _0: a};
 };
@@ -17039,14 +17073,33 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
+			case 'OnLoadUserAccount':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					function () {
+						var _p16 = model.client;
+						if (_p16.ctor === 'Just') {
+							return {
+								ctor: '::',
+								_0: A2(
+									_n1k0$tooty$Mastodon$send,
+									_n1k0$tooty$Model$UserAccount,
+									A2(_n1k0$tooty$Mastodon$fetchAccount, _p16._0, _p10._0)),
+								_1: {ctor: '[]'}
+							};
+						} else {
+							return {ctor: '[]'};
+						}
+					}());
 			case 'LocalTimeline':
-				var _p16 = _p10._0;
-				if (_p16.ctor === 'Ok') {
+				var _p17 = _p10._0;
+				if (_p17.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{localTimeline: _p16._0}),
+							{localTimeline: _p17._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -17057,20 +17110,20 @@ var _n1k0$tooty$Model$update = F2(
 								localTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p16._0),
+									_0: _n1k0$tooty$Model$errorText(_p17._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'PublicTimeline':
-				var _p17 = _p10._0;
-				if (_p17.ctor === 'Ok') {
+				var _p18 = _p10._0;
+				if (_p18.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{publicTimeline: _p17._0}),
+							{publicTimeline: _p18._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -17081,7 +17134,33 @@ var _n1k0$tooty$Model$update = F2(
 								publicTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p17._0),
+									_0: _n1k0$tooty$Model$errorText(_p18._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'UserAccount':
+				var _p19 = _p10._0;
+				if (_p19.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								account: _elm_lang$core$Maybe$Just(_p19._0)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								account: _elm_lang$core$Maybe$Nothing,
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p19._0),
 									_1: model.errors
 								}
 							}),
@@ -17107,16 +17186,16 @@ var _n1k0$tooty$Model$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p18 = authCode;
-				if (_p18.ctor === 'Just') {
-					var _p19 = registration;
-					if (_p19.ctor === 'Just') {
+				var _p20 = authCode;
+				if (_p20.ctor === 'Just') {
+					var _p21 = registration;
+					if (_p21.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$AccessToken,
-								A2(_n1k0$tooty$Mastodon$getAccessToken, _p19._0, _p18._0)),
+								A2(_n1k0$tooty$Mastodon$getAccessToken, _p21._0, _p20._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
@@ -17144,6 +17223,7 @@ var _n1k0$tooty$Model$init = F2(
 				localTimeline: {ctor: '[]'},
 				publicTimeline: {ctor: '[]'},
 				draft: _n1k0$tooty$Model$defaultDraft,
+				account: _elm_lang$core$Maybe$Nothing,
 				errors: {ctor: '[]'},
 				location: location
 			},
@@ -17152,6 +17232,129 @@ var _n1k0$tooty$Model$init = F2(
 				_0: A3(_n1k0$tooty$Model$initCommands, flags.registration, flags.client, authCode),
 				_1: {ctor: '[]'}
 			});
+	});
+
+var _n1k0$tooty$ViewHelper$toAttribute = function (_p0) {
+	var _p1 = _p0;
+	return A2(_elm_lang$html$Html_Attributes$attribute, _p1._0, _p1._1);
+};
+var _n1k0$tooty$ViewHelper$getHrefLink = function (attrs) {
+	return _elm_lang$core$List$head(
+		A2(
+			_elm_lang$core$List$map,
+			function (_p2) {
+				var _p3 = _p2;
+				return _p3._1;
+			},
+			A2(
+				_elm_lang$core$List$filter,
+				function (_p4) {
+					var _p5 = _p4;
+					return _elm_lang$core$Native_Utils.eq(_p5._0, 'href');
+				},
+				attrs)));
+};
+var _n1k0$tooty$ViewHelper$getMentionForLink = F2(
+	function (attrs, mentions) {
+		var _p6 = _n1k0$tooty$ViewHelper$getHrefLink(attrs);
+		if (_p6.ctor === 'Just') {
+			return _elm_lang$core$List$head(
+				A2(
+					_elm_lang$core$List$filter,
+					function (m) {
+						return _elm_lang$core$Native_Utils.eq(m.url, _p6._0);
+					},
+					mentions));
+		} else {
+			return _elm_lang$core$Maybe$Nothing;
+		}
+	});
+var _n1k0$tooty$ViewHelper$replace = F3(
+	function (from, to, str) {
+		return A2(
+			_elm_lang$core$String$join,
+			to,
+			A2(_elm_lang$core$String$split, from, str));
+	});
+var _n1k0$tooty$ViewHelper$onClickWithPreventAndStop = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'click',
+		{preventDefault: true, stopPropagation: true},
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _n1k0$tooty$ViewHelper$createLinkNode = F3(
+	function (attrs, children, mentions) {
+		var maybeMention = A2(_n1k0$tooty$ViewHelper$getMentionForLink, attrs, mentions);
+		var _p7 = maybeMention;
+		if (_p7.ctor === 'Just') {
+			return A3(
+				_elm_lang$html$Html$node,
+				'a',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, attrs),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+							_n1k0$tooty$Model$OnLoadUserAccount(_p7._0.id)),
+						_1: {ctor: '[]'}
+					}),
+				A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, children));
+		} else {
+			return A3(
+				_elm_lang$html$Html$node,
+				'a',
+				A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, attrs),
+				A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, children));
+		}
+	});
+var _n1k0$tooty$ViewHelper$toVirtualDom = F2(
+	function (mentions, nodes) {
+		return A2(
+			_elm_lang$core$List$map,
+			_n1k0$tooty$ViewHelper$toVirtualDomEach(mentions),
+			nodes);
+	});
+var _n1k0$tooty$ViewHelper$toVirtualDomEach = F2(
+	function (mentions, node) {
+		var _p8 = node;
+		switch (_p8.ctor) {
+			case 'Element':
+				if (_p8._0 === 'a') {
+					return A3(_n1k0$tooty$ViewHelper$createLinkNode, _p8._1, _p8._2, mentions);
+				} else {
+					return A3(
+						_elm_lang$html$Html$node,
+						_p8._0,
+						A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, _p8._1),
+						A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, _p8._2));
+				}
+			case 'Text':
+				return _elm_lang$html$Html$text(_p8._0);
+			default:
+				return _elm_lang$html$Html$text('');
+		}
+	});
+var _n1k0$tooty$ViewHelper$formatContent = F2(
+	function (content, mentions) {
+		return A2(
+			_n1k0$tooty$ViewHelper$toVirtualDom,
+			mentions,
+			_jinjor$elm_html_parser$HtmlParser$parse(
+				A3(
+					_n1k0$tooty$ViewHelper$replace,
+					' :',
+					'&nbsp;:',
+					A3(
+						_n1k0$tooty$ViewHelper$replace,
+						' !',
+						'&nbsp;!',
+						A3(
+							_n1k0$tooty$ViewHelper$replace,
+							' ?',
+							'&nbsp;?',
+							A3(_n1k0$tooty$ViewHelper$replace, '&apos;', '\'', content))))));
 	});
 
 var _n1k0$tooty$View$authView = function (model) {
@@ -17447,69 +17650,9 @@ var _n1k0$tooty$View$attachmentListView = function (_p3) {
 				_p5));
 	}
 };
-var _n1k0$tooty$View$icon = function (name) {
-	return A2(
-		_elm_lang$html$Html$i,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class(
-				A2(_elm_lang$core$Basics_ops['++'], 'glyphicon glyphicon-', name)),
-			_1: {ctor: '[]'}
-		},
-		{ctor: '[]'});
-};
-var _n1k0$tooty$View$errorView = function (error) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(error),
-			_1: {ctor: '[]'}
-		});
-};
-var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p6 = model.errors;
-	if (_p6.ctor === '[]') {
-		return _elm_lang$html$Html$text('');
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			{ctor: '[]'},
-			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
-	}
-};
-var _n1k0$tooty$View$replace = F3(
-	function (from, to, str) {
-		return A2(
-			_elm_lang$core$String$join,
-			to,
-			A2(_elm_lang$core$String$split, from, str));
-	});
-var _n1k0$tooty$View$formatContent = function (content) {
-	return _jinjor$elm_html_parser$HtmlParser_Util$toVirtualDom(
-		_jinjor$elm_html_parser$HtmlParser$parse(
-			A3(
-				_n1k0$tooty$View$replace,
-				' :',
-				'&nbsp;:',
-				A3(
-					_n1k0$tooty$View$replace,
-					' !',
-					'&nbsp;!',
-					A3(
-						_n1k0$tooty$View$replace,
-						' ?',
-						'&nbsp;?',
-						A3(_n1k0$tooty$View$replace, '&apos;', '\'', content))))));
-};
 var _n1k0$tooty$View$statusContentView = function (status) {
-	var _p7 = status.spoiler_text;
-	if (_p7 === '') {
+	var _p6 = status.spoiler_text;
+	if (_p6 === '') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -17522,7 +17665,7 @@ var _n1k0$tooty$View$statusContentView = function (status) {
 				_0: A2(
 					_elm_lang$html$Html$div,
 					{ctor: '[]'},
-					_n1k0$tooty$View$formatContent(status.content)),
+					A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
 				_1: {
 					ctor: '::',
 					_0: _n1k0$tooty$View$attachmentListView(status),
@@ -17550,7 +17693,11 @@ var _n1k0$tooty$View$statusContentView = function (status) {
 						_0: _elm_lang$html$Html_Attributes$class('spoiler'),
 						_1: {ctor: '[]'}
 					},
-					_n1k0$tooty$View$formatContent(status.spoiler_text)),
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(status.spoiler_text),
+						_1: {ctor: '[]'}
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
@@ -17597,7 +17744,7 @@ var _n1k0$tooty$View$statusContentView = function (status) {
 									_0: A2(
 										_elm_lang$html$Html$div,
 										{ctor: '[]'},
-										_n1k0$tooty$View$formatContent(status.content)),
+										A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
 									_1: {
 										ctor: '::',
 										_0: _n1k0$tooty$View$attachmentListView(status),
@@ -17611,11 +17758,32 @@ var _n1k0$tooty$View$statusContentView = function (status) {
 			});
 	}
 };
-var _n1k0$tooty$View$statusView = function (_p8) {
-	var _p9 = _p8;
-	var _p11 = _p9.account;
-	var _p10 = _p9.reblog;
-	if (_p10.ctor === 'Just') {
+var _n1k0$tooty$View$icon = function (name) {
+	return A2(
+		_elm_lang$html$Html$i,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'glyphicon glyphicon-', name)),
+			_1: {ctor: '[]'}
+		},
+		{ctor: '[]'});
+};
+var _n1k0$tooty$View$statusView = function (_p7) {
+	var _p8 = _p7;
+	var _p10 = _p8.account;
+	var accountLinkAttributes = {
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$href(_p10.url),
+		_1: {
+			ctor: '::',
+			_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+				_n1k0$tooty$Model$OnLoadUserAccount(_p10.id)),
+			_1: {ctor: '[]'}
+		}
+	};
+	var _p9 = _p8.reblog;
+	if (_p9.ctor === 'Just') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -17635,19 +17803,18 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 							ctor: '::',
 							_0: A2(
 								_elm_lang$html$Html$a,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$href(_p11.url),
-									_1: {
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									accountLinkAttributes,
+									{
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$class('reblogger'),
 										_1: {ctor: '[]'}
-									}
-								},
+									}),
 								{
 									ctor: '::',
 									_0: _elm_lang$html$Html$text(
-										A2(_elm_lang$core$Basics_ops['++'], ' ', _p11.username)),
+										A2(_elm_lang$core$Basics_ops['++'], ' ', _p10.username)),
 									_1: {ctor: '[]'}
 								}),
 							_1: {
@@ -17659,7 +17826,7 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 					}),
 				_1: {
 					ctor: '::',
-					_0: _n1k0$tooty$View$statusView(_p10._0._0),
+					_0: _n1k0$tooty$View$statusView(_p9._0._0),
 					_1: {ctor: '[]'}
 				}
 			});
@@ -17680,7 +17847,7 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 						_0: _elm_lang$html$Html_Attributes$class('avatar'),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$src(_p11.avatar),
+							_0: _elm_lang$html$Html_Attributes$src(_p10.avatar),
 							_1: {ctor: '[]'}
 						}
 					},
@@ -17698,14 +17865,10 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 							ctor: '::',
 							_0: A2(
 								_elm_lang$html$Html$a,
+								accountLinkAttributes,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$href(_p11.url),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(_p11.display_name),
+									_0: _elm_lang$html$Html$text(_p10.display_name),
 									_1: {
 										ctor: '::',
 										_0: A2(
@@ -17718,7 +17881,7 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 											{
 												ctor: '::',
 												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], ' @', _p11.username)),
+													A2(_elm_lang$core$Basics_ops['++'], ' @', _p10.username)),
 												_1: {ctor: '[]'}
 											}),
 										_1: {ctor: '[]'}
@@ -17728,7 +17891,7 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 						}),
 					_1: {
 						ctor: '::',
-						_0: _n1k0$tooty$View$statusContentView(_p9),
+						_0: _n1k0$tooty$View$statusContentView(_p8),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -17737,8 +17900,8 @@ var _n1k0$tooty$View$statusView = function (_p8) {
 };
 var _n1k0$tooty$View$statusEntryView = function (status) {
 	var nsfwClass = function () {
-		var _p12 = status.sensitive;
-		if ((_p12.ctor === 'Just') && (_p12._0 === true)) {
+		var _p11 = status.sensitive;
+		if ((_p11.ctor === 'Just') && (_p11._0 === true)) {
 			return 'nsfw';
 		} else {
 			return '';
@@ -17758,6 +17921,260 @@ var _n1k0$tooty$View$statusEntryView = function (status) {
 			_1: {ctor: '[]'}
 		});
 };
+var _n1k0$tooty$View$accountTimelineView = F4(
+	function (account, statuses, label, iconName) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _n1k0$tooty$View$icon(iconName),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(label),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('account-detail'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$style(
+											{
+												ctor: '::',
+												_0: {
+													ctor: '_Tuple2',
+													_0: 'background-image',
+													_1: A2(
+														_elm_lang$core$Basics_ops['++'],
+														'url(\'',
+														A2(_elm_lang$core$Basics_ops['++'], account.header, '\')'))
+												},
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								},
+								{
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$div,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('opacity-layer'),
+											_1: {ctor: '[]'}
+										},
+										{
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$img,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$src(account.avatar),
+													_1: {ctor: '[]'}
+												},
+												{ctor: '[]'}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$span,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('account-display-name'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(account.display_name),
+														_1: {ctor: '[]'}
+													}),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$span,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class('account-username'),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text(
+																A2(_elm_lang$core$Basics_ops['++'], '@', account.username)),
+															_1: {ctor: '[]'}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$span,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('account-note'),
+																_1: {ctor: '[]'}
+															},
+															A2(
+																_n1k0$tooty$ViewHelper$formatContent,
+																account.note,
+																{ctor: '[]'})),
+														_1: {ctor: '[]'}
+													}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('row account-infos'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text('Statuses'),
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$br,
+														{ctor: '[]'},
+														{ctor: '[]'}),
+													_1: {
+														ctor: '::',
+														_0: _elm_lang$html$Html$text(
+															_elm_lang$core$Basics$toString(account.statuses_count)),
+														_1: {ctor: '[]'}
+													}
+												}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text('Following'),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$br,
+															{ctor: '[]'},
+															{ctor: '[]'}),
+														_1: {
+															ctor: '::',
+															_0: _elm_lang$html$Html$text(
+																_elm_lang$core$Basics$toString(account.following_count)),
+															_1: {ctor: '[]'}
+														}
+													}
+												}),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_elm_lang$html$Html$div,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html$text('Followers'),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$br,
+																{ctor: '[]'},
+																{ctor: '[]'}),
+															_1: {
+																ctor: '::',
+																_0: _elm_lang$html$Html$text(
+																	_elm_lang$core$Basics$toString(account.followers_count)),
+																_1: {ctor: '[]'}
+															}
+														}
+													}),
+												_1: {ctor: '[]'}
+											}
+										}
+									}),
+								_1: {
+									ctor: '::',
+									_0: A2(
+										_elm_lang$html$Html$ul,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('list-group'),
+											_1: {ctor: '[]'}
+										},
+										A2(
+											_elm_lang$core$List$map,
+											function (s) {
+												return A2(
+													_elm_lang$html$Html$li,
+													{
+														ctor: '::',
+														_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
+														_1: {ctor: '[]'}
+													},
+													{
+														ctor: '::',
+														_0: _n1k0$tooty$View$statusView(s),
+														_1: {ctor: '[]'}
+													});
+											},
+											statuses)),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
 var _n1k0$tooty$View$timelineView = F3(
 	function (statuses, label, iconName) {
 		return A2(
@@ -17810,6 +18227,31 @@ var _n1k0$tooty$View$timelineView = F3(
 				_1: {ctor: '[]'}
 			});
 	});
+var _n1k0$tooty$View$errorView = function (error) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('alert alert-danger'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html$text(error),
+			_1: {ctor: '[]'}
+		});
+};
+var _n1k0$tooty$View$errorsListView = function (model) {
+	var _p12 = model.errors;
+	if (_p12.ctor === '[]') {
+		return _elm_lang$html$Html$text('');
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{ctor: '[]'},
+			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
+	}
+};
 var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
 	{
 		ctor: '::',
@@ -18245,7 +18687,19 @@ var _n1k0$tooty$View$homepageView = function (model) {
 					_0: A3(_n1k0$tooty$View$timelineView, model.localTimeline, 'Local timeline', 'th-large'),
 					_1: {
 						ctor: '::',
-						_0: A3(_n1k0$tooty$View$timelineView, model.publicTimeline, 'Public timeline', 'globe'),
+						_0: function () {
+							var _p24 = model.account;
+							if (_p24.ctor === 'Just') {
+								return A4(
+									_n1k0$tooty$View$accountTimelineView,
+									_p24._0,
+									{ctor: '[]'},
+									'Account',
+									'user');
+							} else {
+								return A3(_n1k0$tooty$View$timelineView, model.publicTimeline, 'Public timeline', 'globe');
+							}
+						}(),
 						_1: {ctor: '[]'}
 					}
 				}
@@ -18276,8 +18730,8 @@ var _n1k0$tooty$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p24 = model.client;
-						if (_p24.ctor === 'Just') {
+						var _p25 = model.client;
+						if (_p25.ctor === 'Just') {
 							return _n1k0$tooty$View$homepageView(model);
 						} else {
 							return _n1k0$tooty$View$authView(model);
