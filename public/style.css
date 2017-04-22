@@ -1,6 +1,14 @@
+body {
+  font-family: Roboto, sans-serif;
+}
+
 .status {
   min-height: 75px;
   clear: both;
+}
+
+.nsfw {
+  background: #493438;
 }
 
 .reblog > p:first-of-type {
@@ -47,6 +55,53 @@
 
 .status-text a, .u-url, .mention, .hashtag, .tag {
   color: #9baec8;
+}
+
+/* Attachments */
+
+.attachments {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.attachment-entry {
+  margin-top: 5px;
+}
+
+.attachment-entry input {
+  display: none;
+}
+
+.attachment-entry label {
+  display: block;
+  background: #111;
+  opacity: .95;
+  font-weight: normal;
+  font-size: 95%;
+  height: 10vh;
+  margin-bottom: -10vh;
+  text-align: center;
+  padding-top: 2rem;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.attachment-entry input:checked + label {
+  display: none;
+}
+
+.attachment-image {
+   display: block;
+   width: 100%;
+   height: 10vh;
+   text-decoration: none;
+   cursor: zoom-in;
+   border-radius: 2px;
 }
 
 /* Spoiler */

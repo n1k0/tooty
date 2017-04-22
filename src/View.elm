@@ -39,11 +39,66 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
+attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
+attachmentPreview sensitive ({ url, preview_url } as attachment) =
+    let
+        nsfw =
+            case sensitive of
+                Just sensitive ->
+                    sensitive
+
+                Nothing ->
+                    False
+
+        attId =
+            "att" ++ (toString attachment.id)
+
+        media =
+            a
+                [ class "attachment-image"
+                , href url
+                , target "_blank"
+                , style
+                    [ ( "background"
+                      , "url(" ++ preview_url ++ ") center center / cover no-repeat"
+                      )
+                    ]
+                ]
+                []
+    in
+        li [ class "attachment-entry" ] <|
+            if nsfw then
+                [ input [ type_ "radio", id attId ] []
+                , label [ for attId ]
+                    [ text "Sensitive content"
+                    , br [] []
+                    , br [] []
+                    , text "click to show image"
+                    ]
+                , media
+                ]
+            else
+                [ media ]
+
+
+attachmentListView : Mastodon.Status -> Html Msg
+attachmentListView { media_attachments, sensitive } =
+    case media_attachments of
+        [] ->
+            text ""
+
+        attachments ->
+            ul [ class "attachments" ] <| List.map (attachmentPreview sensitive) attachments
+
+
 statusContentView : Mastodon.Status -> Html Msg
 statusContentView status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text" ] <| ViewHelper.formatContent status.content status.mentions
+            div [ class "status-text" ]
+                [ div [] <| ViewHelper.formatContent status.content status.mentions
+                , attachmentListView status
+                ]
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
@@ -55,12 +110,15 @@ statusContentView status =
                     [ div [ class "spoiler" ] [ text status.spoiler_text ]
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
-                    , div [ class "spoiled-content" ] <| (ViewHelper.formatContent status.content status.mentions)
+                    , div [ class "spoiled-content" ]
+                        [ div [] <| ViewHelper.formatContent status.content status.mentions
+                        , attachmentListView status
+                        ]
                     ]
 
 
 statusView : Mastodon.Status -> Html Msg
-statusView ({ account, content, reblog, mentions } as status) =
+statusView ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
             [ href account.url
@@ -139,6 +197,21 @@ accountTimelineView account statuses label iconName =
         ]
 
 
+statusEntryView : Mastodon.Status -> Html Msg
+statusEntryView status =
+    let
+        nsfwClass =
+            case status.sensitive of
+                Just True ->
+                    "nsfw"
+
+                _ ->
+                    ""
+    in
+        li [ class <| "list-group-item " ++ nsfwClass ]
+            [ statusView status ]
+
+
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
 timelineView statuses label iconName =
     div [ class "col-md-3" ]
@@ -148,12 +221,7 @@ timelineView statuses label iconName =
                 , text label
                 ]
             , ul [ class "list-group" ] <|
-                List.map
-                    (\s ->
-                        li [ class "list-group-item status" ]
-                            [ statusView s ]
-                    )
-                    statuses
+                List.map statusEntryView statuses
             ]
         ]
 
@@ -162,12 +230,7 @@ draftView : Model -> Html Msg
 draftView { draft } =
     let
         hasSpoiler =
-            case draft.spoiler_text of
-                Nothing ->
-                    False
-
-                Just _ ->
-                    True
+            draft.spoiler_text /= Nothing
 
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
