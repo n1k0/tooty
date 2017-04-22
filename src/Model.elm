@@ -33,6 +33,7 @@ type Msg
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
     | UrlChange Navigation.Location
+    | UseGlobalTimeline Bool
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
@@ -49,6 +50,7 @@ type alias Model =
     , account : Maybe Mastodon.Account
     , errors : List String
     , location : Navigation.Location
+    , useGlobalTimeline : Bool
     }
 
 
@@ -89,6 +91,7 @@ init flags location =
         , account = Nothing
         , errors = []
         , location = location
+        , useGlobalTimeline = False
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -274,6 +277,9 @@ update msg model =
 
                     Nothing ->
                         []
+
+        UseGlobalTimeline flag ->
+            { model | useGlobalTimeline = flag } ! []
 
         LocalTimeline result ->
             case result of
