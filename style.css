@@ -28,7 +28,8 @@ body {
 .panel-heading {
   font-weight: bold;
 }
-.panel-heading > .glyphicon {
+.panel-heading > .glyphicon,
+.panel-heading > .row > .heading > .glyphicon {
   margin-right: 8px;
 }
 

@@ -16151,6 +16151,7 @@ var _n1k0$tooty$Model$ToggleSpoiler = function (a) {
 var _n1k0$tooty$Model$UserTimeline = function (a) {
 	return {ctor: 'UserTimeline', _0: a};
 };
+var _n1k0$tooty$Model$ClearOpenedAccount = {ctor: 'ClearOpenedAccount'};
 var _n1k0$tooty$Model$UserAccount = function (a) {
 	return {ctor: 'UserAccount', _0: a};
 };
@@ -16488,6 +16489,13 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
+			case 'ClearOpenedAccount':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{account: _elm_lang$core$Maybe$Nothing}),
+					{ctor: '[]'});
 			case 'StatusPosted':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -17325,12 +17333,64 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 							},
 							{
 								ctor: '::',
-								_0: _n1k0$tooty$View$icon(iconName),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(label),
-									_1: {ctor: '[]'}
-								}
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('row'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('col-xs-9 heading'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _n1k0$tooty$View$icon(iconName),
+												_1: {
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(label),
+													_1: {ctor: '[]'}
+												}
+											}),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$div,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('col-xs-3 text-right'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$a,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$href(''),
+															_1: {
+																ctor: '::',
+																_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(_n1k0$tooty$Model$ClearOpenedAccount),
+																_1: {ctor: '[]'}
+															}
+														},
+														{
+															ctor: '::',
+															_0: _n1k0$tooty$View$icon('remove'),
+															_1: {ctor: '[]'}
+														}),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
