@@ -21298,7 +21298,7 @@ var _n1k0$tooty$Model$processReblog = F3(
 						return status;
 					}
 				}();
-				return _elm_lang$core$Native_Utils.eq(target.id, reblogged.id) ? _elm_lang$core$Native_Utils.update(
+				return _elm_lang$core$Native_Utils.eq(target.id, reblogged) ? _elm_lang$core$Native_Utils.update(
 					status,
 					{
 						reblogged: _elm_lang$core$Maybe$Just(flag)
@@ -21794,30 +21794,32 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'Reblog':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					function () {
-						var _p19 = model.client;
-						if (_p19.ctor === 'Just') {
-							return {
-								ctor: '::',
-								_0: A2(
-									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$Reblogged,
-									A2(_n1k0$tooty$Mastodon$reblog, _p19._0, _p15._0)),
-								_1: {ctor: '[]'}
-							};
-						} else {
-							return {ctor: '[]'};
-						}
-					}());
-			case 'Reblogged':
 				var _p20 = _p15._0;
-				if (_p20.ctor === 'Ok') {
+				var _p19 = model.client;
+				if (_p19.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processReblog, _p20._0, true, model),
+						A3(_n1k0$tooty$Model$processReblog, _p20, true, model),
+						{
+							ctor: '::',
+							_0: A2(
+								_n1k0$tooty$Mastodon$send,
+								_n1k0$tooty$Model$Reblogged,
+								A2(_n1k0$tooty$Mastodon$reblog, _p19._0, _p20)),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
+				}
+			case 'Reblogged':
+				var _p21 = _p15._0;
+				if (_p21.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -21831,81 +21833,39 @@ var _n1k0$tooty$Model$update = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p20._0),
+									_0: _n1k0$tooty$Model$errorText(_p21._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'Unreblog':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					function () {
-						var _p21 = model.client;
-						if (_p21.ctor === 'Just') {
-							return {
-								ctor: '::',
-								_0: A2(
-									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$Unreblogged,
-									A2(_n1k0$tooty$Mastodon$unfavourite, _p21._0, _p15._0)),
-								_1: {ctor: '[]'}
-							};
-						} else {
-							return {ctor: '[]'};
-						}
-					}());
-			case 'Unreblogged':
-				var _p22 = _p15._0;
-				if (_p22.ctor === 'Ok') {
+				var _p23 = _p15._0;
+				var _p22 = model.client;
+				if (_p22.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processReblog, _p22._0, false, model),
+						A3(_n1k0$tooty$Model$processReblog, _p23, false, model),
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_0: A2(
+								_n1k0$tooty$Mastodon$send,
+								_n1k0$tooty$Model$Unreblogged,
+								A2(_n1k0$tooty$Mastodon$unfavourite, _p22._0, _p23)),
 							_1: {ctor: '[]'}
 						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p22._0),
-									_1: model.errors
-								}
-							}),
+						model,
 						{ctor: '[]'});
 				}
-			case 'AddFavorite':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					function () {
-						var _p23 = model.client;
-						if (_p23.ctor === 'Just') {
-							return {
-								ctor: '::',
-								_0: A2(
-									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$FavoriteAdded,
-									A2(_n1k0$tooty$Mastodon$favourite, _p23._0, _p15._0)),
-								_1: {ctor: '[]'}
-							};
-						} else {
-							return {ctor: '[]'};
-						}
-					}());
-			case 'FavoriteAdded':
+			case 'Unreblogged':
 				var _p24 = _p15._0;
 				if (_p24.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p24._0, true, model),
+						model,
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -21925,7 +21885,7 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
-			case 'RemoveFavorite':
+			case 'AddFavorite':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
@@ -21936,20 +21896,20 @@ var _n1k0$tooty$Model$update = F2(
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$FavoriteRemoved,
-									A2(_n1k0$tooty$Mastodon$unfavourite, _p25._0, _p15._0)),
+									_n1k0$tooty$Model$FavoriteAdded,
+									A2(_n1k0$tooty$Mastodon$favourite, _p25._0, _p15._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
 							return {ctor: '[]'};
 						}
 					}());
-			case 'FavoriteRemoved':
+			case 'FavoriteAdded':
 				var _p26 = _p15._0;
 				if (_p26.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p26._0, false, model),
+						A3(_n1k0$tooty$Model$processFavourite, _p26._0, true, model),
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -21969,10 +21929,54 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
+			case 'RemoveFavorite':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					function () {
+						var _p27 = model.client;
+						if (_p27.ctor === 'Just') {
+							return {
+								ctor: '::',
+								_0: A2(
+									_n1k0$tooty$Mastodon$send,
+									_n1k0$tooty$Model$FavoriteRemoved,
+									A2(_n1k0$tooty$Mastodon$unfavourite, _p27._0, _p15._0)),
+								_1: {ctor: '[]'}
+							};
+						} else {
+							return {ctor: '[]'};
+						}
+					}());
+			case 'FavoriteRemoved':
+				var _p28 = _p15._0;
+				if (_p28.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFavourite, _p28._0, false, model),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p28._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
 			case 'DraftEvent':
-				var _p27 = A2(_n1k0$tooty$Model$updateDraft, _p15._0, model.draft);
-				var draft = _p27._0;
-				var commands = _p27._1;
+				var _p29 = A2(_n1k0$tooty$Model$updateDraft, _p15._0, model.draft);
+				var draft = _p29._0;
+				var commands = _p29._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -21988,13 +21992,13 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					function () {
-						var _p28 = model.client;
-						if (_p28.ctor === 'Just') {
+						var _p30 = model.client;
+						if (_p30.ctor === 'Just') {
 							return {
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Model$postStatus,
-									_p28._0,
+									_p30._0,
 									_n1k0$tooty$Model$toStatusRequestBody(model.draft)),
 								_1: {ctor: '[]'}
 							};
@@ -22003,13 +22007,13 @@ var _n1k0$tooty$Model$update = F2(
 						}
 					}());
 			case 'UserTimeline':
-				var _p29 = _p15._0;
-				if (_p29.ctor === 'Ok') {
+				var _p31 = _p15._0;
+				if (_p31.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{userTimeline: _p29._0}),
+							{userTimeline: _p31._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -22020,7 +22024,7 @@ var _n1k0$tooty$Model$update = F2(
 								userTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p29._0),
+									_0: _n1k0$tooty$Model$errorText(_p31._0),
 									_1: model.errors
 								}
 							}),
@@ -22031,14 +22035,14 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					function () {
-						var _p30 = model.client;
-						if (_p30.ctor === 'Just') {
+						var _p32 = model.client;
+						if (_p32.ctor === 'Just') {
 							return {
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Mastodon$send,
 									_n1k0$tooty$Model$UserAccount,
-									A2(_n1k0$tooty$Mastodon$fetchAccount, _p30._0, _p15._0)),
+									A2(_n1k0$tooty$Mastodon$fetchAccount, _p32._0, _p15._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
@@ -22053,13 +22057,13 @@ var _n1k0$tooty$Model$update = F2(
 						{useGlobalTimeline: _p15._0}),
 					{ctor: '[]'});
 			case 'LocalTimeline':
-				var _p31 = _p15._0;
-				if (_p31.ctor === 'Ok') {
+				var _p33 = _p15._0;
+				if (_p33.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{localTimeline: _p31._0}),
+							{localTimeline: _p33._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -22070,20 +22074,20 @@ var _n1k0$tooty$Model$update = F2(
 								localTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p31._0),
+									_0: _n1k0$tooty$Model$errorText(_p33._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'PublicTimeline':
-				var _p32 = _p15._0;
-				if (_p32.ctor === 'Ok') {
+				var _p34 = _p15._0;
+				if (_p34.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{publicTimeline: _p32._0}),
+							{publicTimeline: _p34._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -22094,21 +22098,21 @@ var _n1k0$tooty$Model$update = F2(
 								publicTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p32._0),
+									_0: _n1k0$tooty$Model$errorText(_p34._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'UserAccount':
-				var _p33 = _p15._0;
-				if (_p33.ctor === 'Ok') {
+				var _p35 = _p15._0;
+				if (_p35.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								account: _elm_lang$core$Maybe$Just(_p33._0)
+								account: _elm_lang$core$Maybe$Just(_p35._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -22120,7 +22124,7 @@ var _n1k0$tooty$Model$update = F2(
 								account: _elm_lang$core$Maybe$Nothing,
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p33._0),
+									_0: _n1k0$tooty$Model$errorText(_p35._0),
 									_1: model.errors
 								}
 							}),
@@ -22145,13 +22149,13 @@ var _n1k0$tooty$Model$update = F2(
 						_1: {ctor: '[]'}
 					});
 			default:
-				var _p34 = _p15._0;
-				if (_p34.ctor === 'Ok') {
+				var _p36 = _p15._0;
+				if (_p36.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{notifications: _p34._0}),
+							{notifications: _p36._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -22162,7 +22166,7 @@ var _n1k0$tooty$Model$update = F2(
 								notifications: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p34._0),
+									_0: _n1k0$tooty$Model$errorText(_p36._0),
 									_1: model.errors
 								}
 							}),
@@ -22180,16 +22184,16 @@ var _n1k0$tooty$Model$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p35 = authCode;
-				if (_p35.ctor === 'Just') {
-					var _p36 = registration;
-					if (_p36.ctor === 'Just') {
+				var _p37 = authCode;
+				if (_p37.ctor === 'Just') {
+					var _p38 = registration;
+					if (_p38.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$AccessToken,
-								A2(_n1k0$tooty$Mastodon$getAccessToken, _p36._0, _p35._0)),
+								A2(_n1k0$tooty$Mastodon$getAccessToken, _p38._0, _p37._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
