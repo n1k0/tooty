@@ -21862,7 +21862,11 @@ var _n1k0$tooty$Model$update = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						A3(_n1k0$tooty$Model$processReblog, _p22._0, false, model),
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -21946,7 +21950,11 @@ var _n1k0$tooty$Model$update = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						A3(_n1k0$tooty$Model$processFavourite, _p26._0, false, model),
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
