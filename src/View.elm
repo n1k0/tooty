@@ -471,8 +471,7 @@ authView model =
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
-        [ h1 [] [ text "tooty" ]
-        , errorsListView model
+        [ errorsListView model
         , case model.client of
             Just client ->
                 homepageView model
