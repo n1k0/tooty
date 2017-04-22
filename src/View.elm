@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
-import Model exposing (Model, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -32,6 +32,12 @@ errorsListView model =
 
         errors ->
             div [] <| List.map errorView model.errors
+
+
+justifiedButtonGroup : List (Html Msg) -> Html Msg
+justifiedButtonGroup buttons =
+    div [ class "btn-group btn-group-justified" ] <|
+        List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
 
 
 icon : String -> Html Msg
@@ -215,6 +221,32 @@ accountTimelineView account statuses label iconName =
         ]
 
 
+statusActionsView : Mastodon.Status -> Html Msg
+statusActionsView status =
+    let
+        originalStatus =
+            case status.reblog of
+                Just (Mastodon.Reblog reblog) ->
+                    reblog
+
+                Nothing ->
+                    status
+    in
+        div [ class "btn-group btn-group-justified actions" ]
+            [ a
+                [ class "btn btn-xs btn-default"
+                , ViewHelper.onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo originalStatus)
+                ]
+                [ icon "share-alt" ]
+            , a
+                [ class "btn btn-xs btn-default", disabled True ]
+                [ icon "fire" ]
+            , a
+                [ class "btn btn-xs btn-default", disabled True ]
+                [ icon "star" ]
+            ]
+
+
 statusEntryView : Mastodon.Status -> Html Msg
 statusEntryView status =
     let
@@ -227,7 +259,9 @@ statusEntryView status =
                     ""
     in
         li [ class <| "list-group-item " ++ nsfwClass ]
-            [ statusView status ]
+            [ statusView status
+            , statusActionsView status
+            ]
 
 
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
@@ -264,6 +298,7 @@ notificationStatusView status { type_, account } =
             _ ->
                 text ""
         , statusView status
+        , statusActionsView status
         ]
 
 
@@ -299,6 +334,29 @@ notificationListView notifications =
         ]
 
 
+draftReplyToView : Draft -> Html Msg
+draftReplyToView draft =
+    case draft.in_reply_to of
+        Just status ->
+            div [ class "in-reply-to" ]
+                [ p []
+                    [ strong []
+                        [ text "In reply to this toot ("
+                        , a
+                            [ href ""
+                            , ViewHelper.onClickWithPreventAndStop <| DraftEvent ClearReplyTo
+                            ]
+                            [ icon "remove" ]
+                        , text ")"
+                        ]
+                    ]
+                , div [ class "well" ] [ statusView status ]
+                ]
+
+        Nothing ->
+            text ""
+
+
 draftView : Model -> Html Msg
 draftView { draft } =
     let
@@ -312,7 +370,8 @@ draftView { draft } =
         div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
             , div [ class "panel-body" ]
-                [ Html.form [ class "form", onSubmit SubmitDraft ]
+                [ draftReplyToView draft
+                , Html.form [ class "form", onSubmit SubmitDraft ]
                     [ div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -387,8 +446,17 @@ draftView { draft } =
                             , text " This post is NSFW"
                             ]
                         ]
-                    , p [ class "text-right" ]
-                        [ button [ class "btn btn-primary" ]
+                    , justifiedButtonGroup
+                        [ button
+                            [ type_ "button"
+                            , class "btn btn-default"
+                            , onClick (DraftEvent ClearDraft)
+                            ]
+                            [ text "Clear" ]
+                        , button
+                            [ type_ "submit"
+                            , class "btn btn-primary"
+                            ]
                             [ text "Toot!" ]
                         ]
                     ]

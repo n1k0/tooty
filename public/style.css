@@ -68,10 +68,21 @@ body {
   color: #9baec8;
 }
 
+/* Status actions */
+
+.actions {
+  margin-left: 65px;
+  width: calc(100% - 65px);
+}
+.actions > .btn {
+  border: none;
+  background: rgba(0,0,0,.1);
+}
+
 /* Attachments */
 
 .attachments {
-  margin: 0;
+  margin: 0 0 15px 0;
   padding: 0;
   list-style-type: none;
   overflow: hidden;
