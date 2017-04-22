@@ -1,6 +1,5 @@
 module Model exposing (..)
 
-import Http
 import Json.Encode as Encode
 import Navigation
 import Mastodon
@@ -251,11 +250,12 @@ update msg model =
                         []
 
         UserTimeline result ->
-            (updateModelWithResult result
-                (\userTimeline -> { model | userTimeline = userTimeline })
-                (\error -> { model | userTimeline = [] })
-            )
-                ! []
+            case result of
+                Ok userTimeline ->
+                    { model | userTimeline = userTimeline } ! []
+
+                Err error ->
+                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         OnLoadUserAccount accountId ->
             {-
@@ -272,39 +272,28 @@ update msg model =
                         []
 
         LocalTimeline result ->
-            (updateModelWithResult result
-                (\localTimeline -> { model | localTimeline = localTimeline })
-                (\error -> { model | localTimeline = [] })
-            )
-                ! []
+            case result of
+                Ok localTimeline ->
+                    { model | localTimeline = localTimeline } ! []
+
+                Err error ->
+                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         PublicTimeline result ->
-            (updateModelWithResult result
-                (\publicTimeline -> { model | publicTimeline = publicTimeline })
-                (\error -> { model | publicTimeline = [] })
-            )
-                ! []
+            case result of
+                Ok publicTimeline ->
+                    { model | publicTimeline = publicTimeline } ! []
+
+                Err error ->
+                    { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         UserAccount result ->
-            (updateModelWithResult result
-                (\account -> { model | account = Just account })
-                (\error -> { model | account = Nothing })
-            )
-                ! []
+            case result of
+                Ok account ->
+                    { model | account = Just account } ! []
+
+                Err error ->
+                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]
-
-
-updateModelWithResult : Result Mastodon.Error a -> (a -> Model) -> (Mastodon.Error -> Model) -> Model
-updateModelWithResult result updateOk updateError =
-    case result of
-        Ok account ->
-            updateOk account
-
-        Err error ->
-            let
-                modelUpdated =
-                    updateError error
-            in
-                { modelUpdated | errors = (errorText error) :: modelUpdated.errors }
