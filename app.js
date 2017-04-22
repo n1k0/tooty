@@ -18315,29 +18315,18 @@ var _n1k0$tooty$View$view = function (model) {
 		},
 		{
 			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$h1,
-				{ctor: '[]'},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('tooty'),
-					_1: {ctor: '[]'}
-				}),
+			_0: _n1k0$tooty$View$errorsListView(model),
 			_1: {
 				ctor: '::',
-				_0: _n1k0$tooty$View$errorsListView(model),
-				_1: {
-					ctor: '::',
-					_0: function () {
-						var _p32 = model.client;
-						if (_p32.ctor === 'Just') {
-							return _n1k0$tooty$View$homepageView(model);
-						} else {
-							return _n1k0$tooty$View$authView(model);
-						}
-					}(),
-					_1: {ctor: '[]'}
-				}
+				_0: function () {
+					var _p32 = model.client;
+					if (_p32.ctor === 'Just') {
+						return _n1k0$tooty$View$homepageView(model);
+					} else {
+						return _n1k0$tooty$View$authView(model);
+					}
+				}(),
+				_1: {ctor: '[]'}
 			}
 		});
 };
