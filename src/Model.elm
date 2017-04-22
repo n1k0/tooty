@@ -37,6 +37,8 @@ type Msg
     | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Reblog Int
+    | Reblogged (Result Mastodon.Error Mastodon.Status)
     | Register
     | RemoveFavorite Int
     | ServerChange String
@@ -46,6 +48,8 @@ type Msg
     | UseGlobalTimeline Bool
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
+    | Unreblog Int
+    | Unreblogged (Result Mastodon.Error Mastodon.Status)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
@@ -233,6 +237,7 @@ processFavourite : Mastodon.Status -> Bool -> Model -> Model
 processFavourite favourited flag model =
     -- Update the favorite flag for all occurences of a given status in all
     -- timelines.
+    -- FIXME: this shares too much with processReblog, refactor.
     let
         update flag status =
             let
@@ -246,6 +251,34 @@ processFavourite favourited flag model =
             in
                 if target.id == favourited.id then
                     { status | favourited = Just flag }
+                else
+                    status
+    in
+        { model
+            | userTimeline = List.map (update flag) model.userTimeline
+            , localTimeline = List.map (update flag) model.localTimeline
+            , publicTimeline = List.map (update flag) model.publicTimeline
+        }
+
+
+processReblog : Mastodon.Status -> Bool -> Model -> Model
+processReblog reblogged flag model =
+    -- Update the reblogged flag for all occurences of a given status in all
+    -- timelines.
+    -- FIXME: this shares too much with processFavourite, refactor.
+    let
+        update flag status =
+            let
+                target =
+                    case status.reblog of
+                        Just (Mastodon.Reblog reblog) ->
+                            reblog
+
+                        Nothing ->
+                            status
+            in
+                if target.id == reblogged.id then
+                    { status | reblogged = Just flag }
                 else
                     status
     in
@@ -347,11 +380,45 @@ update msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        Reblog id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.reblog client id |> Mastodon.send Reblogged ]
+
+                    Nothing ->
+                        []
+
+        Reblogged result ->
+            case result of
+                Ok status ->
+                    processReblog status True model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        Unreblog id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.unfavourite client id |> Mastodon.send Unreblogged ]
+
+                    Nothing ->
+                        []
+
+        Unreblogged result ->
+            case result of
+                Ok status ->
+                    processReblog status False model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         AddFavorite id ->
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.addFavorite client id |> Mastodon.send FavoriteAdded ]
+                        [ Mastodon.favourite client id |> Mastodon.send FavoriteAdded ]
 
                     Nothing ->
                         []
@@ -368,7 +435,7 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.removeFavorite client id |> Mastodon.send FavoriteRemoved ]
+                        [ Mastodon.unfavourite client id |> Mastodon.send FavoriteRemoved ]
 
                     Nothing ->
                         []
@@ -376,7 +443,7 @@ update msg model =
         FavoriteRemoved result ->
             case result of
                 Ok status ->
-                    processFavourite status False model ! []
+                    processFavourite status False model ! [ loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []

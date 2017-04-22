@@ -235,34 +235,38 @@ statusActionsView status =
         baseBtnClasses =
             "btn btn-sm btn-default"
 
+        isReblogged =
+            Maybe.withDefault False status.reblogged
+
         isFavourite =
             Maybe.withDefault False status.favourited
 
         favClasses =
-            case status.favourited of
-                Just True ->
-                    baseBtnClasses ++ " favourited"
-
-                _ ->
-                    baseBtnClasses
+            if isFavourite then
+                baseBtnClasses ++ " favourited"
+            else
+                baseBtnClasses
 
         reblogClasses =
-            case status.reblogged of
-                Just True ->
-                    baseBtnClasses ++ " reblogged"
-
-                _ ->
-                    baseBtnClasses
+            if isReblogged then
+                baseBtnClasses ++ " reblogged"
+            else
+                baseBtnClasses
     in
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
-                , ViewHelper.onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo originalStatus)
+                , ViewHelper.onClickWithPreventAndStop <|
+                    DraftEvent (UpdateReplyTo originalStatus)
                 ]
                 [ icon "share-alt" ]
             , a
                 [ class reblogClasses
-                , disabled True
+                , ViewHelper.onClickWithPreventAndStop <|
+                    if isReblogged then
+                        Unreblog originalStatus.id
+                    else
+                        Reblog originalStatus.id
                 ]
                 [ icon "fire", text (toString status.reblogs_count) ]
             , a

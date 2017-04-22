@@ -12,8 +12,10 @@ module Mastodon
         , Status
         , StatusRequestBody
         , Tag
-        , addFavorite
-        , removeFavorite
+        , reblog
+        , unreblog
+        , favourite
+        , unfavourite
         , register
         , registrationEncoder
         , clientEncoder
@@ -506,15 +508,29 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
 
 
-addFavorite : Client -> Int -> Request Status
-addFavorite client id =
+reblog : Client -> Int -> Request Status
+reblog client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/reblog")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+unreblog : Client -> Int -> Request Status
+unreblog client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unreblog")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+favourite : Client -> Int -> Request Status
+favourite client id =
     HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/favourite")
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
-removeFavorite : Client -> Int -> Request Status
-removeFavorite client id =
+unfavourite : Client -> Int -> Request Status
+unfavourite client id =
     HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unfavourite")
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
