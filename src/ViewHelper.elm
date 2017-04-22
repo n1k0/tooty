@@ -1,7 +1,6 @@
 module ViewHelper
     exposing
-        ( addOnClickAttributes
-        , formatContent
+        ( formatContent
         , getMentionForLink
         , onClickWithPreventAndStop
         , replace
@@ -54,11 +53,6 @@ replace from to str =
 toVirtualDom : List Mastodon.Mention -> List HtmlParser.Node -> List (Html Msg)
 toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
-
-
-addOnClickAttributes : List (Attribute msg) -> List (Attribute msg)
-addOnClickAttributes attrs =
-    attrs
 
 
 createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mastodon.Mention -> Html Msg
