@@ -233,7 +233,7 @@ toStatusRequestBody draft =
     }
 
 
-processFavourite : Mastodon.Status -> Bool -> Model -> Model
+processFavourite : Int -> Bool -> Model -> Model
 processFavourite favourited flag model =
     -- Update the favorite flag for all occurences of a given status in all
     -- timelines.
@@ -249,7 +249,7 @@ processFavourite favourited flag model =
                         Nothing ->
                             status
             in
-                if target.id == favourited.id then
+                if target.id == favourited then
                     { status | favourited = Just flag }
                 else
                     status
@@ -261,7 +261,7 @@ processFavourite favourited flag model =
         }
 
 
-processReblog : Mastodon.Status -> Bool -> Model -> Model
+processReblog : Int -> Bool -> Model -> Model
 processReblog reblogged flag model =
     -- Update the reblogged flag for all occurences of a given status in all
     -- timelines.
@@ -277,7 +277,7 @@ processReblog reblogged flag model =
                         Nothing ->
                             status
             in
-                if target.id == reblogged.id then
+                if target.id == reblogged then
                     { status | reblogged = Just flag }
                 else
                     status
@@ -381,35 +381,37 @@ update msg model =
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Reblog id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.reblog client id |> Mastodon.send Reblogged ]
+            -- Note: The case of reblogging is specific as it seems the server
+            -- response takes a lot of time to be received by the client, so we
+            -- perform optimistic updates here.
+            case model.client of
+                Just client ->
+                    processReblog id True model
+                        ! [ Mastodon.reblog client id |> Mastodon.send Reblogged ]
 
-                    Nothing ->
-                        []
+                Nothing ->
+                    model ! []
 
         Reblogged result ->
             case result of
                 Ok status ->
-                    processReblog status True model ! [ loadNotifications model.client ]
+                    model ! [ loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Unreblog id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.unfavourite client id |> Mastodon.send Unreblogged ]
+            case model.client of
+                Just client ->
+                    processReblog id False model ! [ Mastodon.unfavourite client id |> Mastodon.send Unreblogged ]
 
-                    Nothing ->
-                        []
+                Nothing ->
+                    model ! []
 
         Unreblogged result ->
             case result of
                 Ok status ->
-                    processReblog status False model ! [ loadNotifications model.client ]
+                    model ! [ loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -426,7 +428,7 @@ update msg model =
         FavoriteAdded result ->
             case result of
                 Ok status ->
-                    processFavourite status True model ! [ loadNotifications model.client ]
+                    processFavourite status.id True model ! [ loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -443,7 +445,7 @@ update msg model =
         FavoriteRemoved result ->
             case result of
                 Ok status ->
-                    processFavourite status False model ! [ loadNotifications model.client ]
+                    processFavourite status.id False model ! [ loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
