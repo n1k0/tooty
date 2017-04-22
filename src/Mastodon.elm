@@ -12,6 +12,8 @@ module Mastodon
         , Status
         , StatusRequestBody
         , Tag
+        , addFavorite
+        , removeFavorite
         , register
         , registrationEncoder
         , clientEncoder
@@ -502,3 +504,17 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+
+
+addFavorite : Client -> Int -> Request Status
+addFavorite client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/favourite")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+removeFavorite : Client -> Int -> Request Status
+removeFavorite client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unfavourite")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)

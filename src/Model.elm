@@ -27,14 +27,18 @@ type DraftMsg
 
 type Msg
     = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
+    | AddFavorite Int
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
     | DraftEvent DraftMsg
+    | FavoriteAdded (Result Mastodon.Error Mastodon.Status)
+    | FavoriteRemoved (Result Mastodon.Error Mastodon.Status)
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | NoOp
     | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Register
+    | RemoveFavorite Int
     | ServerChange String
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
@@ -43,6 +47,11 @@ type Msg
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+
+
+type Crud
+    = Add
+    | Remove
 
 
 type alias Draft =
@@ -157,6 +166,16 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
+loadNotifications : Maybe Mastodon.Client -> Cmd Msg
+loadNotifications client =
+    case client of
+        Just client ->
+            Mastodon.fetchNotifications client |> Mastodon.send Notifications
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Mastodon.Client -> Cmd Msg
 loadTimelines client =
     case client of
@@ -165,7 +184,7 @@ loadTimelines client =
                 [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
                 , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
                 , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
-                , Mastodon.fetchNotifications client |> Mastodon.send Notifications
+                , loadNotifications <| Just client
                 ]
 
         Nothing ->
@@ -208,6 +227,33 @@ toStatusRequestBody draft =
     , sensitive = draft.sensitive
     , visibility = draft.visibility
     }
+
+
+processFavourite : Mastodon.Status -> Bool -> Model -> Model
+processFavourite favourited flag model =
+    -- Update the favorite flag for all occurences of a given status in all
+    -- timelines.
+    let
+        update flag status =
+            let
+                target =
+                    case status.reblog of
+                        Just (Mastodon.Reblog reblog) ->
+                            reblog
+
+                        Nothing ->
+                            status
+            in
+                if target.id == favourited.id then
+                    { status | favourited = Just flag }
+                else
+                    status
+    in
+        { model
+            | userTimeline = List.map (update flag) model.userTimeline
+            , localTimeline = List.map (update flag) model.localTimeline
+            , publicTimeline = List.map (update flag) model.publicTimeline
+        }
 
 
 updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
@@ -297,6 +343,40 @@ update msg model =
                               , Navigation.modifyUrl model.location.pathname
                               , saveClient client
                               ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AddFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.addFavorite client id |> Mastodon.send FavoriteAdded ]
+
+                    Nothing ->
+                        []
+
+        FavoriteAdded result ->
+            case result of
+                Ok status ->
+                    processFavourite status True model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        RemoveFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.removeFavorite client id |> Mastodon.send FavoriteRemoved ]
+
+                    Nothing ->
+                        []
+
+        FavoriteRemoved result ->
+            case result of
+                Ok status ->
+                    processFavourite status False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []

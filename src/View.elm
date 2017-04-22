@@ -231,19 +231,49 @@ statusActionsView status =
 
                 Nothing ->
                     status
+
+        baseBtnClasses =
+            "btn btn-sm btn-default"
+
+        isFavourite =
+            Maybe.withDefault False status.favourited
+
+        favClasses =
+            case status.favourited of
+                Just True ->
+                    baseBtnClasses ++ " favourited"
+
+                _ ->
+                    baseBtnClasses
+
+        reblogClasses =
+            case status.reblogged of
+                Just True ->
+                    baseBtnClasses ++ " reblogged"
+
+                _ ->
+                    baseBtnClasses
     in
-        div [ class "btn-group btn-group-justified actions" ]
+        div [ class "btn-group actions" ]
             [ a
-                [ class "btn btn-xs btn-default"
+                [ class baseBtnClasses
                 , ViewHelper.onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo originalStatus)
                 ]
                 [ icon "share-alt" ]
             , a
-                [ class "btn btn-xs btn-default", disabled True ]
-                [ icon "fire" ]
+                [ class reblogClasses
+                , disabled True
+                ]
+                [ icon "fire", text (toString status.reblogs_count) ]
             , a
-                [ class "btn btn-xs btn-default", disabled True ]
-                [ icon "star" ]
+                [ class favClasses
+                , ViewHelper.onClickWithPreventAndStop <|
+                    if isFavourite then
+                        RemoveFavorite originalStatus.id
+                    else
+                        AddFavorite originalStatus.id
+                ]
+                [ icon "star", text (toString status.favourites_count) ]
             ]
 
 
