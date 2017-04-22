@@ -4,10 +4,9 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import HtmlParser
-import HtmlParser.Util exposing (toVirtualDom)
 import Mastodon
 import Model exposing (Model, DraftMsg(..), Msg(..))
+import ViewHelper
 
 
 visibilities : Dict.Dict String String
@@ -18,22 +17,6 @@ visibilities =
         , ( "private", "post to followers only" )
         , ( "direct", "post to mentioned users only" )
         ]
-
-
-replace : String -> String -> String -> String
-replace from to str =
-    String.split from str |> String.join to
-
-
-formatContent : String -> List (Html msg)
-formatContent content =
-    content
-        |> replace "&apos;" "'"
-        |> replace " ?" "&nbsp;?"
-        |> replace " !" "&nbsp;!"
-        |> replace " :" "&nbsp;:"
-        |> HtmlParser.parse
-        |> toVirtualDom
 
 
 errorView : String -> Html Msg
@@ -60,7 +43,7 @@ statusContentView : Mastodon.Status -> Html Msg
 statusContentView status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text" ] <| formatContent status.content
+            div [ class "status-text" ] <| ViewHelper.formatContent status.content status.mentions
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
@@ -69,38 +52,91 @@ statusContentView status =
                     "spoiler" ++ (toString status.id)
             in
                 div [ class "status-text spoiled" ]
-                    [ div [ class "spoiler" ] <| formatContent status.spoiler_text
+                    [ div [ class "spoiler" ] [ text status.spoiler_text ]
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
-                    , div [ class "spoiled-content" ] <| formatContent status.content
+                    , div [ class "spoiled-content" ] <| (ViewHelper.formatContent status.content status.mentions)
                     ]
 
 
 statusView : Mastodon.Status -> Html Msg
-statusView ({ account, content, reblog } as status) =
-    case reblog of
-        Just (Mastodon.Reblog reblog) ->
-            div [ class "reblog" ]
-                [ p []
-                    [ icon "fire"
-                    , a [ href account.url, class "reblogger" ]
-                        [ text <| " " ++ account.username ]
-                    , text " boosted"
-                    ]
-                , statusView reblog
-                ]
-
-        Nothing ->
-            div [ class "status" ]
-                [ img [ class "avatar", src account.avatar ] []
-                , div [ class "username" ]
-                    [ a [ href account.url ]
-                        [ text account.display_name
-                        , span [ class "acct" ] [ text <| " @" ++ account.username ]
+statusView ({ account, content, reblog, mentions } as status) =
+    let
+        accountLinkAttributes =
+            [ href account.url
+              -- When clicking on a status, we should not let the browser
+              -- redirect to a new page. That's why we're preventing the default
+              -- behavior here
+            , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+            ]
+    in
+        case reblog of
+            Just (Mastodon.Reblog reblog) ->
+                div [ class "reblog" ]
+                    [ p []
+                        [ icon "fire"
+                        , a (accountLinkAttributes ++ [ class "reblogger" ])
+                            [ text <| " " ++ account.username ]
+                        , text " boosted"
                         ]
+                    , statusView reblog
                     ]
-                , statusContentView status
+
+            Nothing ->
+                div [ class "status" ]
+                    [ img [ class "avatar", src account.avatar ] []
+                    , div [ class "username" ]
+                        [ a accountLinkAttributes
+                            [ text account.display_name
+                            , span [ class "acct" ] [ text <| " @" ++ account.username ]
+                            ]
+                        ]
+                    , statusContentView status
+                    ]
+
+
+accountTimelineView : Mastodon.Account -> List Mastodon.Status -> String -> String -> Html Msg
+accountTimelineView account statuses label iconName =
+    div [ class "col-md-3" ]
+        [ div [ class "panel panel-default" ]
+            [ div [ class "panel-heading" ]
+                [ icon iconName
+                , text label
                 ]
+            , div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
+                [ div [ class "opacity-layer" ]
+                    [ img [ src account.avatar ] []
+                    , span [ class "account-display-name" ] [ text account.display_name ]
+                    , span [ class "account-username" ] [ text ("@" ++ account.username) ]
+                    , span [ class "account-note" ] (ViewHelper.formatContent account.note [])
+                    ]
+                ]
+            , div [ class "row account-infos" ]
+                [ div [ class "col-md-4" ]
+                    [ text "Statuses"
+                    , br [] []
+                    , text <| toString account.statuses_count
+                    ]
+                , div [ class "col-md-4" ]
+                    [ text "Following"
+                    , br [] []
+                    , text <| toString account.following_count
+                    ]
+                , div [ class "col-md-4" ]
+                    [ text "Followers"
+                    , br [] []
+                    , text <| toString account.followers_count
+                    ]
+                ]
+            , ul [ class "list-group" ] <|
+                List.map
+                    (\s ->
+                        li [ class "list-group-item status" ]
+                            [ statusView s ]
+                    )
+                    statuses
+            ]
+        ]
 
 
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
@@ -232,7 +268,13 @@ homepageView model =
         [ draftView model
         , timelineView model.userTimeline "Home timeline" "home"
         , timelineView model.localTimeline "Local timeline" "th-large"
-        , timelineView model.publicTimeline "Public timeline" "globe"
+        , case model.account of
+            Just account ->
+                -- Todo: Load the user timeline
+                accountTimelineView account [] "Account" "user"
+
+            Nothing ->
+                timelineView model.publicTimeline "Public timeline" "globe"
         ]
 
 

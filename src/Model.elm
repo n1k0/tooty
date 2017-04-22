@@ -26,11 +26,13 @@ type Msg
     | DraftEvent DraftMsg
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | OnLoadUserAccount Int
     | Register
     | ServerChange String
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
     | UrlChange Navigation.Location
+    | UserAccount (Result Mastodon.Error Mastodon.Account)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
@@ -42,6 +44,7 @@ type alias Model =
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
     , draft : Mastodon.StatusRequestBody
+    , account : Maybe Mastodon.Account
     , errors : List String
     , location : Navigation.Location
     }
@@ -80,6 +83,7 @@ init flags location =
         , localTimeline = []
         , publicTimeline = []
         , draft = defaultDraft
+        , account = Nothing
         , errors = []
         , location = location
         }
@@ -253,6 +257,20 @@ update msg model =
                 Err error ->
                     { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
+        OnLoadUserAccount accountId ->
+            {-
+               @TODO
+               When requesting a user profile, we should load a new "page"
+               so that the URL in the browser matches the user displayed
+            -}
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.fetchAccount client accountId |> Mastodon.send UserAccount ]
+
+                    Nothing ->
+                        []
+
         LocalTimeline result ->
             case result of
                 Ok localTimeline ->
@@ -268,6 +286,14 @@ update msg model =
 
                 Err error ->
                     { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        UserAccount result ->
+            case result of
+                Ok account ->
+                    { model | account = Just account } ! []
+
+                Err error ->
+                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! [ loadTimelines model.client ]
