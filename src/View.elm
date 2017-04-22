@@ -122,9 +122,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -142,7 +143,9 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
 
             Nothing ->
                 div [ class "status" ]
-                    [ img [ class "avatar", src account.avatar ] []
+                    [ a accountLinkAttributes
+                        [ img [ class "avatar", src account.avatar ] []
+                        ]
                     , div [ class "username" ]
                         [ a accountLinkAttributes
                             [ text account.display_name
