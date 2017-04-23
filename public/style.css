@@ -25,6 +25,10 @@ body {
 .notification.follow > p {
   margin-bottom: 0;
 }
+.notification .spoiled,
+.notification .attachments {
+  display: none;
+}
 
 .panel-heading {
   font-weight: bold;
