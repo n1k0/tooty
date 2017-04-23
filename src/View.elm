@@ -224,53 +224,43 @@ accountTimelineView account statuses label iconName =
 statusActionsView : Mastodon.Status -> Html Msg
 statusActionsView status =
     let
-        originalStatus =
+        target =
             Mastodon.extractReblog status
 
         baseBtnClasses =
             "btn btn-sm btn-default"
 
-        isReblogged =
-            Maybe.withDefault False status.reblogged
+        ( reblogClasses, reblogEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " reblogged", Unreblog target.id )
 
-        isFavourite =
-            Maybe.withDefault False status.favourited
+                _ ->
+                    ( baseBtnClasses, AddFavorite target.id )
 
-        favClasses =
-            if isFavourite then
-                baseBtnClasses ++ " favourited"
-            else
-                baseBtnClasses
+        ( favClasses, favEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite target.id )
 
-        reblogClasses =
-            if isReblogged then
-                baseBtnClasses ++ " reblogged"
-            else
-                baseBtnClasses
+                _ ->
+                    ( baseBtnClasses, AddFavorite target.id )
     in
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
                 , ViewHelper.onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo originalStatus)
+                    DraftEvent (UpdateReplyTo target)
                 ]
                 [ icon "share-alt" ]
             , a
                 [ class reblogClasses
-                , ViewHelper.onClickWithPreventAndStop <|
-                    if isReblogged then
-                        Unreblog originalStatus.id
-                    else
-                        Reblog originalStatus.id
+                , ViewHelper.onClickWithPreventAndStop reblogEvent
                 ]
                 [ icon "fire", text (toString status.reblogs_count) ]
             , a
                 [ class favClasses
-                , ViewHelper.onClickWithPreventAndStop <|
-                    if isFavourite then
-                        RemoveFavorite originalStatus.id
-                    else
-                        AddFavorite originalStatus.id
+                , ViewHelper.onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
             ]
