@@ -322,7 +322,7 @@ notificationHeading accounts str iconType =
 
 notificationStatusView : Mastodon.Status -> NotificationAggregate -> Html Msg
 notificationStatusView status { type_, accounts } =
-    div [ class "notification" ]
+    div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
                 notificationHeading accounts "boosted your toot" "fire"
