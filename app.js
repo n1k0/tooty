@@ -21593,7 +21593,7 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					{ctor: '[]'});
 			case 'UpdateReplyTo':
 				var _p7 = _p6._0;
-				var mention = A2(_elm_lang$core$Basics_ops['++'], '@', _p7.account.username);
+				var mention = A2(_elm_lang$core$Basics_ops['++'], '@', _p7.account.acct);
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
