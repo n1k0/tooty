@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
-import Model exposing (Model, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -34,6 +34,12 @@ errorsListView model =
             div [] <| List.map errorView model.errors
 
 
+justifiedButtonGroup : List (Html Msg) -> Html Msg
+justifiedButtonGroup buttons =
+    div [ class "btn-group btn-group-justified" ] <|
+        List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
+
+
 icon : String -> Html Msg
 icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
@@ -46,6 +52,16 @@ accountLink account =
         , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
         ]
         [ text <| "@" ++ account.username ]
+
+
+accountAvatarLink : Mastodon.Account -> Html Msg
+accountAvatarLink account =
+    a
+        [ href account.url
+        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        , title <| "@" ++ account.username
+        ]
+        [ img [ src account.avatar ] [] ]
 
 
 attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
@@ -140,10 +156,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
         case reblog of
             Just (Mastodon.Reblog reblog) ->
                 div [ class "reblog" ]
-                    [ p []
+                    [ p [ class "status-info" ]
                         [ icon "fire"
                         , a (accountLinkAttributes ++ [ class "reblogger" ])
-                            [ text <| " " ++ account.username ]
+                            [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
                     , statusView reblog
@@ -215,6 +231,51 @@ accountTimelineView account statuses label iconName =
         ]
 
 
+statusActionsView : Mastodon.Status -> Html Msg
+statusActionsView status =
+    let
+        target =
+            Mastodon.extractReblog status
+
+        baseBtnClasses =
+            "btn btn-sm btn-default"
+
+        ( reblogClasses, reblogEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " reblogged", Unreblog target.id )
+
+                _ ->
+                    ( baseBtnClasses, Reblog target.id )
+
+        ( favClasses, favEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite target.id )
+
+                _ ->
+                    ( baseBtnClasses, AddFavorite target.id )
+    in
+        div [ class "btn-group actions" ]
+            [ a
+                [ class baseBtnClasses
+                , ViewHelper.onClickWithPreventAndStop <|
+                    DraftEvent (UpdateReplyTo target)
+                ]
+                [ icon "share-alt" ]
+            , a
+                [ class reblogClasses
+                , ViewHelper.onClickWithPreventAndStop reblogEvent
+                ]
+                [ icon "fire", text (toString status.reblogs_count) ]
+            , a
+                [ class favClasses
+                , ViewHelper.onClickWithPreventAndStop favEvent
+                ]
+                [ icon "star", text (toString status.favourites_count) ]
+            ]
+
+
 statusEntryView : Mastodon.Status -> Html Msg
 statusEntryView status =
     let
@@ -227,7 +288,9 @@ statusEntryView status =
                     ""
     in
         li [ class <| "list-group-item " ++ nsfwClass ]
-            [ statusView status ]
+            [ statusView status
+            , statusActionsView status
+            ]
 
 
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
@@ -244,36 +307,43 @@ timelineView statuses label iconName =
         ]
 
 
-notificationHeading : Mastodon.Account -> String -> String -> Html Msg
-notificationHeading account str iconType =
-    p [] <|
-        List.intersperse (text " ")
-            [ icon iconType, accountLink account, text str ]
+notificationHeading : List Mastodon.Account -> String -> String -> Html Msg
+notificationHeading accounts str iconType =
+    div [ class "status-info" ]
+        [ div [ class "avatars" ] <| List.map accountAvatarLink accounts
+        , p [] <|
+            List.intersperse (text " ")
+                [ icon iconType
+                , span [] <| List.intersperse (text ", ") (List.map accountLink accounts)
+                , text str
+                ]
+        ]
 
 
-notificationStatusView : Mastodon.Status -> Mastodon.Notification -> Html Msg
-notificationStatusView status { type_, account } =
-    div [ class "notification mention" ]
+notificationStatusView : Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
+notificationStatusView status { type_, accounts } =
+    div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
-                notificationHeading account "boosted your toot" "fire"
+                notificationHeading accounts "boosted your toot" "fire"
 
             "favourite" ->
-                notificationHeading account "favourited your toot" "star"
+                notificationHeading accounts "favourited your toot" "star"
 
             _ ->
                 text ""
         , statusView status
+        , statusActionsView status
         ]
 
 
-notificationFollowView : Mastodon.Notification -> Html Msg
-notificationFollowView { account } =
+notificationFollowView : Mastodon.NotificationAggregate -> Html Msg
+notificationFollowView { accounts } =
     div [ class "notification follow" ]
-        [ notificationHeading account "started following you" "user" ]
+        [ notificationHeading accounts "started following you" "user" ]
 
 
-notificationEntryView : Mastodon.Notification -> Html Msg
+notificationEntryView : Mastodon.NotificationAggregate -> Html Msg
 notificationEntryView notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -285,7 +355,7 @@ notificationEntryView notification =
         ]
 
 
-notificationListView : List Mastodon.Notification -> Html Msg
+notificationListView : List Mastodon.NotificationAggregate -> Html Msg
 notificationListView notifications =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
@@ -299,6 +369,29 @@ notificationListView notifications =
         ]
 
 
+draftReplyToView : Draft -> Html Msg
+draftReplyToView draft =
+    case draft.in_reply_to of
+        Just status ->
+            div [ class "in-reply-to" ]
+                [ p []
+                    [ strong []
+                        [ text "In reply to this toot ("
+                        , a
+                            [ href ""
+                            , ViewHelper.onClickWithPreventAndStop <| DraftEvent ClearReplyTo
+                            ]
+                            [ icon "remove" ]
+                        , text ")"
+                        ]
+                    ]
+                , div [ class "well" ] [ statusView status ]
+                ]
+
+        Nothing ->
+            text ""
+
+
 draftView : Model -> Html Msg
 draftView { draft } =
     let
@@ -310,9 +403,17 @@ draftView { draft } =
                 [ text <| visibility ++ ": " ++ description ]
     in
         div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
+            [ div [ class "panel-heading" ]
+                [ icon "envelope"
+                , text <|
+                    if draft.in_reply_to /= Nothing then
+                        "Post a reply"
+                    else
+                        "Post a message"
+                ]
             , div [ class "panel-body" ]
-                [ Html.form [ class "form", onSubmit SubmitDraft ]
+                [ draftReplyToView draft
+                , Html.form [ class "form", onSubmit SubmitDraft ]
                     [ div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -387,8 +488,17 @@ draftView { draft } =
                             , text " This post is NSFW"
                             ]
                         ]
-                    , p [ class "text-right" ]
-                        [ button [ class "btn btn-primary" ]
+                    , justifiedButtonGroup
+                        [ button
+                            [ type_ "button"
+                            , class "btn btn-default"
+                            , onClick (DraftEvent ClearDraft)
+                            ]
+                            [ text "Clear" ]
+                        , button
+                            [ type_ "submit"
+                            , class "btn btn-primary"
+                            ]
                             [ text "Toot!" ]
                         ]
                     ]

@@ -15,10 +15,28 @@ body {
 .reblog > p:first-of-type,
 .notification > p:first-of-type {
   color: #999;
+  margin-bottom: 8px;
 }
-.reblog > p:first-of-type > a,
-.notification > p:first-of-type > a {
+
+.status-info, .status-info a {
   color: #ccc;
+  line-height: 1.6em;
+}
+
+.status-info > .avatars {
+  margin-bottom: 8px;
+}
+
+.status-info > .avatars img {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  border-radius: 2px;
+}
+
+.notification.reblog,
+.notification.favourite {
+  opacity: .75;
 }
 
 .notification.follow > p {
@@ -68,10 +86,37 @@ body {
   color: #9baec8;
 }
 
+/* Status actions */
+
+.actions {
+  margin-left: 65px;
+  width: calc(100% - 65px);
+}
+
+.actions > .btn {
+  border: none;
+  background: transparent;
+  color: #aaa;
+  padding: 0 2.4em 0 0;
+  text-align: left;
+}
+
+.actions > .btn > .glyphicon {
+  margin-right: 5px;
+}
+
+.actions .favourited {
+  color: #d1ac0e;
+}
+
+.actions .reblogged {
+  color: #d56344;
+}
+
 /* Attachments */
 
 .attachments {
-  margin: 0;
+  margin: 0 0 15px 0;
   padding: 0;
   list-style-type: none;
   overflow: hidden;
@@ -126,15 +171,19 @@ body {
   text-align: center;
   margin-top: .5em;
   font-weight: normal;
-  background: #222;
+  background: #252525;
   color: #fff;
   padding: .3em;
-  border: 1px solid #444;
+  border: 1px solid #363636;
   cursor: pointer;
 }
 
 
+.spoiled input[type=checkbox] + label + .spoiled-content {
+  display: none;
+}
 .spoiled input[type=checkbox]:checked + label + .spoiled-content {
+  display: block;
   height: auto;
   opacity: 1;
   padding: 10px;
@@ -146,9 +195,24 @@ body {
   opacity: 0;
   padding: 10px;
   background: #333;
-  border: 1px solid #777;
+  border: 1px solid #444;
   border-radius: 4px;
   transition: all .6s;
+  margin-bottom: 5px;
+}
+
+/* Draft form */
+
+.in-reply-to .attachments {
+  margin: 0;
+}
+.in-reply-to .attachments li {
+  display: none;
+}
+.in-reply-to .attachments:after {
+  content: "[attachments hidden]";
+  font-size: .9em;
+  color: #555;
 }
 
 /* Status text content rules */

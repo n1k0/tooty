@@ -34,7 +34,6 @@ onClickWithPreventAndStop msg =
 formatContent : String -> List Mastodon.Mention -> List (Html Msg)
 formatContent content mentions =
     content
-        |> Util.replace "&apos;" "'"
         |> Util.replace " ?" "&nbsp;?"
         |> Util.replace " !" "&nbsp;!"
         |> Util.replace " :" "&nbsp;:"

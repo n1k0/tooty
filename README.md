@@ -2,7 +2,7 @@
 
 An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm. It is not usable yet.
 
-![](http://i.imgur.com/uJOBnI6.png)
+![](http://i.imgur.com/tMLK7fh.png)
 
 ### Setting up the development environment
 
@@ -10,7 +10,11 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
 ### Starting the dev server
 
-    $ npm run live
+    $ npm start
+
+### Starting the dev server in live debug mode
+
+    $ npm run debug
 
 ### Building
 
@@ -20,7 +24,7 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
     $ npm run deploy
 
-The app should be deployed to https://n1k0.github.io/tooty/
+The app should be deployed to https://[your-github-username].github.io/tooty/
 
 ## Licence
 
