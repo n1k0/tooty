@@ -1,5 +1,6 @@
 module Model exposing (..)
 
+import Json.Decode
 import Json.Encode as Encode
 import Navigation
 import Mastodon
@@ -324,11 +325,41 @@ update msg model =
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
 
         NewWebsocketUserMessage message ->
-            let
-                d =
-                    Debug.log "[Websocket] " message
-            in
-                model ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.NotificationResult result ->
+                    case result of
+                        Ok notification ->
+                            let
+                                {-
+                                   Limitation of Elm where you can't reference
+                                   model.notifications inside a { model | …)
+                                -}
+                                oldNotifications =
+                                    model.notifications
+                            in
+                                { model | notifications = notification :: oldNotifications } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            let
+                                {-
+                                   Limitation of Elm where you can't reference
+                                   model.notifications inside a { model | …)
+                                -}
+                                oldLocalTimeline =
+                                    model.userTimeline
+                            in
+                                { model | userTimeline = status :: oldLocalTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
 
 
 subscriptions : Model -> Sub Msg
@@ -336,14 +367,11 @@ subscriptions model =
     Sub.batch <|
         case model.client of
             Just client ->
-                let
-                    url =
-                        (Util.replace "http" "ws" client.server)
-                            ++ "/api/v1/streaming/?access_token="
-                            ++ client.token
-                            ++ "&stream=user"
-                in
-                    [ WebSocket.listen url NewWebsocketUserMessage ]
+                -- @TODO Subcribe to the 2 other types of streams
+                Mastodon.subscribeToWebSockets
+                    client
+                    Mastodon.UserStream
+                    NewWebsocketUserMessage
 
             Nothing ->
                 []

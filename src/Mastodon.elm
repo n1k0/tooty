@@ -11,10 +11,13 @@ module Mastodon
         , Reblog(..)
         , Status
         , StatusRequestBody
+        , StreamType(..)
         , Tag
+        , WebSocketEventResult(..)
         , register
         , registrationEncoder
         , clientEncoder
+        , decodeWebSocketMessage
         , getAuthorizationUrl
         , getAccessToken
         , fetchAccount
@@ -24,6 +27,9 @@ module Mastodon
         , fetchUserTimeline
         , postStatus
         , send
+        , subscribeToWebSockets
+        , websocketEventDecoder
+        , notificationDecoder
         )
 
 import Http
@@ -31,6 +37,8 @@ import HttpBuilder
 import Json.Decode.Pipeline as Pipe
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Util
+import WebSocket
 
 
 -- Types
@@ -71,6 +79,12 @@ type alias Token =
 type alias Client =
     { server : Server
     , token : Token
+    }
+
+
+type alias WebSocketEvent =
+    { event : String
+    , payload : String
     }
 
 
@@ -193,6 +207,18 @@ type alias StatusRequestBody =
 
 type alias Request a =
     HttpBuilder.RequestBuilder a
+
+
+type WebSocketEventResult a b c
+    = EventError a
+    | NotificationResult b
+    | StatusResult c
+
+
+type StreamType
+    = UserStream
+    | LocalPublicStream
+    | GlobalPublicStream
 
 
 
@@ -351,6 +377,13 @@ statusDecoder =
         |> Pipe.required "visibility" Decode.string
 
 
+websocketEventDecoder : Decode.Decoder WebSocketEvent
+websocketEventDecoder =
+    Pipe.decode WebSocketEvent
+        |> Pipe.required "event" Decode.string
+        |> Pipe.required "payload" Decode.string
+
+
 
 -- Internal helpers
 
@@ -502,3 +535,70 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+
+
+subscribeToWebSockets : Client -> StreamType -> (String -> a) -> List (Sub a)
+subscribeToWebSockets client streamType message =
+    let
+        type_ =
+            case streamType of
+                UserStream ->
+                    "user"
+
+                LocalPublicStream ->
+                    "public:local"
+
+                GlobalPublicStream ->
+                    "public:local"
+
+        url =
+            (Util.replace "http" "ws" client.server)
+                ++ "/api/v1/streaming/?access_token="
+                ++ client.token
+                ++ "&stream="
+                ++ type_
+    in
+        [ WebSocket.listen url message ]
+
+
+
+{-
+   Sorry for this beast, but the websocket connection return messages
+   containing an escaped JSON string under the `payload` key. This JSON string
+   can either represent a `Notification` when the event field of the returned json
+   is equal to 'notification' or a `Status` when the string is equal to
+   'update'.
+   If someone has a better way of doing this, I'me all for it
+-}
+
+
+decodeWebSocketMessage : String -> WebSocketEventResult String (Result String Notification) (Result String Status)
+decodeWebSocketMessage message =
+    let
+        websocketEvent =
+            Decode.decodeString
+                websocketEventDecoder
+                message
+
+        d =
+            Debug.log "[WebSocket Json] " websocketEvent
+    in
+        case websocketEvent of
+            Ok event ->
+                if event.event == "notification" then
+                    NotificationResult
+                        (Decode.decodeString
+                            notificationDecoder
+                            event.payload
+                        )
+                else if event.event == "update" then
+                    StatusResult
+                        (Decode.decodeString
+                            statusDecoder
+                            event.payload
+                        )
+                else
+                    EventError "Unknown event type for WebSocket"
+
+            Err error ->
+                EventError error
