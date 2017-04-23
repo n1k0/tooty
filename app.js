@@ -22109,7 +22109,7 @@ var _n1k0$tooty$Mastodon$NotificationAggregate = F4(
 	function (a, b, c, d) {
 		return {type_: a, status: b, accounts: c, created_at: d};
 	});
-var _n1k0$tooty$Mastodon$toNotificationsAggregate = function (notifications) {
+var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 	var extractAggregate = function (statusGroup) {
 		var accounts = A2(
 			_elm_lang$core$List$map,
@@ -23450,7 +23450,7 @@ var _n1k0$tooty$Model$update = F2(
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								notifications: _n1k0$tooty$Mastodon$toNotificationsAggregate(_p34._0)
+								notifications: _n1k0$tooty$Mastodon$aggregateNotifications(_p34._0)
 							}),
 						{ctor: '[]'});
 				} else {
