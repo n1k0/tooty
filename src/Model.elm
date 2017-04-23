@@ -572,15 +572,20 @@ subscriptions model =
                     client
                     Mastodon.UserStream
                     NewWebsocketUserMessage
-                , Mastodon.subscribeToWebSockets
-                    client
-                    Mastodon.LocalPublicStream
-                    NewWebsocketLocalMessage
-                , Mastodon.subscribeToWebSockets
-                    client
-                    Mastodon.GlobalPublicStream
-                    NewWebsocketGlobalMessage
                 ]
+                    ++ (if model.useGlobalTimeline then
+                            [ Mastodon.subscribeToWebSockets
+                                client
+                                Mastodon.GlobalPublicStream
+                                NewWebsocketGlobalMessage
+                            ]
+                        else
+                            [ Mastodon.subscribeToWebSockets
+                                client
+                                Mastodon.LocalPublicStream
+                                NewWebsocketLocalMessage
+                            ]
+                       )
 
             Nothing ->
                 []
