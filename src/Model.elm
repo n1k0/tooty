@@ -25,7 +25,12 @@ type DraftMsg
     | ToggleSpoiler Bool
 
 
-type Msg
+type
+    Msg
+    {-
+       FIXME: Mastodon server response messages should be extracted to their own
+       MastodonMsg type at some point.
+    -}
     = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
     | AddFavorite Int
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)

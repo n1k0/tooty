@@ -402,7 +402,14 @@ draftView { draft } =
                 [ text <| visibility ++ ": " ++ description ]
     in
         div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
+            [ div [ class "panel-heading" ]
+                [ icon "envelope"
+                , text <|
+                    if draft.in_reply_to /= Nothing then
+                        "Post a reply"
+                    else
+                        "Post a message"
+                ]
             , div [ class "panel-body" ]
                 [ draftReplyToView draft
                 , Html.form [ class "form", onSubmit SubmitDraft ]
