@@ -22155,33 +22155,6 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 				},
 				notifications);
 		});
-	var _p7 = {
-		ctor: '_Tuple4',
-		_0: aggregate(
-			A2(
-				_elm_community$list_extra$List_Extra$groupWhile,
-				sameStatus,
-				A2(only, 'reblog', notifications))),
-		_1: aggregate(
-			A2(
-				_elm_community$list_extra$List_Extra$groupWhile,
-				sameStatus,
-				A2(only, 'favourite', notifications))),
-		_2: aggregate(
-			A2(
-				_elm_community$list_extra$List_Extra$groupWhile,
-				sameStatus,
-				A2(only, 'mention', notifications))),
-		_3: aggregate(
-			A2(
-				_elm_community$list_extra$List_Extra$groupWhile,
-				sameAccount,
-				A2(only, 'follow', notifications)))
-	};
-	var reblogs = _p7._0;
-	var favourites = _p7._1;
-	var mentions = _p7._2;
-	var follows = _p7._3;
 	return _elm_lang$core$List$reverse(
 		A2(
 			_elm_lang$core$List$sortBy,
@@ -22191,16 +22164,32 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 			_elm_lang$core$List$concat(
 				{
 					ctor: '::',
-					_0: reblogs,
+					_0: aggregate(
+						A2(
+							_elm_community$list_extra$List_Extra$groupWhile,
+							sameStatus,
+							A2(only, 'reblog', notifications))),
 					_1: {
 						ctor: '::',
-						_0: favourites,
+						_0: aggregate(
+							A2(
+								_elm_community$list_extra$List_Extra$groupWhile,
+								sameStatus,
+								A2(only, 'favourite', notifications))),
 						_1: {
 							ctor: '::',
-							_0: mentions,
+							_0: aggregate(
+								A2(
+									_elm_community$list_extra$List_Extra$groupWhile,
+									sameStatus,
+									A2(only, 'mention', notifications))),
 							_1: {
 								ctor: '::',
-								_0: follows,
+								_0: aggregate(
+									A2(
+										_elm_community$list_extra$List_Extra$groupWhile,
+										sameAccount,
+										A2(only, 'follow', notifications))),
 								_1: {ctor: '[]'}
 							}
 						}
@@ -22301,26 +22290,26 @@ var _n1k0$tooty$Mastodon$MastodonError = F3(
 	});
 var _n1k0$tooty$Mastodon$extractMastodonError = F3(
 	function (statusCode, statusMsg, body) {
-		var _p8 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
-		if (_p8.ctor === 'Ok') {
-			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p8._0);
+		var _p7 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
+		if (_p7.ctor === 'Ok') {
+			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p7._0);
 		} else {
-			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p8._0);
+			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p7._0);
 		}
 	});
 var _n1k0$tooty$Mastodon$extractError = function (error) {
-	var _p9 = error;
-	switch (_p9.ctor) {
+	var _p8 = error;
+	switch (_p8.ctor) {
 		case 'BadStatus':
-			var _p10 = _p9._0.status;
-			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p10.code, _p10.message, _p9._0.body);
+			var _p9 = _p8._0.status;
+			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p9.code, _p9.message, _p8._0.body);
 		case 'BadPayload':
-			var _p11 = _p9._1.status;
+			var _p10 = _p8._1.status;
 			return A3(
 				_n1k0$tooty$Mastodon$ServerError,
-				_p11.code,
-				_p11.message,
-				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p9._0));
+				_p10.code,
+				_p10.message,
+				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p8._0));
 		case 'Timeout':
 			return _n1k0$tooty$Mastodon$TimeoutError;
 		default:
@@ -22334,9 +22323,9 @@ var _n1k0$tooty$Mastodon$send = F2(
 	function (tagger, builder) {
 		return A2(
 			_lukewestby$elm_http_builder$HttpBuilder$send,
-			function (_p12) {
+			function (_p11) {
 				return tagger(
-					_n1k0$tooty$Mastodon$toResponse(_p12));
+					_n1k0$tooty$Mastodon$toResponse(_p11));
 			},
 			builder);
 	});
@@ -22347,7 +22336,7 @@ var _n1k0$tooty$Mastodon$reblogDecoder = A2(
 	_elm_lang$core$Json_Decode$map,
 	_n1k0$tooty$Mastodon$Reblog,
 	_elm_lang$core$Json_Decode$lazy(
-		function (_p13) {
+		function (_p12) {
 			return _n1k0$tooty$Mastodon$statusDecoder;
 		}));
 var _n1k0$tooty$Mastodon$statusDecoder = A3(

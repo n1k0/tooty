@@ -42,9 +42,6 @@ body {
 .notification.follow > p {
   margin-bottom: 0;
 }
-.notification .spoiled {
-  display: none;
-}
 
 .panel-heading {
   font-weight: bold;
