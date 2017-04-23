@@ -17,13 +17,28 @@ body {
   color: #999;
   margin-bottom: 8px;
 }
-.reblog > p:first-of-type > a,
-.notification > p:first-of-type > a {
+
+.status-info, .status-info a {
   color: #ccc;
+  line-height: 1.6em;
+}
+
+.status-info > .avatars {
+  margin-bottom: 8px;
+}
+
+.status-info > .avatars img {
+  width: 24px;
+  height: 24px;
+  margin-right: 5px;
+  border-radius: 2px;
 }
 
 .notification.follow > p {
   margin-bottom: 0;
+}
+.notification .spoiled {
+  display: none;
 }
 
 .panel-heading {
