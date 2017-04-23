@@ -60,6 +60,8 @@ type
     | Unreblogged (Result Mastodon.Error Mastodon.Status)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
     | NewWebsocketUserMessage String
+    | NewWebsocketGlobalMessage String
+    | NewWebsocketLocalMessage String
 
 
 type alias Draft =
@@ -552,17 +554,33 @@ update msg model =
                         Err error ->
                             { model | errors = error :: model.errors } ! []
 
+        NewWebsocketLocalMessage message ->
+            -- @TODO
+            model ! []
+
+        NewWebsocketGlobalMessage message ->
+            -- @TODO
+            model ! []
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         case model.client of
             Just client ->
-                -- @TODO Subcribe to the 2 other types of streams
-                Mastodon.subscribeToWebSockets
+                [ Mastodon.subscribeToWebSockets
                     client
                     Mastodon.UserStream
                     NewWebsocketUserMessage
+                , Mastodon.subscribeToWebSockets
+                    client
+                    Mastodon.LocalPublicStream
+                    NewWebsocketLocalMessage
+                , Mastodon.subscribeToWebSockets
+                    client
+                    Mastodon.GlobalPublicStream
+                    NewWebsocketGlobalMessage
+                ]
 
             Nothing ->
                 []

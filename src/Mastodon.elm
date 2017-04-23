@@ -638,7 +638,7 @@ unfavourite client id =
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
-subscribeToWebSockets : Client -> StreamType -> (String -> a) -> List (Sub a)
+subscribeToWebSockets : Client -> StreamType -> (String -> a) -> Sub a
 subscribeToWebSockets client streamType message =
     let
         type_ =
@@ -659,7 +659,7 @@ subscribeToWebSockets client streamType message =
                 ++ "&stream="
                 ++ type_
     in
-        [ WebSocket.listen url message ]
+        WebSocket.listen url message
 
 
 
