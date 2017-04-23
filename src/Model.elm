@@ -494,7 +494,7 @@ update msg model =
         Notifications result ->
             case result of
                 Ok notifications ->
-                    { model | notifications = Mastodon.toNotificationsAggregate notifications } ! []
+                    { model | notifications = Mastodon.aggregateNotifications notifications } ! []
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []

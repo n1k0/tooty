@@ -20,7 +20,7 @@ module Mastodon
         , extractReblog
         , register
         , registrationEncoder
-        , toNotificationsAggregate
+        , aggregateNotifications
         , clientEncoder
         , getAuthorizationUrl
         , getAccessToken
@@ -448,8 +448,8 @@ fetch client endpoint decoder =
 -- Public API
 
 
-toNotificationsAggregate : List Notification -> List NotificationAggregate
-toNotificationsAggregate notifications =
+aggregateNotifications : List Notification -> List NotificationAggregate
+aggregateNotifications notifications =
     let
         only type_ notifications =
             List.filter (\n -> n.type_ == type_) notifications
