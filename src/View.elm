@@ -236,7 +236,7 @@ statusActionsView status =
                     ( baseBtnClasses ++ " reblogged", Unreblog target.id )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite target.id )
+                    ( baseBtnClasses, Reblog target.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
