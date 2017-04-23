@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
-import Model exposing (Model, Draft, NotificationAggregate, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -320,7 +320,7 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : Mastodon.Status -> NotificationAggregate -> Html Msg
+notificationStatusView : Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
 notificationStatusView status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -337,13 +337,13 @@ notificationStatusView status { type_, accounts } =
         ]
 
 
-notificationFollowView : NotificationAggregate -> Html Msg
+notificationFollowView : Mastodon.NotificationAggregate -> Html Msg
 notificationFollowView { accounts } =
     div [ class "notification follow" ]
         [ notificationHeading accounts "started following you" "user" ]
 
 
-notificationEntryView : NotificationAggregate -> Html Msg
+notificationEntryView : Mastodon.NotificationAggregate -> Html Msg
 notificationEntryView notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -355,7 +355,7 @@ notificationEntryView notification =
         ]
 
 
-notificationListView : List NotificationAggregate -> Html Msg
+notificationListView : List Mastodon.NotificationAggregate -> Html Msg
 notificationListView notifications =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]

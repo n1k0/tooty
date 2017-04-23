@@ -2,7 +2,6 @@ module Model exposing (..)
 
 import Dom
 import Json.Encode as Encode
-import List.Extra exposing (groupWhile)
 import Navigation
 import Mastodon
 import Ports
@@ -68,14 +67,6 @@ type alias Draft =
     }
 
 
-type alias NotificationAggregate =
-    { type_ : String
-    , status : Maybe Mastodon.Status
-    , accounts : List (Mastodon.Account)
-    , created_at : String
-    }
-
-
 type alias Model =
     { server : String
     , registration : Maybe Mastodon.AppRegistration
@@ -83,7 +74,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
-    , notifications : List NotificationAggregate
+    , notifications : List Mastodon.NotificationAggregate
     , draft : Draft
     , account : Maybe Mastodon.Account
     , errors : List String
@@ -163,56 +154,6 @@ registerApp { server, location } =
             "read write follow"
             appUrl
             |> Mastodon.send AppRegistered
-
-
-toNotificationsAggregate : List Mastodon.Notification -> List NotificationAggregate
-toNotificationsAggregate notifications =
-    let
-        only type_ notifications =
-            List.filter (\n -> n.type_ == type_) notifications
-
-        sameStatus n1 n2 =
-            case ( n1.status, n2.status ) of
-                ( Just r1, Just r2 ) ->
-                    r1.id == r2.id
-
-                _ ->
-                    False
-
-        sameAccount n1 n2 =
-            n1.account.id == n2.account.id
-
-        extractAggregate statusGroup =
-            let
-                accounts =
-                    List.map .account statusGroup
-            in
-                case (Debug.log "plop" statusGroup) of
-                    notification :: _ ->
-                        [ NotificationAggregate
-                            notification.type_
-                            notification.status
-                            accounts
-                            notification.created_at
-                        ]
-
-                    [] ->
-                        []
-
-        aggregate statusGroups =
-            List.map extractAggregate statusGroups |> List.concat
-
-        ( reblogs, favourites, mentions, follows ) =
-            ( notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "follow" |> groupWhile sameAccount |> aggregate
-            )
-    in
-        [ reblogs, favourites, mentions, follows ]
-            |> List.concat
-            |> List.sortBy .created_at
-            |> List.reverse
 
 
 saveClient : Mastodon.Client -> Cmd Msg
@@ -553,7 +494,7 @@ update msg model =
         Notifications result ->
             case result of
                 Ok notifications ->
-                    { model | notifications = toNotificationsAggregate notifications } ! []
+                    { model | notifications = Mastodon.toNotificationsAggregate notifications } ! []
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []

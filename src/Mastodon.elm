@@ -8,6 +8,7 @@ module Mastodon
         , Error(..)
         , Mention
         , Notification
+        , NotificationAggregate
         , Reblog(..)
         , Status
         , StatusRequestBody
@@ -19,6 +20,7 @@ module Mastodon
         , extractReblog
         , register
         , registrationEncoder
+        , toNotificationsAggregate
         , clientEncoder
         , getAuthorizationUrl
         , getAccessToken
@@ -36,6 +38,7 @@ import HttpBuilder
 import Json.Decode.Pipeline as Pipe
 import Json.Decode as Decode
 import Json.Encode as Encode
+import List.Extra exposing (groupWhile)
 
 
 -- Types
@@ -145,6 +148,14 @@ type alias Notification =
     , created_at : String
     , account : Account
     , status : Maybe Status
+    }
+
+
+type alias NotificationAggregate =
+    { type_ : String
+    , status : Maybe Status
+    , accounts : List Account
+    , created_at : String
     }
 
 
@@ -435,6 +446,56 @@ fetch client endpoint decoder =
 
 
 -- Public API
+
+
+toNotificationsAggregate : List Notification -> List NotificationAggregate
+toNotificationsAggregate notifications =
+    let
+        only type_ notifications =
+            List.filter (\n -> n.type_ == type_) notifications
+
+        sameStatus n1 n2 =
+            case ( n1.status, n2.status ) of
+                ( Just r1, Just r2 ) ->
+                    r1.id == r2.id
+
+                _ ->
+                    False
+
+        sameAccount n1 n2 =
+            n1.account.id == n2.account.id
+
+        extractAggregate statusGroup =
+            let
+                accounts =
+                    List.map .account statusGroup
+            in
+                case statusGroup of
+                    notification :: _ ->
+                        [ NotificationAggregate
+                            notification.type_
+                            notification.status
+                            accounts
+                            notification.created_at
+                        ]
+
+                    [] ->
+                        []
+
+        aggregate statusGroups =
+            List.map extractAggregate statusGroups |> List.concat
+
+        ( reblogs, favourites, mentions, follows ) =
+            ( notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
+            , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
+            , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
+            , notifications |> only "follow" |> groupWhile sameAccount |> aggregate
+            )
+    in
+        [ reblogs, favourites, mentions, follows ]
+            |> List.concat
+            |> List.sortBy .created_at
+            |> List.reverse
 
 
 clientEncoder : Client -> Encode.Value
