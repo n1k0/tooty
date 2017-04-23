@@ -297,7 +297,7 @@ updateDraft draftMsg draft =
         UpdateReplyTo status ->
             let
                 mention =
-                    "@" ++ status.account.username
+                    "@" ++ status.account.acct
             in
                 { draft
                     | in_reply_to = Just status
