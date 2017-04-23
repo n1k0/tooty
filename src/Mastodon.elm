@@ -484,15 +484,12 @@ aggregateNotifications notifications =
 
         aggregate statusGroups =
             List.map extractAggregate statusGroups |> List.concat
-
-        ( reblogs, favourites, mentions, follows ) =
-            ( notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
-            , notifications |> only "follow" |> groupWhile sameAccount |> aggregate
-            )
     in
-        [ reblogs, favourites, mentions, follows ]
+        [ notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
+        , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
+        , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
+        , notifications |> only "follow" |> groupWhile sameAccount |> aggregate
+        ]
             |> List.concat
             |> List.sortBy .created_at
             |> List.reverse
