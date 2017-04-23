@@ -225,12 +225,7 @@ statusActionsView : Mastodon.Status -> Html Msg
 statusActionsView status =
     let
         originalStatus =
-            case status.reblog of
-                Just (Mastodon.Reblog reblog) ->
-                    reblog
-
-                Nothing ->
-                    status
+            Mastodon.extractReblog status
 
         baseBtnClasses =
             "btn btn-sm btn-default"

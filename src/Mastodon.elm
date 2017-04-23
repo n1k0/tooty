@@ -16,6 +16,7 @@ module Mastodon
         , unreblog
         , favourite
         , unfavourite
+        , extractReblog
         , register
         , registrationEncoder
         , clientEncoder
@@ -408,6 +409,16 @@ extractError error =
 
         _ ->
             NetworkError
+
+
+extractReblog : Status -> Status
+extractReblog status =
+    case status.reblog of
+        Just (Reblog reblog) ->
+            reblog
+
+        Nothing ->
+            status
 
 
 toResponse : Result Http.Error a -> Result Error a

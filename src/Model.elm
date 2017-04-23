@@ -238,60 +238,30 @@ toStatusRequestBody draft =
     }
 
 
-processFavourite : Int -> Bool -> Model -> Model
-processFavourite favourited flag model =
-    -- Update the favorite flag for all occurences of a given status in all
-    -- timelines.
-    -- FIXME: this shares too much with processReblog, refactor.
+updateTimelinesWithBoolFlag : Int -> Bool -> (Mastodon.Status -> Mastodon.Status) -> Model -> Model
+updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
         update flag status =
-            let
-                target =
-                    case status.reblog of
-                        Just (Mastodon.Reblog reblog) ->
-                            reblog
-
-                        Nothing ->
-                            status
-            in
-                if target.id == favourited then
-                    { status | favourited = Just flag }
-                else
-                    status
+            if (Mastodon.extractReblog status).id == statusId then
+                statusUpdater status
+            else
+                status
     in
         { model
             | userTimeline = List.map (update flag) model.userTimeline
             , localTimeline = List.map (update flag) model.localTimeline
             , publicTimeline = List.map (update flag) model.publicTimeline
         }
+
+
+processFavourite : Int -> Bool -> Model -> Model
+processFavourite statusId flag model =
+    updateTimelinesWithBoolFlag statusId flag (\s -> { s | favourited = Just flag }) model
 
 
 processReblog : Int -> Bool -> Model -> Model
-processReblog reblogged flag model =
-    -- Update the reblogged flag for all occurences of a given status in all
-    -- timelines.
-    -- FIXME: this shares too much with processFavourite, refactor.
-    let
-        update flag status =
-            let
-                target =
-                    case status.reblog of
-                        Just (Mastodon.Reblog reblog) ->
-                            reblog
-
-                        Nothing ->
-                            status
-            in
-                if target.id == reblogged then
-                    { status | reblogged = Just flag }
-                else
-                    status
-    in
-        { model
-            | userTimeline = List.map (update flag) model.userTimeline
-            , localTimeline = List.map (update flag) model.localTimeline
-            , publicTimeline = List.map (update flag) model.publicTimeline
-        }
+processReblog statusId flag model =
+    updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
 
 
 updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
