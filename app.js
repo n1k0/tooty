@@ -23223,12 +23223,44 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 			});
 	});
 var _n1k0$tooty$View$statusActionsView = function (status) {
-	var isFavourite = A2(_elm_lang$core$Maybe$withDefault, false, status.favourited);
-	var isReblogged = A2(_elm_lang$core$Maybe$withDefault, false, status.reblogged);
 	var baseBtnClasses = 'btn btn-sm btn-default';
-	var favClasses = isFavourite ? A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited') : baseBtnClasses;
-	var reblogClasses = isReblogged ? A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged') : baseBtnClasses;
-	var originalStatus = _n1k0$tooty$Mastodon$extractReblog(status);
+	var target = _n1k0$tooty$Mastodon$extractReblog(status);
+	var _p11 = function () {
+		var _p12 = status.favourited;
+		if ((_p12.ctor === 'Just') && (_p12._0 === true)) {
+			return {
+				ctor: '_Tuple2',
+				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
+				_1: _n1k0$tooty$Model$Unreblog(target.id)
+			};
+		} else {
+			return {
+				ctor: '_Tuple2',
+				_0: baseBtnClasses,
+				_1: _n1k0$tooty$Model$AddFavorite(target.id)
+			};
+		}
+	}();
+	var reblogClasses = _p11._0;
+	var reblogEvent = _p11._1;
+	var _p13 = function () {
+		var _p14 = status.favourited;
+		if ((_p14.ctor === 'Just') && (_p14._0 === true)) {
+			return {
+				ctor: '_Tuple2',
+				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
+				_1: _n1k0$tooty$Model$RemoveFavorite(target.id)
+			};
+		} else {
+			return {
+				ctor: '_Tuple2',
+				_0: baseBtnClasses,
+				_1: _n1k0$tooty$Model$AddFavorite(target.id)
+			};
+		}
+	}();
+	var favClasses = _p13._0;
+	var favEvent = _p13._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -23247,7 +23279,7 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 						ctor: '::',
 						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
 							_n1k0$tooty$Model$DraftEvent(
-								_n1k0$tooty$Model$UpdateReplyTo(originalStatus))),
+								_n1k0$tooty$Model$UpdateReplyTo(target))),
 						_1: {ctor: '[]'}
 					}
 				},
@@ -23265,8 +23297,7 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 						_0: _elm_lang$html$Html_Attributes$class(reblogClasses),
 						_1: {
 							ctor: '::',
-							_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-								isReblogged ? _n1k0$tooty$Model$Unreblog(originalStatus.id) : _n1k0$tooty$Model$Reblog(originalStatus.id)),
+							_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(reblogEvent),
 							_1: {ctor: '[]'}
 						}
 					},
@@ -23289,8 +23320,7 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 							_0: _elm_lang$html$Html_Attributes$class(favClasses),
 							_1: {
 								ctor: '::',
-								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-									isFavourite ? _n1k0$tooty$Model$RemoveFavorite(originalStatus.id) : _n1k0$tooty$Model$AddFavorite(originalStatus.id)),
+								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(favEvent),
 								_1: {ctor: '[]'}
 							}
 						},
@@ -23311,8 +23341,8 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 };
 var _n1k0$tooty$View$statusEntryView = function (status) {
 	var nsfwClass = function () {
-		var _p11 = status.sensitive;
-		if ((_p11.ctor === 'Just') && (_p11._0 === true)) {
+		var _p15 = status.sensitive;
+		if ((_p15.ctor === 'Just') && (_p15._0 === true)) {
 			return 'nsfw';
 		} else {
 			return '';
@@ -23411,9 +23441,9 @@ var _n1k0$tooty$View$notificationHeading = F3(
 				}));
 	});
 var _n1k0$tooty$View$notificationStatusView = F2(
-	function (status, _p12) {
-		var _p13 = _p12;
-		var _p15 = _p13.account;
+	function (status, _p16) {
+		var _p17 = _p16;
+		var _p19 = _p17.account;
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -23424,12 +23454,12 @@ var _n1k0$tooty$View$notificationStatusView = F2(
 			{
 				ctor: '::',
 				_0: function () {
-					var _p14 = _p13.type_;
-					switch (_p14) {
+					var _p18 = _p17.type_;
+					switch (_p18) {
 						case 'reblog':
-							return A3(_n1k0$tooty$View$notificationHeading, _p15, 'boosted your toot', 'fire');
+							return A3(_n1k0$tooty$View$notificationHeading, _p19, 'boosted your toot', 'fire');
 						case 'favourite':
-							return A3(_n1k0$tooty$View$notificationHeading, _p15, 'favourited your toot', 'star');
+							return A3(_n1k0$tooty$View$notificationHeading, _p19, 'favourited your toot', 'star');
 						default:
 							return _elm_lang$html$Html$text('');
 					}
@@ -23445,8 +23475,8 @@ var _n1k0$tooty$View$notificationStatusView = F2(
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationFollowView = function (_p16) {
-	var _p17 = _p16;
+var _n1k0$tooty$View$notificationFollowView = function (_p20) {
+	var _p21 = _p20;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -23456,7 +23486,7 @@ var _n1k0$tooty$View$notificationFollowView = function (_p16) {
 		},
 		{
 			ctor: '::',
-			_0: A3(_n1k0$tooty$View$notificationHeading, _p17.account, 'started following you', 'user'),
+			_0: A3(_n1k0$tooty$View$notificationHeading, _p21.account, 'started following you', 'user'),
 			_1: {ctor: '[]'}
 		});
 };
@@ -23471,9 +23501,9 @@ var _n1k0$tooty$View$notificationEntryView = function (notification) {
 		{
 			ctor: '::',
 			_0: function () {
-				var _p18 = notification.status;
-				if (_p18.ctor === 'Just') {
-					return A2(_n1k0$tooty$View$notificationStatusView, _p18._0, notification);
+				var _p22 = notification.status;
+				if (_p22.ctor === 'Just') {
+					return A2(_n1k0$tooty$View$notificationStatusView, _p22._0, notification);
 				} else {
 					return _n1k0$tooty$View$notificationFollowView(notification);
 				}
@@ -23533,8 +23563,8 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 		});
 };
 var _n1k0$tooty$View$draftReplyToView = function (draft) {
-	var _p19 = draft.in_reply_to;
-	if (_p19.ctor === 'Just') {
+	var _p23 = draft.in_reply_to;
+	if (_p23.ctor === 'Just') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -23594,7 +23624,7 @@ var _n1k0$tooty$View$draftReplyToView = function (draft) {
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$statusView(_p19._0),
+							_0: _n1k0$tooty$View$statusView(_p23._0),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
@@ -23722,8 +23752,8 @@ var _n1k0$tooty$View$errorView = function (error) {
 		});
 };
 var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p20 = model.errors;
-	if (_p20.ctor === '[]') {
+	var _p24 = model.errors;
+	if (_p24.ctor === '[]') {
 		return _elm_lang$html$Html$text('');
 	} else {
 		return A2(
@@ -23750,17 +23780,17 @@ var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
 			}
 		}
 	});
-var _n1k0$tooty$View$draftView = function (_p21) {
-	var _p22 = _p21;
-	var _p31 = _p22.draft;
-	var visibilityOptionView = function (_p23) {
-		var _p24 = _p23;
-		var _p25 = _p24._0;
+var _n1k0$tooty$View$draftView = function (_p25) {
+	var _p26 = _p25;
+	var _p35 = _p26.draft;
+	var visibilityOptionView = function (_p27) {
+		var _p28 = _p27;
+		var _p29 = _p28._0;
 		return A2(
 			_elm_lang$html$Html$option,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$value(_p25),
+				_0: _elm_lang$html$Html_Attributes$value(_p29),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -23768,12 +23798,12 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 				_0: _elm_lang$html$Html$text(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_p25,
-						A2(_elm_lang$core$Basics_ops['++'], ': ', _p24._1))),
+						_p29,
+						A2(_elm_lang$core$Basics_ops['++'], ': ', _p28._1))),
 				_1: {ctor: '[]'}
 			});
 	};
-	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p31.spoiler_text, _elm_lang$core$Maybe$Nothing);
+	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p35.spoiler_text, _elm_lang$core$Maybe$Nothing);
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -23796,7 +23826,7 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html$text(
-							(!_elm_lang$core$Native_Utils.eq(_p31.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
+							(!_elm_lang$core$Native_Utils.eq(_p35.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
 						_1: {ctor: '[]'}
 					}
 				}),
@@ -23811,7 +23841,7 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 					},
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$View$draftReplyToView(_p31),
+						_0: _n1k0$tooty$View$draftReplyToView(_p35),
 						_1: {
 							ctor: '::',
 							_0: A2(
@@ -23849,9 +23879,9 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 															_1: {
 																ctor: '::',
 																_0: _elm_lang$html$Html_Events$onCheck(
-																	function (_p26) {
+																	function (_p30) {
 																		return _n1k0$tooty$Model$DraftEvent(
-																			_n1k0$tooty$Model$ToggleSpoiler(_p26));
+																			_n1k0$tooty$Model$ToggleSpoiler(_p30));
 																	}),
 																_1: {
 																	ctor: '::',
@@ -23911,9 +23941,9 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 																		_1: {
 																			ctor: '::',
 																			_0: _elm_lang$html$Html_Events$onInput(
-																				function (_p27) {
+																				function (_p31) {
 																					return _n1k0$tooty$Model$DraftEvent(
-																						_n1k0$tooty$Model$UpdateSpoiler(_p27));
+																						_n1k0$tooty$Model$UpdateSpoiler(_p31));
 																				}),
 																			_1: {
 																				ctor: '::',
@@ -23921,7 +23951,7 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Attributes$value(
-																						A2(_elm_lang$core$Maybe$withDefault, '', _p31.spoiler_text)),
+																						A2(_elm_lang$core$Maybe$withDefault, '', _p35.spoiler_text)),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -23978,16 +24008,16 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p28) {
+																					function (_p32) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateStatus(_p28));
+																							_n1k0$tooty$Model$UpdateStatus(_p32));
 																					}),
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Attributes$required(true),
 																					_1: {
 																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(_p31.status),
+																						_0: _elm_lang$html$Html_Attributes$value(_p35.status),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -24036,16 +24066,16 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 																		_1: {
 																			ctor: '::',
 																			_0: _elm_lang$html$Html_Events$onInput(
-																				function (_p29) {
+																				function (_p33) {
 																					return _n1k0$tooty$Model$DraftEvent(
-																						_n1k0$tooty$Model$UpdateVisibility(_p29));
+																						_n1k0$tooty$Model$UpdateVisibility(_p33));
 																				}),
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Attributes$required(true),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$value(_p31.visibility),
+																					_0: _elm_lang$html$Html_Attributes$value(_p35.visibility),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -24083,13 +24113,13 @@ var _n1k0$tooty$View$draftView = function (_p21) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onCheck(
-																					function (_p30) {
+																					function (_p34) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSensitive(_p30));
+																							_n1k0$tooty$Model$UpdateSensitive(_p34));
 																					}),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$checked(_p31.sensitive),
+																					_0: _elm_lang$html$Html_Attributes$checked(_p35.sensitive),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -24202,11 +24232,11 @@ var _n1k0$tooty$View$homepageView = function (model) {
 					_1: {
 						ctor: '::',
 						_0: function () {
-							var _p32 = model.account;
-							if (_p32.ctor === 'Just') {
+							var _p36 = model.account;
+							if (_p36.ctor === 'Just') {
 								return A4(
 									_n1k0$tooty$View$accountTimelineView,
-									_p32._0,
+									_p36._0,
 									{ctor: '[]'},
 									'Account',
 									'user');
@@ -24234,8 +24264,8 @@ var _n1k0$tooty$View$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: function () {
-					var _p33 = model.client;
-					if (_p33.ctor === 'Just') {
+					var _p37 = model.client;
+					if (_p37.ctor === 'Just') {
 						return _n1k0$tooty$View$homepageView(model);
 					} else {
 						return _n1k0$tooty$View$authView(model);
