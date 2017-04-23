@@ -54,6 +54,16 @@ accountLink account =
         [ text <| "@" ++ account.username ]
 
 
+accountAvatarLink : Mastodon.Account -> Html Msg
+accountAvatarLink account =
+    a
+        [ href account.url
+        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        , title <| "@" ++ account.username
+        ]
+        [ img [ src account.avatar ] [] ]
+
+
 attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
 attachmentPreview sensitive ({ url, preview_url } as attachment) =
     let
@@ -146,10 +156,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
         case reblog of
             Just (Mastodon.Reblog reblog) ->
                 div [ class "reblog" ]
-                    [ p []
+                    [ p [ class "status-info" ]
                         [ icon "fire"
                         , a (accountLinkAttributes ++ [ class "reblogger" ])
-                            [ text <| " " ++ account.username ]
+                            [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
                     , statusView reblog
@@ -297,22 +307,28 @@ timelineView statuses label iconName =
         ]
 
 
-notificationHeading : Mastodon.Account -> String -> String -> Html Msg
-notificationHeading account str iconType =
-    p [] <|
-        List.intersperse (text " ")
-            [ icon iconType, accountLink account, text str ]
+notificationHeading : List Mastodon.Account -> String -> String -> Html Msg
+notificationHeading accounts str iconType =
+    div [ class "status-info" ]
+        [ div [ class "avatars" ] <| List.map accountAvatarLink accounts
+        , p [] <|
+            List.intersperse (text " ")
+                [ icon iconType
+                , span [] <| List.intersperse (text ", ") (List.map accountLink accounts)
+                , text str
+                ]
+        ]
 
 
-notificationStatusView : Mastodon.Status -> Mastodon.Notification -> Html Msg
-notificationStatusView status { type_, account } =
-    div [ class "notification" ]
+notificationStatusView : Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
+notificationStatusView status { type_, accounts } =
+    div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
-                notificationHeading account "boosted your toot" "fire"
+                notificationHeading accounts "boosted your toot" "fire"
 
             "favourite" ->
-                notificationHeading account "favourited your toot" "star"
+                notificationHeading accounts "favourited your toot" "star"
 
             _ ->
                 text ""
@@ -321,13 +337,13 @@ notificationStatusView status { type_, account } =
         ]
 
 
-notificationFollowView : Mastodon.Notification -> Html Msg
-notificationFollowView { account } =
+notificationFollowView : Mastodon.NotificationAggregate -> Html Msg
+notificationFollowView { accounts } =
     div [ class "notification follow" ]
-        [ notificationHeading account "started following you" "user" ]
+        [ notificationHeading accounts "started following you" "user" ]
 
 
-notificationEntryView : Mastodon.Notification -> Html Msg
+notificationEntryView : Mastodon.NotificationAggregate -> Html Msg
 notificationEntryView notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -339,7 +355,7 @@ notificationEntryView notification =
         ]
 
 
-notificationListView : List Mastodon.Notification -> Html Msg
+notificationListView : List Mastodon.NotificationAggregate -> Html Msg
 notificationListView notifications =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]

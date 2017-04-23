@@ -58,11 +58,6 @@ type
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
-type Crud
-    = Add
-    | Remove
-
-
 type alias Draft =
     { status : String
     , in_reply_to : Maybe Mastodon.Status
@@ -79,7 +74,7 @@ type alias Model =
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
-    , notifications : List Mastodon.Notification
+    , notifications : List Mastodon.NotificationAggregate
     , draft : Draft
     , account : Maybe Mastodon.Account
     , errors : List String
@@ -499,7 +494,7 @@ update msg model =
         Notifications result ->
             case result of
                 Ok notifications ->
-                    { model | notifications = notifications } ! []
+                    { model | notifications = Mastodon.aggregateNotifications notifications } ! []
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
