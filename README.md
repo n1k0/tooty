@@ -24,7 +24,7 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
     $ npm run deploy
 
-The app should be deployed to https://<your-github-username>.github.io/tooty/
+The app should be deployed to https://[your-github-username].github.io/tooty/
 
 ## Licence
 
