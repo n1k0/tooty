@@ -10,7 +10,11 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
 ### Starting the dev server
 
-    $ npm run live
+    $ npm start
+
+### Starting the dev server in live debug mode
+
+    $ npm run debug
 
 ### Building
 

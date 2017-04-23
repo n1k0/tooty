@@ -1,9 +1,11 @@
 module Model exposing (..)
 
+import Dom
 import Json.Encode as Encode
 import Navigation
 import Mastodon
 import Ports
+import Task
 
 
 type alias Flags =
@@ -13,22 +15,37 @@ type alias Flags =
 
 
 type DraftMsg
-    = ToggleSpoiler Bool
+    = ClearDraft
+    | ClearReplyTo
     | UpdateSensitive Bool
     | UpdateSpoiler String
     | UpdateStatus String
     | UpdateVisibility String
+    | UpdateReplyTo Mastodon.Status
+    | ToggleSpoiler Bool
 
 
-type Msg
+type
+    Msg
+    {-
+       FIXME: Mastodon server response messages should be extracted to their own
+       MastodonMsg type at some point.
+    -}
     = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
+    | AddFavorite Int
     | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
     | DraftEvent DraftMsg
+    | FavoriteAdded (Result Mastodon.Error Mastodon.Status)
+    | FavoriteRemoved (Result Mastodon.Error Mastodon.Status)
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | NoOp
     | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
     | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Reblog Int
+    | Reblogged (Result Mastodon.Error Mastodon.Status)
     | Register
+    | RemoveFavorite Int
     | ServerChange String
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
@@ -36,7 +53,23 @@ type Msg
     | UseGlobalTimeline Bool
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
+    | Unreblog Int
+    | Unreblogged (Result Mastodon.Error Mastodon.Status)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+
+
+type Crud
+    = Add
+    | Remove
+
+
+type alias Draft =
+    { status : String
+    , in_reply_to : Maybe Mastodon.Status
+    , spoiler_text : Maybe String
+    , sensitive : Bool
+    , visibility : String
+    }
 
 
 type alias Model =
@@ -47,7 +80,7 @@ type alias Model =
     , localTimeline : List Mastodon.Status
     , publicTimeline : List Mastodon.Status
     , notifications : List Mastodon.Notification
-    , draft : Mastodon.StatusRequestBody
+    , draft : Draft
     , account : Maybe Mastodon.Account
     , errors : List String
     , location : Navigation.Location
@@ -65,10 +98,10 @@ extractAuthCode { search } =
             Nothing
 
 
-defaultDraft : Mastodon.StatusRequestBody
+defaultDraft : Draft
 defaultDraft =
     { status = ""
-    , in_reply_to_id = Nothing
+    , in_reply_to = Nothing
     , spoiler_text = Nothing
     , sensitive = False
     , visibility = "public"
@@ -142,6 +175,16 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
+loadNotifications : Maybe Mastodon.Client -> Cmd Msg
+loadNotifications client =
+    case client of
+        Just client ->
+            Mastodon.fetchNotifications client |> Mastodon.send Notifications
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Mastodon.Client -> Cmd Msg
 loadTimelines client =
     case client of
@@ -150,7 +193,7 @@ loadTimelines client =
                 [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
                 , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
                 , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
-                , Mastodon.fetchNotifications client |> Mastodon.send Notifications
+                , loadNotifications <| Just client
                 ]
 
         Nothing ->
@@ -179,11 +222,56 @@ errorText error =
             "Unreachable host."
 
 
-updateDraft : DraftMsg -> Mastodon.StatusRequestBody -> Mastodon.StatusRequestBody
+toStatusRequestBody : Draft -> Mastodon.StatusRequestBody
+toStatusRequestBody draft =
+    { status = draft.status
+    , in_reply_to_id =
+        case draft.in_reply_to of
+            Just status ->
+                Just status.id
+
+            Nothing ->
+                Nothing
+    , spoiler_text = draft.spoiler_text
+    , sensitive = draft.sensitive
+    , visibility = draft.visibility
+    }
+
+
+updateTimelinesWithBoolFlag : Int -> Bool -> (Mastodon.Status -> Mastodon.Status) -> Model -> Model
+updateTimelinesWithBoolFlag statusId flag statusUpdater model =
+    let
+        update flag status =
+            if (Mastodon.extractReblog status).id == statusId then
+                statusUpdater status
+            else
+                status
+    in
+        { model
+            | userTimeline = List.map (update flag) model.userTimeline
+            , localTimeline = List.map (update flag) model.localTimeline
+            , publicTimeline = List.map (update flag) model.publicTimeline
+        }
+
+
+processFavourite : Int -> Bool -> Model -> Model
+processFavourite statusId flag model =
+    updateTimelinesWithBoolFlag statusId flag (\s -> { s | favourited = Just flag }) model
+
+
+processReblog : Int -> Bool -> Model -> Model
+processReblog statusId flag model =
+    updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
+
+
+updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg draft =
     -- TODO: later we'll probably want to handle more events like when the user
     --       wants to add CW, medias, etc.
     case draftMsg of
+        ClearDraft ->
+            defaultDraft ! []
+
         ToggleSpoiler enabled ->
             { draft
                 | spoiler_text =
@@ -192,23 +280,45 @@ updateDraft draftMsg draft =
                     else
                         Nothing
             }
+                ! []
 
         UpdateSensitive sensitive ->
-            { draft | sensitive = sensitive }
+            { draft | sensitive = sensitive } ! []
 
         UpdateSpoiler spoiler_text ->
-            { draft | spoiler_text = Just spoiler_text }
+            { draft | spoiler_text = Just spoiler_text } ! []
 
         UpdateStatus status ->
-            { draft | status = status }
+            { draft | status = status } ! []
 
         UpdateVisibility visibility ->
-            { draft | visibility = visibility }
+            { draft | visibility = visibility } ! []
+
+        UpdateReplyTo status ->
+            let
+                mention =
+                    "@" ++ status.account.acct
+            in
+                { draft
+                    | in_reply_to = Just status
+                    , status =
+                        if String.startsWith mention draft.status then
+                            draft.status
+                        else
+                            mention ++ " " ++ draft.status
+                }
+                    ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
+
+        ClearReplyTo ->
+            { draft | in_reply_to = Nothing } ! []
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            model ! []
+
         ServerChange server ->
             { model | server = server } ! []
 
@@ -245,14 +355,88 @@ update msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        Reblog id ->
+            -- Note: The case of reblogging is specific as it seems the server
+            -- response takes a lot of time to be received by the client, so we
+            -- perform optimistic updates here.
+            case model.client of
+                Just client ->
+                    processReblog id True model
+                        ! [ Mastodon.reblog client id |> Mastodon.send Reblogged ]
+
+                Nothing ->
+                    model ! []
+
+        Reblogged result ->
+            case result of
+                Ok status ->
+                    model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        Unreblog id ->
+            case model.client of
+                Just client ->
+                    processReblog id False model ! [ Mastodon.unfavourite client id |> Mastodon.send Unreblogged ]
+
+                Nothing ->
+                    model ! []
+
+        Unreblogged result ->
+            case result of
+                Ok status ->
+                    model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AddFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.favourite client id |> Mastodon.send FavoriteAdded ]
+
+                    Nothing ->
+                        []
+
+        FavoriteAdded result ->
+            case result of
+                Ok status ->
+                    processFavourite status.id True model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        RemoveFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.unfavourite client id |> Mastodon.send FavoriteRemoved ]
+
+                    Nothing ->
+                        []
+
+        FavoriteRemoved result ->
+            case result of
+                Ok status ->
+                    processFavourite status.id False model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         DraftEvent draftMsg ->
-            { model | draft = updateDraft draftMsg model.draft } ! []
+            let
+                ( draft, commands ) =
+                    updateDraft draftMsg model.draft
+            in
+                { model | draft = draft } ! [ commands ]
 
         SubmitDraft ->
             model
                 ! case model.client of
                     Just client ->
-                        [ postStatus client model.draft ]
+                        [ postStatus client <| toStatusRequestBody model.draft ]
 
                     Nothing ->
                         []

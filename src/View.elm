@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
-import Model exposing (Model, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -32,6 +32,12 @@ errorsListView model =
 
         errors ->
             div [] <| List.map errorView model.errors
+
+
+justifiedButtonGroup : List (Html Msg) -> Html Msg
+justifiedButtonGroup buttons =
+    div [ class "btn-group btn-group-justified" ] <|
+        List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
 
 
 icon : String -> Html Msg
@@ -215,6 +221,51 @@ accountTimelineView account statuses label iconName =
         ]
 
 
+statusActionsView : Mastodon.Status -> Html Msg
+statusActionsView status =
+    let
+        target =
+            Mastodon.extractReblog status
+
+        baseBtnClasses =
+            "btn btn-sm btn-default"
+
+        ( reblogClasses, reblogEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " reblogged", Unreblog target.id )
+
+                _ ->
+                    ( baseBtnClasses, AddFavorite target.id )
+
+        ( favClasses, favEvent ) =
+            case status.favourited of
+                Just True ->
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite target.id )
+
+                _ ->
+                    ( baseBtnClasses, AddFavorite target.id )
+    in
+        div [ class "btn-group actions" ]
+            [ a
+                [ class baseBtnClasses
+                , ViewHelper.onClickWithPreventAndStop <|
+                    DraftEvent (UpdateReplyTo target)
+                ]
+                [ icon "share-alt" ]
+            , a
+                [ class reblogClasses
+                , ViewHelper.onClickWithPreventAndStop reblogEvent
+                ]
+                [ icon "fire", text (toString status.reblogs_count) ]
+            , a
+                [ class favClasses
+                , ViewHelper.onClickWithPreventAndStop favEvent
+                ]
+                [ icon "star", text (toString status.favourites_count) ]
+            ]
+
+
 statusEntryView : Mastodon.Status -> Html Msg
 statusEntryView status =
     let
@@ -227,7 +278,9 @@ statusEntryView status =
                     ""
     in
         li [ class <| "list-group-item " ++ nsfwClass ]
-            [ statusView status ]
+            [ statusView status
+            , statusActionsView status
+            ]
 
 
 timelineView : List Mastodon.Status -> String -> String -> Html Msg
@@ -264,6 +317,7 @@ notificationStatusView status { type_, account } =
             _ ->
                 text ""
         , statusView status
+        , statusActionsView status
         ]
 
 
@@ -299,6 +353,29 @@ notificationListView notifications =
         ]
 
 
+draftReplyToView : Draft -> Html Msg
+draftReplyToView draft =
+    case draft.in_reply_to of
+        Just status ->
+            div [ class "in-reply-to" ]
+                [ p []
+                    [ strong []
+                        [ text "In reply to this toot ("
+                        , a
+                            [ href ""
+                            , ViewHelper.onClickWithPreventAndStop <| DraftEvent ClearReplyTo
+                            ]
+                            [ icon "remove" ]
+                        , text ")"
+                        ]
+                    ]
+                , div [ class "well" ] [ statusView status ]
+                ]
+
+        Nothing ->
+            text ""
+
+
 draftView : Model -> Html Msg
 draftView { draft } =
     let
@@ -310,9 +387,17 @@ draftView { draft } =
                 [ text <| visibility ++ ": " ++ description ]
     in
         div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ icon "envelope", text "Post a message" ]
+            [ div [ class "panel-heading" ]
+                [ icon "envelope"
+                , text <|
+                    if draft.in_reply_to /= Nothing then
+                        "Post a reply"
+                    else
+                        "Post a message"
+                ]
             , div [ class "panel-body" ]
-                [ Html.form [ class "form", onSubmit SubmitDraft ]
+                [ draftReplyToView draft
+                , Html.form [ class "form", onSubmit SubmitDraft ]
                     [ div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -387,8 +472,17 @@ draftView { draft } =
                             , text " This post is NSFW"
                             ]
                         ]
-                    , p [ class "text-right" ]
-                        [ button [ class "btn btn-primary" ]
+                    , justifiedButtonGroup
+                        [ button
+                            [ type_ "button"
+                            , class "btn btn-default"
+                            , onClick (DraftEvent ClearDraft)
+                            ]
+                            [ text "Clear" ]
+                        , button
+                            [ type_ "submit"
+                            , class "btn btn-primary"
+                            ]
                             [ text "Toot!" ]
                         ]
                     ]

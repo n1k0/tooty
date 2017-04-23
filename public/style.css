@@ -15,6 +15,7 @@ body {
 .reblog > p:first-of-type,
 .notification > p:first-of-type {
   color: #999;
+  margin-bottom: 8px;
 }
 .reblog > p:first-of-type > a,
 .notification > p:first-of-type > a {
@@ -68,10 +69,37 @@ body {
   color: #9baec8;
 }
 
+/* Status actions */
+
+.actions {
+  margin-left: 65px;
+  width: calc(100% - 65px);
+}
+
+.actions > .btn {
+  border: none;
+  background: transparent;
+  color: #aaa;
+  padding: 0 2.4em 0 0;
+  text-align: left;
+}
+
+.actions > .btn > .glyphicon {
+  margin-right: 5px;
+}
+
+.actions .favourited {
+  color: #d1ac0e;
+}
+
+.actions .reblogged {
+  color: #d56344;
+}
+
 /* Attachments */
 
 .attachments {
-  margin: 0;
+  margin: 0 0 15px 0;
   padding: 0;
   list-style-type: none;
   overflow: hidden;
@@ -149,6 +177,20 @@ body {
   border: 1px solid #777;
   border-radius: 4px;
   transition: all .6s;
+}
+
+/* Draft form */
+
+.in-reply-to .attachments {
+  margin: 0;
+}
+.in-reply-to .attachments li {
+  display: none;
+}
+.in-reply-to .attachments:after {
+  content: "[attachments hidden]";
+  font-size: .9em;
+  color: #555;
 }
 
 /* Status text content rules */

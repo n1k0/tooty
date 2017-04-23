@@ -12,6 +12,11 @@ module Mastodon
         , Status
         , StatusRequestBody
         , Tag
+        , reblog
+        , unreblog
+        , favourite
+        , unfavourite
+        , extractReblog
         , register
         , registrationEncoder
         , clientEncoder
@@ -406,6 +411,16 @@ extractError error =
             NetworkError
 
 
+extractReblog : Status -> Status
+extractReblog status =
+    case status.reblog of
+        Just (Reblog reblog) ->
+            reblog
+
+        Nothing ->
+            status
+
+
 toResponse : Result Http.Error a -> Result Error a
 toResponse result =
     Result.mapError extractError result
@@ -502,3 +517,31 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+
+
+reblog : Client -> Int -> Request Status
+reblog client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/reblog")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+unreblog : Client -> Int -> Request Status
+unreblog client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unreblog")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+favourite : Client -> Int -> Request Status
+favourite client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/favourite")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+unfavourite : Client -> Int -> Request Status
+unfavourite client id =
+    HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unfavourite")
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
