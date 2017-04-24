@@ -4,8 +4,9 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import List.Extra exposing (elemIndex, getAt)
 import Mastodon
-import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -64,8 +65,8 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
-attachmentPreview sensitive ({ url, preview_url } as attachment) =
+attachmentPreview : Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
+attachmentPreview sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
             case sensitive of
@@ -82,7 +83,8 @@ attachmentPreview sensitive ({ url, preview_url } as attachment) =
             a
                 [ class "attachment-image"
                 , href url
-                , target "_blank"
+                , ViewHelper.onClickWithPreventAndStop <|
+                    ViewerEvent (OpenViewer attachments attachment)
                 , style
                     [ ( "background"
                       , "url(" ++ preview_url ++ ") center center / cover no-repeat"
@@ -113,7 +115,8 @@ attachmentListView { media_attachments, sensitive } =
             text ""
 
         attachments ->
-            ul [ class "attachments" ] <| List.map (attachmentPreview sensitive) attachments
+            ul [ class "attachments" ] <|
+                List.map (attachmentPreview sensitive attachments) attachments
 
 
 statusContentView : Mastodon.Status -> Html Msg
@@ -595,6 +598,52 @@ authView model =
         ]
 
 
+viewerView : Viewer -> Html Msg
+viewerView { attachments, attachment } =
+    let
+        index =
+            Maybe.withDefault -1 <| elemIndex attachment attachments
+
+        ( prev, next ) =
+            ( getAt (index - 1) attachments, getAt (index + 1) attachments )
+
+        navLink label className target =
+            case target of
+                Nothing ->
+                    text ""
+
+                Just target ->
+                    a
+                        [ href ""
+                        , class className
+                        , ViewHelper.onClickWithPreventAndStop <|
+                            ViewerEvent (OpenViewer attachments target)
+                        ]
+                        [ text label ]
+    in
+        div
+            [ class "viewer"
+            , tabindex -1
+            , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
+            ]
+            [ span [ class "close" ] [ text "×" ]
+            , navLink "❮" "prev" prev
+            , case attachment.type_ of
+                "image" ->
+                    img [ class "viewer-content", src attachment.url ] []
+
+                _ ->
+                    video
+                        [ class "viewer-content"
+                        , preload "auto"
+                        , autoplay True
+                        , loop True
+                        ]
+                        [ source [ src attachment.url ] [] ]
+            , navLink "❯" "next" next
+            ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
@@ -605,4 +654,10 @@ view model =
 
             Nothing ->
                 authView model
+        , case model.viewer of
+            Just viewer ->
+                viewerView viewer
+
+            Nothing ->
+                text ""
         ]
