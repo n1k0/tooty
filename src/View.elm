@@ -598,8 +598,29 @@ authView model =
 
 
 viewerView : Viewer -> Html Msg
-viewerView viewer =
-    div [] [ text "viewer" ]
+viewerView { attachments, attachment } =
+    div
+        [ class "viewer", tabindex -1 ]
+        [ a
+            [ href ""
+            , class "close"
+            , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
+            ]
+            [ text "×" ]
+        , case attachment.type_ of
+            "image" ->
+                img [ class "viewer-content", src attachment.url ] []
+
+            _ ->
+                video
+                    [ class "viewer-content"
+                    , preload "auto"
+                    , autoplay True
+                    , loop True
+                    ]
+                    [ source [ src attachment.url ] [] ]
+        , div [ class "viewer-overlay" ] []
+        ]
 
 
 view : Model -> Html Msg
