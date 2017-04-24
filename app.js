@@ -22133,10 +22133,6 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 		return _elm_lang$core$List$concat(
 			A2(_elm_lang$core$List$map, extractAggregate, statusGroups));
 	};
-	var sameAccount = F2(
-		function (n1, n2) {
-			return _elm_lang$core$Native_Utils.eq(n1.account.id, n2.account.id);
-		});
 	var sameStatus = F2(
 		function (n1, n2) {
 			var _p6 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
@@ -22188,7 +22184,10 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 								_0: aggregate(
 									A2(
 										_elm_community$list_extra$List_Extra$groupWhile,
-										sameAccount,
+										F2(
+											function (_p8, _p7) {
+												return true;
+											}),
 										A2(only, 'follow', notifications))),
 								_1: {ctor: '[]'}
 							}
@@ -22290,26 +22289,26 @@ var _n1k0$tooty$Mastodon$MastodonError = F3(
 	});
 var _n1k0$tooty$Mastodon$extractMastodonError = F3(
 	function (statusCode, statusMsg, body) {
-		var _p7 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
-		if (_p7.ctor === 'Ok') {
-			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p7._0);
+		var _p9 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
+		if (_p9.ctor === 'Ok') {
+			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p9._0);
 		} else {
-			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p7._0);
+			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p9._0);
 		}
 	});
 var _n1k0$tooty$Mastodon$extractError = function (error) {
-	var _p8 = error;
-	switch (_p8.ctor) {
+	var _p10 = error;
+	switch (_p10.ctor) {
 		case 'BadStatus':
-			var _p9 = _p8._0.status;
-			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p9.code, _p9.message, _p8._0.body);
+			var _p11 = _p10._0.status;
+			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p11.code, _p11.message, _p10._0.body);
 		case 'BadPayload':
-			var _p10 = _p8._1.status;
+			var _p12 = _p10._1.status;
 			return A3(
 				_n1k0$tooty$Mastodon$ServerError,
-				_p10.code,
-				_p10.message,
-				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p8._0));
+				_p12.code,
+				_p12.message,
+				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p10._0));
 		case 'Timeout':
 			return _n1k0$tooty$Mastodon$TimeoutError;
 		default:
@@ -22323,9 +22322,9 @@ var _n1k0$tooty$Mastodon$send = F2(
 	function (tagger, builder) {
 		return A2(
 			_lukewestby$elm_http_builder$HttpBuilder$send,
-			function (_p11) {
+			function (_p13) {
 				return tagger(
-					_n1k0$tooty$Mastodon$toResponse(_p11));
+					_n1k0$tooty$Mastodon$toResponse(_p13));
 			},
 			builder);
 	});
@@ -22336,7 +22335,7 @@ var _n1k0$tooty$Mastodon$reblogDecoder = A2(
 	_elm_lang$core$Json_Decode$map,
 	_n1k0$tooty$Mastodon$Reblog,
 	_elm_lang$core$Json_Decode$lazy(
-		function (_p12) {
+		function (_p14) {
 			return _n1k0$tooty$Mastodon$statusDecoder;
 		}));
 var _n1k0$tooty$Mastodon$statusDecoder = A3(
@@ -24063,8 +24062,12 @@ var _n1k0$tooty$View$accountAvatarLink = function (account) {
 				_elm_lang$html$Html$img,
 				{
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$src(account.avatar),
-					_1: {ctor: '[]'}
+					_0: _elm_lang$html$Html_Attributes$class('avatar'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$src(account.avatar),
+						_1: {ctor: '[]'}
+					}
 				},
 				{ctor: '[]'}),
 			_1: {ctor: '[]'}
@@ -24176,25 +24179,7 @@ var _n1k0$tooty$View$statusView = function (_p7) {
 			},
 			{
 				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$a,
-					accountLinkAttributes,
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$img,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('avatar'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$src(_p10.avatar),
-									_1: {ctor: '[]'}
-								}
-							},
-							{ctor: '[]'}),
-						_1: {ctor: '[]'}
-					}),
+				_0: _n1k0$tooty$View$accountAvatarLink(_p10),
 				_1: {
 					ctor: '::',
 					_0: A2(
@@ -24832,6 +24817,50 @@ var _n1k0$tooty$View$notificationStatusView = F2(
 	});
 var _n1k0$tooty$View$notificationFollowView = function (_p21) {
 	var _p22 = _p21;
+	var _p23 = _p22.accounts;
+	var profileView = function (account) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('status follow-profile'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _n1k0$tooty$View$accountAvatarLink(account),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('username'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$View$accountLink(account),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$p,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('status-text'),
+								_1: {ctor: '[]'}
+							},
+							A2(
+								_n1k0$tooty$ViewHelper$formatContent,
+								account.note,
+								{ctor: '[]'})),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	};
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -24841,8 +24870,19 @@ var _n1k0$tooty$View$notificationFollowView = function (_p21) {
 		},
 		{
 			ctor: '::',
-			_0: A3(_n1k0$tooty$View$notificationHeading, _p22.accounts, 'started following you', 'user'),
-			_1: {ctor: '[]'}
+			_0: A3(_n1k0$tooty$View$notificationHeading, _p23, 'started following you', 'user'),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class(''),
+						_1: {ctor: '[]'}
+					},
+					A2(_elm_lang$core$List$map, profileView, _p23)),
+				_1: {ctor: '[]'}
+			}
 		});
 };
 var _n1k0$tooty$View$notificationEntryView = function (notification) {
@@ -24856,9 +24896,9 @@ var _n1k0$tooty$View$notificationEntryView = function (notification) {
 		{
 			ctor: '::',
 			_0: function () {
-				var _p23 = notification.status;
-				if (_p23.ctor === 'Just') {
-					return A2(_n1k0$tooty$View$notificationStatusView, _p23._0, notification);
+				var _p24 = notification.status;
+				if (_p24.ctor === 'Just') {
+					return A2(_n1k0$tooty$View$notificationStatusView, _p24._0, notification);
 				} else {
 					return _n1k0$tooty$View$notificationFollowView(notification);
 				}
@@ -24918,8 +24958,8 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 		});
 };
 var _n1k0$tooty$View$draftReplyToView = function (draft) {
-	var _p24 = draft.in_reply_to;
-	if (_p24.ctor === 'Just') {
+	var _p25 = draft.in_reply_to;
+	if (_p25.ctor === 'Just') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -24979,7 +25019,7 @@ var _n1k0$tooty$View$draftReplyToView = function (draft) {
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$statusView(_p24._0),
+							_0: _n1k0$tooty$View$statusView(_p25._0),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
@@ -25107,8 +25147,8 @@ var _n1k0$tooty$View$errorView = function (error) {
 		});
 };
 var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p25 = model.errors;
-	if (_p25.ctor === '[]') {
+	var _p26 = model.errors;
+	if (_p26.ctor === '[]') {
 		return _elm_lang$html$Html$text('');
 	} else {
 		return A2(
@@ -25135,17 +25175,17 @@ var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
 			}
 		}
 	});
-var _n1k0$tooty$View$draftView = function (_p26) {
-	var _p27 = _p26;
-	var _p36 = _p27.draft;
-	var visibilityOptionView = function (_p28) {
-		var _p29 = _p28;
-		var _p30 = _p29._0;
+var _n1k0$tooty$View$draftView = function (_p27) {
+	var _p28 = _p27;
+	var _p37 = _p28.draft;
+	var visibilityOptionView = function (_p29) {
+		var _p30 = _p29;
+		var _p31 = _p30._0;
 		return A2(
 			_elm_lang$html$Html$option,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$value(_p30),
+				_0: _elm_lang$html$Html_Attributes$value(_p31),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -25153,12 +25193,12 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 				_0: _elm_lang$html$Html$text(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_p30,
-						A2(_elm_lang$core$Basics_ops['++'], ': ', _p29._1))),
+						_p31,
+						A2(_elm_lang$core$Basics_ops['++'], ': ', _p30._1))),
 				_1: {ctor: '[]'}
 			});
 	};
-	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p36.spoiler_text, _elm_lang$core$Maybe$Nothing);
+	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p37.spoiler_text, _elm_lang$core$Maybe$Nothing);
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -25181,7 +25221,7 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html$text(
-							(!_elm_lang$core$Native_Utils.eq(_p36.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
+							(!_elm_lang$core$Native_Utils.eq(_p37.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
 						_1: {ctor: '[]'}
 					}
 				}),
@@ -25196,7 +25236,7 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 					},
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$View$draftReplyToView(_p36),
+						_0: _n1k0$tooty$View$draftReplyToView(_p37),
 						_1: {
 							ctor: '::',
 							_0: A2(
@@ -25234,9 +25274,9 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 															_1: {
 																ctor: '::',
 																_0: _elm_lang$html$Html_Events$onCheck(
-																	function (_p31) {
+																	function (_p32) {
 																		return _n1k0$tooty$Model$DraftEvent(
-																			_n1k0$tooty$Model$ToggleSpoiler(_p31));
+																			_n1k0$tooty$Model$ToggleSpoiler(_p32));
 																	}),
 																_1: {
 																	ctor: '::',
@@ -25296,9 +25336,9 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 																		_1: {
 																			ctor: '::',
 																			_0: _elm_lang$html$Html_Events$onInput(
-																				function (_p32) {
+																				function (_p33) {
 																					return _n1k0$tooty$Model$DraftEvent(
-																						_n1k0$tooty$Model$UpdateSpoiler(_p32));
+																						_n1k0$tooty$Model$UpdateSpoiler(_p33));
 																				}),
 																			_1: {
 																				ctor: '::',
@@ -25306,7 +25346,7 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Attributes$value(
-																						A2(_elm_lang$core$Maybe$withDefault, '', _p36.spoiler_text)),
+																						A2(_elm_lang$core$Maybe$withDefault, '', _p37.spoiler_text)),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -25363,16 +25403,16 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p33) {
+																					function (_p34) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateStatus(_p33));
+																							_n1k0$tooty$Model$UpdateStatus(_p34));
 																					}),
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Attributes$required(true),
 																					_1: {
 																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(_p36.status),
+																						_0: _elm_lang$html$Html_Attributes$value(_p37.status),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -25421,16 +25461,16 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 																		_1: {
 																			ctor: '::',
 																			_0: _elm_lang$html$Html_Events$onInput(
-																				function (_p34) {
+																				function (_p35) {
 																					return _n1k0$tooty$Model$DraftEvent(
-																						_n1k0$tooty$Model$UpdateVisibility(_p34));
+																						_n1k0$tooty$Model$UpdateVisibility(_p35));
 																				}),
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Attributes$required(true),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$value(_p36.visibility),
+																					_0: _elm_lang$html$Html_Attributes$value(_p37.visibility),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -25468,13 +25508,13 @@ var _n1k0$tooty$View$draftView = function (_p26) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onCheck(
-																					function (_p35) {
+																					function (_p36) {
 																						return _n1k0$tooty$Model$DraftEvent(
-																							_n1k0$tooty$Model$UpdateSensitive(_p35));
+																							_n1k0$tooty$Model$UpdateSensitive(_p36));
 																					}),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Attributes$checked(_p36.sensitive),
+																					_0: _elm_lang$html$Html_Attributes$checked(_p37.sensitive),
 																					_1: {ctor: '[]'}
 																				}
 																			}
@@ -25587,11 +25627,11 @@ var _n1k0$tooty$View$homepageView = function (model) {
 					_1: {
 						ctor: '::',
 						_0: function () {
-							var _p37 = model.account;
-							if (_p37.ctor === 'Just') {
+							var _p38 = model.account;
+							if (_p38.ctor === 'Just') {
 								return A4(
 									_n1k0$tooty$View$accountTimelineView,
-									_p37._0,
+									_p38._0,
 									{ctor: '[]'},
 									'Account',
 									'user');
@@ -25619,8 +25659,8 @@ var _n1k0$tooty$View$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: function () {
-					var _p38 = model.client;
-					if (_p38.ctor === 'Just') {
+					var _p39 = model.client;
+					if (_p39.ctor === 'Just') {
 						return _n1k0$tooty$View$homepageView(model);
 					} else {
 						return _n1k0$tooty$View$authView(model);
