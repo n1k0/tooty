@@ -462,9 +462,6 @@ aggregateNotifications notifications =
                 _ ->
                     False
 
-        sameAccount n1 n2 =
-            n1.account.id == n2.account.id
-
         extractAggregate statusGroup =
             let
                 accounts =
@@ -488,7 +485,7 @@ aggregateNotifications notifications =
         [ notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
         , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
         , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
-        , notifications |> only "follow" |> groupWhile sameAccount |> aggregate
+        , notifications |> only "follow" |> groupWhile (\_ _ -> True) |> aggregate
         ]
             |> List.concat
             |> List.sortBy .created_at

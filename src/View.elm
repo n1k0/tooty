@@ -61,7 +61,7 @@ accountAvatarLink account =
         , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
         , title <| "@" ++ account.username
         ]
-        [ img [ src account.avatar ] [] ]
+        [ img [ class "avatar", src account.avatar ] [] ]
 
 
 attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
@@ -167,8 +167,7 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
 
             Nothing ->
                 div [ class "status" ]
-                    [ a accountLinkAttributes
-                        [ img [ class "avatar", src account.avatar ] [] ]
+                    [ accountAvatarLink account
                     , div [ class "username" ]
                         [ a accountLinkAttributes
                             [ text account.display_name
@@ -339,8 +338,20 @@ notificationStatusView status { type_, accounts } =
 
 notificationFollowView : Mastodon.NotificationAggregate -> Html Msg
 notificationFollowView { accounts } =
-    div [ class "notification follow" ]
-        [ notificationHeading accounts "started following you" "user" ]
+    let
+        profileView account =
+            div [ class "status follow-profile" ]
+                [ accountAvatarLink account
+                , div [ class "username" ]
+                    [ accountLink account ]
+                , p [ class "status-text" ] <| ViewHelper.formatContent account.note []
+                ]
+    in
+        div [ class "notification follow" ]
+            [ notificationHeading accounts "started following you" "user"
+            , div [ class "" ] <|
+                List.map profileView accounts
+            ]
 
 
 notificationEntryView : Mastodon.NotificationAggregate -> Html Msg
