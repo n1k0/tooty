@@ -51,6 +51,7 @@ type
     | SubmitDraft
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
+    | HideLocalGlobalTimelines Bool
     | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
     | Unreblog Int
@@ -80,6 +81,7 @@ type alias Model =
     , errors : List String
     , location : Navigation.Location
     , useGlobalTimeline : Bool
+    , hideLocalGlobalTimelines : Bool
     }
 
 
@@ -121,6 +123,7 @@ init flags location =
         , errors = []
         , location = location
         , useGlobalTimeline = False
+        , hideLocalGlobalTimelines = False
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -460,6 +463,9 @@ update msg model =
 
         UseGlobalTimeline flag ->
             { model | useGlobalTimeline = flag } ! []
+
+        HideLocalGlobalTimelines flag ->
+            { model | hideLocalGlobalTimelines = flag } ! []
 
         LocalTimeline result ->
             case result of
