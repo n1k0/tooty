@@ -1,13 +1,10 @@
 module Model exposing (..)
 
 import Dom
-import Json.Decode
 import Json.Encode as Encode
 import Navigation
 import Mastodon
 import Ports
-import Util
-import WebSocket
 import Task
 
 
@@ -515,13 +512,6 @@ update msg model =
                         Ok notification ->
                             let
                                 {-
-                                   Limitation of Elm where you can't reference
-                                   model.notifications inside a { model | …)
-                                -}
-                                oldNotifications =
-                                    model.notifications
-
-                                {-
                                    @FIXME: we should add a function to `Mastodon`
                                    with this typeSignature :
                                    Notification -> List NotificationAggregate -> List NotificationAggregate
@@ -533,7 +523,7 @@ update msg model =
                                         [ notification.account ]
                                         notification.created_at
                             in
-                                { model | notifications = notificationAggregate :: oldNotifications } ! []
+                                { model | notifications = notificationAggregate :: model.notifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -541,15 +531,7 @@ update msg model =
                 Mastodon.StatusResult result ->
                     case result of
                         Ok status ->
-                            let
-                                {-
-                                   Limitation of Elm where you can't reference
-                                   model.notifications inside a { model | …)
-                                -}
-                                oldLocalTimeline =
-                                    model.userTimeline
-                            in
-                                { model | userTimeline = status :: oldLocalTimeline } ! []
+                            { model | userTimeline = status :: model.userTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []

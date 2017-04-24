@@ -653,7 +653,7 @@ subscribeToWebSockets client streamType message =
                     "public:local"
 
         url =
-            (Util.replace "http" "ws" client.server)
+            (Util.replace "https" "wss" client.server)
                 ++ "/api/v1/streaming/?access_token="
                 ++ client.token
                 ++ "&stream="
@@ -680,9 +680,6 @@ decodeWebSocketMessage message =
             Decode.decodeString
                 websocketEventDecoder
                 message
-
-        d =
-            Debug.log "[WebSocket Json] " websocketEvent
     in
         case websocketEvent of
             Ok event ->
