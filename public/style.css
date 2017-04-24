@@ -330,6 +330,29 @@ body {
   cursor: pointer;
 }
 
+.prev, .next {
+  font-size: 72px;
+  opacity: .2;
+  transition: opacity .5s;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.prev.available,
+.next.available {
+  opacity: .8;
+}
+
+.prev:hover,
+.next:hover {
+  opacity: 1;
+}
+
+.prev:active, .prev:focus, .prev:hover,
+.next:active, .next:focus, .next:hover {
+  text-decoration: none;
+}
+
 /* 100% image width on smaller screens */
 @media only screen and (max-width: 700px) {
   .viewer-content {

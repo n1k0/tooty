@@ -599,28 +599,77 @@ authView model =
 
 viewerView : Viewer -> Html Msg
 viewerView { attachments, attachment } =
-    div
-        [ class "viewer", tabindex -1 ]
-        [ a
-            [ href ""
-            , class "close"
-            , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
-            ]
-            [ text "×" ]
-        , case attachment.type_ of
-            "image" ->
-                img [ class "viewer-content", src attachment.url ] []
+    let
+        ( prev, next ) =
+            case attachments of
+                -- Notes:
+                -- - There are four attachments max;
+                -- - I'm not even ashamed of this.
+                [ a, b ] ->
+                    if attachment == a then
+                        ( Nothing, Just b )
+                    else
+                        ( Just b, Nothing )
 
-            _ ->
-                video
-                    [ class "viewer-content"
-                    , preload "auto"
-                    , autoplay True
-                    , loop True
-                    ]
-                    [ source [ src attachment.url ] [] ]
-        , div [ class "viewer-overlay" ] []
-        ]
+                [ a, b, c ] ->
+                    if attachment == a then
+                        ( Nothing, Just b )
+                    else if attachment == b then
+                        ( Just a, Just c )
+                    else
+                        ( Just b, Nothing )
+
+                [ a, b, c, d ] ->
+                    if attachment == a then
+                        ( Nothing, Just b )
+                    else if attachment == b then
+                        ( Just a, Just c )
+                    else if attachment == c then
+                        ( Just b, Just d )
+                    else
+                        ( Just c, Nothing )
+
+                _ ->
+                    ( Nothing, Nothing )
+
+        navLink label target className =
+            case target of
+                Nothing ->
+                    text ""
+
+                Just target ->
+                    a
+                        [ href ""
+                        , class className
+                        , ViewHelper.onClickWithPreventAndStop <|
+                            ViewerEvent (OpenViewer attachments target)
+                        ]
+                        [ text label ]
+    in
+        div
+            [ class "viewer", tabindex -1 ]
+            [ a
+                [ href ""
+                , class "close"
+                , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
+                ]
+                [ text "×" ]
+            , navLink "❮" prev "prev"
+            , case attachment.type_ of
+                "image" ->
+                    img [ class "viewer-content", src attachment.url ] []
+
+                _ ->
+                    video
+                        [ class "viewer-content"
+                        , preload "auto"
+                        , autoplay True
+                        , loop True
+                        ]
+                        [ source [ src attachment.url ] [] ]
+            , navLink "❯" next "next"
+            , div [ class "viewer-overlay" ] []
+            ]
 
 
 view : Model -> Html Msg
