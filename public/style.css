@@ -131,10 +131,11 @@ body {
 .attachment-entry {
   margin-top: 5px;
   transition: 0.3s;
+  opacity: .9;
 }
 
 .attachment-entry:hover {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .attachment-entry input {
