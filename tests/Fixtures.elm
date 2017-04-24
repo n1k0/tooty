@@ -57,6 +57,24 @@ accountNico =
     }
 
 
+accountPloum : Account
+accountPloum =
+    { acct = "ploum"
+    , avatar = "https://mamot.fr/system/accounts/avatars/000/006/840/original/593a817d651d9253.jpg?1491814416"
+    , created_at = "2017-04-08T09:37:34.931Z"
+    , display_name = "ploum"
+    , followers_count = 1129
+    , following_count = 91
+    , header = "https://mamot.fr/system/accounts/headers/000/006/840/original/7e0adc1f754dafbe.jpg?1491814416"
+    , id = 6840
+    , locked = False
+    , note = "Futurologue, conférencier, blogueur et écrivain électronique. Du moins, je l&apos;espère. :bicyclist:"
+    , statuses_count = 601
+    , url = "https://mamot.fr/@ploum"
+    , username = "ploum"
+    }
+
+
 statusNicoToVjousse : Status
 statusNicoToVjousse =
     { account = accountNico
@@ -113,6 +131,16 @@ notificationSkroFollowsVjousse =
     , type_ = "follow"
     , created_at = "2017-04-24T19:12:47.431Z"
     , account = accountSkro
+    , status = Nothing
+    }
+
+
+notificationPloumFollowsVjousse : Notification
+notificationPloumFollowsVjousse =
+    { id = 220
+    , type_ = "follow"
+    , created_at = "2017-04-24T18:12:47.431Z"
+    , account = accountPloum
     , status = Nothing
     }
 

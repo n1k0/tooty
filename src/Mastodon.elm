@@ -37,6 +37,7 @@ module Mastodon
         , subscribeToWebSockets
         , websocketEventDecoder
         , notificationDecoder
+        , addNotificationToAggregates
         )
 
 import Http
@@ -479,6 +480,30 @@ fetch client endpoint decoder =
 
 
 -- Public API
+
+
+addNotificationToAggregates : Notification -> List NotificationAggregate -> List NotificationAggregate
+addNotificationToAggregates notification aggregates =
+    -- @FIXME: WIP
+    aggregates
+        |> List.map
+            (\aggregate ->
+                case aggregate.type_ of
+                    "mention" ->
+                        aggregate
+
+                    "follow" ->
+                        { aggregate | accounts = notification.account :: aggregate.accounts }
+
+                    "reblog" ->
+                        aggregate
+
+                    "favorite" ->
+                        aggregate
+
+                    _ ->
+                        aggregate
+            )
 
 
 aggregateNotifications : List Notification -> List NotificationAggregate
