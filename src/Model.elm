@@ -25,6 +25,11 @@ type DraftMsg
     | ToggleSpoiler Bool
 
 
+type ViewerMsg
+    = CloseViewer
+    | OpenViewer (List Mastodon.Attachment) Mastodon.Attachment
+
+
 type
     Msg
     {-
@@ -59,6 +64,7 @@ type
     | NewWebsocketUserMessage String
     | NewWebsocketGlobalMessage String
     | NewWebsocketLocalMessage String
+    | ViewerEvent ViewerMsg
 
 
 type alias Draft =
@@ -67,6 +73,12 @@ type alias Draft =
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String
+    }
+
+
+type alias Viewer =
+    { attachments : List Mastodon.Attachment
+    , attachment : Mastodon.Attachment
     }
 
 
@@ -83,6 +95,7 @@ type alias Model =
     , errors : List String
     , location : Navigation.Location
     , useGlobalTimeline : Bool
+    , viewer : Maybe Viewer
     }
 
 
@@ -124,6 +137,7 @@ init flags location =
         , errors = []
         , location = location
         , useGlobalTimeline = False
+        , viewer = Nothing
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -311,6 +325,16 @@ updateDraft draftMsg draft =
             { draft | in_reply_to = Nothing } ! []
 
 
+updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
+updateViewer viewerMsg viewer =
+    case viewerMsg of
+        CloseViewer ->
+            Nothing ! []
+
+        OpenViewer attachments attachment ->
+            (Just <| Viewer attachments attachment) ! []
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -429,6 +453,13 @@ update msg model =
                     updateDraft draftMsg model.draft
             in
                 { model | draft = draft } ! [ commands ]
+
+        ViewerEvent viewerMsg ->
+            let
+                ( viewer, commands ) =
+                    updateViewer viewerMsg model.viewer
+            in
+                { model | viewer = viewer } ! [ commands ]
 
         SubmitDraft ->
             model

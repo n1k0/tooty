@@ -130,6 +130,12 @@ body {
 
 .attachment-entry {
   margin-top: 5px;
+  transition: 0.3s;
+  opacity: .9;
+}
+
+.attachment-entry:hover {
+  opacity: 1;
 }
 
 .attachment-entry input {
@@ -273,4 +279,79 @@ body {
 .account-infos {
     text-align:center;
     padding: 15px;
+}
+
+/* Viewer */
+
+.viewer {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.9);
+}
+
+/* Modal Content (Image) */
+.viewer-content {
+  display: block;
+  margin: auto;
+  max-width: 80vw;
+  max-height: 90vh;
+  animation-name: zoom;
+  animation-duration: 0.1s;
+}
+
+@keyframes zoom {
+  from { transform: scale(.9) }
+  to { transform: scale(1) }
+}
+
+.viewer > .close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #eee;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+  text-shadow: initial;
+  opacity: 1;
+}
+
+.viewer > .close:hover,
+.viewer > .close:focus {
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.prev, .next {
+  font-size: 72px;
+  opacity: .5;
+  transition: opacity .5s;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+.prev:hover,
+.next:hover {
+  opacity: 1;
+}
+
+.prev:active, .prev:focus, .prev:hover,
+.next:active, .next:focus, .next:hover {
+  text-decoration: none;
+}
+
+/* 100% image width on smaller screens */
+@media only screen and (max-width: 700px) {
+  .viewer-content {
+    width: 100%;
+  }
 }
