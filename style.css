@@ -332,15 +332,10 @@ body {
 
 .prev, .next {
   font-size: 72px;
-  opacity: .2;
+  opacity: .5;
   transition: opacity .5s;
   text-decoration: none;
   margin: 0 10px;
-}
-
-.prev.available,
-.next.available {
-  opacity: .8;
 }
 
 .prev:hover,
