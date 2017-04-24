@@ -7,6 +7,7 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 ### Setting up the development environment
 
     $ npm i
+    $ ./node_modules/.bin/elm-package install
 
 ### Starting the dev server
 
