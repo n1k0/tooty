@@ -342,15 +342,13 @@ notificationFollowView { accounts } =
         profileView account =
             div [ class "status follow-profile" ]
                 [ accountAvatarLink account
-                , div [ class "username" ]
-                    [ accountLink account ]
+                , div [ class "username" ] [ accountLink account ]
                 , p [ class "status-text" ] <| ViewHelper.formatContent account.note []
                 ]
     in
         div [ class "notification follow" ]
             [ notificationHeading accounts "started following you" "user"
-            , div [ class "" ] <|
-                List.map profileView accounts
+            , div [ class "" ] <| List.map profileView accounts
             ]
 
 
