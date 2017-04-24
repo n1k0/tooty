@@ -626,12 +626,7 @@ viewerView { attachments, attachment } =
             , tabindex -1
             , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
             ]
-            [ a
-                [ href ""
-                , class "close"
-                , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
-                ]
-                [ text "×" ]
+            [ span [ class "close" ] [ text "×" ]
             , navLink "❮" "prev" prev
             , case attachment.type_ of
                 "image" ->
