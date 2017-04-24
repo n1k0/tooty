@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon
-import Model exposing (Model, Draft, DraftMsg(..), Msg(..))
+import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
 
 
@@ -64,8 +64,8 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview : Maybe Bool -> Mastodon.Attachment -> Html Msg
-attachmentPreview sensitive ({ url, preview_url } as attachment) =
+attachmentPreview : Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
+attachmentPreview sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
             case sensitive of
@@ -82,7 +82,8 @@ attachmentPreview sensitive ({ url, preview_url } as attachment) =
             a
                 [ class "attachment-image"
                 , href url
-                , target "_blank"
+                , ViewHelper.onClickWithPreventAndStop <|
+                    ViewerEvent (OpenViewer attachments attachment)
                 , style
                     [ ( "background"
                       , "url(" ++ preview_url ++ ") center center / cover no-repeat"
@@ -113,7 +114,8 @@ attachmentListView { media_attachments, sensitive } =
             text ""
 
         attachments ->
-            ul [ class "attachments" ] <| List.map (attachmentPreview sensitive) attachments
+            ul [ class "attachments" ] <|
+                List.map (attachmentPreview sensitive attachments) attachments
 
 
 statusContentView : Mastodon.Status -> Html Msg
@@ -595,6 +597,11 @@ authView model =
         ]
 
 
+viewerView : Viewer -> Html Msg
+viewerView viewer =
+    div [] [ text "viewer" ]
+
+
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
@@ -605,4 +612,10 @@ view model =
 
             Nothing ->
                 authView model
+        , case model.viewer of
+            Just viewer ->
+                viewerView viewer
+
+            Nothing ->
+                text ""
         ]
