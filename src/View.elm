@@ -240,7 +240,7 @@ statusActionsView status =
             "btn btn-sm btn-default"
 
         ( reblogClasses, reblogEvent ) =
-            case status.favourited of
+            case status.reblogged of
                 Just True ->
                     ( baseBtnClasses ++ " reblogged", Unreblog target.id )
 
@@ -310,7 +310,7 @@ notificationHeading : List Mastodon.Account -> String -> String -> Html Msg
 notificationHeading accounts str iconType =
     div [ class "status-info" ]
         [ div [ class "avatars" ] <| List.map accountAvatarLink accounts
-        , p [] <|
+        , p [ class "status-info-text" ] <|
             List.intersperse (text " ")
                 [ icon iconType
                 , span [] <| List.intersperse (text ", ") (List.map accountLink accounts)

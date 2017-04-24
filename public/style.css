@@ -3,9 +3,13 @@ body {
   padding-top: 10px;
 }
 
-.status. .follow-profile {
+.status, .follow-profile {
   min-height: 50px;
   clear: both;
+}
+
+.follow-profile .status-text {
+  opacity: .8;
 }
 
 .nsfw {
@@ -23,15 +27,16 @@ body {
   line-height: 1.6em;
 }
 
-.status-info > .avatars {
-  margin-bottom: 8px;
-}
-
 .status-info > .avatars img {
   width: 24px;
   height: 24px;
   margin-right: 5px;
   border-radius: 2px;
+}
+
+.status-info-text {
+  clear: left;
+  padding-top: 6px;
 }
 
 .notification.reblog,
