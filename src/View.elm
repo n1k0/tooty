@@ -632,7 +632,7 @@ viewerView { attachments, attachment } =
                 _ ->
                     ( Nothing, Nothing )
 
-        navLink label target className =
+        navLink label className target =
             case target of
                 Nothing ->
                     text ""
@@ -654,7 +654,7 @@ viewerView { attachments, attachment } =
                 , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
                 ]
                 [ text "×" ]
-            , navLink "❮" prev "prev"
+            , navLink "❮" "prev" prev
             , case attachment.type_ of
                 "image" ->
                     img [ class "viewer-content", src attachment.url ] []
@@ -667,7 +667,7 @@ viewerView { attachments, attachment } =
                         , loop True
                         ]
                         [ source [ src attachment.url ] [] ]
-            , navLink "❯" next "next"
+            , navLink "❯" "next" next
             , div [ class "viewer-overlay" ] []
             ]
 
