@@ -147,9 +147,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -529,6 +530,15 @@ optionsView model =
                         []
                     , text " 4th column renders the global timeline"
                     ]
+                , label
+                    []
+                    [ input
+                        [ type_ "checkbox"
+                        , onCheck HideLocalGlobalTimelines
+                        ]
+                        []
+                    , text " Hide the 4th column"
+                    ]
                 ]
             ]
         ]
@@ -554,10 +564,13 @@ homepageView model =
                 accountTimelineView account [] "Account" "user"
 
             Nothing ->
-                if model.useGlobalTimeline then
-                    timelineView model.publicTimeline "Global timeline" "globe"
+                if not model.hideLocalGlobalTimelines then
+                    if model.useGlobalTimeline then
+                        timelineView model.publicTimeline "Global timeline" "globe"
+                    else
+                        timelineView model.localTimeline "Local timeline" "th-large"
                 else
-                    timelineView model.localTimeline "Local timeline" "th-large"
+                    text ""
         ]
 
 
