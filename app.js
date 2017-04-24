@@ -24536,7 +24536,7 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 	var baseBtnClasses = 'btn btn-sm btn-default';
 	var target = _n1k0$tooty$Mastodon$extractReblog(status);
 	var _p11 = function () {
-		var _p12 = status.favourited;
+		var _p12 = status.reblogged;
 		if ((_p12.ctor === 'Just') && (_p12._0 === true)) {
 			return {
 				ctor: '_Tuple2',
@@ -24751,7 +24751,11 @@ var _n1k0$tooty$View$notificationHeading = F3(
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$p,
-						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('status-info-text'),
+							_1: {ctor: '[]'}
+						},
 						A2(
 							_elm_lang$core$List$intersperse,
 							_elm_lang$html$Html$text(' '),
