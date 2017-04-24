@@ -4,6 +4,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import List.Extra exposing (elemIndex, getAt)
 import Mastodon
 import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
@@ -600,37 +601,11 @@ authView model =
 viewerView : Viewer -> Html Msg
 viewerView { attachments, attachment } =
     let
+        index =
+            Maybe.withDefault -1 <| elemIndex attachment attachments
+
         ( prev, next ) =
-            case attachments of
-                -- Notes:
-                -- - There are four attachments max;
-                -- - I'm not even ashamed of this.
-                [ a, b ] ->
-                    if attachment == a then
-                        ( Nothing, Just b )
-                    else
-                        ( Just b, Nothing )
-
-                [ a, b, c ] ->
-                    if attachment == a then
-                        ( Nothing, Just b )
-                    else if attachment == b then
-                        ( Just a, Just c )
-                    else
-                        ( Just b, Nothing )
-
-                [ a, b, c, d ] ->
-                    if attachment == a then
-                        ( Nothing, Just b )
-                    else if attachment == b then
-                        ( Just a, Just c )
-                    else if attachment == c then
-                        ( Just b, Just d )
-                    else
-                        ( Just c, Nothing )
-
-                _ ->
-                    ( Nothing, Nothing )
+            ( getAt (index - 1) attachments, getAt (index + 1) attachments )
 
         navLink label className target =
             case target of
@@ -647,7 +622,10 @@ viewerView { attachments, attachment } =
                         [ text label ]
     in
         div
-            [ class "viewer", tabindex -1 ]
+            [ class "viewer"
+            , tabindex -1
+            , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
+            ]
             [ a
                 [ href ""
                 , class "close"
@@ -668,7 +646,6 @@ viewerView { attachments, attachment } =
                         ]
                         [ source [ src attachment.url ] [] ]
             , navLink "❯" "next" next
-            , div [ class "viewer-overlay" ] []
             ]
 
 
