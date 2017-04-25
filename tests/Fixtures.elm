@@ -105,6 +105,36 @@ statusNicoToVjousse =
     }
 
 
+statusNicoToVjousseAgain : Status
+statusNicoToVjousseAgain =
+    { account = accountNico
+    , content = "<p><span class=\"h-card\"><a href=\"https://mamot.fr/@vjousse\" class=\"u-url mention\">@<span>vjousse</span></a></span> oui j&apos;ai vu, c&apos;est super, après on est à +473 −13, à un moment tu vas te prendre la tête 😂</p>"
+    , created_at = "2017-04-25T07:41:23.492Z"
+    , favourited = Nothing
+    , favourites_count = 0
+    , id = 752169
+    , in_reply_to_account_id = Just 26303
+    , in_reply_to_id = Just 752153
+    , media_attachments = []
+    , mentions =
+        [ { id = 26303
+          , url = "https://mamot.fr/@vjousse"
+          , username = "vjousse"
+          , acct = "vjousse"
+          }
+        ]
+    , reblog = Nothing
+    , reblogged = Nothing
+    , reblogs_count = 0
+    , sensitive = Just False
+    , spoiler_text = ""
+    , tags = []
+    , uri = "tag:mamot.fr,2017-04-25:objectId=752169:objectType=Status"
+    , url = "https://mamot.fr/@n1k0/752169"
+    , visibility = "public"
+    }
+
+
 notificationNicoMentionVjousse : Notification
 notificationNicoMentionVjousse =
     { id = 224284
@@ -112,6 +142,16 @@ notificationNicoMentionVjousse =
     , created_at = "2017-04-24T20:16:20.973Z"
     , account = accountNico
     , status = Just statusNicoToVjousse
+    }
+
+
+notificationNicoMentionVjousseAgain : Notification
+notificationNicoMentionVjousseAgain =
+    { id = 226516
+    , type_ = "mention"
+    , created_at = "2017-04-25T07:41:23.546Z"
+    , account = accountNico
+    , status = Just statusNicoToVjousseAgain
     }
 
 
