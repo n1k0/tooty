@@ -38,6 +38,7 @@ module Mastodon
         , websocketEventDecoder
         , notificationDecoder
         , addNotificationToAggregates
+        , notificationToAggregate
         )
 
 import Http
@@ -482,52 +483,75 @@ fetch client endpoint decoder =
 -- Public API
 
 
+notificationToAggregate : Notification -> NotificationAggregate
+notificationToAggregate notification =
+    NotificationAggregate
+        notification.type_
+        notification.status
+        [ notification.account ]
+        notification.created_at
+
+
 addNotificationToAggregates : Notification -> List NotificationAggregate -> List NotificationAggregate
 addNotificationToAggregates notification aggregates =
     let
-        isNotificationTypeInAggregates =
-            aggregates
-                |> List.filter (\a -> a.type_ == notification.type_)
-                |> List.length
-                |> (<) 0
+        addNewAccountToSameStatus : NotificationAggregate -> Notification -> NotificationAggregate
+        addNewAccountToSameStatus aggregate notification =
+            case ( aggregate.status, notification.status ) of
+                ( Just aggregateStatus, Just notificationStatus ) ->
+                    if aggregateStatus.id == notificationStatus.id then
+                        { aggregate | accounts = notification.account :: aggregate.accounts }
+                    else
+                        aggregate
 
-        notificationToAggregate notification =
-            NotificationAggregate
-                notification.type_
-                notification.status
-                [ notification.account ]
-                notification.created_at
-    in
-        if isNotificationTypeInAggregates then
+                ( _, _ ) ->
+                    aggregate
+
+        {-
+           Let's try to find an already existing aggregate, matching the notification
+           we are trying to add.
+           If we find any aggregate, we modify it inplace. If not, we return the
+           aggregates unmodified
+        -}
+        newAggregates =
             aggregates
                 |> List.map
                     (\aggregate ->
                         case ( aggregate.type_, notification.type_ ) of
+                            {-
+                               Notification and aggregate are of the follow type.
+                               Add the new following account.
+                            -}
                             ( "follow", "follow" ) ->
-                                [ { aggregate | accounts = notification.account :: aggregate.accounts } ]
+                                { aggregate | accounts = notification.account :: aggregate.accounts }
 
+                            {-
+                               Notification is of type follow, but current aggregate
+                               is of another type. Let's continue then.
+                            -}
                             ( _, "follow" ) ->
-                                [ aggregate ]
+                                aggregate
 
-                            ( _, _ ) ->
-                                case ( aggregate.status, notification.status ) of
-                                    ( Just aggregateStatus, Just notificationStatus ) ->
-                                        if aggregateStatus.id == notificationStatus.id then
-                                            [ { aggregate | accounts = notification.account :: aggregate.accounts } ]
-                                        else
-                                            [ notificationToAggregate (notification), aggregate ]
-
-                                    ( Nothing, Just _ ) ->
-                                        [ aggregate ]
-
-                                    ( _, _ ) ->
-                                        [ notificationToAggregate (notification), aggregate ]
+                            {-
+                               If both types are the same check if we should
+                               add the new account.
+                            -}
+                            ( aggregateType, notificationType ) ->
+                                if aggregateType == notificationType then
+                                    addNewAccountToSameStatus aggregate notification
+                                else
+                                    aggregate
                     )
-                |> List.concat
-                |> List.sortBy .created_at
-                |> List.reverse
-        else
+    in
+        {-
+           If we did no modification to the old aggregates it's
+           because we didn't found any match. So me have to create
+           a new aggregate
+        -}
+        if newAggregates == aggregates then
             notificationToAggregate (notification) :: aggregates
+        else
+            newAggregates
 
 
 aggregateNotifications : List Notification -> List NotificationAggregate
