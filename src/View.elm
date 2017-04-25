@@ -312,8 +312,8 @@ statusEntryView context status =
             ]
 
 
-timelineView : String -> List Mastodon.Status -> String -> String -> Html Msg
-timelineView context statuses label iconName =
+timelineView : String -> String -> String -> List Mastodon.Status -> Html Msg
+timelineView label iconName context statuses =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
@@ -566,7 +566,7 @@ homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
         [ sidebarView model
-        , timelineView "home" model.userTimeline "Home timeline" "home"
+        , timelineView "Home timeline" "home" "home" model.userTimeline
         , notificationListView model.notifications
         , case model.account of
             Just account ->
@@ -575,9 +575,9 @@ homepageView model =
 
             Nothing ->
                 if model.useGlobalTimeline then
-                    timelineView "global" model.publicTimeline "Global timeline" "globe"
+                    timelineView "Global timeline" "globe" "global" model.publicTimeline
                 else
-                    timelineView "local" model.localTimeline "Local timeline" "th-large"
+                    timelineView "Local timeline" "th-large" "local" model.localTimeline
         ]
 
 
