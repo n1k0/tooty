@@ -8,6 +8,9 @@ import List.Extra exposing (elemIndex, getAt)
 import Mastodon
 import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
+import Date
+import Date.Extra.Config.Config_en_au exposing (config)
+import Date.Extra.Format as Format exposing (format)
 
 
 visibilities : Dict.Dict String String
@@ -150,9 +153,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -257,6 +261,13 @@ statusActionsView status =
 
                 _ ->
                     ( baseBtnClasses, AddFavorite target.id )
+
+        tootDate =
+            Date.fromString status.created_at
+                |> Result.withDefault (Date.fromTime 0)
+
+        formatDate =
+            text <| format config "%m/%d/%Y %H:%M" tootDate
     in
         div [ class "btn-group actions" ]
             [ a
@@ -275,6 +286,7 @@ statusActionsView status =
                 , ViewHelper.onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
+            , a [ class baseBtnClasses ] [ icon "time", formatDate ]
             ]
 
 
