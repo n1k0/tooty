@@ -324,6 +324,7 @@ updateDraft draftMsg draft =
                             draft.status
                         else
                             mention ++ " " ++ draft.status
+                    , visibility = status.visibility
                 }
                     ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
 
