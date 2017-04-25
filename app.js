@@ -25843,27 +25843,27 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 			});
 	});
 var _n1k0$tooty$View$statusActionsView = function (status) {
-	var tootDate = A2(
+	var statusDate = A2(
 		_elm_lang$core$Result$withDefault,
 		_elm_lang$core$Date$fromTime(0),
 		_elm_lang$core$Date$fromString(status.created_at));
 	var formatDate = _elm_lang$html$Html$text(
-		A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', tootDate));
+		A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', statusDate));
 	var baseBtnClasses = 'btn btn-sm btn-default';
-	var target = _n1k0$tooty$Mastodon$extractReblog(status);
+	var targetStatus = _n1k0$tooty$Mastodon$extractReblog(status);
 	var _p20 = function () {
 		var _p21 = status.reblogged;
 		if ((_p21.ctor === 'Just') && (_p21._0 === true)) {
 			return {
 				ctor: '_Tuple2',
 				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
-				_1: _n1k0$tooty$Model$Unreblog(target.id)
+				_1: _n1k0$tooty$Model$Unreblog(targetStatus.id)
 			};
 		} else {
 			return {
 				ctor: '_Tuple2',
 				_0: baseBtnClasses,
-				_1: _n1k0$tooty$Model$Reblog(target.id)
+				_1: _n1k0$tooty$Model$Reblog(targetStatus.id)
 			};
 		}
 	}();
@@ -25875,13 +25875,13 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 			return {
 				ctor: '_Tuple2',
 				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
-				_1: _n1k0$tooty$Model$RemoveFavorite(target.id)
+				_1: _n1k0$tooty$Model$RemoveFavorite(targetStatus.id)
 			};
 		} else {
 			return {
 				ctor: '_Tuple2',
 				_0: baseBtnClasses,
-				_1: _n1k0$tooty$Model$AddFavorite(target.id)
+				_1: _n1k0$tooty$Model$AddFavorite(targetStatus.id)
 			};
 		}
 	}();
@@ -25905,7 +25905,7 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 						ctor: '::',
 						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
 							_n1k0$tooty$Model$DraftEvent(
-								_n1k0$tooty$Model$UpdateReplyTo(target))),
+								_n1k0$tooty$Model$UpdateReplyTo(targetStatus))),
 						_1: {ctor: '[]'}
 					}
 				},
@@ -25967,7 +25967,15 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$class(baseBtnClasses),
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href(status.url),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$target('_blank'),
+										_1: {ctor: '[]'}
+									}
+								}
 							},
 							{
 								ctor: '::',
