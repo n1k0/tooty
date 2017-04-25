@@ -100,7 +100,7 @@ body {
   border: none;
   background: transparent;
   color: #aaa;
-  padding: 0 2.4em 0 0;
+  padding: 0 1.2em 0 0;
   text-align: left;
 }
 
@@ -231,7 +231,7 @@ body {
   word-wrap: break-word;
 }
 
-.ellipsis {
+.ellipsis, .hashtag {
   display: block;
   overflow: hidden;
   white-space: nowrap;
