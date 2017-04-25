@@ -1,0 +1,25 @@
+.status {
+  min-height: 75px;
+  clear: both;
+}
+
+.reblog > p:first-of-type {
+  color: #999;
+}
+
+.panel-heading {
+  font-weight: bold;
+}
+
+.avatar {
+  display: block;
+  float: left;
+  width: 50px;
+  border-radius: 5%;
+  margin-right: .5em;
+  margin-bottom: .5em;
+}
+
+.username {
+  font-weight: bold;
+}
