@@ -69,7 +69,7 @@ accountAvatarLink account =
 
 
 attachmentPreview : String -> Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
-attachmentPreview timeline sensitive attachments ({ url, preview_url } as attachment) =
+attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
             case sensitive of
@@ -80,7 +80,7 @@ attachmentPreview timeline sensitive attachments ({ url, preview_url } as attach
                     False
 
         attId =
-            "att" ++ (toString attachment.id) ++ timeline
+            "att" ++ (toString attachment.id) ++ context
 
         media =
             a
@@ -112,30 +112,30 @@ attachmentPreview timeline sensitive attachments ({ url, preview_url } as attach
 
 
 attachmentListView : String -> Mastodon.Status -> Html Msg
-attachmentListView timeline { media_attachments, sensitive } =
+attachmentListView context { media_attachments, sensitive } =
     case media_attachments of
         [] ->
             text ""
 
         attachments ->
             ul [ class "attachments" ] <|
-                List.map (attachmentPreview timeline sensitive attachments) attachments
+                List.map (attachmentPreview context sensitive attachments) attachments
 
 
 statusContentView : String -> Mastodon.Status -> Html Msg
-statusContentView timeline status =
+statusContentView context status =
     case status.spoiler_text of
         "" ->
             div [ class "status-text" ]
                 [ div [] <| ViewHelper.formatContent status.content status.mentions
-                , attachmentListView timeline status
+                , attachmentListView context status
                 ]
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
             let
                 statusId =
-                    "spoiler" ++ (toString status.id) ++ timeline
+                    "spoiler" ++ (toString status.id) ++ context
             in
                 div [ class "status-text spoiled" ]
                     [ div [ class "spoiler" ] [ text status.spoiler_text ]
@@ -143,20 +143,19 @@ statusContentView timeline status =
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ]
                         [ div [] <| ViewHelper.formatContent status.content status.mentions
-                        , attachmentListView timeline status
+                        , attachmentListView context status
                         ]
                     ]
 
 
 statusView : String -> Mastodon.Status -> Html Msg
-statusView timeline ({ account, content, media_attachments, reblog, mentions } as status) =
+statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
             [ href account.url
-
-            -- When clicking on a status, we should not let the browser
-            -- redirect to a new page. That's why we're preventing the default
-            -- behavior here
+              -- When clicking on a status, we should not let the browser
+              -- redirect to a new page. That's why we're preventing the default
+              -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -169,7 +168,7 @@ statusView timeline ({ account, content, media_attachments, reblog, mentions } a
                             [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
-                    , statusView timeline reblog
+                    , statusView context reblog
                     ]
 
             Nothing ->
@@ -181,7 +180,7 @@ statusView timeline ({ account, content, media_attachments, reblog, mentions } a
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , statusContentView timeline status
+                    , statusContentView context status
                     ]
 
 
@@ -296,7 +295,7 @@ statusActionsView status =
 
 
 statusEntryView : String -> Mastodon.Status -> Html Msg
-statusEntryView timeline status =
+statusEntryView context status =
     let
         nsfwClass =
             case status.sensitive of
@@ -307,13 +306,13 @@ statusEntryView timeline status =
                     ""
     in
         li [ class <| "list-group-item " ++ nsfwClass ]
-            [ statusView timeline status
+            [ statusView context status
             , statusActionsView status
             ]
 
 
-timelineView : List Mastodon.Status -> String -> String -> Html Msg
-timelineView statuses label iconName =
+timelineView : String -> List Mastodon.Status -> String -> String -> Html Msg
+timelineView context statuses label iconName =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
@@ -321,7 +320,7 @@ timelineView statuses label iconName =
                 , text label
                 ]
             , ul [ class "list-group" ] <|
-                List.map (statusEntryView label) statuses
+                List.map (statusEntryView context) statuses
             ]
         ]
 
@@ -340,7 +339,7 @@ notificationHeading accounts str iconType =
 
 
 notificationStatusView : String -> Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
-notificationStatusView timeline status { type_, accounts } =
+notificationStatusView context status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
@@ -351,7 +350,7 @@ notificationStatusView timeline status { type_, accounts } =
 
             _ ->
                 text ""
-        , statusView timeline status
+        , statusView context status
         , statusActionsView status
         ]
 
@@ -566,7 +565,7 @@ homepageView : Model -> Html Msg
 homepageView model =
     div [ class "row" ]
         [ sidebarView model
-        , timelineView model.userTimeline "Home timeline" "home"
+        , timelineView "home" model.userTimeline "Home timeline" "home"
         , notificationListView model.notifications
         , case model.account of
             Just account ->
@@ -575,9 +574,9 @@ homepageView model =
 
             Nothing ->
                 if model.useGlobalTimeline then
-                    timelineView model.publicTimeline "Global timeline" "globe"
+                    timelineView "global" model.publicTimeline "Global timeline" "globe"
                 else
-                    timelineView model.localTimeline "Local timeline" "th-large"
+                    timelineView "local" model.localTimeline "Local timeline" "th-large"
         ]
 
 
