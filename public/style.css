@@ -231,7 +231,7 @@ body {
   word-wrap: break-word;
 }
 
-.ellipsis {
+.ellipsis, .hashtag {
   display: block;
   overflow: hidden;
   white-space: nowrap;
