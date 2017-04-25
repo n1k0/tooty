@@ -61,6 +61,9 @@ type
     | Unreblog Int
     | Unreblogged (Result Mastodon.Error Mastodon.Status)
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | NewWebsocketUserMessage String
+    | NewWebsocketGlobalMessage String
+    | NewWebsocketLocalMessage String
     | ViewerEvent ViewerMsg
 
 
@@ -535,3 +538,60 @@ update msg model =
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
+
+        NewWebsocketUserMessage message ->
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.NotificationResult result ->
+                    case result of
+                        Ok notification ->
+                            { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            { model | userTimeline = status :: model.userTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+        NewWebsocketLocalMessage message ->
+            -- @TODO
+            model ! []
+
+        NewWebsocketGlobalMessage message ->
+            -- @TODO
+            model ! []
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch <|
+        case model.client of
+            Just client ->
+                [ Mastodon.subscribeToWebSockets
+                    client
+                    Mastodon.UserStream
+                    NewWebsocketUserMessage
+                ]
+                    ++ (if model.useGlobalTimeline then
+                            [ Mastodon.subscribeToWebSockets
+                                client
+                                Mastodon.GlobalPublicStream
+                                NewWebsocketGlobalMessage
+                            ]
+                        else
+                            [ Mastodon.subscribeToWebSockets
+                                client
+                                Mastodon.LocalPublicStream
+                                NewWebsocketLocalMessage
+                            ]
+                       )
+
+            Nothing ->
+                []

@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Navigation
 import View exposing (view)
-import Model exposing (Flags, Model, Msg(..), init, update)
+import Model exposing (Flags, Model, Msg(..), init, update, subscriptions)
 
 
 main : Program Flags Model Msg
@@ -11,5 +11,5 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
