@@ -713,21 +713,21 @@ subscribeToWebSockets client streamType message =
     let
         type_ =
             case streamType of
-                UserStream ->
-                    "user"
+                GlobalPublicStream ->
+                    "public"
 
                 LocalPublicStream ->
                     "public:local"
 
-                GlobalPublicStream ->
-                    "public:local"
+                UserStream ->
+                    "user"
 
         url =
-            (Util.replace "https" "wss" client.server)
-                ++ "/api/v1/streaming/?access_token="
-                ++ client.token
-                ++ "&stream="
-                ++ type_
+            encodeUrl
+                ((Util.replace "https:" "wss:" client.server) ++ "/api/v1/streaming/")
+                [ ( "access_token", client.token )
+                , ( "stream", type_ )
+                ]
     in
         WebSocket.listen url message
 
