@@ -153,9 +153,10 @@ statusView timeline ({ account, content, media_attachments, reblog, mentions } a
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -239,7 +240,7 @@ accountTimelineView account statuses label iconName =
 statusActionsView : Mastodon.Status -> Html Msg
 statusActionsView status =
     let
-        target =
+        targetStatus =
             Mastodon.extractReblog status
 
         baseBtnClasses =
@@ -248,31 +249,31 @@ statusActionsView status =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", Unreblog target.id )
+                    ( baseBtnClasses ++ " reblogged", Unreblog targetStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, Reblog target.id )
+                    ( baseBtnClasses, Reblog targetStatus.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
                 Just True ->
-                    ( baseBtnClasses ++ " favourited", RemoveFavorite target.id )
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite targetStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite target.id )
+                    ( baseBtnClasses, AddFavorite targetStatus.id )
 
-        tootDate =
+        statusDate =
             Date.fromString status.created_at
                 |> Result.withDefault (Date.fromTime 0)
 
         formatDate =
-            text <| DateFormat.format DateEn.config "%m/%d/%Y %H:%M" tootDate
+            text <| DateFormat.format DateEn.config "%m/%d/%Y %H:%M" statusDate
     in
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
                 , ViewHelper.onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo target)
+                    DraftEvent (UpdateReplyTo targetStatus)
                 ]
                 [ icon "share-alt" ]
             , a
@@ -285,7 +286,12 @@ statusActionsView status =
                 , ViewHelper.onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
-            , a [ class baseBtnClasses ] [ icon "time", formatDate ]
+            , a
+                [ class baseBtnClasses
+                , href status.url
+                , target "_blank"
+                ]
+                [ icon "time", formatDate ]
             ]
 
 
