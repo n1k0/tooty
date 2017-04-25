@@ -567,7 +567,21 @@ homepageView model =
 authView : Model -> Html Msg
 authView model =
     div [ class "col-md-4 col-md-offset-4" ]
-        [ div [ class "panel panel-default" ]
+        [ div [ class "page-header" ]
+            [ h1 []
+                [ text "tooty"
+                , small []
+                    [ text " is a Web client for the "
+                    , a
+                        [ href "https://github.com/tootsuite/mastodon"
+                        , target "_blank"
+                        ]
+                        [ text "Mastodon" ]
+                    , text " API."
+                    ]
+                ]
+            ]
+        , div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ text "Authenticate" ]
             , div [ class "panel-body" ]
                 [ Html.form [ class "form", onSubmit Register ]
