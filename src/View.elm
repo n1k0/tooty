@@ -240,7 +240,7 @@ accountTimelineView account statuses label iconName =
 statusActionsView : Mastodon.Status -> Html Msg
 statusActionsView status =
     let
-        tootTarget =
+        targetStatus =
             Mastodon.extractReblog status
 
         baseBtnClasses =
@@ -249,31 +249,31 @@ statusActionsView status =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", Unreblog tootTarget.id )
+                    ( baseBtnClasses ++ " reblogged", Unreblog targetStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, Reblog tootTarget.id )
+                    ( baseBtnClasses, Reblog targetStatus.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
                 Just True ->
-                    ( baseBtnClasses ++ " favourited", RemoveFavorite tootTarget.id )
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite targetStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite tootTarget.id )
+                    ( baseBtnClasses, AddFavorite targetStatus.id )
 
-        tootDate =
+        statusDate =
             Date.fromString status.created_at
                 |> Result.withDefault (Date.fromTime 0)
 
         formatDate =
-            text <| DateFormat.format DateEn.config "%m/%d/%Y %H:%M" tootDate
+            text <| DateFormat.format DateEn.config "%m/%d/%Y %H:%M" statusDate
     in
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
                 , ViewHelper.onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo tootTarget)
+                    DraftEvent (UpdateReplyTo targetStatus)
                 ]
                 [ icon "share-alt" ]
             , a
