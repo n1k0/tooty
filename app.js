@@ -24262,7 +24262,8 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'NewWebsocketUserMessage':
-				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(_p17._0);
+				var _p43 = _p17._0;
+				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(_p43);
 				switch (_p40.ctor) {
 					case 'EventError':
 						return A2(
@@ -24272,7 +24273,10 @@ var _n1k0$tooty$Model$update = F2(
 								{
 									errors: {
 										ctor: '::',
-										_0: A2(_elm_lang$core$Debug$log, '[WS EventError error]', _p40._0),
+										_0: A2(
+											_elm_lang$core$Debug$log,
+											A2(_elm_lang$core$Basics_ops['++'], 'EventError: ', _p40._0),
+											_p43),
 										_1: model.errors
 									}
 								}),
@@ -24296,7 +24300,10 @@ var _n1k0$tooty$Model$update = F2(
 									{
 										errors: {
 											ctor: '::',
-											_0: A2(_elm_lang$core$Debug$log, '[WS NotificationResult error]', _p41._0),
+											_0: A2(
+												_elm_lang$core$Debug$log,
+												A2(_elm_lang$core$Basics_ops['++'], 'NotificationResult: ', _p41._0),
+												_p43),
 											_1: model.errors
 										}
 									}),
@@ -24321,7 +24328,10 @@ var _n1k0$tooty$Model$update = F2(
 									{
 										errors: {
 											ctor: '::',
-											_0: A2(_elm_lang$core$Debug$log, '[WS StatusResult error]', _p42._0),
+											_0: A2(
+												_elm_lang$core$Debug$log,
+												A2(_elm_lang$core$Basics_ops['++'], 'StatusResult: ', _p42._0),
+												_p43),
 											_1: model.errors
 										}
 									}),
@@ -24350,16 +24360,16 @@ var _n1k0$tooty$Model$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p43 = authCode;
-				if (_p43.ctor === 'Just') {
-					var _p44 = registration;
-					if (_p44.ctor === 'Just') {
+				var _p44 = authCode;
+				if (_p44.ctor === 'Just') {
+					var _p45 = registration;
+					if (_p45.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$AccessToken,
-								A2(_n1k0$tooty$Mastodon$getAccessToken, _p44._0, _p43._0)),
+								A2(_n1k0$tooty$Mastodon$getAccessToken, _p45._0, _p44._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
