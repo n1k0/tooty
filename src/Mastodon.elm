@@ -30,7 +30,7 @@ module Mastodon
         , fetchAccount
         , fetchLocalTimeline
         , fetchNotifications
-        , fetchPublicTimeline
+        , fetchGlobalTimeline
         , fetchUserTimeline
         , postStatus
         , send
@@ -662,8 +662,8 @@ fetchLocalTimeline client =
     fetch client "/api/v1/timelines/public?local=true" <| Decode.list statusDecoder
 
 
-fetchPublicTimeline : Client -> Request (List Status)
-fetchPublicTimeline client =
+fetchGlobalTimeline : Client -> Request (List Status)
+fetchGlobalTimeline client =
     fetch client "/api/v1/timelines/public" <| Decode.list statusDecoder
 
 

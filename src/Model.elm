@@ -37,7 +37,7 @@ type MastodonMsg
     | FavoriteRemoved (Result Mastodon.Error Mastodon.Status)
     | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Notifications (Result Mastodon.Error (List Mastodon.Notification))
-    | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | GlobalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Reblogged (Result Mastodon.Error Mastodon.Status)
     | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | Unreblogged (Result Mastodon.Error Mastodon.Status)
@@ -92,7 +92,7 @@ type alias Model =
     , client : Maybe Mastodon.Client
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
-    , publicTimeline : List Mastodon.Status
+    , globalTimeline : List Mastodon.Status
     , notifications : List Mastodon.NotificationAggregate
     , draft : Draft
     , account : Maybe Mastodon.Account
@@ -134,7 +134,7 @@ init flags location =
         , client = flags.client
         , userTimeline = []
         , localTimeline = []
-        , publicTimeline = []
+        , globalTimeline = []
         , notifications = []
         , draft = defaultDraft
         , account = Nothing
@@ -217,7 +217,7 @@ loadTimelines client =
             Cmd.batch
                 [ Mastodon.fetchUserTimeline client |> Mastodon.send (MastodonEvent << UserTimeline)
                 , Mastodon.fetchLocalTimeline client |> Mastodon.send (MastodonEvent << LocalTimeline)
-                , Mastodon.fetchPublicTimeline client |> Mastodon.send (MastodonEvent << PublicTimeline)
+                , Mastodon.fetchGlobalTimeline client |> Mastodon.send (MastodonEvent << GlobalTimeline)
                 , loadNotifications <| Just client
                 ]
 
@@ -275,7 +275,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
         { model
             | userTimeline = List.map (update flag) model.userTimeline
             , localTimeline = List.map (update flag) model.localTimeline
-            , publicTimeline = List.map (update flag) model.publicTimeline
+            , globalTimeline = List.map (update flag) model.globalTimeline
         }
 
 
@@ -417,13 +417,13 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
 
-        PublicTimeline result ->
+        GlobalTimeline result ->
             case result of
-                Ok publicTimeline ->
-                    { model | publicTimeline = publicTimeline } ! []
+                Ok globalTimeline ->
+                    { model | globalTimeline = globalTimeline } ! []
 
                 Err error ->
-                    { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         Reblogged result ->
             case result of
@@ -434,7 +434,7 @@ processMastodonEvent msg model =
                     { model | errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
-            { model | draft = defaultDraft } ! [ loadTimelines model.client ]
+            { model | draft = defaultDraft } ! []
 
         Unreblogged result ->
             case result of
@@ -601,12 +601,36 @@ update msg model =
                                 { model | errors = (logError "StatusResult" error message) :: model.errors } ! []
 
         NewWebsocketLocalMessage message ->
-            -- @TODO
-            model ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            { model | localTimeline = status :: model.localTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
 
         NewWebsocketGlobalMessage message ->
-            -- @TODO
-            model ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            { model | globalTimeline = status :: model.globalTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
 
 
 subscriptions : Model -> Sub Msg
