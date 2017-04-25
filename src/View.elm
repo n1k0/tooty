@@ -153,9 +153,10 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -239,7 +240,7 @@ accountTimelineView account statuses label iconName =
 statusActionsView : Mastodon.Status -> Html Msg
 statusActionsView status =
     let
-        target =
+        tootTarget =
             Mastodon.extractReblog status
 
         baseBtnClasses =
@@ -248,18 +249,18 @@ statusActionsView status =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", Unreblog target.id )
+                    ( baseBtnClasses ++ " reblogged", Unreblog tootTarget.id )
 
                 _ ->
-                    ( baseBtnClasses, Reblog target.id )
+                    ( baseBtnClasses, Reblog tootTarget.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
                 Just True ->
-                    ( baseBtnClasses ++ " favourited", RemoveFavorite target.id )
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite tootTarget.id )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite target.id )
+                    ( baseBtnClasses, AddFavorite tootTarget.id )
 
         tootDate =
             Date.fromString status.created_at
@@ -272,7 +273,7 @@ statusActionsView status =
             [ a
                 [ class baseBtnClasses
                 , ViewHelper.onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo target)
+                    DraftEvent (UpdateReplyTo tootTarget)
                 ]
                 [ icon "share-alt" ]
             , a
@@ -285,7 +286,12 @@ statusActionsView status =
                 , ViewHelper.onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
-            , a [ class baseBtnClasses ] [ icon "time", formatDate ]
+            , a
+                [ class baseBtnClasses
+                , href status.url
+                , target "_blank"
+                ]
+                [ icon "time", formatDate ]
             ]
 
 
