@@ -541,20 +541,7 @@ update msg model =
                 Mastodon.NotificationResult result ->
                     case result of
                         Ok notification ->
-                            let
-                                {-
-                                   @FIXME: we should add a function to `Mastodon`
-                                   with this typeSignature :
-                                   Notification -> List NotificationAggregate -> List NotificationAggregate
-                                -}
-                                notificationAggregate =
-                                    Mastodon.NotificationAggregate
-                                        notification.type_
-                                        notification.status
-                                        [ notification.account ]
-                                        notification.created_at
-                            in
-                                { model | notifications = notificationAggregate :: model.notifications } ! []
+                            { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []

@@ -27,7 +27,7 @@ all =
                               , created_at = "2017-04-24T20:13:47.431Z"
                               }
                             ]
-            , test "Add notification to aggregate" <|
+            , test "Add follows notification to aggregate" <|
                 \() ->
                     Fixtures.notifications
                         |> Mastodon.aggregateNotifications
@@ -41,6 +41,23 @@ all =
                             , { type_ = "follow"
                               , status = Nothing
                               , accounts = [ Fixtures.accountPloum, Fixtures.accountNico, Fixtures.accountSkro ]
+                              , created_at = "2017-04-24T20:13:47.431Z"
+                              }
+                            ]
+            , test "Add mention notification to aggregate" <|
+                \() ->
+                    Fixtures.notifications
+                        |> Mastodon.aggregateNotifications
+                        |> (Mastodon.addNotificationToAggregates Fixtures.notificationNicoMentionVjousse)
+                        |> Expect.equal
+                            [ { type_ = "mention"
+                              , status = Just Fixtures.statusNicoToVjousse
+                              , accounts = [ Fixtures.accountNico, Fixtures.accountNico ]
+                              , created_at = "2017-04-24T20:16:20.973Z"
+                              }
+                            , { type_ = "follow"
+                              , status = Nothing
+                              , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
                               , created_at = "2017-04-24T20:13:47.431Z"
                               }
                             ]

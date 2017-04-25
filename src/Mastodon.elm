@@ -484,26 +484,50 @@ fetch client endpoint decoder =
 
 addNotificationToAggregates : Notification -> List NotificationAggregate -> List NotificationAggregate
 addNotificationToAggregates notification aggregates =
-    -- @FIXME: WIP
-    aggregates
-        |> List.map
-            (\aggregate ->
-                case aggregate.type_ of
-                    "mention" ->
-                        aggregate
+    let
+        isNotificationTypeInAggregates =
+            aggregates
+                |> List.filter (\a -> a.type_ == notification.type_)
+                |> List.length
+                |> (<) 0
 
-                    "follow" ->
-                        { aggregate | accounts = notification.account :: aggregate.accounts }
+        notificationToAggregate notification =
+            NotificationAggregate
+                notification.type_
+                notification.status
+                [ notification.account ]
+                notification.created_at
+    in
+        if isNotificationTypeInAggregates then
+            aggregates
+                |> List.map
+                    (\aggregate ->
+                        case ( aggregate.type_, notification.type_ ) of
+                            ( "follow", "follow" ) ->
+                                [ { aggregate | accounts = notification.account :: aggregate.accounts } ]
 
-                    "reblog" ->
-                        aggregate
+                            ( _, "follow" ) ->
+                                [ aggregate ]
 
-                    "favorite" ->
-                        aggregate
+                            ( _, _ ) ->
+                                case ( aggregate.status, notification.status ) of
+                                    ( Just aggregateStatus, Just notificationStatus ) ->
+                                        if aggregateStatus.id == notificationStatus.id then
+                                            [ { aggregate | accounts = notification.account :: aggregate.accounts } ]
+                                        else
+                                            [ notificationToAggregate (notification), aggregate ]
 
-                    _ ->
-                        aggregate
-            )
+                                    ( Nothing, Just _ ) ->
+                                        [ aggregate ]
+
+                                    ( _, _ ) ->
+                                        [ notificationToAggregate (notification), aggregate ]
+                    )
+                |> List.concat
+                |> List.sortBy .created_at
+                |> List.reverse
+        else
+            notificationToAggregate (notification) :: aggregates
 
 
 aggregateNotifications : List Notification -> List NotificationAggregate
