@@ -25096,8 +25096,8 @@ var _n1k0$tooty$View$authView = function (model) {
 			}
 		});
 };
-var _n1k0$tooty$View$attachmentPreview = F3(
-	function (sensitive, attachments, _p7) {
+var _n1k0$tooty$View$attachmentPreview = F4(
+	function (timeline, sensitive, attachments, _p7) {
 		var _p8 = _p7;
 		var _p10 = _p8;
 		var media = A2(
@@ -25137,7 +25137,10 @@ var _n1k0$tooty$View$attachmentPreview = F3(
 		var attId = A2(
 			_elm_lang$core$Basics_ops['++'],
 			'att',
-			_elm_lang$core$Basics$toString(_p10.id));
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_elm_lang$core$Basics$toString(_p10.id),
+				timeline));
 		var nsfw = function () {
 			var _p9 = sensitive;
 			if (_p9.ctor === 'Just') {
@@ -25211,134 +25214,139 @@ var _n1k0$tooty$View$attachmentPreview = F3(
 				_1: {ctor: '[]'}
 			});
 	});
-var _n1k0$tooty$View$attachmentListView = function (_p11) {
-	var _p12 = _p11;
-	var _p13 = _p12.media_attachments;
-	if (_p13.ctor === '[]') {
-		return _elm_lang$html$Html$text('');
-	} else {
-		var _p14 = _p13;
-		return A2(
-			_elm_lang$html$Html$ul,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('attachments'),
-				_1: {ctor: '[]'}
-			},
-			A2(
-				_elm_lang$core$List$map,
-				A2(_n1k0$tooty$View$attachmentPreview, _p12.sensitive, _p14),
-				_p14));
-	}
-};
-var _n1k0$tooty$View$statusContentView = function (status) {
-	var _p15 = status.spoiler_text;
-	if (_p15 === '') {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('status-text'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{ctor: '[]'},
-					A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
-				_1: {
+var _n1k0$tooty$View$attachmentListView = F2(
+	function (timeline, _p11) {
+		var _p12 = _p11;
+		var _p13 = _p12.media_attachments;
+		if (_p13.ctor === '[]') {
+			return _elm_lang$html$Html$text('');
+		} else {
+			var _p14 = _p13;
+			return A2(
+				_elm_lang$html$Html$ul,
+				{
 					ctor: '::',
-					_0: _n1k0$tooty$View$attachmentListView(status),
+					_0: _elm_lang$html$Html_Attributes$class('attachments'),
 					_1: {ctor: '[]'}
-				}
-			});
-	} else {
-		var statusId = A2(
-			_elm_lang$core$Basics_ops['++'],
-			'spoiler',
-			_elm_lang$core$Basics$toString(status.id));
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('status-text spoiled'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('spoiler'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html$text(status.spoiler_text),
-						_1: {ctor: '[]'}
-					}),
-				_1: {
+				},
+				A2(
+					_elm_lang$core$List$map,
+					A3(_n1k0$tooty$View$attachmentPreview, timeline, _p12.sensitive, _p14),
+					_p14));
+		}
+	});
+var _n1k0$tooty$View$statusContentView = F2(
+	function (timeline, status) {
+		var _p15 = status.spoiler_text;
+		if (_p15 === '') {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('status-text'),
+					_1: {ctor: '[]'}
+				},
+				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$input,
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
+					_1: {
+						ctor: '::',
+						_0: A2(_n1k0$tooty$View$attachmentListView, timeline, status),
+						_1: {ctor: '[]'}
+					}
+				});
+		} else {
+			var statusId = A2(
+				_elm_lang$core$Basics_ops['++'],
+				'spoiler',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(status.id),
+					timeline));
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('status-text spoiled'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$id(statusId),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('spoiler-toggler'),
-									_1: {ctor: '[]'}
-								}
-							}
+							_0: _elm_lang$html$Html_Attributes$class('spoiler'),
+							_1: {ctor: '[]'}
 						},
-						{ctor: '[]'}),
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(status.spoiler_text),
+							_1: {ctor: '[]'}
+						}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$label,
+							_elm_lang$html$Html$input,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$for(statusId),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id(statusId),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('spoiler-toggler'),
+										_1: {ctor: '[]'}
+									}
+								}
 							},
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Reveal content'),
-								_1: {ctor: '[]'}
-							}),
+							{ctor: '[]'}),
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$html$Html$div,
+								_elm_lang$html$Html$label,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('spoiled-content'),
+									_0: _elm_lang$html$Html_Attributes$for(statusId),
 									_1: {ctor: '[]'}
 								},
 								{
 									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$div,
-										{ctor: '[]'},
-										A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
-									_1: {
-										ctor: '::',
-										_0: _n1k0$tooty$View$attachmentListView(status),
-										_1: {ctor: '[]'}
-									}
+									_0: _elm_lang$html$Html$text('Reveal content'),
+									_1: {ctor: '[]'}
 								}),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('spoiled-content'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$div,
+											{ctor: '[]'},
+											A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
+										_1: {
+											ctor: '::',
+											_0: A2(_n1k0$tooty$View$attachmentListView, timeline, status),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
 						}
 					}
-				}
-			});
-	}
-};
+				});
+		}
+	});
 var _n1k0$tooty$View$accountAvatarLink = function (account) {
 	return A2(
 		_elm_lang$html$Html$a,
@@ -25405,128 +25413,129 @@ var _n1k0$tooty$View$icon = function (name) {
 		},
 		{ctor: '[]'});
 };
-var _n1k0$tooty$View$statusView = function (_p16) {
-	var _p17 = _p16;
-	var _p19 = _p17.account;
-	var accountLinkAttributes = {
-		ctor: '::',
-		_0: _elm_lang$html$Html_Attributes$href(_p19.url),
-		_1: {
+var _n1k0$tooty$View$statusView = F2(
+	function (timeline, _p16) {
+		var _p17 = _p16;
+		var _p19 = _p17.account;
+		var accountLinkAttributes = {
 			ctor: '::',
-			_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-				_n1k0$tooty$Model$OnLoadUserAccount(_p19.id)),
-			_1: {ctor: '[]'}
-		}
-	};
-	var _p18 = _p17.reblog;
-	if (_p18.ctor === 'Just') {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
+			_0: _elm_lang$html$Html_Attributes$href(_p19.url),
+			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('reblog'),
+				_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+					_n1k0$tooty$Model$OnLoadUserAccount(_p19.id)),
 				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$p,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('status-info'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: _n1k0$tooty$View$icon('fire'),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$a,
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									accountLinkAttributes,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('reblogger'),
-										_1: {ctor: '[]'}
-									}),
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(
-										A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(' boosted'),
-								_1: {ctor: '[]'}
-							}
-						}
-					}),
-				_1: {
+			}
+		};
+		var _p18 = _p17.reblog;
+		if (_p18.ctor === 'Just') {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
 					ctor: '::',
-					_0: _n1k0$tooty$View$statusView(_p18._0._0),
+					_0: _elm_lang$html$Html_Attributes$class('reblog'),
 					_1: {ctor: '[]'}
-				}
-			});
-	} else {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('status'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: _n1k0$tooty$View$accountAvatarLink(_p19),
-				_1: {
+				},
+				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
+						_elm_lang$html$Html$p,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('username'),
+							_0: _elm_lang$html$Html_Attributes$class('status-info'),
 							_1: {ctor: '[]'}
 						},
 						{
 							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$a,
-								accountLinkAttributes,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(_p19.display_name),
-									_1: {
+							_0: _n1k0$tooty$View$icon('fire'),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$a,
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										accountLinkAttributes,
+										{
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('reblogger'),
+											_1: {ctor: '[]'}
+										}),
+									{
 										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$span,
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('acct'),
-												_1: {ctor: '[]'}
-											},
-											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text(
-													A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
-												_1: {ctor: '[]'}
-											}),
+										_0: _elm_lang$html$Html$text(
+											A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
 										_1: {ctor: '[]'}
-									}
-								}),
-							_1: {ctor: '[]'}
+									}),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(' boosted'),
+									_1: {ctor: '[]'}
+								}
+							}
 						}),
 					_1: {
 						ctor: '::',
-						_0: _n1k0$tooty$View$statusContentView(_p17),
+						_0: A2(_n1k0$tooty$View$statusView, timeline, _p18._0._0),
 						_1: {ctor: '[]'}
 					}
-				}
-			});
-	}
-};
+				});
+		} else {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('status'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _n1k0$tooty$View$accountAvatarLink(_p19),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('username'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$a,
+									accountLinkAttributes,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(_p19.display_name),
+										_1: {
+											ctor: '::',
+											_0: A2(
+												_elm_lang$html$Html$span,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('acct'),
+													_1: {ctor: '[]'}
+												},
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html$text(
+														A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
+													_1: {ctor: '[]'}
+												}),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(_n1k0$tooty$View$statusContentView, timeline, _p17),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		}
+	});
 var _n1k0$tooty$View$accountTimelineView = F4(
 	function (account, statuses, label, iconName) {
 		return A2(
@@ -25820,7 +25829,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 													},
 													{
 														ctor: '::',
-														_0: _n1k0$tooty$View$statusView(s),
+														_0: A2(_n1k0$tooty$View$statusView, 'account', s),
 														_1: {ctor: '[]'}
 													});
 											},
@@ -25975,33 +25984,34 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 			}
 		});
 };
-var _n1k0$tooty$View$statusEntryView = function (status) {
-	var nsfwClass = function () {
-		var _p24 = status.sensitive;
-		if ((_p24.ctor === 'Just') && (_p24._0 === true)) {
-			return 'nsfw';
-		} else {
-			return '';
-		}
-	}();
-	return A2(
-		_elm_lang$html$Html$li,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class(
-				A2(_elm_lang$core$Basics_ops['++'], 'list-group-item ', nsfwClass)),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _n1k0$tooty$View$statusView(status),
-			_1: {
-				ctor: '::',
-				_0: _n1k0$tooty$View$statusActionsView(status),
-				_1: {ctor: '[]'}
+var _n1k0$tooty$View$statusEntryView = F2(
+	function (timeline, status) {
+		var nsfwClass = function () {
+			var _p24 = status.sensitive;
+			if ((_p24.ctor === 'Just') && (_p24._0 === true)) {
+				return 'nsfw';
+			} else {
+				return '';
 			}
-		});
-};
+		}();
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class(
+					A2(_elm_lang$core$Basics_ops['++'], 'list-group-item ', nsfwClass)),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(_n1k0$tooty$View$statusView, timeline, status),
+				_1: {
+					ctor: '::',
+					_0: _n1k0$tooty$View$statusActionsView(status),
+					_1: {ctor: '[]'}
+				}
+			});
+	});
 var _n1k0$tooty$View$timelineView = F3(
 	function (statuses, label, iconName) {
 		return A2(
@@ -26047,7 +26057,10 @@ var _n1k0$tooty$View$timelineView = F3(
 									_0: _elm_lang$html$Html_Attributes$class('list-group'),
 									_1: {ctor: '[]'}
 								},
-								A2(_elm_lang$core$List$map, _n1k0$tooty$View$statusEntryView, statuses)),
+								A2(
+									_elm_lang$core$List$map,
+									_n1k0$tooty$View$statusEntryView(label),
+									statuses)),
 							_1: {ctor: '[]'}
 						}
 					}),
@@ -26108,8 +26121,8 @@ var _n1k0$tooty$View$notificationHeading = F3(
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationStatusView = F2(
-	function (status, _p25) {
+var _n1k0$tooty$View$notificationStatusView = F3(
+	function (timeline, status, _p25) {
 		var _p26 = _p25;
 		var _p29 = _p26.type_;
 		var _p28 = _p26.accounts;
@@ -26136,7 +26149,7 @@ var _n1k0$tooty$View$notificationStatusView = F2(
 				}(),
 				_1: {
 					ctor: '::',
-					_0: _n1k0$tooty$View$statusView(status),
+					_0: A2(_n1k0$tooty$View$statusView, timeline, status),
 					_1: {
 						ctor: '::',
 						_0: _n1k0$tooty$View$statusActionsView(status),
@@ -26228,7 +26241,7 @@ var _n1k0$tooty$View$notificationEntryView = function (notification) {
 			_0: function () {
 				var _p33 = notification.status;
 				if (_p33.ctor === 'Just') {
-					return A2(_n1k0$tooty$View$notificationStatusView, _p33._0, notification);
+					return A3(_n1k0$tooty$View$notificationStatusView, 'notification', _p33._0, notification);
 				} else {
 					return _n1k0$tooty$View$notificationFollowView(notification);
 				}
@@ -26349,7 +26362,7 @@ var _n1k0$tooty$View$draftReplyToView = function (draft) {
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$statusView(_p34._0),
+							_0: A2(_n1k0$tooty$View$statusView, 'draft', _p34._0),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
