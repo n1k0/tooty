@@ -231,7 +231,12 @@ body {
   word-wrap: break-word;
 }
 
-.ellipsis, .hashtag {
+.hashtag {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.ellipsis {
   display: block;
   overflow: hidden;
   white-space: nowrap;
