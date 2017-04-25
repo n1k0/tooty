@@ -12,7 +12,9 @@ module Mastodon
         , Reblog(..)
         , Status
         , StatusRequestBody
+        , StreamType(..)
         , Tag
+        , WebSocketEventResult(..)
         , reblog
         , unreblog
         , favourite
@@ -22,6 +24,7 @@ module Mastodon
         , registrationEncoder
         , aggregateNotifications
         , clientEncoder
+        , decodeWebSocketMessage
         , getAuthorizationUrl
         , getAccessToken
         , fetchAccount
@@ -31,6 +34,11 @@ module Mastodon
         , fetchUserTimeline
         , postStatus
         , send
+        , subscribeToWebSockets
+        , websocketEventDecoder
+        , notificationDecoder
+        , addNotificationToAggregates
+        , notificationToAggregate
         )
 
 import Http
@@ -38,6 +46,8 @@ import HttpBuilder
 import Json.Decode.Pipeline as Pipe
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Util
+import WebSocket
 import List.Extra exposing (groupWhile)
 
 
@@ -79,6 +89,12 @@ type alias Token =
 type alias Client =
     { server : Server
     , token : Token
+    }
+
+
+type alias WebSocketEvent =
+    { event : String
+    , payload : String
     }
 
 
@@ -209,6 +225,18 @@ type alias StatusRequestBody =
 
 type alias Request a =
     HttpBuilder.RequestBuilder a
+
+
+type WebSocketEventResult a b c
+    = EventError a
+    | NotificationResult b
+    | StatusResult c
+
+
+type StreamType
+    = UserStream
+    | LocalPublicStream
+    | GlobalPublicStream
 
 
 
@@ -367,6 +395,13 @@ statusDecoder =
         |> Pipe.required "visibility" Decode.string
 
 
+websocketEventDecoder : Decode.Decoder WebSocketEvent
+websocketEventDecoder =
+    Pipe.decode WebSocketEvent
+        |> Pipe.required "event" Decode.string
+        |> Pipe.required "payload" Decode.string
+
+
 
 -- Internal helpers
 
@@ -446,6 +481,77 @@ fetch client endpoint decoder =
 
 
 -- Public API
+
+
+notificationToAggregate : Notification -> NotificationAggregate
+notificationToAggregate notification =
+    NotificationAggregate
+        notification.type_
+        notification.status
+        [ notification.account ]
+        notification.created_at
+
+
+addNotificationToAggregates : Notification -> List NotificationAggregate -> List NotificationAggregate
+addNotificationToAggregates notification aggregates =
+    let
+        addNewAccountToSameStatus : NotificationAggregate -> Notification -> NotificationAggregate
+        addNewAccountToSameStatus aggregate notification =
+            case ( aggregate.status, notification.status ) of
+                ( Just aggregateStatus, Just notificationStatus ) ->
+                    if aggregateStatus.id == notificationStatus.id then
+                        { aggregate | accounts = notification.account :: aggregate.accounts }
+                    else
+                        aggregate
+
+                ( _, _ ) ->
+                    aggregate
+
+        {-
+           Let's try to find an already existing aggregate, matching the notification
+           we are trying to add.
+           If we find any aggregate, we modify it inplace. If not, we return the
+           aggregates unmodified
+        -}
+        newAggregates =
+            aggregates
+                |> List.map
+                    (\aggregate ->
+                        case ( aggregate.type_, notification.type_ ) of
+                            {-
+                               Notification and aggregate are of the follow type.
+                               Add the new following account.
+                            -}
+                            ( "follow", "follow" ) ->
+                                { aggregate | accounts = notification.account :: aggregate.accounts }
+
+                            {-
+                               Notification is of type follow, but current aggregate
+                               is of another type. Let's continue then.
+                            -}
+                            ( _, "follow" ) ->
+                                aggregate
+
+                            {-
+                               If both types are the same check if we should
+                               add the new account.
+                            -}
+                            ( aggregateType, notificationType ) ->
+                                if aggregateType == notificationType then
+                                    addNewAccountToSameStatus aggregate notification
+                                else
+                                    aggregate
+                    )
+    in
+        {-
+           If we did no modification to the old aggregates it's
+           because we didn't found any match. So me have to create
+           a new aggregate
+        -}
+        if newAggregates == aggregates then
+            notificationToAggregate (notification) :: aggregates
+        else
+            newAggregates
 
 
 aggregateNotifications : List Notification -> List NotificationAggregate
@@ -600,3 +706,67 @@ unfavourite client id =
     HttpBuilder.post (client.server ++ "/api/v1/statuses/" ++ (toString id) ++ "/unfavourite")
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+subscribeToWebSockets : Client -> StreamType -> (String -> a) -> Sub a
+subscribeToWebSockets client streamType message =
+    let
+        type_ =
+            case streamType of
+                UserStream ->
+                    "user"
+
+                LocalPublicStream ->
+                    "public:local"
+
+                GlobalPublicStream ->
+                    "public:local"
+
+        url =
+            (Util.replace "https" "wss" client.server)
+                ++ "/api/v1/streaming/?access_token="
+                ++ client.token
+                ++ "&stream="
+                ++ type_
+    in
+        WebSocket.listen url message
+
+
+
+{-
+   Sorry for this beast, but the websocket connection return messages
+   containing an escaped JSON string under the `payload` key. This JSON string
+   can either represent a `Notification` when the event field of the returned json
+   is equal to 'notification' or a `Status` when the string is equal to
+   'update'.
+   If someone has a better way of doing this, I'me all for it
+-}
+
+
+decodeWebSocketMessage : String -> WebSocketEventResult String (Result String Notification) (Result String Status)
+decodeWebSocketMessage message =
+    let
+        websocketEvent =
+            Decode.decodeString
+                websocketEventDecoder
+                message
+    in
+        case websocketEvent of
+            Ok event ->
+                if event.event == "notification" then
+                    NotificationResult
+                        (Decode.decodeString
+                            notificationDecoder
+                            event.payload
+                        )
+                else if event.event == "update" then
+                    StatusResult
+                        (Decode.decodeString
+                            statusDecoder
+                            event.payload
+                        )
+                else
+                    EventError "Unknown event type for WebSocket"
+
+            Err error ->
+                EventError error

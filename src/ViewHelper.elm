@@ -3,7 +3,6 @@ module ViewHelper
         ( formatContent
         , getMentionForLink
         , onClickWithPreventAndStop
-        , replace
         , toVirtualDom
         )
 
@@ -14,6 +13,7 @@ import HtmlParser
 import Json.Decode as Decode
 import Mastodon
 import Model exposing (Msg(OnLoadUserAccount))
+import Util
 
 
 -- Custom Events
@@ -34,16 +34,11 @@ onClickWithPreventAndStop msg =
 formatContent : String -> List Mastodon.Mention -> List (Html Msg)
 formatContent content mentions =
     content
-        |> replace " ?" "&nbsp;?"
-        |> replace " !" "&nbsp;!"
-        |> replace " :" "&nbsp;:"
+        |> Util.replace " ?" "&nbsp;?"
+        |> Util.replace " !" "&nbsp;!"
+        |> Util.replace " :" "&nbsp;:"
         |> HtmlParser.parse
         |> toVirtualDom mentions
-
-
-replace : String -> String -> String -> String
-replace from to str =
-    String.split from str |> String.join to
 
 
 {-| Converts nodes to virtual dom nodes.
