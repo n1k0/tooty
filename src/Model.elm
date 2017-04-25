@@ -46,7 +46,7 @@ type
     | NoOp
     | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
-    | PublicTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | GlobalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Reblog Int
     | Reblogged (Result Mastodon.Error Mastodon.Status)
     | Register
@@ -88,7 +88,7 @@ type alias Model =
     , client : Maybe Mastodon.Client
     , userTimeline : List Mastodon.Status
     , localTimeline : List Mastodon.Status
-    , publicTimeline : List Mastodon.Status
+    , globalTimeline : List Mastodon.Status
     , notifications : List Mastodon.NotificationAggregate
     , draft : Draft
     , account : Maybe Mastodon.Account
@@ -130,7 +130,7 @@ init flags location =
         , client = flags.client
         , userTimeline = []
         , localTimeline = []
-        , publicTimeline = []
+        , globalTimeline = []
         , notifications = []
         , draft = defaultDraft
         , account = Nothing
@@ -210,7 +210,7 @@ loadTimelines client =
             Cmd.batch
                 [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
                 , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
-                , Mastodon.fetchPublicTimeline client |> Mastodon.send PublicTimeline
+                , Mastodon.fetchGlobalTimeline client |> Mastodon.send GlobalTimeline
                 , loadNotifications <| Just client
                 ]
 
@@ -268,7 +268,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
         { model
             | userTimeline = List.map (update flag) model.userTimeline
             , localTimeline = List.map (update flag) model.localTimeline
-            , publicTimeline = List.map (update flag) model.publicTimeline
+            , globalTimeline = List.map (update flag) model.globalTimeline
         }
 
 
@@ -509,13 +509,13 @@ update msg model =
                 Err error ->
                     { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
 
-        PublicTimeline result ->
+        GlobalTimeline result ->
             case result of
-                Ok publicTimeline ->
-                    { model | publicTimeline = publicTimeline } ! []
+                Ok globalTimeline ->
+                    { model | globalTimeline = globalTimeline } ! []
 
                 Err error ->
-                    { model | publicTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
 
         UserAccount result ->
             case result of
@@ -529,7 +529,7 @@ update msg model =
             { model | account = Nothing } ! []
 
         StatusPosted _ ->
-            { model | draft = defaultDraft } ! [ loadTimelines model.client ]
+            { model | draft = defaultDraft } ! []
 
         Notifications result ->
             case result of
@@ -561,12 +561,36 @@ update msg model =
                             { model | errors = error :: model.errors } ! []
 
         NewWebsocketLocalMessage message ->
-            -- @TODO
-            model ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            { model | localTimeline = status :: model.localTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
 
         NewWebsocketGlobalMessage message ->
-            -- @TODO
-            model ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.EventError error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusResult result ->
+                    case result of
+                        Ok status ->
+                            { model | globalTimeline = status :: model.globalTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
 
 
 subscriptions : Model -> Sub Msg

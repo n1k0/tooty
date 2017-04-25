@@ -558,7 +558,7 @@ homepageView model =
 
             Nothing ->
                 if model.useGlobalTimeline then
-                    timelineView model.publicTimeline "Global timeline" "globe"
+                    timelineView model.globalTimeline "Global timeline" "globe"
                 else
                     timelineView model.localTimeline "Local timeline" "th-large"
         ]
