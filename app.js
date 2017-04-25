@@ -12337,6 +12337,541 @@ var _elm_lang$navigation$Navigation$onEffects = F4(
 	});
 _elm_lang$core$Native_Platform.effectManagers['Navigation'] = {pkg: 'elm-lang/navigation', init: _elm_lang$navigation$Navigation$init, onEffects: _elm_lang$navigation$Navigation$onEffects, onSelfMsg: _elm_lang$navigation$Navigation$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$navigation$Navigation$cmdMap, subMap: _elm_lang$navigation$Navigation$subMap};
 
+var _elm_lang$websocket$Native_WebSocket = function() {
+
+function open(url, settings)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		try
+		{
+			var socket = new WebSocket(url);
+			socket.elm_web_socket = true;
+		}
+		catch(err)
+		{
+			return callback(_elm_lang$core$Native_Scheduler.fail({
+				ctor: err.name === 'SecurityError' ? 'BadSecurity' : 'BadArgs',
+				_0: err.message
+			}));
+		}
+
+		socket.addEventListener("open", function(event) {
+			callback(_elm_lang$core$Native_Scheduler.succeed(socket));
+		});
+
+		socket.addEventListener("message", function(event) {
+			_elm_lang$core$Native_Scheduler.rawSpawn(A2(settings.onMessage, socket, event.data));
+		});
+
+		socket.addEventListener("close", function(event) {
+			_elm_lang$core$Native_Scheduler.rawSpawn(settings.onClose({
+				code: event.code,
+				reason: event.reason,
+				wasClean: event.wasClean
+			}));
+		});
+
+		return function()
+		{
+			if (socket && socket.close)
+			{
+				socket.close();
+			}
+		};
+	});
+}
+
+function send(socket, string)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
+	{
+		var result =
+			socket.readyState === WebSocket.OPEN
+				? _elm_lang$core$Maybe$Nothing
+				: _elm_lang$core$Maybe$Just({ ctor: 'NotOpen' });
+
+		try
+		{
+			socket.send(string);
+		}
+		catch(err)
+		{
+			result = _elm_lang$core$Maybe$Just({ ctor: 'BadString' });
+		}
+
+		callback(_elm_lang$core$Native_Scheduler.succeed(result));
+	});
+}
+
+function close(code, reason, socket)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+		try
+		{
+			socket.close(code, reason);
+		}
+		catch(err)
+		{
+			return callback(_elm_lang$core$Native_Scheduler.fail(_elm_lang$core$Maybe$Just({
+				ctor: err.name === 'SyntaxError' ? 'BadReason' : 'BadCode'
+			})));
+		}
+		callback(_elm_lang$core$Native_Scheduler.succeed(_elm_lang$core$Maybe$Nothing));
+	});
+}
+
+function bytesQueued(socket)
+{
+	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
+		callback(_elm_lang$core$Native_Scheduler.succeed(socket.bufferedAmount));
+	});
+}
+
+return {
+	open: F2(open),
+	send: F2(send),
+	close: F3(close),
+	bytesQueued: bytesQueued
+};
+
+}();
+
+var _elm_lang$websocket$WebSocket_LowLevel$bytesQueued = _elm_lang$websocket$Native_WebSocket.bytesQueued;
+var _elm_lang$websocket$WebSocket_LowLevel$send = _elm_lang$websocket$Native_WebSocket.send;
+var _elm_lang$websocket$WebSocket_LowLevel$closeWith = _elm_lang$websocket$Native_WebSocket.close;
+var _elm_lang$websocket$WebSocket_LowLevel$close = function (socket) {
+	return A2(
+		_elm_lang$core$Task$map,
+		_elm_lang$core$Basics$always(
+			{ctor: '_Tuple0'}),
+		A3(_elm_lang$websocket$WebSocket_LowLevel$closeWith, 1000, '', socket));
+};
+var _elm_lang$websocket$WebSocket_LowLevel$open = _elm_lang$websocket$Native_WebSocket.open;
+var _elm_lang$websocket$WebSocket_LowLevel$Settings = F2(
+	function (a, b) {
+		return {onMessage: a, onClose: b};
+	});
+var _elm_lang$websocket$WebSocket_LowLevel$WebSocket = {ctor: 'WebSocket'};
+var _elm_lang$websocket$WebSocket_LowLevel$BadArgs = {ctor: 'BadArgs'};
+var _elm_lang$websocket$WebSocket_LowLevel$BadSecurity = {ctor: 'BadSecurity'};
+var _elm_lang$websocket$WebSocket_LowLevel$BadReason = {ctor: 'BadReason'};
+var _elm_lang$websocket$WebSocket_LowLevel$BadCode = {ctor: 'BadCode'};
+var _elm_lang$websocket$WebSocket_LowLevel$BadString = {ctor: 'BadString'};
+var _elm_lang$websocket$WebSocket_LowLevel$NotOpen = {ctor: 'NotOpen'};
+
+var _elm_lang$websocket$WebSocket$closeConnection = function (connection) {
+	var _p0 = connection;
+	if (_p0.ctor === 'Opening') {
+		return _elm_lang$core$Process$kill(_p0._1);
+	} else {
+		return _elm_lang$websocket$WebSocket_LowLevel$close(_p0._0);
+	}
+};
+var _elm_lang$websocket$WebSocket$after = function (backoff) {
+	return (_elm_lang$core$Native_Utils.cmp(backoff, 1) < 0) ? _elm_lang$core$Task$succeed(
+		{ctor: '_Tuple0'}) : _elm_lang$core$Process$sleep(
+		_elm_lang$core$Basics$toFloat(
+			10 * Math.pow(2, backoff)));
+};
+var _elm_lang$websocket$WebSocket$removeQueue = F2(
+	function (name, state) {
+		return _elm_lang$core$Native_Utils.update(
+			state,
+			{
+				queues: A2(_elm_lang$core$Dict$remove, name, state.queues)
+			});
+	});
+var _elm_lang$websocket$WebSocket$updateSocket = F3(
+	function (name, connection, state) {
+		return _elm_lang$core$Native_Utils.update(
+			state,
+			{
+				sockets: A3(_elm_lang$core$Dict$insert, name, connection, state.sockets)
+			});
+	});
+var _elm_lang$websocket$WebSocket$add = F2(
+	function (value, maybeList) {
+		var _p1 = maybeList;
+		if (_p1.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Just(
+				{
+					ctor: '::',
+					_0: value,
+					_1: {ctor: '[]'}
+				});
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				{ctor: '::', _0: value, _1: _p1._0});
+		}
+	});
+var _elm_lang$websocket$WebSocket$buildSubDict = F2(
+	function (subs, dict) {
+		buildSubDict:
+		while (true) {
+			var _p2 = subs;
+			if (_p2.ctor === '[]') {
+				return dict;
+			} else {
+				if (_p2._0.ctor === 'Listen') {
+					var _v3 = _p2._1,
+						_v4 = A3(
+						_elm_lang$core$Dict$update,
+						_p2._0._0,
+						_elm_lang$websocket$WebSocket$add(_p2._0._1),
+						dict);
+					subs = _v3;
+					dict = _v4;
+					continue buildSubDict;
+				} else {
+					var _v5 = _p2._1,
+						_v6 = A3(
+						_elm_lang$core$Dict$update,
+						_p2._0._0,
+						function (_p3) {
+							return _elm_lang$core$Maybe$Just(
+								A2(
+									_elm_lang$core$Maybe$withDefault,
+									{ctor: '[]'},
+									_p3));
+						},
+						dict);
+					subs = _v5;
+					dict = _v6;
+					continue buildSubDict;
+				}
+			}
+		}
+	});
+var _elm_lang$websocket$WebSocket_ops = _elm_lang$websocket$WebSocket_ops || {};
+_elm_lang$websocket$WebSocket_ops['&>'] = F2(
+	function (t1, t2) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			function (_p4) {
+				return t2;
+			},
+			t1);
+	});
+var _elm_lang$websocket$WebSocket$sendMessagesHelp = F3(
+	function (cmds, socketsDict, queuesDict) {
+		sendMessagesHelp:
+		while (true) {
+			var _p5 = cmds;
+			if (_p5.ctor === '[]') {
+				return _elm_lang$core$Task$succeed(queuesDict);
+			} else {
+				var _p9 = _p5._1;
+				var _p8 = _p5._0._0;
+				var _p7 = _p5._0._1;
+				var _p6 = A2(_elm_lang$core$Dict$get, _p8, socketsDict);
+				if ((_p6.ctor === 'Just') && (_p6._0.ctor === 'Connected')) {
+					return A2(
+						_elm_lang$websocket$WebSocket_ops['&>'],
+						A2(_elm_lang$websocket$WebSocket_LowLevel$send, _p6._0._0, _p7),
+						A3(_elm_lang$websocket$WebSocket$sendMessagesHelp, _p9, socketsDict, queuesDict));
+				} else {
+					var _v9 = _p9,
+						_v10 = socketsDict,
+						_v11 = A3(
+						_elm_lang$core$Dict$update,
+						_p8,
+						_elm_lang$websocket$WebSocket$add(_p7),
+						queuesDict);
+					cmds = _v9;
+					socketsDict = _v10;
+					queuesDict = _v11;
+					continue sendMessagesHelp;
+				}
+			}
+		}
+	});
+var _elm_lang$websocket$WebSocket$subscription = _elm_lang$core$Native_Platform.leaf('WebSocket');
+var _elm_lang$websocket$WebSocket$command = _elm_lang$core$Native_Platform.leaf('WebSocket');
+var _elm_lang$websocket$WebSocket$State = F3(
+	function (a, b, c) {
+		return {sockets: a, queues: b, subs: c};
+	});
+var _elm_lang$websocket$WebSocket$init = _elm_lang$core$Task$succeed(
+	A3(_elm_lang$websocket$WebSocket$State, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty, _elm_lang$core$Dict$empty));
+var _elm_lang$websocket$WebSocket$Send = F2(
+	function (a, b) {
+		return {ctor: 'Send', _0: a, _1: b};
+	});
+var _elm_lang$websocket$WebSocket$send = F2(
+	function (url, message) {
+		return _elm_lang$websocket$WebSocket$command(
+			A2(_elm_lang$websocket$WebSocket$Send, url, message));
+	});
+var _elm_lang$websocket$WebSocket$cmdMap = F2(
+	function (_p11, _p10) {
+		var _p12 = _p10;
+		return A2(_elm_lang$websocket$WebSocket$Send, _p12._0, _p12._1);
+	});
+var _elm_lang$websocket$WebSocket$KeepAlive = function (a) {
+	return {ctor: 'KeepAlive', _0: a};
+};
+var _elm_lang$websocket$WebSocket$keepAlive = function (url) {
+	return _elm_lang$websocket$WebSocket$subscription(
+		_elm_lang$websocket$WebSocket$KeepAlive(url));
+};
+var _elm_lang$websocket$WebSocket$Listen = F2(
+	function (a, b) {
+		return {ctor: 'Listen', _0: a, _1: b};
+	});
+var _elm_lang$websocket$WebSocket$listen = F2(
+	function (url, tagger) {
+		return _elm_lang$websocket$WebSocket$subscription(
+			A2(_elm_lang$websocket$WebSocket$Listen, url, tagger));
+	});
+var _elm_lang$websocket$WebSocket$subMap = F2(
+	function (func, sub) {
+		var _p13 = sub;
+		if (_p13.ctor === 'Listen') {
+			return A2(
+				_elm_lang$websocket$WebSocket$Listen,
+				_p13._0,
+				function (_p14) {
+					return func(
+						_p13._1(_p14));
+				});
+		} else {
+			return _elm_lang$websocket$WebSocket$KeepAlive(_p13._0);
+		}
+	});
+var _elm_lang$websocket$WebSocket$Connected = function (a) {
+	return {ctor: 'Connected', _0: a};
+};
+var _elm_lang$websocket$WebSocket$Opening = F2(
+	function (a, b) {
+		return {ctor: 'Opening', _0: a, _1: b};
+	});
+var _elm_lang$websocket$WebSocket$BadOpen = function (a) {
+	return {ctor: 'BadOpen', _0: a};
+};
+var _elm_lang$websocket$WebSocket$GoodOpen = F2(
+	function (a, b) {
+		return {ctor: 'GoodOpen', _0: a, _1: b};
+	});
+var _elm_lang$websocket$WebSocket$Die = function (a) {
+	return {ctor: 'Die', _0: a};
+};
+var _elm_lang$websocket$WebSocket$Receive = F2(
+	function (a, b) {
+		return {ctor: 'Receive', _0: a, _1: b};
+	});
+var _elm_lang$websocket$WebSocket$open = F2(
+	function (name, router) {
+		return A2(
+			_elm_lang$websocket$WebSocket_LowLevel$open,
+			name,
+			{
+				onMessage: F2(
+					function (_p15, msg) {
+						return A2(
+							_elm_lang$core$Platform$sendToSelf,
+							router,
+							A2(_elm_lang$websocket$WebSocket$Receive, name, msg));
+					}),
+				onClose: function (details) {
+					return A2(
+						_elm_lang$core$Platform$sendToSelf,
+						router,
+						_elm_lang$websocket$WebSocket$Die(name));
+				}
+			});
+	});
+var _elm_lang$websocket$WebSocket$attemptOpen = F3(
+	function (router, backoff, name) {
+		var badOpen = function (_p16) {
+			return A2(
+				_elm_lang$core$Platform$sendToSelf,
+				router,
+				_elm_lang$websocket$WebSocket$BadOpen(name));
+		};
+		var goodOpen = function (ws) {
+			return A2(
+				_elm_lang$core$Platform$sendToSelf,
+				router,
+				A2(_elm_lang$websocket$WebSocket$GoodOpen, name, ws));
+		};
+		var actuallyAttemptOpen = A2(
+			_elm_lang$core$Task$onError,
+			badOpen,
+			A2(
+				_elm_lang$core$Task$andThen,
+				goodOpen,
+				A2(_elm_lang$websocket$WebSocket$open, name, router)));
+		return _elm_lang$core$Process$spawn(
+			A2(
+				_elm_lang$websocket$WebSocket_ops['&>'],
+				_elm_lang$websocket$WebSocket$after(backoff),
+				actuallyAttemptOpen));
+	});
+var _elm_lang$websocket$WebSocket$onEffects = F4(
+	function (router, cmds, subs, state) {
+		var newSubs = A2(_elm_lang$websocket$WebSocket$buildSubDict, subs, _elm_lang$core$Dict$empty);
+		var cleanup = function (newQueues) {
+			var rightStep = F3(
+				function (name, connection, getNewSockets) {
+					return A2(
+						_elm_lang$websocket$WebSocket_ops['&>'],
+						_elm_lang$websocket$WebSocket$closeConnection(connection),
+						getNewSockets);
+				});
+			var bothStep = F4(
+				function (name, _p17, connection, getNewSockets) {
+					return A2(
+						_elm_lang$core$Task$map,
+						A2(_elm_lang$core$Dict$insert, name, connection),
+						getNewSockets);
+				});
+			var leftStep = F3(
+				function (name, _p18, getNewSockets) {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						function (newSockets) {
+							return A2(
+								_elm_lang$core$Task$andThen,
+								function (pid) {
+									return _elm_lang$core$Task$succeed(
+										A3(
+											_elm_lang$core$Dict$insert,
+											name,
+											A2(_elm_lang$websocket$WebSocket$Opening, 0, pid),
+											newSockets));
+								},
+								A3(_elm_lang$websocket$WebSocket$attemptOpen, router, 0, name));
+						},
+						getNewSockets);
+				});
+			var newEntries = A2(
+				_elm_lang$core$Dict$union,
+				newQueues,
+				A2(
+					_elm_lang$core$Dict$map,
+					F2(
+						function (k, v) {
+							return {ctor: '[]'};
+						}),
+					newSubs));
+			var collectNewSockets = A6(
+				_elm_lang$core$Dict$merge,
+				leftStep,
+				bothStep,
+				rightStep,
+				newEntries,
+				state.sockets,
+				_elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty));
+			return A2(
+				_elm_lang$core$Task$andThen,
+				function (newSockets) {
+					return _elm_lang$core$Task$succeed(
+						A3(_elm_lang$websocket$WebSocket$State, newSockets, newQueues, newSubs));
+				},
+				collectNewSockets);
+		};
+		var sendMessagesGetNewQueues = A3(_elm_lang$websocket$WebSocket$sendMessagesHelp, cmds, state.sockets, state.queues);
+		return A2(_elm_lang$core$Task$andThen, cleanup, sendMessagesGetNewQueues);
+	});
+var _elm_lang$websocket$WebSocket$onSelfMsg = F3(
+	function (router, selfMsg, state) {
+		var _p19 = selfMsg;
+		switch (_p19.ctor) {
+			case 'Receive':
+				var sends = A2(
+					_elm_lang$core$List$map,
+					function (tagger) {
+						return A2(
+							_elm_lang$core$Platform$sendToApp,
+							router,
+							tagger(_p19._1));
+					},
+					A2(
+						_elm_lang$core$Maybe$withDefault,
+						{ctor: '[]'},
+						A2(_elm_lang$core$Dict$get, _p19._0, state.subs)));
+				return A2(
+					_elm_lang$websocket$WebSocket_ops['&>'],
+					_elm_lang$core$Task$sequence(sends),
+					_elm_lang$core$Task$succeed(state));
+			case 'Die':
+				var _p21 = _p19._0;
+				var _p20 = A2(_elm_lang$core$Dict$get, _p21, state.sockets);
+				if (_p20.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(state);
+				} else {
+					return A2(
+						_elm_lang$core$Task$andThen,
+						function (pid) {
+							return _elm_lang$core$Task$succeed(
+								A3(
+									_elm_lang$websocket$WebSocket$updateSocket,
+									_p21,
+									A2(_elm_lang$websocket$WebSocket$Opening, 0, pid),
+									state));
+						},
+						A3(_elm_lang$websocket$WebSocket$attemptOpen, router, 0, _p21));
+				}
+			case 'GoodOpen':
+				var _p24 = _p19._1;
+				var _p23 = _p19._0;
+				var _p22 = A2(_elm_lang$core$Dict$get, _p23, state.queues);
+				if (_p22.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(
+						A3(
+							_elm_lang$websocket$WebSocket$updateSocket,
+							_p23,
+							_elm_lang$websocket$WebSocket$Connected(_p24),
+							state));
+				} else {
+					return A3(
+						_elm_lang$core$List$foldl,
+						F2(
+							function (msg, task) {
+								return A2(
+									_elm_lang$websocket$WebSocket_ops['&>'],
+									A2(_elm_lang$websocket$WebSocket_LowLevel$send, _p24, msg),
+									task);
+							}),
+						_elm_lang$core$Task$succeed(
+							A2(
+								_elm_lang$websocket$WebSocket$removeQueue,
+								_p23,
+								A3(
+									_elm_lang$websocket$WebSocket$updateSocket,
+									_p23,
+									_elm_lang$websocket$WebSocket$Connected(_p24),
+									state))),
+						_p22._0);
+				}
+			default:
+				var _p27 = _p19._0;
+				var _p25 = A2(_elm_lang$core$Dict$get, _p27, state.sockets);
+				if (_p25.ctor === 'Nothing') {
+					return _elm_lang$core$Task$succeed(state);
+				} else {
+					if (_p25._0.ctor === 'Opening') {
+						var _p26 = _p25._0._0;
+						return A2(
+							_elm_lang$core$Task$andThen,
+							function (pid) {
+								return _elm_lang$core$Task$succeed(
+									A3(
+										_elm_lang$websocket$WebSocket$updateSocket,
+										_p27,
+										A2(_elm_lang$websocket$WebSocket$Opening, _p26 + 1, pid),
+										state));
+							},
+							A3(_elm_lang$websocket$WebSocket$attemptOpen, router, _p26 + 1, _p27));
+					} else {
+						return _elm_lang$core$Task$succeed(state);
+					}
+				}
+		}
+	});
+_elm_lang$core$Native_Platform.effectManagers['WebSocket'] = {pkg: 'elm-lang/websocket', init: _elm_lang$websocket$WebSocket$init, onEffects: _elm_lang$websocket$WebSocket$onEffects, onSelfMsg: _elm_lang$websocket$WebSocket$onSelfMsg, tag: 'fx', cmdMap: _elm_lang$websocket$WebSocket$cmdMap, subMap: _elm_lang$websocket$WebSocket$subMap};
+
 var _jinjor$elm_html_parser$Escape$dict = _elm_lang$core$Dict$fromList(
 	A2(
 		_elm_lang$core$Basics_ops['++'],
@@ -21705,6 +22240,39 @@ var _lukewestby$elm_http_builder$HttpBuilder$RequestBuilder = F9(
 		return {method: a, headers: b, url: c, body: d, expect: e, timeout: f, withCredentials: g, queryParams: h, cacheBuster: i};
 	});
 
+var _n1k0$tooty$Util$replace = F3(
+	function (from, to, str) {
+		return A2(
+			_elm_lang$core$String$join,
+			to,
+			A2(_elm_lang$core$String$split, from, str));
+	});
+
+var _n1k0$tooty$Mastodon$subscribeToWebSockets = F3(
+	function (client, streamType, message) {
+		var type_ = function () {
+			var _p0 = streamType;
+			switch (_p0.ctor) {
+				case 'UserStream':
+					return 'user';
+				case 'LocalPublicStream':
+					return 'public:local';
+				default:
+					return 'public:local';
+			}
+		}();
+		var url = A2(
+			_elm_lang$core$Basics_ops['++'],
+			A3(_n1k0$tooty$Util$replace, 'https', 'wss', client.server),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'/api/v1/streaming/?access_token=',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					client.token,
+					A2(_elm_lang$core$Basics_ops['++'], '&stream=', type_))));
+		return A2(_elm_lang$websocket$WebSocket$listen, url, message);
+	});
 var _n1k0$tooty$Mastodon$registrationEncoder = function (registration) {
 	return _elm_lang$core$Json_Encode$object(
 		{
@@ -21790,9 +22358,9 @@ var _n1k0$tooty$Mastodon$fetch = F3(
 					A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint))));
 	});
 var _n1k0$tooty$Mastodon$extractReblog = function (status) {
-	var _p0 = status.reblog;
-	if (_p0.ctor === 'Just') {
-		return _p0._0._0;
+	var _p1 = status.reblog;
+	if (_p1.ctor === 'Just') {
+		return _p1._0._0;
 	} else {
 		return status;
 	}
@@ -21811,15 +22379,15 @@ var _n1k0$tooty$Mastodon$encodeUrl = F2(
 				'&',
 				A2(
 					_elm_lang$core$List$map,
-					function (_p1) {
-						var _p2 = _p1;
+					function (_p2) {
+						var _p3 = _p2;
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p2._0,
+							_p3._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'=',
-								_elm_lang$http$Http$encodeUri(_p2._1)));
+								_elm_lang$http$Http$encodeUri(_p3._1)));
 					},
 					params)));
 	});
@@ -21847,11 +22415,11 @@ var _n1k0$tooty$Mastodon$getAuthorizationUrl = function (registration) {
 };
 var _n1k0$tooty$Mastodon$encodeMaybe = F2(
 	function (encode, thing) {
-		var _p3 = thing;
-		if (_p3.ctor === 'Nothing') {
+		var _p4 = thing;
+		if (_p4.ctor === 'Nothing') {
 			return _elm_lang$core$Json_Encode$null;
 		} else {
-			return encode(_p3._0);
+			return encode(_p4._0);
 		}
 	});
 var _n1k0$tooty$Mastodon$statusRequestBodyEncoder = function (statusData) {
@@ -21984,6 +22552,19 @@ var _n1k0$tooty$Mastodon$Client = F2(
 	function (a, b) {
 		return {server: a, token: b};
 	});
+var _n1k0$tooty$Mastodon$WebSocketEvent = F2(
+	function (a, b) {
+		return {event: a, payload: b};
+	});
+var _n1k0$tooty$Mastodon$websocketEventDecoder = A3(
+	_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+	'payload',
+	_elm_lang$core$Json_Decode$string,
+	A3(
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$required,
+		'event',
+		_elm_lang$core$Json_Decode$string,
+		_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon$WebSocketEvent)));
 var _n1k0$tooty$Mastodon$AppRegistration = F6(
 	function (a, b, c, d, e, f) {
 		return {server: a, scope: b, client_id: c, client_secret: d, id: e, redirect_uri: f};
@@ -22175,6 +22756,58 @@ var _n1k0$tooty$Mastodon$NotificationAggregate = F4(
 	function (a, b, c, d) {
 		return {type_: a, status: b, accounts: c, created_at: d};
 	});
+var _n1k0$tooty$Mastodon$notificationToAggregate = function (notification) {
+	return A4(
+		_n1k0$tooty$Mastodon$NotificationAggregate,
+		notification.type_,
+		notification.status,
+		{
+			ctor: '::',
+			_0: notification.account,
+			_1: {ctor: '[]'}
+		},
+		notification.created_at);
+};
+var _n1k0$tooty$Mastodon$addNotificationToAggregates = F2(
+	function (notification, aggregates) {
+		var addNewAccountToSameStatus = F2(
+			function (aggregate, notification) {
+				var _p5 = {ctor: '_Tuple2', _0: aggregate.status, _1: notification.status};
+				if ((_p5._0.ctor === 'Just') && (_p5._1.ctor === 'Just')) {
+					return _elm_lang$core$Native_Utils.eq(_p5._0._0.id, _p5._1._0.id) ? _elm_lang$core$Native_Utils.update(
+						aggregate,
+						{
+							accounts: {ctor: '::', _0: notification.account, _1: aggregate.accounts}
+						}) : aggregate;
+				} else {
+					return aggregate;
+				}
+			});
+		var newAggregates = A2(
+			_elm_lang$core$List$map,
+			function (aggregate) {
+				var _p6 = {ctor: '_Tuple2', _0: aggregate.type_, _1: notification.type_};
+				if (_p6._1 === 'follow') {
+					if (_p6._0 === 'follow') {
+						return _elm_lang$core$Native_Utils.update(
+							aggregate,
+							{
+								accounts: {ctor: '::', _0: notification.account, _1: aggregate.accounts}
+							});
+					} else {
+						return aggregate;
+					}
+				} else {
+					return _elm_lang$core$Native_Utils.eq(_p6._0, _p6._1) ? A2(addNewAccountToSameStatus, aggregate, notification) : aggregate;
+				}
+			},
+			aggregates);
+		return _elm_lang$core$Native_Utils.eq(newAggregates, aggregates) ? {
+			ctor: '::',
+			_0: _n1k0$tooty$Mastodon$notificationToAggregate(notification),
+			_1: aggregates
+		} : newAggregates;
+	});
 var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 	var extractAggregate = function (statusGroup) {
 		var accounts = A2(
@@ -22183,12 +22816,12 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 				return _.account;
 			},
 			statusGroup);
-		var _p4 = statusGroup;
-		if (_p4.ctor === '::') {
-			var _p5 = _p4._0;
+		var _p7 = statusGroup;
+		if (_p7.ctor === '::') {
+			var _p8 = _p7._0;
 			return {
 				ctor: '::',
-				_0: A4(_n1k0$tooty$Mastodon$NotificationAggregate, _p5.type_, _p5.status, accounts, _p5.created_at),
+				_0: A4(_n1k0$tooty$Mastodon$NotificationAggregate, _p8.type_, _p8.status, accounts, _p8.created_at),
 				_1: {ctor: '[]'}
 			};
 		} else {
@@ -22201,9 +22834,9 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 	};
 	var sameStatus = F2(
 		function (n1, n2) {
-			var _p6 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
-			if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
-				return _elm_lang$core$Native_Utils.eq(_p6._0._0.id, _p6._1._0.id);
+			var _p9 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
+			if (((_p9.ctor === '_Tuple2') && (_p9._0.ctor === 'Just')) && (_p9._1.ctor === 'Just')) {
+				return _elm_lang$core$Native_Utils.eq(_p9._0._0.id, _p9._1._0.id);
 			} else {
 				return false;
 			}
@@ -22251,7 +22884,7 @@ var _n1k0$tooty$Mastodon$aggregateNotifications = function (notifications) {
 									A2(
 										_elm_community$list_extra$List_Extra$groupWhile,
 										F2(
-											function (_p8, _p7) {
+											function (_p11, _p10) {
 												return true;
 											}),
 										A2(only, 'follow', notifications))),
@@ -22355,26 +22988,26 @@ var _n1k0$tooty$Mastodon$MastodonError = F3(
 	});
 var _n1k0$tooty$Mastodon$extractMastodonError = F3(
 	function (statusCode, statusMsg, body) {
-		var _p9 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
-		if (_p9.ctor === 'Ok') {
-			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p9._0);
+		var _p12 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$mastodonErrorDecoder, body);
+		if (_p12.ctor === 'Ok') {
+			return A3(_n1k0$tooty$Mastodon$MastodonError, statusCode, statusMsg, _p12._0);
 		} else {
-			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p9._0);
+			return A3(_n1k0$tooty$Mastodon$ServerError, statusCode, statusMsg, _p12._0);
 		}
 	});
 var _n1k0$tooty$Mastodon$extractError = function (error) {
-	var _p10 = error;
-	switch (_p10.ctor) {
+	var _p13 = error;
+	switch (_p13.ctor) {
 		case 'BadStatus':
-			var _p11 = _p10._0.status;
-			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p11.code, _p11.message, _p10._0.body);
+			var _p14 = _p13._0.status;
+			return A3(_n1k0$tooty$Mastodon$extractMastodonError, _p14.code, _p14.message, _p13._0.body);
 		case 'BadPayload':
-			var _p12 = _p10._1.status;
+			var _p15 = _p13._1.status;
 			return A3(
 				_n1k0$tooty$Mastodon$ServerError,
-				_p12.code,
-				_p12.message,
-				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p10._0));
+				_p15.code,
+				_p15.message,
+				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p13._0));
 		case 'Timeout':
 			return _n1k0$tooty$Mastodon$TimeoutError;
 		default:
@@ -22388,9 +23021,9 @@ var _n1k0$tooty$Mastodon$send = F2(
 	function (tagger, builder) {
 		return A2(
 			_lukewestby$elm_http_builder$HttpBuilder$send,
-			function (_p13) {
+			function (_p16) {
 				return tagger(
-					_n1k0$tooty$Mastodon$toResponse(_p13));
+					_n1k0$tooty$Mastodon$toResponse(_p16));
 			},
 			builder);
 	});
@@ -22401,7 +23034,7 @@ var _n1k0$tooty$Mastodon$reblogDecoder = A2(
 	_elm_lang$core$Json_Decode$map,
 	_n1k0$tooty$Mastodon$Reblog,
 	_elm_lang$core$Json_Decode$lazy(
-		function (_p14) {
+		function (_p17) {
 			return _n1k0$tooty$Mastodon$statusDecoder;
 		}));
 var _n1k0$tooty$Mastodon$statusDecoder = A3(
@@ -22633,6 +23266,30 @@ var _n1k0$tooty$Mastodon$unfavourite = F2(
 								_elm_lang$core$Basics$toString(id),
 								'/unfavourite'))))));
 	});
+var _n1k0$tooty$Mastodon$StatusResult = function (a) {
+	return {ctor: 'StatusResult', _0: a};
+};
+var _n1k0$tooty$Mastodon$NotificationResult = function (a) {
+	return {ctor: 'NotificationResult', _0: a};
+};
+var _n1k0$tooty$Mastodon$EventError = function (a) {
+	return {ctor: 'EventError', _0: a};
+};
+var _n1k0$tooty$Mastodon$decodeWebSocketMessage = function (message) {
+	var websocketEvent = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$websocketEventDecoder, message);
+	var _p18 = websocketEvent;
+	if (_p18.ctor === 'Ok') {
+		var _p19 = _p18._0;
+		return _elm_lang$core$Native_Utils.eq(_p19.event, 'notification') ? _n1k0$tooty$Mastodon$NotificationResult(
+			A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$notificationDecoder, _p19.payload)) : (_elm_lang$core$Native_Utils.eq(_p19.event, 'update') ? _n1k0$tooty$Mastodon$StatusResult(
+			A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon$statusDecoder, _p19.payload)) : _n1k0$tooty$Mastodon$EventError('Unknown event type for WebSocket'));
+	} else {
+		return _n1k0$tooty$Mastodon$EventError(_p18._0);
+	}
+};
+var _n1k0$tooty$Mastodon$GlobalPublicStream = {ctor: 'GlobalPublicStream'};
+var _n1k0$tooty$Mastodon$LocalPublicStream = {ctor: 'LocalPublicStream'};
+var _n1k0$tooty$Mastodon$UserStream = {ctor: 'UserStream'};
 var _n1k0$tooty$Mastodon$Result = F2(
 	function (a, b) {
 		return {ctor: 'Result', _0: a, _1: b};
@@ -22864,6 +23521,42 @@ var _n1k0$tooty$Model$CloseViewer = {ctor: 'CloseViewer'};
 var _n1k0$tooty$Model$ViewerEvent = function (a) {
 	return {ctor: 'ViewerEvent', _0: a};
 };
+var _n1k0$tooty$Model$NewWebsocketLocalMessage = function (a) {
+	return {ctor: 'NewWebsocketLocalMessage', _0: a};
+};
+var _n1k0$tooty$Model$NewWebsocketGlobalMessage = function (a) {
+	return {ctor: 'NewWebsocketGlobalMessage', _0: a};
+};
+var _n1k0$tooty$Model$NewWebsocketUserMessage = function (a) {
+	return {ctor: 'NewWebsocketUserMessage', _0: a};
+};
+var _n1k0$tooty$Model$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$batch(
+		function () {
+			var _p6 = model.client;
+			if (_p6.ctor === 'Just') {
+				var _p7 = _p6._0;
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					{
+						ctor: '::',
+						_0: A3(_n1k0$tooty$Mastodon$subscribeToWebSockets, _p7, _n1k0$tooty$Mastodon$UserStream, _n1k0$tooty$Model$NewWebsocketUserMessage),
+						_1: {ctor: '[]'}
+					},
+					model.useGlobalTimeline ? {
+						ctor: '::',
+						_0: A3(_n1k0$tooty$Mastodon$subscribeToWebSockets, _p7, _n1k0$tooty$Mastodon$GlobalPublicStream, _n1k0$tooty$Model$NewWebsocketGlobalMessage),
+						_1: {ctor: '[]'}
+					} : {
+						ctor: '::',
+						_0: A3(_n1k0$tooty$Mastodon$subscribeToWebSockets, _p7, _n1k0$tooty$Mastodon$LocalPublicStream, _n1k0$tooty$Model$NewWebsocketLocalMessage),
+						_1: {ctor: '[]'}
+					});
+			} else {
+				return {ctor: '[]'};
+			}
+		}());
+};
 var _n1k0$tooty$Model$UserTimeline = function (a) {
 	return {ctor: 'UserTimeline', _0: a};
 };
@@ -22917,12 +23610,12 @@ var _n1k0$tooty$Model$Notifications = function (a) {
 	return {ctor: 'Notifications', _0: a};
 };
 var _n1k0$tooty$Model$loadNotifications = function (client) {
-	var _p6 = client;
-	if (_p6.ctor === 'Just') {
+	var _p8 = client;
+	if (_p8.ctor === 'Just') {
 		return A2(
 			_n1k0$tooty$Mastodon$send,
 			_n1k0$tooty$Model$Notifications,
-			_n1k0$tooty$Mastodon$fetchNotifications(_p6._0));
+			_n1k0$tooty$Mastodon$fetchNotifications(_p8._0));
 	} else {
 		return _elm_lang$core$Platform_Cmd$none;
 	}
@@ -22930,8 +23623,8 @@ var _n1k0$tooty$Model$loadNotifications = function (client) {
 var _n1k0$tooty$Model$NoOp = {ctor: 'NoOp'};
 var _n1k0$tooty$Model$updateDraft = F2(
 	function (draftMsg, draft) {
-		var _p7 = draftMsg;
-		switch (_p7.ctor) {
+		var _p9 = draftMsg;
+		switch (_p9.ctor) {
 			case 'ClearDraft':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -22943,7 +23636,7 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							spoiler_text: _p7._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
+							spoiler_text: _p9._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
 						}),
 					{ctor: '[]'});
 			case 'UpdateSensitive':
@@ -22951,7 +23644,7 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{sensitive: _p7._0}),
+						{sensitive: _p9._0}),
 					{ctor: '[]'});
 			case 'UpdateSpoiler':
 				return A2(
@@ -22959,7 +23652,7 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							spoiler_text: _elm_lang$core$Maybe$Just(_p7._0)
+							spoiler_text: _elm_lang$core$Maybe$Just(_p9._0)
 						}),
 					{ctor: '[]'});
 			case 'UpdateStatus':
@@ -22967,24 +23660,24 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{status: _p7._0}),
+						{status: _p9._0}),
 					{ctor: '[]'});
 			case 'UpdateVisibility':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{visibility: _p7._0}),
+						{visibility: _p9._0}),
 					{ctor: '[]'});
 			case 'UpdateReplyTo':
-				var _p8 = _p7._0;
-				var mention = A2(_elm_lang$core$Basics_ops['++'], '@', _p8.account.acct);
+				var _p10 = _p9._0;
+				var mention = A2(_elm_lang$core$Basics_ops['++'], '@', _p10.account.acct);
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							in_reply_to: _elm_lang$core$Maybe$Just(_p8),
+							in_reply_to: _elm_lang$core$Maybe$Just(_p10),
 							status: A2(_elm_lang$core$String$startsWith, mention, draft.status) ? draft.status : A2(
 								_elm_lang$core$Basics_ops['++'],
 								mention,
@@ -23011,32 +23704,32 @@ var _n1k0$tooty$Model$LocalTimeline = function (a) {
 	return {ctor: 'LocalTimeline', _0: a};
 };
 var _n1k0$tooty$Model$loadTimelines = function (client) {
-	var _p9 = client;
-	if (_p9.ctor === 'Just') {
-		var _p10 = _p9._0;
+	var _p11 = client;
+	if (_p11.ctor === 'Just') {
+		var _p12 = _p11._0;
 		return _elm_lang$core$Platform_Cmd$batch(
 			{
 				ctor: '::',
 				_0: A2(
 					_n1k0$tooty$Mastodon$send,
 					_n1k0$tooty$Model$UserTimeline,
-					_n1k0$tooty$Mastodon$fetchUserTimeline(_p10)),
+					_n1k0$tooty$Mastodon$fetchUserTimeline(_p12)),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_n1k0$tooty$Mastodon$send,
 						_n1k0$tooty$Model$LocalTimeline,
-						_n1k0$tooty$Mastodon$fetchLocalTimeline(_p10)),
+						_n1k0$tooty$Mastodon$fetchLocalTimeline(_p12)),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_n1k0$tooty$Mastodon$send,
 							_n1k0$tooty$Model$PublicTimeline,
-							_n1k0$tooty$Mastodon$fetchPublicTimeline(_p10)),
+							_n1k0$tooty$Mastodon$fetchPublicTimeline(_p12)),
 						_1: {
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(
-								_elm_lang$core$Maybe$Just(_p10)),
+								_elm_lang$core$Maybe$Just(_p12)),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -23058,12 +23751,12 @@ var _n1k0$tooty$Model$DraftEvent = function (a) {
 var _n1k0$tooty$Model$AppRegistered = function (a) {
 	return {ctor: 'AppRegistered', _0: a};
 };
-var _n1k0$tooty$Model$registerApp = function (_p11) {
-	var _p12 = _p11;
-	var _p14 = _p12.server;
-	var _p13 = _p12.location;
-	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p14) ? A2(_elm_lang$core$String$dropRight, 1, _p14) : _p14;
-	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p13.origin, _p13.pathname);
+var _n1k0$tooty$Model$registerApp = function (_p13) {
+	var _p14 = _p13;
+	var _p16 = _p14.server;
+	var _p15 = _p14.location;
+	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p16) ? A2(_elm_lang$core$String$dropRight, 1, _p16) : _p16;
+	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p15.origin, _p15.pathname);
 	return A2(
 		_n1k0$tooty$Mastodon$send,
 		_n1k0$tooty$Model$AppRegistered,
@@ -23071,8 +23764,8 @@ var _n1k0$tooty$Model$registerApp = function (_p11) {
 };
 var _n1k0$tooty$Model$update = F2(
 	function (msg, model) {
-		var _p15 = msg;
-		switch (_p15.ctor) {
+		var _p17 = msg;
+		switch (_p17.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -23083,7 +23776,7 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{server: _p15._0}),
+						{server: _p17._0}),
 					{ctor: '[]'});
 			case 'UrlChange':
 				return A2(
@@ -23100,23 +23793,23 @@ var _n1k0$tooty$Model$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'AppRegistered':
-				var _p16 = _p15._0;
-				if (_p16.ctor === 'Ok') {
-					var _p17 = _p16._0;
+				var _p18 = _p17._0;
+				if (_p18.ctor === 'Ok') {
+					var _p19 = _p18._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								registration: _elm_lang$core$Maybe$Just(_p17)
+								registration: _elm_lang$core$Maybe$Just(_p19)
 							}),
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$Model$saveRegistration(_p17),
+							_0: _n1k0$tooty$Model$saveRegistration(_p19),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$navigation$Navigation$load(
-									_n1k0$tooty$Mastodon$getAuthorizationUrl(_p17)),
+									_n1k0$tooty$Mastodon$getAuthorizationUrl(_p19)),
 								_1: {ctor: '[]'}
 							}
 						});
@@ -23128,16 +23821,16 @@ var _n1k0$tooty$Model$update = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p16._0),
+									_0: _n1k0$tooty$Model$errorText(_p18._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'AccessToken':
-				var _p18 = _p15._0;
-				if (_p18.ctor === 'Ok') {
-					var client = A2(_n1k0$tooty$Mastodon$Client, _p18._0.server, _p18._0.accessToken);
+				var _p20 = _p17._0;
+				if (_p20.ctor === 'Ok') {
+					var client = A2(_n1k0$tooty$Mastodon$Client, _p20._0.server, _p20._0.accessToken);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -23167,25 +23860,25 @@ var _n1k0$tooty$Model$update = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p18._0),
+									_0: _n1k0$tooty$Model$errorText(_p20._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'Reblog':
-				var _p20 = _p15._0;
-				var _p19 = model.client;
-				if (_p19.ctor === 'Just') {
+				var _p22 = _p17._0;
+				var _p21 = model.client;
+				if (_p21.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processReblog, _p20, true, model),
+						A3(_n1k0$tooty$Model$processReblog, _p22, true, model),
 						{
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$Reblogged,
-								A2(_n1k0$tooty$Mastodon$reblog, _p19._0, _p20)),
+								A2(_n1k0$tooty$Mastodon$reblog, _p21._0, _p22)),
 							_1: {ctor: '[]'}
 						});
 				} else {
@@ -23195,8 +23888,8 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'Reblogged':
-				var _p21 = _p15._0;
-				if (_p21.ctor === 'Ok') {
+				var _p23 = _p17._0;
+				if (_p23.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -23213,25 +23906,25 @@ var _n1k0$tooty$Model$update = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p21._0),
+									_0: _n1k0$tooty$Model$errorText(_p23._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'Unreblog':
-				var _p23 = _p15._0;
-				var _p22 = model.client;
-				if (_p22.ctor === 'Just') {
+				var _p25 = _p17._0;
+				var _p24 = model.client;
+				if (_p24.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processReblog, _p23, false, model),
+						A3(_n1k0$tooty$Model$processReblog, _p25, false, model),
 						{
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$Unreblogged,
-								A2(_n1k0$tooty$Mastodon$unfavourite, _p22._0, _p23)),
+								A2(_n1k0$tooty$Mastodon$unfavourite, _p24._0, _p25)),
 							_1: {ctor: '[]'}
 						});
 				} else {
@@ -23241,55 +23934,11 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'Unreblogged':
-				var _p24 = _p15._0;
-				if (_p24.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Model$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p24._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AddFavorite':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					function () {
-						var _p25 = model.client;
-						if (_p25.ctor === 'Just') {
-							return {
-								ctor: '::',
-								_0: A2(
-									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$FavoriteAdded,
-									A2(_n1k0$tooty$Mastodon$favourite, _p25._0, _p15._0)),
-								_1: {ctor: '[]'}
-							};
-						} else {
-							return {ctor: '[]'};
-						}
-					}());
-			case 'FavoriteAdded':
-				var _p26 = _p15._0;
+				var _p26 = _p17._0;
 				if (_p26.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p26._0.id, true, model),
+						model,
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -23309,7 +23958,7 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
-			case 'RemoveFavorite':
+			case 'AddFavorite':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
@@ -23320,20 +23969,20 @@ var _n1k0$tooty$Model$update = F2(
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Mastodon$send,
-									_n1k0$tooty$Model$FavoriteRemoved,
-									A2(_n1k0$tooty$Mastodon$unfavourite, _p27._0, _p15._0)),
+									_n1k0$tooty$Model$FavoriteAdded,
+									A2(_n1k0$tooty$Mastodon$favourite, _p27._0, _p17._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
 							return {ctor: '[]'};
 						}
 					}());
-			case 'FavoriteRemoved':
-				var _p28 = _p15._0;
+			case 'FavoriteAdded':
+				var _p28 = _p17._0;
 				if (_p28.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p28._0.id, false, model),
+						A3(_n1k0$tooty$Model$processFavourite, _p28._0.id, true, model),
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -23353,10 +24002,54 @@ var _n1k0$tooty$Model$update = F2(
 							}),
 						{ctor: '[]'});
 				}
+			case 'RemoveFavorite':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					function () {
+						var _p29 = model.client;
+						if (_p29.ctor === 'Just') {
+							return {
+								ctor: '::',
+								_0: A2(
+									_n1k0$tooty$Mastodon$send,
+									_n1k0$tooty$Model$FavoriteRemoved,
+									A2(_n1k0$tooty$Mastodon$unfavourite, _p29._0, _p17._0)),
+								_1: {ctor: '[]'}
+							};
+						} else {
+							return {ctor: '[]'};
+						}
+					}());
+			case 'FavoriteRemoved':
+				var _p30 = _p17._0;
+				if (_p30.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFavourite, _p30._0.id, false, model),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p30._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
 			case 'DraftEvent':
-				var _p29 = A2(_n1k0$tooty$Model$updateDraft, _p15._0, model.draft);
-				var draft = _p29._0;
-				var commands = _p29._1;
+				var _p31 = A2(_n1k0$tooty$Model$updateDraft, _p17._0, model.draft);
+				var draft = _p31._0;
+				var commands = _p31._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -23368,9 +24061,9 @@ var _n1k0$tooty$Model$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'ViewerEvent':
-				var _p30 = A2(_n1k0$tooty$Model$updateViewer, _p15._0, model.viewer);
-				var viewer = _p30._0;
-				var commands = _p30._1;
+				var _p32 = A2(_n1k0$tooty$Model$updateViewer, _p17._0, model.viewer);
+				var viewer = _p32._0;
+				var commands = _p32._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -23386,13 +24079,13 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					function () {
-						var _p31 = model.client;
-						if (_p31.ctor === 'Just') {
+						var _p33 = model.client;
+						if (_p33.ctor === 'Just') {
 							return {
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Model$postStatus,
-									_p31._0,
+									_p33._0,
 									_n1k0$tooty$Model$toStatusRequestBody(model.draft)),
 								_1: {ctor: '[]'}
 							};
@@ -23401,13 +24094,13 @@ var _n1k0$tooty$Model$update = F2(
 						}
 					}());
 			case 'UserTimeline':
-				var _p32 = _p15._0;
-				if (_p32.ctor === 'Ok') {
+				var _p34 = _p17._0;
+				if (_p34.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{userTimeline: _p32._0}),
+							{userTimeline: _p34._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -23418,7 +24111,7 @@ var _n1k0$tooty$Model$update = F2(
 								userTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p32._0),
+									_0: _n1k0$tooty$Model$errorText(_p34._0),
 									_1: model.errors
 								}
 							}),
@@ -23429,14 +24122,14 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					function () {
-						var _p33 = model.client;
-						if (_p33.ctor === 'Just') {
+						var _p35 = model.client;
+						if (_p35.ctor === 'Just') {
 							return {
 								ctor: '::',
 								_0: A2(
 									_n1k0$tooty$Mastodon$send,
 									_n1k0$tooty$Model$UserAccount,
-									A2(_n1k0$tooty$Mastodon$fetchAccount, _p33._0, _p15._0)),
+									A2(_n1k0$tooty$Mastodon$fetchAccount, _p35._0, _p17._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
@@ -23448,16 +24141,16 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{useGlobalTimeline: _p15._0}),
+						{useGlobalTimeline: _p17._0}),
 					{ctor: '[]'});
 			case 'LocalTimeline':
-				var _p34 = _p15._0;
-				if (_p34.ctor === 'Ok') {
+				var _p36 = _p17._0;
+				if (_p36.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{localTimeline: _p34._0}),
+							{localTimeline: _p36._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -23468,20 +24161,20 @@ var _n1k0$tooty$Model$update = F2(
 								localTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p34._0),
+									_0: _n1k0$tooty$Model$errorText(_p36._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'PublicTimeline':
-				var _p35 = _p15._0;
-				if (_p35.ctor === 'Ok') {
+				var _p37 = _p17._0;
+				if (_p37.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{publicTimeline: _p35._0}),
+							{publicTimeline: _p37._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -23492,21 +24185,21 @@ var _n1k0$tooty$Model$update = F2(
 								publicTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p35._0),
+									_0: _n1k0$tooty$Model$errorText(_p37._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'UserAccount':
-				var _p36 = _p15._0;
-				if (_p36.ctor === 'Ok') {
+				var _p38 = _p17._0;
+				if (_p38.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								account: _elm_lang$core$Maybe$Just(_p36._0)
+								account: _elm_lang$core$Maybe$Just(_p38._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -23518,7 +24211,7 @@ var _n1k0$tooty$Model$update = F2(
 								account: _elm_lang$core$Maybe$Nothing,
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p36._0),
+									_0: _n1k0$tooty$Model$errorText(_p38._0),
 									_1: model.errors
 								}
 							}),
@@ -23542,15 +24235,15 @@ var _n1k0$tooty$Model$update = F2(
 						_0: _n1k0$tooty$Model$loadTimelines(model.client),
 						_1: {ctor: '[]'}
 					});
-			default:
-				var _p37 = _p15._0;
-				if (_p37.ctor === 'Ok') {
+			case 'Notifications':
+				var _p39 = _p17._0;
+				if (_p39.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								notifications: _n1k0$tooty$Mastodon$aggregateNotifications(_p37._0)
+								notifications: _n1k0$tooty$Mastodon$aggregateNotifications(_p39._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -23562,12 +24255,77 @@ var _n1k0$tooty$Model$update = F2(
 								notifications: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p37._0),
+									_0: _n1k0$tooty$Model$errorText(_p39._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
+			case 'NewWebsocketUserMessage':
+				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(_p17._0);
+				switch (_p40.ctor) {
+					case 'EventError':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p40._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'NotificationResult':
+						var _p41 = _p40._0;
+						if (_p41.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										notifications: A2(_n1k0$tooty$Mastodon$addNotificationToAggregates, _p41._0, model.notifications)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p41._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						var _p42 = _p40._0;
+						if (_p42.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: {ctor: '::', _0: _p42._0, _1: model.userTimeline}
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p42._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+				}
+			case 'NewWebsocketLocalMessage':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
 		}
 	});
 var _n1k0$tooty$Model$AddFavorite = function (a) {
@@ -23580,16 +24338,16 @@ var _n1k0$tooty$Model$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p38 = authCode;
-				if (_p38.ctor === 'Just') {
-					var _p39 = registration;
-					if (_p39.ctor === 'Just') {
+				var _p43 = authCode;
+				if (_p43.ctor === 'Just') {
+					var _p44 = registration;
+					if (_p44.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon$send,
 								_n1k0$tooty$Model$AccessToken,
-								A2(_n1k0$tooty$Mastodon$getAccessToken, _p39._0, _p38._0)),
+								A2(_n1k0$tooty$Mastodon$getAccessToken, _p44._0, _p43._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
@@ -23666,13 +24424,6 @@ var _n1k0$tooty$ViewHelper$getMentionForLink = F2(
 			return _elm_lang$core$Maybe$Nothing;
 		}
 	});
-var _n1k0$tooty$ViewHelper$replace = F3(
-	function (from, to, str) {
-		return A2(
-			_elm_lang$core$String$join,
-			to,
-			A2(_elm_lang$core$String$split, from, str));
-	});
 var _n1k0$tooty$ViewHelper$onClickWithPreventAndStop = function (msg) {
 	return A3(
 		_elm_lang$html$Html_Events$onWithOptions,
@@ -23740,14 +24491,14 @@ var _n1k0$tooty$ViewHelper$formatContent = F2(
 			mentions,
 			_jinjor$elm_html_parser$HtmlParser$parse(
 				A3(
-					_n1k0$tooty$ViewHelper$replace,
+					_n1k0$tooty$Util$replace,
 					' :',
 					'&nbsp;:',
 					A3(
-						_n1k0$tooty$ViewHelper$replace,
+						_n1k0$tooty$Util$replace,
 						' !',
 						'&nbsp;!',
-						A3(_n1k0$tooty$ViewHelper$replace, ' ?', '&nbsp;?', content)))));
+						A3(_n1k0$tooty$Util$replace, ' ?', '&nbsp;?', content)))));
 	});
 
 var _rluiten$elm_date_extra$Date_Extra_Config$Config = F2(
@@ -25096,8 +25847,8 @@ var _n1k0$tooty$View$authView = function (model) {
 			}
 		});
 };
-var _n1k0$tooty$View$attachmentPreview = F4(
-	function (timeline, sensitive, attachments, _p7) {
+var _n1k0$tooty$View$attachmentPreview = F3(
+	function (sensitive, attachments, _p7) {
 		var _p8 = _p7;
 		var _p10 = _p8;
 		var media = A2(
@@ -25137,10 +25888,7 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 		var attId = A2(
 			_elm_lang$core$Basics_ops['++'],
 			'att',
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				_elm_lang$core$Basics$toString(_p10.id),
-				timeline));
+			_elm_lang$core$Basics$toString(_p10.id));
 		var nsfw = function () {
 			var _p9 = sensitive;
 			if (_p9.ctor === 'Just') {
@@ -25214,139 +25962,134 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 				_1: {ctor: '[]'}
 			});
 	});
-var _n1k0$tooty$View$attachmentListView = F2(
-	function (timeline, _p11) {
-		var _p12 = _p11;
-		var _p13 = _p12.media_attachments;
-		if (_p13.ctor === '[]') {
-			return _elm_lang$html$Html$text('');
-		} else {
-			var _p14 = _p13;
-			return A2(
-				_elm_lang$html$Html$ul,
-				{
+var _n1k0$tooty$View$attachmentListView = function (_p11) {
+	var _p12 = _p11;
+	var _p13 = _p12.media_attachments;
+	if (_p13.ctor === '[]') {
+		return _elm_lang$html$Html$text('');
+	} else {
+		var _p14 = _p13;
+		return A2(
+			_elm_lang$html$Html$ul,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('attachments'),
+				_1: {ctor: '[]'}
+			},
+			A2(
+				_elm_lang$core$List$map,
+				A2(_n1k0$tooty$View$attachmentPreview, _p12.sensitive, _p14),
+				_p14));
+	}
+};
+var _n1k0$tooty$View$statusContentView = function (status) {
+	var _p15 = status.spoiler_text;
+	if (_p15 === '') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('status-text'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{ctor: '[]'},
+					A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
+				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('attachments'),
+					_0: _n1k0$tooty$View$attachmentListView(status),
 					_1: {ctor: '[]'}
-				},
-				A2(
-					_elm_lang$core$List$map,
-					A3(_n1k0$tooty$View$attachmentPreview, timeline, _p12.sensitive, _p14),
-					_p14));
-		}
-	});
-var _n1k0$tooty$View$statusContentView = F2(
-	function (timeline, status) {
-		var _p15 = status.spoiler_text;
-		if (_p15 === '') {
-			return A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('status-text'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$div,
-						{ctor: '[]'},
-						A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
-					_1: {
+				}
+			});
+	} else {
+		var statusId = A2(
+			_elm_lang$core$Basics_ops['++'],
+			'spoiler',
+			_elm_lang$core$Basics$toString(status.id));
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('status-text spoiled'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
 						ctor: '::',
-						_0: A2(_n1k0$tooty$View$attachmentListView, timeline, status),
+						_0: _elm_lang$html$Html_Attributes$class('spoiler'),
 						_1: {ctor: '[]'}
-					}
-				});
-		} else {
-			var statusId = A2(
-				_elm_lang$core$Basics_ops['++'],
-				'spoiler',
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(status.id),
-					timeline));
-			return A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('status-text spoiled'),
-					_1: {ctor: '[]'}
-				},
-				{
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text(status.spoiler_text),
+						_1: {ctor: '[]'}
+					}),
+				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
+						_elm_lang$html$Html$input,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('spoiler'),
-							_1: {ctor: '[]'}
+							_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$id(statusId),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('spoiler-toggler'),
+									_1: {ctor: '[]'}
+								}
+							}
 						},
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(status.spoiler_text),
-							_1: {ctor: '[]'}
-						}),
+						{ctor: '[]'}),
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$input,
+							_elm_lang$html$Html$label,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$type_('checkbox'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id(statusId),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('spoiler-toggler'),
-										_1: {ctor: '[]'}
-									}
-								}
+								_0: _elm_lang$html$Html_Attributes$for(statusId),
+								_1: {ctor: '[]'}
 							},
-							{ctor: '[]'}),
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('Reveal content'),
+								_1: {ctor: '[]'}
+							}),
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$html$Html$label,
+								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$for(statusId),
+									_0: _elm_lang$html$Html_Attributes$class('spoiled-content'),
 									_1: {ctor: '[]'}
 								},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('Reveal content'),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
+									_0: A2(
+										_elm_lang$html$Html$div,
+										{ctor: '[]'},
+										A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
+									_1: {
 										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('spoiled-content'),
+										_0: _n1k0$tooty$View$attachmentListView(status),
 										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: A2(
-											_elm_lang$html$Html$div,
-											{ctor: '[]'},
-											A2(_n1k0$tooty$ViewHelper$formatContent, status.content, status.mentions)),
-										_1: {
-											ctor: '::',
-											_0: A2(_n1k0$tooty$View$attachmentListView, timeline, status),
-											_1: {ctor: '[]'}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}
+									}
+								}),
+							_1: {ctor: '[]'}
 						}
 					}
-				});
-		}
-	});
+				}
+			});
+	}
+};
 var _n1k0$tooty$View$accountAvatarLink = function (account) {
 	return A2(
 		_elm_lang$html$Html$a,
@@ -25413,129 +26156,128 @@ var _n1k0$tooty$View$icon = function (name) {
 		},
 		{ctor: '[]'});
 };
-var _n1k0$tooty$View$statusView = F2(
-	function (timeline, _p16) {
-		var _p17 = _p16;
-		var _p19 = _p17.account;
-		var accountLinkAttributes = {
+var _n1k0$tooty$View$statusView = function (_p16) {
+	var _p17 = _p16;
+	var _p19 = _p17.account;
+	var accountLinkAttributes = {
+		ctor: '::',
+		_0: _elm_lang$html$Html_Attributes$href(_p19.url),
+		_1: {
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$href(_p19.url),
-			_1: {
+			_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+				_n1k0$tooty$Model$OnLoadUserAccount(_p19.id)),
+			_1: {ctor: '[]'}
+		}
+	};
+	var _p18 = _p17.reblog;
+	if (_p18.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
 				ctor: '::',
-				_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-					_n1k0$tooty$Model$OnLoadUserAccount(_p19.id)),
+				_0: _elm_lang$html$Html_Attributes$class('reblog'),
 				_1: {ctor: '[]'}
-			}
-		};
-		var _p18 = _p17.reblog;
-		if (_p18.ctor === 'Just') {
-			return A2(
-				_elm_lang$html$Html$div,
-				{
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$p,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('status-info'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$View$icon('fire'),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									accountLinkAttributes,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('reblogger'),
+										_1: {ctor: '[]'}
+									}),
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(' boosted'),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('reblog'),
+					_0: _n1k0$tooty$View$statusView(_p18._0._0),
 					_1: {ctor: '[]'}
-				},
-				{
+				}
+			});
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('status'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _n1k0$tooty$View$accountAvatarLink(_p19),
+				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$p,
+						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('status-info'),
+							_0: _elm_lang$html$Html_Attributes$class('username'),
 							_1: {ctor: '[]'}
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$icon('fire'),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$a,
-									A2(
-										_elm_lang$core$Basics_ops['++'],
-										accountLinkAttributes,
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('reblogger'),
-											_1: {ctor: '[]'}
-										}),
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(
-											A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
-										_1: {ctor: '[]'}
-									}),
-								_1: {
+							_0: A2(
+								_elm_lang$html$Html$a,
+								accountLinkAttributes,
+								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text(' boosted'),
-									_1: {ctor: '[]'}
-								}
-							}
+									_0: _elm_lang$html$Html$text(_p19.display_name),
+									_1: {
+										ctor: '::',
+										_0: A2(
+											_elm_lang$html$Html$span,
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$class('acct'),
+												_1: {ctor: '[]'}
+											},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
+												_1: {ctor: '[]'}
+											}),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
-						_0: A2(_n1k0$tooty$View$statusView, timeline, _p18._0._0),
+						_0: _n1k0$tooty$View$statusContentView(_p17),
 						_1: {ctor: '[]'}
 					}
-				});
-		} else {
-			return A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('status'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: _n1k0$tooty$View$accountAvatarLink(_p19),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('username'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$a,
-									accountLinkAttributes,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html$text(_p19.display_name),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$span,
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$class('acct'),
-													_1: {ctor: '[]'}
-												},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text(
-														A2(_elm_lang$core$Basics_ops['++'], ' @', _p19.username)),
-													_1: {ctor: '[]'}
-												}),
-											_1: {ctor: '[]'}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(_n1k0$tooty$View$statusContentView, timeline, _p17),
-							_1: {ctor: '[]'}
-						}
-					}
-				});
-		}
-	});
+				}
+			});
+	}
+};
 var _n1k0$tooty$View$accountTimelineView = F4(
 	function (account, statuses, label, iconName) {
 		return A2(
@@ -25829,7 +26571,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 													},
 													{
 														ctor: '::',
-														_0: A2(_n1k0$tooty$View$statusView, 'account', s),
+														_0: _n1k0$tooty$View$statusView(s),
 														_1: {ctor: '[]'}
 													});
 											},
@@ -25992,34 +26734,33 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 			}
 		});
 };
-var _n1k0$tooty$View$statusEntryView = F2(
-	function (timeline, status) {
-		var nsfwClass = function () {
-			var _p24 = status.sensitive;
-			if ((_p24.ctor === 'Just') && (_p24._0 === true)) {
-				return 'nsfw';
-			} else {
-				return '';
-			}
-		}();
-		return A2(
-			_elm_lang$html$Html$li,
-			{
+var _n1k0$tooty$View$statusEntryView = function (status) {
+	var nsfwClass = function () {
+		var _p24 = status.sensitive;
+		if ((_p24.ctor === 'Just') && (_p24._0 === true)) {
+			return 'nsfw';
+		} else {
+			return '';
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$li,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'list-group-item ', nsfwClass)),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: _n1k0$tooty$View$statusView(status),
+			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class(
-					A2(_elm_lang$core$Basics_ops['++'], 'list-group-item ', nsfwClass)),
+				_0: _n1k0$tooty$View$statusActionsView(status),
 				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(_n1k0$tooty$View$statusView, timeline, status),
-				_1: {
-					ctor: '::',
-					_0: _n1k0$tooty$View$statusActionsView(status),
-					_1: {ctor: '[]'}
-				}
-			});
-	});
+			}
+		});
+};
 var _n1k0$tooty$View$timelineView = F3(
 	function (statuses, label, iconName) {
 		return A2(
@@ -26065,10 +26806,7 @@ var _n1k0$tooty$View$timelineView = F3(
 									_0: _elm_lang$html$Html_Attributes$class('list-group'),
 									_1: {ctor: '[]'}
 								},
-								A2(
-									_elm_lang$core$List$map,
-									_n1k0$tooty$View$statusEntryView(label),
-									statuses)),
+								A2(_elm_lang$core$List$map, _n1k0$tooty$View$statusEntryView, statuses)),
 							_1: {ctor: '[]'}
 						}
 					}),
@@ -26129,8 +26867,8 @@ var _n1k0$tooty$View$notificationHeading = F3(
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationStatusView = F3(
-	function (timeline, status, _p25) {
+var _n1k0$tooty$View$notificationStatusView = F2(
+	function (status, _p25) {
 		var _p26 = _p25;
 		var _p29 = _p26.type_;
 		var _p28 = _p26.accounts;
@@ -26157,7 +26895,7 @@ var _n1k0$tooty$View$notificationStatusView = F3(
 				}(),
 				_1: {
 					ctor: '::',
-					_0: A2(_n1k0$tooty$View$statusView, timeline, status),
+					_0: _n1k0$tooty$View$statusView(status),
 					_1: {
 						ctor: '::',
 						_0: _n1k0$tooty$View$statusActionsView(status),
@@ -26249,7 +26987,7 @@ var _n1k0$tooty$View$notificationEntryView = function (notification) {
 			_0: function () {
 				var _p33 = notification.status;
 				if (_p33.ctor === 'Just') {
-					return A3(_n1k0$tooty$View$notificationStatusView, 'notification', _p33._0, notification);
+					return A2(_n1k0$tooty$View$notificationStatusView, _p33._0, notification);
 				} else {
 					return _n1k0$tooty$View$notificationFollowView(notification);
 				}
@@ -26370,7 +27108,7 @@ var _n1k0$tooty$View$draftReplyToView = function (draft) {
 						},
 						{
 							ctor: '::',
-							_0: A2(_n1k0$tooty$View$statusView, 'draft', _p34._0),
+							_0: _n1k0$tooty$View$statusView(_p34._0),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
@@ -27036,12 +27774,7 @@ var _n1k0$tooty$View$view = function (model) {
 var _n1k0$tooty$Main$main = A2(
 	_elm_lang$navigation$Navigation$programWithFlags,
 	_n1k0$tooty$Model$UrlChange,
-	{
-		init: _n1k0$tooty$Model$init,
-		view: _n1k0$tooty$View$view,
-		update: _n1k0$tooty$Model$update,
-		subscriptions: _elm_lang$core$Basics$always(_elm_lang$core$Platform_Sub$none)
-	})(
+	{init: _n1k0$tooty$Model$init, view: _n1k0$tooty$View$view, update: _n1k0$tooty$Model$update, subscriptions: _n1k0$tooty$Model$subscriptions})(
 	A2(
 		_elm_lang$core$Json_Decode$andThen,
 		function (client) {
