@@ -540,25 +540,29 @@ update msg model =
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
 
         NewWebsocketUserMessage message ->
-            case (Mastodon.decodeWebSocketMessage message) of
-                Mastodon.EventError error ->
-                    { model | errors = error :: model.errors } ! []
+            let
+                logError label error message =
+                    Debug.log (label ++ " WS error: " ++ error) message
+            in
+                case (Mastodon.decodeWebSocketMessage message) of
+                    Mastodon.EventError error ->
+                        { model | errors = (logError "EventError" error message) :: model.errors } ! []
 
-                Mastodon.NotificationResult result ->
-                    case result of
-                        Ok notification ->
-                            { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
+                    Mastodon.NotificationResult result ->
+                        case result of
+                            Ok notification ->
+                                { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
 
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            Err error ->
+                                { model | errors = (logError "NotificationResult" error message) :: model.errors } ! []
 
-                Mastodon.StatusResult result ->
-                    case result of
-                        Ok status ->
-                            { model | userTimeline = status :: model.userTimeline } ! []
+                    Mastodon.StatusResult result ->
+                        case result of
+                            Ok status ->
+                                { model | userTimeline = status :: model.userTimeline } ! []
 
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            Err error ->
+                                { model | errors = (logError "StatusResult" error message) :: model.errors } ! []
 
         NewWebsocketLocalMessage message ->
             -- @TODO
