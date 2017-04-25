@@ -24263,6 +24263,16 @@ var _n1k0$tooty$Model$update = F2(
 				}
 			case 'NewWebsocketUserMessage':
 				var _p43 = _p17._0;
+				var logError = F3(
+					function (label, error, message) {
+						return A2(
+							_elm_lang$core$Debug$log,
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								label,
+								A2(_elm_lang$core$Basics_ops['++'], ' WS error: ', error)),
+							message);
+					});
 				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(_p43);
 				switch (_p40.ctor) {
 					case 'EventError':
@@ -24273,10 +24283,7 @@ var _n1k0$tooty$Model$update = F2(
 								{
 									errors: {
 										ctor: '::',
-										_0: A2(
-											_elm_lang$core$Debug$log,
-											A2(_elm_lang$core$Basics_ops['++'], 'EventError: ', _p40._0),
-											_p43),
+										_0: A3(logError, 'EventError', _p40._0, _p43),
 										_1: model.errors
 									}
 								}),
@@ -24300,10 +24307,7 @@ var _n1k0$tooty$Model$update = F2(
 									{
 										errors: {
 											ctor: '::',
-											_0: A2(
-												_elm_lang$core$Debug$log,
-												A2(_elm_lang$core$Basics_ops['++'], 'NotificationResult: ', _p41._0),
-												_p43),
+											_0: A3(logError, 'NotificationResult', _p41._0, _p43),
 											_1: model.errors
 										}
 									}),
@@ -24328,10 +24332,7 @@ var _n1k0$tooty$Model$update = F2(
 									{
 										errors: {
 											ctor: '::',
-											_0: A2(
-												_elm_lang$core$Debug$log,
-												A2(_elm_lang$core$Basics_ops['++'], 'StatusResult: ', _p42._0),
-												_p43),
+											_0: A3(logError, 'StatusResult', _p42._0, _p43),
 											_1: model.errors
 										}
 									}),
