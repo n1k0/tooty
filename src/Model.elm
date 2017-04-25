@@ -324,6 +324,13 @@ updateDraft draftMsg draft =
                             draft.status
                         else
                             mention ++ " " ++ draft.status
+                    , sensitive = Maybe.withDefault False status.sensitive
+                    , spoiler_text =
+                        if status.spoiler_text == "" then
+                            Nothing
+                        else
+                            Just status.spoiler_text
+                    , visibility = status.visibility
                 }
                     ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
 
