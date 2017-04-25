@@ -68,8 +68,8 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview : Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
-attachmentPreview sensitive attachments ({ url, preview_url } as attachment) =
+attachmentPreview : String -> Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
+attachmentPreview timeline sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
             case sensitive of
@@ -80,7 +80,7 @@ attachmentPreview sensitive attachments ({ url, preview_url } as attachment) =
                     False
 
         attId =
-            "att" ++ (toString attachment.id)
+            "att" ++ (toString attachment.id) ++ timeline
 
         media =
             a
@@ -111,31 +111,31 @@ attachmentPreview sensitive attachments ({ url, preview_url } as attachment) =
                 [ media ]
 
 
-attachmentListView : Mastodon.Status -> Html Msg
-attachmentListView { media_attachments, sensitive } =
+attachmentListView : String -> Mastodon.Status -> Html Msg
+attachmentListView timeline { media_attachments, sensitive } =
     case media_attachments of
         [] ->
             text ""
 
         attachments ->
             ul [ class "attachments" ] <|
-                List.map (attachmentPreview sensitive attachments) attachments
+                List.map (attachmentPreview timeline sensitive attachments) attachments
 
 
-statusContentView : Mastodon.Status -> Html Msg
-statusContentView status =
+statusContentView : String -> Mastodon.Status -> Html Msg
+statusContentView timeline status =
     case status.spoiler_text of
         "" ->
             div [ class "status-text" ]
                 [ div [] <| ViewHelper.formatContent status.content status.mentions
-                , attachmentListView status
+                , attachmentListView timeline status
                 ]
 
         spoiler ->
             -- Note: Spoilers are dealt with using pure CSS.
             let
                 statusId =
-                    "spoiler" ++ (toString status.id)
+                    "spoiler" ++ (toString status.id) ++ timeline
             in
                 div [ class "status-text spoiled" ]
                     [ div [ class "spoiler" ] [ text status.spoiler_text ]
@@ -143,13 +143,13 @@ statusContentView status =
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ]
                         [ div [] <| ViewHelper.formatContent status.content status.mentions
-                        , attachmentListView status
+                        , attachmentListView timeline status
                         ]
                     ]
 
 
-statusView : Mastodon.Status -> Html Msg
-statusView ({ account, content, media_attachments, reblog, mentions } as status) =
+statusView : String -> Mastodon.Status -> Html Msg
+statusView timeline ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
             [ href account.url
@@ -168,7 +168,7 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
                             [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
-                    , statusView reblog
+                    , statusView timeline reblog
                     ]
 
             Nothing ->
@@ -180,7 +180,7 @@ statusView ({ account, content, media_attachments, reblog, mentions } as status)
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , statusContentView status
+                    , statusContentView timeline status
                     ]
 
 
@@ -229,7 +229,7 @@ accountTimelineView account statuses label iconName =
                 List.map
                     (\s ->
                         li [ class "list-group-item status" ]
-                            [ statusView s ]
+                            [ statusView "account" s ]
                     )
                     statuses
             ]
@@ -289,8 +289,8 @@ statusActionsView status =
             ]
 
 
-statusEntryView : Mastodon.Status -> Html Msg
-statusEntryView status =
+statusEntryView : String -> Mastodon.Status -> Html Msg
+statusEntryView timeline status =
     let
         nsfwClass =
             case status.sensitive of
@@ -301,7 +301,7 @@ statusEntryView status =
                     ""
     in
         li [ class <| "list-group-item " ++ nsfwClass ]
-            [ statusView status
+            [ statusView timeline status
             , statusActionsView status
             ]
 
@@ -315,7 +315,7 @@ timelineView statuses label iconName =
                 , text label
                 ]
             , ul [ class "list-group" ] <|
-                List.map statusEntryView statuses
+                List.map (statusEntryView label) statuses
             ]
         ]
 
@@ -333,8 +333,8 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
-notificationStatusView status { type_, accounts } =
+notificationStatusView : String -> Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
+notificationStatusView timeline status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
@@ -345,7 +345,7 @@ notificationStatusView status { type_, accounts } =
 
             _ ->
                 text ""
-        , statusView status
+        , statusView timeline status
         , statusActionsView status
         ]
 
@@ -371,7 +371,7 @@ notificationEntryView notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                notificationStatusView status notification
+                notificationStatusView "notification" status notification
 
             Nothing ->
                 notificationFollowView notification
@@ -408,7 +408,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ statusView status ]
+                , div [ class "well" ] [ statusView "draft" status ]
                 ]
 
         Nothing ->
