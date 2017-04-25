@@ -160,9 +160,15 @@ registerApp { server, location } =
     let
         appUrl =
             location.origin ++ location.pathname
+
+        cleanServer =
+            if String.endsWith "/" server then
+                String.dropRight 1 server
+            else
+                server
     in
         Mastodon.register
-            server
+            cleanServer
             "tooty"
             appUrl
             "read write follow"
