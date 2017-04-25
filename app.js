@@ -24262,7 +24262,8 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'NewWebsocketUserMessage':
-				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(_p17._0);
+				var _p40 = _n1k0$tooty$Mastodon$decodeWebSocketMessage(
+					A2(_elm_lang$core$Debug$log, '[WS Message]', _p17._0));
 				switch (_p40.ctor) {
 					case 'EventError':
 						return A2(
