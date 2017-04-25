@@ -30,37 +30,41 @@ type ViewerMsg
     | OpenViewer (List Mastodon.Attachment) Mastodon.Attachment
 
 
+type MastodonMsg
+    = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
+    | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
+    | FavoriteAdded (Result Mastodon.Error Mastodon.Status)
+    | FavoriteRemoved (Result Mastodon.Error Mastodon.Status)
+    | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Notifications (Result Mastodon.Error (List Mastodon.Notification))
+    | GlobalTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | Reblogged (Result Mastodon.Error Mastodon.Status)
+    | StatusPosted (Result Mastodon.Error Mastodon.Status)
+    | Unreblogged (Result Mastodon.Error Mastodon.Status)
+    | UserAccount (Result Mastodon.Error Mastodon.Account)
+    | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
+
+
 type
     Msg
     {-
        FIXME: Mastodon server response messages should be extracted to their own
        MastodonMsg type at some point.
     -}
-    = AccessToken (Result Mastodon.Error Mastodon.AccessTokenResult)
-    | AddFavorite Int
-    | AppRegistered (Result Mastodon.Error Mastodon.AppRegistration)
+    = AddFavorite Int
     | DraftEvent DraftMsg
-    | FavoriteAdded (Result Mastodon.Error Mastodon.Status)
-    | FavoriteRemoved (Result Mastodon.Error Mastodon.Status)
-    | LocalTimeline (Result Mastodon.Error (List Mastodon.Status))
+    | MastodonEvent MastodonMsg
     | NoOp
-    | Notifications (Result Mastodon.Error (List Mastodon.Notification))
     | OnLoadUserAccount Int
-    | GlobalTimeline (Result Mastodon.Error (List Mastodon.Status))
     | Reblog Int
-    | Reblogged (Result Mastodon.Error Mastodon.Status)
     | Register
     | RemoveFavorite Int
     | ServerChange String
-    | StatusPosted (Result Mastodon.Error Mastodon.Status)
     | SubmitDraft
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
-    | UserAccount (Result Mastodon.Error Mastodon.Account)
     | ClearOpenedAccount
     | Unreblog Int
-    | Unreblogged (Result Mastodon.Error Mastodon.Status)
-    | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
     | NewWebsocketUserMessage String
     | NewWebsocketGlobalMessage String
     | NewWebsocketLocalMessage String
@@ -149,7 +153,9 @@ initCommands registration client authCode =
             Just authCode ->
                 case registration of
                     Just registration ->
-                        [ Mastodon.getAccessToken registration authCode |> Mastodon.send AccessToken ]
+                        [ Mastodon.getAccessToken registration authCode
+                            |> Mastodon.send (MastodonEvent << AccessToken)
+                        ]
 
                     Nothing ->
                         []
@@ -176,7 +182,7 @@ registerApp { server, location } =
             appUrl
             "read write follow"
             "https://github.com/n1k0/tooty"
-            |> Mastodon.send AppRegistered
+            |> Mastodon.send (MastodonEvent << AppRegistered)
 
 
 saveClient : Mastodon.Client -> Cmd Msg
@@ -197,7 +203,8 @@ loadNotifications : Maybe Mastodon.Client -> Cmd Msg
 loadNotifications client =
     case client of
         Just client ->
-            Mastodon.fetchNotifications client |> Mastodon.send Notifications
+            Mastodon.fetchNotifications client
+                |> Mastodon.send (MastodonEvent << Notifications)
 
         Nothing ->
             Cmd.none
@@ -208,9 +215,9 @@ loadTimelines client =
     case client of
         Just client ->
             Cmd.batch
-                [ Mastodon.fetchUserTimeline client |> Mastodon.send UserTimeline
-                , Mastodon.fetchLocalTimeline client |> Mastodon.send LocalTimeline
-                , Mastodon.fetchGlobalTimeline client |> Mastodon.send GlobalTimeline
+                [ Mastodon.fetchUserTimeline client |> Mastodon.send (MastodonEvent << UserTimeline)
+                , Mastodon.fetchLocalTimeline client |> Mastodon.send (MastodonEvent << LocalTimeline)
+                , Mastodon.fetchGlobalTimeline client |> Mastodon.send (MastodonEvent << GlobalTimeline)
                 , loadNotifications <| Just client
                 ]
 
@@ -221,7 +228,7 @@ loadTimelines client =
 postStatus : Mastodon.Client -> Mastodon.StatusRequestBody -> Cmd Msg
 postStatus client draft =
     Mastodon.postStatus client draft
-        |> Mastodon.send StatusPosted
+        |> Mastodon.send (MastodonEvent << StatusPosted)
 
 
 errorText : Mastodon.Error -> String
@@ -324,6 +331,13 @@ updateDraft draftMsg draft =
                             draft.status
                         else
                             mention ++ " " ++ draft.status
+                    , sensitive = Maybe.withDefault False status.sensitive
+                    , spoiler_text =
+                        if status.spoiler_text == "" then
+                            Nothing
+                        else
+                            Just status.spoiler_text
+                    , visibility = status.visibility
                 }
                     ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
 
@@ -341,32 +355,9 @@ updateViewer viewerMsg viewer =
             (Just <| Viewer attachments attachment) ! []
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+processMastodonEvent : MastodonMsg -> Model -> ( Model, Cmd Msg )
+processMastodonEvent msg model =
     case msg of
-        NoOp ->
-            model ! []
-
-        ServerChange server ->
-            { model | server = server } ! []
-
-        UrlChange location ->
-            model ! []
-
-        Register ->
-            model ! [ registerApp model ]
-
-        AppRegistered result ->
-            case result of
-                Ok registration ->
-                    { model | registration = Just registration }
-                        ! [ saveRegistration registration
-                          , Navigation.load <| Mastodon.getAuthorizationUrl registration
-                          ]
-
-                Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
-
         AccessToken result ->
             case result of
                 Ok { server, accessToken } ->
@@ -383,50 +374,16 @@ update msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        Reblog id ->
-            -- Note: The case of reblogging is specific as it seems the server
-            -- response takes a lot of time to be received by the client, so we
-            -- perform optimistic updates here.
-            case model.client of
-                Just client ->
-                    processReblog id True model
-                        ! [ Mastodon.reblog client id |> Mastodon.send Reblogged ]
-
-                Nothing ->
-                    model ! []
-
-        Reblogged result ->
+        AppRegistered result ->
             case result of
-                Ok status ->
-                    model ! [ loadNotifications model.client ]
+                Ok registration ->
+                    { model | registration = Just registration }
+                        ! [ saveRegistration registration
+                          , Navigation.load <| Mastodon.getAuthorizationUrl registration
+                          ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
-
-        Unreblog id ->
-            case model.client of
-                Just client ->
-                    processReblog id False model ! [ Mastodon.unfavourite client id |> Mastodon.send Unreblogged ]
-
-                Nothing ->
-                    model ! []
-
-        Unreblogged result ->
-            case result of
-                Ok status ->
-                    model ! [ loadNotifications model.client ]
-
-                Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
-
-        AddFavorite id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.favourite client id |> Mastodon.send FavoriteAdded ]
-
-                    Nothing ->
-                        []
 
         FavoriteAdded result ->
             case result of
@@ -436,15 +393,6 @@ update msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        RemoveFavorite id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.unfavourite client id |> Mastodon.send FavoriteRemoved ]
-
-                    Nothing ->
-                        []
-
         FavoriteRemoved result ->
             case result of
                 Ok status ->
@@ -452,6 +400,135 @@ update msg model =
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
+
+        LocalTimeline result ->
+            case result of
+                Ok localTimeline ->
+                    { model | localTimeline = localTimeline } ! []
+
+                Err error ->
+                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        Notifications result ->
+            case result of
+                Ok notifications ->
+                    { model | notifications = Mastodon.aggregateNotifications notifications } ! []
+
+                Err error ->
+                    { model | notifications = [], errors = (errorText error) :: model.errors } ! []
+
+        GlobalTimeline result ->
+            case result of
+                Ok globalTimeline ->
+                    { model | globalTimeline = globalTimeline } ! []
+
+                Err error ->
+                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+        Reblogged result ->
+            case result of
+                Ok status ->
+                    model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        StatusPosted _ ->
+            { model | draft = defaultDraft } ! []
+
+        Unreblogged result ->
+            case result of
+                Ok status ->
+                    model ! [ loadNotifications model.client ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        UserAccount result ->
+            case result of
+                Ok account ->
+                    { model | account = Just account } ! []
+
+                Err error ->
+                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
+
+        UserTimeline result ->
+            case result of
+                Ok userTimeline ->
+                    { model | userTimeline = userTimeline } ! []
+
+                Err error ->
+                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        NoOp ->
+            model ! []
+
+        MastodonEvent msg ->
+            let
+                ( newModel, commands ) =
+                    processMastodonEvent msg model
+            in
+                newModel ! [ commands ]
+
+        ServerChange server ->
+            { model | server = server } ! []
+
+        UrlChange location ->
+            model ! []
+
+        Register ->
+            model ! [ registerApp model ]
+
+        Reblog id ->
+            -- Note: The case of reblogging is specific as it seems the server
+            -- response takes a lot of time to be received by the client, so we
+            -- perform optimistic updates here.
+            case model.client of
+                Just client ->
+                    processReblog id True model
+                        ! [ Mastodon.reblog client id
+                                |> Mastodon.send (MastodonEvent << Reblogged)
+                          ]
+
+                Nothing ->
+                    model ! []
+
+        Unreblog id ->
+            case model.client of
+                Just client ->
+                    processReblog id False model
+                        ! [ Mastodon.unfavourite client id
+                                |> Mastodon.send (MastodonEvent << Unreblogged)
+                          ]
+
+                Nothing ->
+                    model ! []
+
+        AddFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.favourite client id
+                            |> Mastodon.send (MastodonEvent << FavoriteAdded)
+                        ]
+
+                    Nothing ->
+                        []
+
+        RemoveFavorite id ->
+            model
+                ! case model.client of
+                    Just client ->
+                        [ Mastodon.unfavourite client id
+                            |> Mastodon.send (MastodonEvent << FavoriteRemoved)
+                        ]
+
+                    Nothing ->
+                        []
 
         DraftEvent draftMsg ->
             let
@@ -476,14 +553,6 @@ update msg model =
                     Nothing ->
                         []
 
-        UserTimeline result ->
-            case result of
-                Ok userTimeline ->
-                    { model | userTimeline = userTimeline } ! []
-
-                Err error ->
-                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
-
         OnLoadUserAccount accountId ->
             {-
                @TODO
@@ -493,7 +562,9 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.fetchAccount client accountId |> Mastodon.send UserAccount ]
+                        [ Mastodon.fetchAccount client accountId
+                            |> Mastodon.send (MastodonEvent << UserAccount)
+                        ]
 
                     Nothing ->
                         []
@@ -501,64 +572,33 @@ update msg model =
         UseGlobalTimeline flag ->
             { model | useGlobalTimeline = flag } ! []
 
-        LocalTimeline result ->
-            case result of
-                Ok localTimeline ->
-                    { model | localTimeline = localTimeline } ! []
-
-                Err error ->
-                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
-
-        GlobalTimeline result ->
-            case result of
-                Ok globalTimeline ->
-                    { model | globalTimeline = globalTimeline } ! []
-
-                Err error ->
-                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
-
-        UserAccount result ->
-            case result of
-                Ok account ->
-                    { model | account = Just account } ! []
-
-                Err error ->
-                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
-
         ClearOpenedAccount ->
             { model | account = Nothing } ! []
 
-        StatusPosted _ ->
-            { model | draft = defaultDraft } ! []
-
-        Notifications result ->
-            case result of
-                Ok notifications ->
-                    { model | notifications = Mastodon.aggregateNotifications notifications } ! []
-
-                Err error ->
-                    { model | notifications = [], errors = (errorText error) :: model.errors } ! []
-
         NewWebsocketUserMessage message ->
-            case (Mastodon.decodeWebSocketMessage message) of
-                Mastodon.EventError error ->
-                    { model | errors = error :: model.errors } ! []
+            let
+                logError label error message =
+                    Debug.log (label ++ " WS error: " ++ error) message
+            in
+                case (Mastodon.decodeWebSocketMessage message) of
+                    Mastodon.EventError error ->
+                        { model | errors = (logError "EventError" error message) :: model.errors } ! []
 
-                Mastodon.NotificationResult result ->
-                    case result of
-                        Ok notification ->
-                            { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
+                    Mastodon.NotificationResult result ->
+                        case result of
+                            Ok notification ->
+                                { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
 
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            Err error ->
+                                { model | errors = (logError "NotificationResult" error message) :: model.errors } ! []
 
-                Mastodon.StatusResult result ->
-                    case result of
-                        Ok status ->
-                            { model | userTimeline = status :: model.userTimeline } ! []
+                    Mastodon.StatusResult result ->
+                        case result of
+                            Ok status ->
+                                { model | userTimeline = status :: model.userTimeline } ! []
 
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            Err error ->
+                                { model | errors = (logError "StatusResult" error message) :: model.errors } ! []
 
         NewWebsocketLocalMessage message ->
             case (Mastodon.decodeWebSocketMessage message) of
