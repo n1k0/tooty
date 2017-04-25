@@ -23681,7 +23681,10 @@ var _n1k0$tooty$Model$updateDraft = F2(
 							status: A2(_elm_lang$core$String$startsWith, mention, draft.status) ? draft.status : A2(
 								_elm_lang$core$Basics_ops['++'],
 								mention,
-								A2(_elm_lang$core$Basics_ops['++'], ' ', draft.status))
+								A2(_elm_lang$core$Basics_ops['++'], ' ', draft.status)),
+							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p10.sensitive),
+							spoiler_text: _elm_lang$core$Native_Utils.eq(_p10.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p10.spoiler_text),
+							visibility: _p10.visibility
 						}),
 					{
 						ctor: '::',
