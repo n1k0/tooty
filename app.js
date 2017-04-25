@@ -22248,31 +22248,6 @@ var _n1k0$tooty$Util$replace = F3(
 			A2(_elm_lang$core$String$split, from, str));
 	});
 
-var _n1k0$tooty$Mastodon$subscribeToWebSockets = F3(
-	function (client, streamType, message) {
-		var type_ = function () {
-			var _p0 = streamType;
-			switch (_p0.ctor) {
-				case 'UserStream':
-					return 'user';
-				case 'LocalPublicStream':
-					return 'public:local';
-				default:
-					return 'public:local';
-			}
-		}();
-		var url = A2(
-			_elm_lang$core$Basics_ops['++'],
-			A3(_n1k0$tooty$Util$replace, 'https', 'wss', client.server),
-			A2(
-				_elm_lang$core$Basics_ops['++'],
-				'/api/v1/streaming/?access_token=',
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					client.token,
-					A2(_elm_lang$core$Basics_ops['++'], '&stream=', type_))));
-		return A2(_elm_lang$websocket$WebSocket$listen, url, message);
-	});
 var _n1k0$tooty$Mastodon$registrationEncoder = function (registration) {
 	return _elm_lang$core$Json_Encode$object(
 		{
@@ -22358,9 +22333,9 @@ var _n1k0$tooty$Mastodon$fetch = F3(
 					A2(_elm_lang$core$Basics_ops['++'], client.server, endpoint))));
 	});
 var _n1k0$tooty$Mastodon$extractReblog = function (status) {
-	var _p1 = status.reblog;
-	if (_p1.ctor === 'Just') {
-		return _p1._0._0;
+	var _p0 = status.reblog;
+	if (_p0.ctor === 'Just') {
+		return _p0._0._0;
 	} else {
 		return status;
 	}
@@ -22379,15 +22354,15 @@ var _n1k0$tooty$Mastodon$encodeUrl = F2(
 				'&',
 				A2(
 					_elm_lang$core$List$map,
-					function (_p2) {
-						var _p3 = _p2;
+					function (_p1) {
+						var _p2 = _p1;
 						return A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p3._0,
+							_p2._0,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
 								'=',
-								_elm_lang$http$Http$encodeUri(_p3._1)));
+								_elm_lang$http$Http$encodeUri(_p2._1)));
 					},
 					params)));
 	});
@@ -22413,6 +22388,36 @@ var _n1k0$tooty$Mastodon$getAuthorizationUrl = function (registration) {
 			}
 		});
 };
+var _n1k0$tooty$Mastodon$subscribeToWebSockets = F3(
+	function (client, streamType, message) {
+		var type_ = function () {
+			var _p3 = streamType;
+			switch (_p3.ctor) {
+				case 'GlobalPublicStream':
+					return 'public';
+				case 'LocalPublicStream':
+					return 'public:local';
+				default:
+					return 'user';
+			}
+		}();
+		var url = A2(
+			_n1k0$tooty$Mastodon$encodeUrl,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A3(_n1k0$tooty$Util$replace, 'https:', 'wss:', client.server),
+				'/api/v1/streaming/'),
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'access_token', _1: client.token},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'stream', _1: type_},
+					_1: {ctor: '[]'}
+				}
+			});
+		return A2(_elm_lang$websocket$WebSocket$listen, url, message);
+	});
 var _n1k0$tooty$Mastodon$encodeMaybe = F2(
 	function (encode, thing) {
 		var _p4 = thing;
