@@ -29,7 +29,7 @@ The app should be deployed to https://[your-github-username].github.io/tooty/
 
 ### Launching testsuite
 
-    $ ./node_modules/.bin/elm-test 
+    $ npm test
 
 ## Licence
 
