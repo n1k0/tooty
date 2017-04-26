@@ -49,7 +49,7 @@ import Json.Encode as Encode
 import Util
 import WebSocket
 import List.Extra exposing (groupWhile)
-import Mastodon.ApiUrl
+import Mastodon.ApiUrl as ApiUrl
 
 
 -- Types
@@ -621,14 +621,14 @@ registrationEncoder registration =
 
 register : Server -> String -> String -> String -> String -> Request AppRegistration
 register server client_name redirect_uri scope website =
-    HttpBuilder.post (Mastodon.ApiUrl.appsUrl server)
+    HttpBuilder.post (ApiUrl.apps server)
         |> HttpBuilder.withExpect (Http.expectJson (appRegistrationDecoder server scope))
         |> HttpBuilder.withJsonBody (appRegistrationEncoder client_name redirect_uri scope website)
 
 
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
-    encodeUrl (Mastodon.ApiUrl.oauthAuthorizeUrl registration.server)
+    encodeUrl (ApiUrl.oauthAuthorize registration.server)
         [ ( "response_type", "code" )
         , ( "client_id", registration.client_id )
         , ( "scope", registration.scope )
@@ -638,7 +638,7 @@ getAuthorizationUrl registration =
 
 getAccessToken : AppRegistration -> AuthCode -> Request AccessTokenResult
 getAccessToken registration authCode =
-    HttpBuilder.post (Mastodon.ApiUrl.oauthTokenUrl registration.server)
+    HttpBuilder.post (ApiUrl.oauthToken registration.server)
         |> HttpBuilder.withExpect (Http.expectJson (accessTokenDecoder registration))
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
 
@@ -650,32 +650,32 @@ send tagger builder =
 
 fetchAccount : Client -> AccountId -> Request Account
 fetchAccount client accountId =
-    fetch client (Mastodon.ApiUrl.accountUrl accountId) accountDecoder
+    fetch client (ApiUrl.account accountId) accountDecoder
 
 
 fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
-    fetch client Mastodon.ApiUrl.homeTimelineUrl <| Decode.list statusDecoder
+    fetch client ApiUrl.homeTimeline <| Decode.list statusDecoder
 
 
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
-    fetch client (Mastodon.ApiUrl.publicTimelineUrl (Just "public")) <| Decode.list statusDecoder
+    fetch client (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
 
 
 fetchGlobalTimeline : Client -> Request (List Status)
 fetchGlobalTimeline client =
-    fetch client (Mastodon.ApiUrl.publicTimelineUrl (Nothing)) <| Decode.list statusDecoder
+    fetch client (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
 
 
 fetchNotifications : Client -> Request (List Notification)
 fetchNotifications client =
-    fetch client (Mastodon.ApiUrl.notificationsUrl) <| Decode.list notificationDecoder
+    fetch client (ApiUrl.notifications) <| Decode.list notificationDecoder
 
 
 postStatus : Client -> StatusRequestBody -> Request Status
 postStatus client statusRequestBody =
-    HttpBuilder.post (Mastodon.ApiUrl.statusesUrl client.server)
+    HttpBuilder.post (ApiUrl.statuses client.server)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
@@ -683,28 +683,28 @@ postStatus client statusRequestBody =
 
 reblog : Client -> Int -> Request Status
 reblog client id =
-    HttpBuilder.post (Mastodon.ApiUrl.reblogUrl client.server id)
+    HttpBuilder.post (ApiUrl.reblog client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 unreblog : Client -> Int -> Request Status
 unreblog client id =
-    HttpBuilder.post (Mastodon.ApiUrl.unreblogUrl client.server id)
+    HttpBuilder.post (ApiUrl.unreblog client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 favourite : Client -> Int -> Request Status
 favourite client id =
-    HttpBuilder.post (Mastodon.ApiUrl.favouriteUrl client.server id)
+    HttpBuilder.post (ApiUrl.favourite client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 unfavourite : Client -> Int -> Request Status
 unfavourite client id =
-    HttpBuilder.post (Mastodon.ApiUrl.unfavouriteUrl client.server id)
+    HttpBuilder.post (ApiUrl.unfavourite client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
@@ -725,7 +725,7 @@ subscribeToWebSockets client streamType message =
 
         url =
             encodeUrl
-                (Mastodon.ApiUrl.streamingUrl (Util.replace "https:" "wss:" client.server))
+                (ApiUrl.streaming (Util.replace "https:" "wss:" client.server))
                 [ ( "access_token", client.token )
                 , ( "stream", type_ )
                 ]

@@ -1,38 +1,57 @@
-module Mastodon.ApiUrl exposing (..)
+module Mastodon.ApiUrl
+    exposing
+        ( apps
+        , oauthAuthorize
+        , oauthToken
+        , account
+        , homeTimeline
+        , publicTimeline
+        , notifications
+        , statuses
+        , reblog
+        , unreblog
+        , favourite
+        , unfavourite
+        , streaming
+        )
 
 
-appsUrl : String -> String
-appsUrl server =
+type alias Server =
+    String
+
+
+apps : Server -> String
+apps server =
     server ++ "/api/v1/apps"
 
 
-oauthAuthorizeUrl : String -> String
-oauthAuthorizeUrl server =
+oauthAuthorize : Server -> String
+oauthAuthorize server =
     server ++ "/oauth/authorize"
 
 
-oauthTokenUrl : String -> String
-oauthTokenUrl server =
+oauthToken : Server -> String
+oauthToken server =
     server ++ "/oauth/token"
 
 
-accountsUrl : String
-accountsUrl =
+accounts : String
+accounts =
     "/api/v1/accounts/"
 
 
-accountUrl : Int -> String
-accountUrl id =
-    accountsUrl ++ (toString id)
+account : Int -> String
+account id =
+    accounts ++ (toString id)
 
 
-homeTimelineUrl : String
-homeTimelineUrl =
+homeTimeline : String
+homeTimeline =
     "/api/v1/timelines/home"
 
 
-publicTimelineUrl : Maybe String -> String
-publicTimelineUrl local =
+publicTimeline : Maybe String -> String
+publicTimeline local =
     let
         isLocal =
             case local of
@@ -45,36 +64,36 @@ publicTimelineUrl local =
         "/api/v1/timelines/public" ++ isLocal
 
 
-notificationsUrl : String
-notificationsUrl =
+notifications : String
+notifications =
     "/api/v1/notifications"
 
 
-statusesUrl : String -> String
-statusesUrl server =
+statuses : Server -> String
+statuses server =
     server ++ "/api/v1/statuses"
 
 
-reblogUrl : String -> Int -> String
-reblogUrl server id =
-    statusesUrl server ++ (toString id) ++ "/reblog"
+reblog : Server -> Int -> String
+reblog server id =
+    statuses server ++ (toString id) ++ "/reblog"
 
 
-unreblogUrl : String -> Int -> String
-unreblogUrl server id =
-    statusesUrl server ++ (toString id) ++ "/unreblog"
+unreblog : Server -> Int -> String
+unreblog server id =
+    statuses server ++ (toString id) ++ "/unreblog"
 
 
-favouriteUrl : String -> Int -> String
-favouriteUrl server id =
-    statusesUrl server ++ (toString id) ++ "/favourite"
+favourite : Server -> Int -> String
+favourite server id =
+    statuses server ++ (toString id) ++ "/favourite"
 
 
-unfavouriteUrl : String -> Int -> String
-unfavouriteUrl server id =
-    statusesUrl server ++ (toString id) ++ "/unfavourite"
+unfavourite : Server -> Int -> String
+unfavourite server id =
+    statuses server ++ (toString id) ++ "/unfavourite"
 
 
-streamingUrl : String -> String
-streamingUrl server =
+streaming : Server -> String
+streaming server =
     server ++ "/api/v1/streaming/"
