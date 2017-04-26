@@ -153,10 +153,9 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
     let
         accountLinkAttributes =
             [ href account.url
-
-            -- When clicking on a status, we should not let the browser
-            -- redirect to a new page. That's why we're preventing the default
-            -- behavior here
+              -- When clicking on a status, we should not let the browser
+              -- redirect to a new page. That's why we're preventing the default
+              -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
@@ -575,7 +574,7 @@ homepageView model =
 
             Nothing ->
                 if model.useGlobalTimeline then
-                    timelineView "Global timeline" "globe" "global" model.publicTimeline
+                    timelineView "Global timeline" "globe" "global" model.globalTimeline
                 else
                     timelineView "Local timeline" "th-large" "local" model.localTimeline
         ]
