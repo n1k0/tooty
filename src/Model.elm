@@ -289,10 +289,14 @@ processReblog statusId flag model =
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
 
 
+deleteStatusFromTimeline : Int -> List Mastodon.Status -> List Mastodon.Status
+deleteStatusFromTimeline statusId timeline =
+    timeline
+        |> List.filter (\s -> s.id /= statusId || (Mastodon.extractReblog s).id == statusId)
+
+
 updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg draft =
-    -- TODO: later we'll probably want to handle more events like when the user
-    --       wants to add CW, medias, etc.
     case draftMsg of
         ClearDraft ->
             defaultDraft ! []
@@ -576,29 +580,42 @@ update msg model =
             { model | account = Nothing } ! []
 
         NewWebsocketUserMessage message ->
-            let
-                logError label error message =
-                    Debug.log (label ++ " WS error: " ++ error) message
-            in
-                case (Mastodon.decodeWebSocketMessage message) of
-                    Mastodon.EventError error ->
-                        { model | errors = (logError "EventError" error message) :: model.errors } ! []
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.StatusUpdateEvent result ->
+                    case result of
+                        Ok status ->
+                            { model | userTimeline = status :: model.userTimeline } ! []
 
-                    Mastodon.NotificationResult result ->
-                        case result of
-                            Ok notification ->
-                                { model | notifications = Mastodon.addNotificationToAggregates notification model.notifications } ! []
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
 
-                            Err error ->
-                                { model | errors = (logError "NotificationResult" error message) :: model.errors } ! []
+                Mastodon.StatusDeleteEvent result ->
+                    case result of
+                        Ok id ->
+                            { model
+                                | localTimeline = deleteStatusFromTimeline id model.userTimeline
+                                , publicTimeline = deleteStatusFromTimeline id model.userTimeline
+                                , userTimeline = deleteStatusFromTimeline id model.userTimeline
+                            }
+                                ! []
 
-                    Mastodon.StatusResult result ->
-                        case result of
-                            Ok status ->
-                                { model | userTimeline = status :: model.userTimeline } ! []
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
 
-                            Err error ->
-                                { model | errors = (logError "StatusResult" error message) :: model.errors } ! []
+                Mastodon.NotificationEvent result ->
+                    case result of
+                        Ok notification ->
+                            let
+                                notifications =
+                                    Mastodon.addNotificationToAggregates notification model.notifications
+                            in
+                                { model | notifications = notifications } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.ErrorEvent error ->
+                    { model | errors = error :: model.errors } ! []
 
         NewWebsocketLocalMessage message ->
             -- @TODO
