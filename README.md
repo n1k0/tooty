@@ -27,6 +27,10 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
 The app should be deployed to https://[your-github-username].github.io/tooty/
 
+### Launching testsuite
+
+    $ ./node_modules/.bin/elm-test 
+
 ## Licence
 
 MIT
