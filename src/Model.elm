@@ -45,12 +45,13 @@ type MastodonMsg
     | UserTimeline (Result Mastodon.Error (List Mastodon.Status))
 
 
-type
-    Msg
-    {-
-       FIXME: Mastodon server response messages should be extracted to their own
-       MastodonMsg type at some point.
-    -}
+type WebSocketMsg
+    = NewWebsocketUserMessage String
+    | NewWebsocketGlobalMessage String
+    | NewWebsocketLocalMessage String
+
+
+type Msg
     = AddFavorite Int
     | DraftEvent DraftMsg
     | MastodonEvent MastodonMsg
@@ -65,10 +66,8 @@ type
     | UseGlobalTimeline Bool
     | ClearOpenedAccount
     | Unreblog Int
-    | NewWebsocketUserMessage String
-    | NewWebsocketGlobalMessage String
-    | NewWebsocketLocalMessage String
     | ViewerEvent ViewerMsg
+    | WebSocketEvent WebSocketMsg
 
 
 type alias Draft =
@@ -465,6 +464,91 @@ processMastodonEvent msg model =
                     { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
 
 
+processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
+processWebSocketMsg msg model =
+    case msg of
+        NewWebsocketUserMessage message ->
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.ErrorEvent error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusUpdateEvent result ->
+                    case result of
+                        Ok status ->
+                            { model | userTimeline = status :: model.userTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusDeleteEvent result ->
+                    case result of
+                        Ok id ->
+                            { model | userTimeline = deleteStatusFromTimeline id model.userTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.NotificationEvent result ->
+                    case result of
+                        Ok notification ->
+                            let
+                                notifications =
+                                    Mastodon.addNotificationToAggregates notification model.notifications
+                            in
+                                { model | notifications = notifications } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+        NewWebsocketLocalMessage message ->
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.ErrorEvent error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusUpdateEvent result ->
+                    case result of
+                        Ok status ->
+                            { model | localTimeline = status :: model.localTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusDeleteEvent result ->
+                    case result of
+                        Ok id ->
+                            { model | localTimeline = deleteStatusFromTimeline id model.localTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
+
+        NewWebsocketGlobalMessage message ->
+            case (Mastodon.decodeWebSocketMessage message) of
+                Mastodon.ErrorEvent error ->
+                    { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusUpdateEvent result ->
+                    case result of
+                        Ok status ->
+                            { model | globalTimeline = status :: model.globalTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                Mastodon.StatusDeleteEvent result ->
+                    case result of
+                        Ok id ->
+                            { model | globalTimeline = deleteStatusFromTimeline id model.globalTimeline } ! []
+
+                        Err error ->
+                            { model | errors = error :: model.errors } ! []
+
+                _ ->
+                    model ! []
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -475,6 +559,13 @@ update msg model =
             let
                 ( newModel, commands ) =
                     processMastodonEvent msg model
+            in
+                newModel ! [ commands ]
+
+        WebSocketEvent msg ->
+            let
+                ( newModel, commands ) =
+                    processWebSocketMsg msg model
             in
                 newModel ! [ commands ]
 
@@ -579,111 +670,33 @@ update msg model =
         ClearOpenedAccount ->
             { model | account = Nothing } ! []
 
-        NewWebsocketUserMessage message ->
-            case (Mastodon.decodeWebSocketMessage message) of
-                Mastodon.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusUpdateEvent result ->
-                    case result of
-                        Ok status ->
-                            { model | userTimeline = status :: model.userTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            { model | userTimeline = deleteStatusFromTimeline id model.userTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                Mastodon.NotificationEvent result ->
-                    case result of
-                        Ok notification ->
-                            let
-                                notifications =
-                                    Mastodon.addNotificationToAggregates notification model.notifications
-                            in
-                                { model | notifications = notifications } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-        NewWebsocketLocalMessage message ->
-            case (Mastodon.decodeWebSocketMessage message) of
-                Mastodon.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusUpdateEvent result ->
-                    case result of
-                        Ok status ->
-                            { model | localTimeline = status :: model.localTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            { model | localTimeline = deleteStatusFromTimeline id model.localTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                _ ->
-                    model ! []
-
-        NewWebsocketGlobalMessage message ->
-            case (Mastodon.decodeWebSocketMessage message) of
-                Mastodon.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusUpdateEvent result ->
-                    case result of
-                        Ok status ->
-                            { model | globalTimeline = status :: model.globalTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                Mastodon.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            { model | globalTimeline = deleteStatusFromTimeline id model.globalTimeline } ! []
-
-                        Err error ->
-                            { model | errors = error :: model.errors } ! []
-
-                _ ->
-                    model ! []
-
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch <|
-        case model.client of
-            Just client ->
-                [ Mastodon.subscribeToWebSockets
-                    client
-                    Mastodon.UserStream
-                    NewWebsocketUserMessage
-                ]
-                    ++ (if model.useGlobalTimeline then
-                            [ Mastodon.subscribeToWebSockets
-                                client
-                                Mastodon.GlobalPublicStream
-                                NewWebsocketGlobalMessage
-                            ]
-                        else
-                            [ Mastodon.subscribeToWebSockets
-                                client
-                                Mastodon.LocalPublicStream
-                                NewWebsocketLocalMessage
-                            ]
-                       )
+    case model.client of
+        Just client ->
+            let
+                subs =
+                    [ Mastodon.subscribeToWebSockets
+                        client
+                        Mastodon.UserStream
+                        NewWebsocketUserMessage
+                    ]
+                        ++ (if model.useGlobalTimeline then
+                                [ Mastodon.subscribeToWebSockets
+                                    client
+                                    Mastodon.GlobalPublicStream
+                                    NewWebsocketGlobalMessage
+                                ]
+                            else
+                                [ Mastodon.subscribeToWebSockets
+                                    client
+                                    Mastodon.LocalPublicStream
+                                    NewWebsocketLocalMessage
+                                ]
+                           )
+            in
+                Sub.batch <| List.map (Sub.map WebSocketEvent) subs
 
-            Nothing ->
-                []
+        Nothing ->
+            Sub.batch []
