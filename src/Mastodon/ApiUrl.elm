@@ -1,19 +1,19 @@
 module Mastodon.ApiUrl exposing (..)
 
 
-appsUrl : String
-appsUrl =
-    "/api/v1/apps"
+appsUrl : String -> String
+appsUrl server =
+    server ++ "/api/v1/apps"
 
 
-oauthAuthorizeUrl : String
-oauthAuthorizeUrl =
-    "/oauth/authorize"
+oauthAuthorizeUrl : String -> String
+oauthAuthorizeUrl server =
+    server ++ "/oauth/authorize"
 
 
-oauthTokenUrl : String
-oauthTokenUrl =
-    "/oauth/token"
+oauthTokenUrl : String -> String
+oauthTokenUrl server =
+    server ++ "/oauth/token"
 
 
 accountsUrl : String
@@ -50,31 +50,31 @@ notificationsUrl =
     "/api/v1/notifications"
 
 
-statusesUrl : String
-statusesUrl =
-    "/api/v1/statuses"
+statusesUrl : String -> String
+statusesUrl server =
+    server ++ "/api/v1/statuses"
 
 
-reblogUrl : Int -> String
-reblogUrl id =
-    statusesUrl ++ (toString id) ++ "/reblog"
+reblogUrl : String -> Int -> String
+reblogUrl server id =
+    statusesUrl server ++ (toString id) ++ "/reblog"
 
 
-unreblogUrl : Int -> String
-unreblogUrl id =
-    statusesUrl ++ (toString id) ++ "/unreblog"
+unreblogUrl : String -> Int -> String
+unreblogUrl server id =
+    statusesUrl server ++ (toString id) ++ "/unreblog"
 
 
-favouriteUrl : Int -> String
-favouriteUrl id =
-    statusesUrl ++ (toString id) ++ "/favourite"
+favouriteUrl : String -> Int -> String
+favouriteUrl server id =
+    statusesUrl server ++ (toString id) ++ "/favourite"
 
 
-unfavouriteUrl : Int -> String
-unfavouriteUrl id =
-    statusesUrl ++ (toString id) ++ "/unfavourite"
+unfavouriteUrl : String -> Int -> String
+unfavouriteUrl server id =
+    statusesUrl server ++ (toString id) ++ "/unfavourite"
 
 
-streamingUrl : String
-streamingUrl =
-    "/api/v1/streaming/"
+streamingUrl : String -> String
+streamingUrl server =
+    server ++ "/api/v1/streaming/"
