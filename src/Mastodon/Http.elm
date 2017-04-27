@@ -1,6 +1,7 @@
 module Mastodon.Http
     exposing
         ( Request
+        , context
         , reblog
         , unreblog
         , favourite
@@ -131,6 +132,13 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+
+
+context : Client -> Int -> Request Context
+context client id =
+    HttpBuilder.get (ApiUrl.context client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson contextDecoder)
 
 
 reblog : Client -> Int -> Request Status

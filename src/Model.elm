@@ -38,6 +38,7 @@ type ViewerMsg
 type MastodonMsg
     = AccessToken (Result Mastodon.Model.Error Mastodon.Model.AccessTokenResult)
     | AppRegistered (Result Mastodon.Model.Error Mastodon.Model.AppRegistration)
+    | ContextLoaded Mastodon.Model.Status (Result Mastodon.Model.Error Mastodon.Model.Context)
     | FavoriteAdded (Result Mastodon.Model.Error Mastodon.Model.Status)
     | FavoriteRemoved (Result Mastodon.Model.Error Mastodon.Model.Status)
     | LocalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
@@ -58,10 +59,13 @@ type WebSocketMsg
 
 type Msg
     = AddFavorite Int
+    | ClearOpenedAccount
+    | CloseThread
     | DraftEvent DraftMsg
+    | LoadUserAccount Int
     | MastodonEvent MastodonMsg
     | NoOp
-    | OnLoadUserAccount Int
+    | OpenThread Mastodon.Model.Status
     | Reblog Int
     | Register
     | RemoveFavorite Int
@@ -69,7 +73,6 @@ type Msg
     | SubmitDraft
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
-    | ClearOpenedAccount
     | Unreblog Int
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
@@ -84,10 +87,24 @@ type alias Draft =
     }
 
 
+type alias Thread =
+    { status : Mastodon.Model.Status
+    , context : Mastodon.Model.Context
+    }
+
+
 type alias Viewer =
     { attachments : List Mastodon.Model.Attachment
     , attachment : Mastodon.Model.Attachment
     }
+
+
+type CurrentView
+    = -- Basically, what we should be displaying in the fourth column
+      AccountView Mastodon.Model.Account
+    | ThreadView Thread
+    | LocalTimelineView
+    | GlobalTimelineView
 
 
 type alias Model =
@@ -99,11 +116,11 @@ type alias Model =
     , globalTimeline : List Mastodon.Model.Status
     , notifications : List Mastodon.Model.NotificationAggregate
     , draft : Draft
-    , account : Maybe Mastodon.Model.Account
     , errors : List String
     , location : Navigation.Location
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
+    , currentView : CurrentView
     }
 
 
@@ -141,11 +158,11 @@ init flags location =
         , globalTimeline = []
         , notifications = []
         , draft = defaultDraft
-        , account = Nothing
         , errors = []
         , location = location
         , useGlobalTimeline = False
         , viewer = Nothing
+        , currentView = LocalTimelineView
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -230,6 +247,14 @@ loadTimelines client =
 
         Nothing ->
             Cmd.none
+
+
+preferredTimeline : Model -> CurrentView
+preferredTimeline model =
+    if model.useGlobalTimeline then
+        GlobalTimelineView
+    else
+        LocalTimelineView
 
 
 postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
@@ -402,6 +427,22 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        ContextLoaded status result ->
+            case result of
+                Ok context ->
+                    let
+                        thread =
+                            Thread status context
+                    in
+                        { model | currentView = ThreadView thread } ! []
+
+                Err error ->
+                    { model
+                        | currentView = preferredTimeline model
+                        , errors = (errorText error) :: model.errors
+                    }
+                        ! []
+
         FavoriteAdded result ->
             case result of
                 Ok status ->
@@ -464,10 +505,14 @@ processMastodonEvent msg model =
         UserAccount result ->
             case result of
                 Ok account ->
-                    { model | account = Just account } ! []
+                    { model | currentView = AccountView account } ! []
 
                 Err error ->
-                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
+                    { model
+                        | currentView = preferredTimeline model
+                        , errors = (errorText error) :: model.errors
+                    }
+                        ! []
 
         UserTimeline result ->
             case result of
@@ -594,6 +639,20 @@ update msg model =
         Register ->
             model ! [ registerApp model ]
 
+        OpenThread status ->
+            case model.client of
+                Just client ->
+                    model
+                        ! [ Mastodon.Http.context client status.id
+                                |> Mastodon.Http.send (MastodonEvent << (ContextLoaded status))
+                          ]
+
+                Nothing ->
+                    model ! []
+
+        CloseThread ->
+            { model | currentView = preferredTimeline model } ! []
+
         Reblog id ->
             -- Note: The case of reblogging is specific as it seems the server
             -- response takes a lot of time to be received by the client, so we
@@ -664,7 +723,7 @@ update msg model =
                     Nothing ->
                         []
 
-        OnLoadUserAccount accountId ->
+        LoadUserAccount accountId ->
             {-
                @TODO
                When requesting a user profile, we should load a new "page"
@@ -684,7 +743,7 @@ update msg model =
             { model | useGlobalTimeline = flag } ! []
 
         ClearOpenedAccount ->
-            { model | account = Nothing } ! []
+            { model | currentView = preferredTimeline model } ! []
 
 
 subscriptions : Model -> Sub Msg

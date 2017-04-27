@@ -89,6 +89,16 @@ body {
   color: #9baec8;
 }
 
+/* Thread */
+
+.thread-target {
+  background: #3c444c;
+}
+
+.thread-target .status-text {
+  font-size: 1.3em;
+}
+
 /* Status actions */
 
 .actions {

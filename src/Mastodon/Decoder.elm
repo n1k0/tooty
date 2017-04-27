@@ -4,6 +4,7 @@ module Mastodon.Decoder
         , accessTokenDecoder
         , accountDecoder
         , attachmentDecoder
+        , contextDecoder
         , decodeWebSocketMessage
         , mastodonErrorDecoder
         , mentionDecoder
@@ -66,6 +67,13 @@ attachmentDecoder =
         |> Pipe.required "remote_url" Decode.string
         |> Pipe.required "preview_url" Decode.string
         |> Pipe.required "text_url" (Decode.nullable Decode.string)
+
+
+contextDecoder : Decode.Decoder Context
+contextDecoder =
+    Pipe.decode Context
+        |> Pipe.required "ancestors" (Decode.list statusDecoder)
+        |> Pipe.required "descendants" (Decode.list statusDecoder)
 
 
 mastodonErrorDecoder : Decode.Decoder String
