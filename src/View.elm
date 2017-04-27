@@ -70,7 +70,7 @@ accountLink : Mastodon.Model.Account -> Html Msg
 accountLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
+        , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
         ]
         [ text <| "@" ++ account.username ]
 
@@ -79,7 +79,7 @@ accountAvatarLink : Mastodon.Model.Account -> Html Msg
 accountAvatarLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
+        , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
         , title <| "@" ++ account.username
         ]
         [ img [ class "avatar", src account.avatar ] [] ]
@@ -174,7 +174,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
             -- When clicking on a status, we should not let the browser
             -- redirect to a new page. That's why we're preventing the default
             -- behavior here
-            , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
+            , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
             ]
     in
         case reblog of
@@ -611,7 +611,7 @@ homepageView model =
 
             Model.AccountView account ->
                 -- Todo: Load the user timeline
-                accountTimelineView account [] "Account" "user"
+                accountTimelineView account model.accountTimeline "Account" "user"
 
             Model.ThreadView thread ->
                 threadView thread

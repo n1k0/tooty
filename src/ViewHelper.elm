@@ -13,7 +13,7 @@ import HtmlParser
 import Json.Decode as Decode
 import String.Extra exposing (replace)
 import Mastodon.Model
-import Model exposing (Msg(LoadUserAccount))
+import Model exposing (Msg(LoadAccount))
 
 
 -- Custom Events
@@ -58,7 +58,7 @@ createLinkNode attrs children mentions =
             Just mention ->
                 Html.node "a"
                     ((List.map toAttribute attrs)
-                        ++ [ onClickWithPreventAndStop (LoadUserAccount mention.id) ]
+                        ++ [ onClickWithPreventAndStop (LoadAccount mention.id) ]
                     )
                     (toVirtualDom mentions children)
 
