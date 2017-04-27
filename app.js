@@ -27718,7 +27718,7 @@ var _n1k0$tooty$View$timelineView = F4(
 								_elm_lang$html$Html$ul,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list-group'),
+									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
 									_1: {ctor: '[]'}
 								},
 								A2(
@@ -27954,7 +27954,7 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 							_elm_lang$html$Html$ul,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group'),
+								_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
 								_1: {ctor: '[]'}
 							},
 							A2(_elm_lang$core$List$map, _n1k0$tooty$View$notificationEntryView, notifications)),
@@ -28468,7 +28468,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 										_elm_lang$html$Html$ul,
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('list-group'),
+											_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
 											_1: {ctor: '[]'}
 										},
 										A2(
@@ -28547,7 +28547,7 @@ var _n1k0$tooty$View$threadView = function (thread) {
 							_elm_lang$html$Html$ul,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group'),
+								_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
 								_1: {ctor: '[]'}
 							},
 							A2(_elm_lang$core$List$map, threadEntry, statuses)),
