@@ -2,7 +2,6 @@ module NotificationTests exposing (..)
 
 import Test exposing (..)
 import Expect
-import String
 import Mastodon
 import Fixtures
 

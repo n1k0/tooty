@@ -1,6 +1,6 @@
 module Fixtures exposing (..)
 
-import Mastodon exposing (Account, Notification, NotificationAggregate, Status)
+import Mastodon.Model exposing (Account, Notification, NotificationAggregate, Status)
 
 
 accountSkro : Account
