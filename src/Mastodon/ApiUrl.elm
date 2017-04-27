@@ -77,27 +77,27 @@ statuses server =
 
 context : Server -> Int -> String
 context server id =
-    statuses server ++ (toString id) ++ "/context"
+    statuses server ++ "/" ++ (toString id) ++ "/context"
 
 
 reblog : Server -> Int -> String
 reblog server id =
-    statuses server ++ (toString id) ++ "/reblog"
+    statuses server ++ "/" ++ (toString id) ++ "/reblog"
 
 
 unreblog : Server -> Int -> String
 unreblog server id =
-    statuses server ++ (toString id) ++ "/unreblog"
+    statuses server ++ "/" ++ (toString id) ++ "/unreblog"
 
 
 favourite : Server -> Int -> String
 favourite server id =
-    statuses server ++ (toString id) ++ "/favourite"
+    statuses server ++ "/" ++ (toString id) ++ "/favourite"
 
 
 unfavourite : Server -> Int -> String
 unfavourite server id =
-    statuses server ++ (toString id) ++ "/unfavourite"
+    statuses server ++ "/" ++ (toString id) ++ "/unfavourite"
 
 
 streaming : Server -> String

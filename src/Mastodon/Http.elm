@@ -136,7 +136,7 @@ postStatus client statusRequestBody =
 
 context : Client -> Int -> Request Context
 context client id =
-    HttpBuilder.post (ApiUrl.context client.server id)
+    HttpBuilder.get (ApiUrl.context client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson contextDecoder)
 
