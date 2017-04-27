@@ -25575,11 +25575,16 @@ var _n1k0$tooty$Model$update = F2(
 						}
 					}());
 			case 'UseGlobalTimeline':
+				var newModel = _elm_lang$core$Native_Utils.update(
+					model,
+					{useGlobalTimeline: _p51._0});
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{useGlobalTimeline: _p51._0}),
+						{
+							currentView: _n1k0$tooty$Model$preferredTimeline(newModel)
+						}),
 					{ctor: '[]'});
 			default:
 				return A2(
@@ -28255,29 +28260,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 					},
 					{
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$div,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('row'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: A3(_n1k0$tooty$View$closeablePanelheading, iconName, label, _n1k0$tooty$Model$ClearOpenedAccount),
-										_1: {ctor: '[]'}
-									}),
-								_1: {ctor: '[]'}
-							}),
+						_0: A3(_n1k0$tooty$View$closeablePanelheading, iconName, label, _n1k0$tooty$Model$ClearOpenedAccount),
 						_1: {
 							ctor: '::',
 							_0: A2(
