@@ -1,6 +1,7 @@
 module Mastodon.Http
     exposing
-        ( reblog
+        ( Request
+        , reblog
         , unreblog
         , favourite
         , unfavourite
@@ -24,6 +25,10 @@ import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
 import Mastodon.Model exposing (..)
+
+
+type alias Request a =
+    HttpBuilder.RequestBuilder a
 
 
 extractMastodonError : Int -> String -> String -> Error

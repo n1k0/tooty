@@ -10,7 +10,6 @@ module Mastodon.Model
         , Notification
         , NotificationAggregate
         , Reblog(..)
-        , Request
         , Tag
         , Status
         , StatusRequestBody
@@ -64,12 +63,6 @@ type alias AccessTokenResult =
     }
 
 
-type alias Client =
-    { server : Server
-    , token : Token
-    }
-
-
 type alias AppRegistration =
     { server : Server
     , scope : String
@@ -108,6 +101,12 @@ type alias Attachment =
     }
 
 
+type alias Client =
+    { server : Server
+    , token : Token
+    }
+
+
 type alias Mention =
     { id : AccountId
     , url : String
@@ -140,10 +139,8 @@ type alias NotificationAggregate =
     }
 
 
-type alias Tag =
-    { name : String
-    , url : String
-    }
+type Reblog
+    = Reblog Status
 
 
 type alias Status =
@@ -169,10 +166,6 @@ type alias Status =
     }
 
 
-type Reblog
-    = Reblog Status
-
-
 type alias StatusRequestBody =
     -- status: The text of the status
     -- in_reply_to_id: local ID of the status you want to reply to
@@ -188,5 +181,7 @@ type alias StatusRequestBody =
     }
 
 
-type alias Request a =
-    HttpBuilder.RequestBuilder a
+type alias Tag =
+    { name : String
+    , url : String
+    }
