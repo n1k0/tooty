@@ -14,7 +14,7 @@ module Mastodon
         , StatusRequestBody
         , StreamType(..)
         , Tag
-        , WebSocketEventResult(..)
+        , WebSocketEvent(..)
         , reblog
         , unreblog
         , favourite
@@ -35,7 +35,6 @@ module Mastodon
         , postStatus
         , send
         , subscribeToWebSockets
-        , websocketEventDecoder
         , notificationDecoder
         , addNotificationToAggregates
         , notificationToAggregate
@@ -87,23 +86,23 @@ type alias Token =
     String
 
 
-type alias Client =
-    { server : Server
-    , token : Token
-    }
-
-
-type alias WebSocketEvent =
-    { event : String
-    , payload : String
-    }
-
-
 type Error
     = MastodonError StatusCode StatusMsg String
     | ServerError StatusCode StatusMsg String
     | TimeoutError
     | NetworkError
+
+
+type alias AccessTokenResult =
+    { server : Server
+    , accessToken : Token
+    }
+
+
+type alias Client =
+    { server : Server
+    , token : Token
+    }
 
 
 type alias AppRegistration =
@@ -228,29 +227,27 @@ type alias Request a =
     HttpBuilder.RequestBuilder a
 
 
-type WebSocketEventResult a b c
-    = EventError a
-    | NotificationResult b
-    | StatusResult c
-
-
 type StreamType
     = UserStream
     | LocalPublicStream
     | GlobalPublicStream
 
 
+type WebSocketEvent
+    = StatusUpdateEvent (Result String Status)
+    | NotificationEvent (Result String Notification)
+    | StatusDeleteEvent (Result String Int)
+    | ErrorEvent String
 
--- Msg
+
+type WebSocketPayload
+    = StringPayload String
+    | IntPayload Int
 
 
-type StatusListResult
-    = Result Http.Error (List Status)
-
-
-type alias AccessTokenResult =
-    { server : Server
-    , accessToken : Token
+type alias WebSocketMessage =
+    { event : String
+    , payload : WebSocketPayload
     }
 
 
@@ -396,11 +393,19 @@ statusDecoder =
         |> Pipe.required "visibility" Decode.string
 
 
-websocketEventDecoder : Decode.Decoder WebSocketEvent
-websocketEventDecoder =
-    Pipe.decode WebSocketEvent
+webSocketPayloadDecoder : Decode.Decoder WebSocketPayload
+webSocketPayloadDecoder =
+    Decode.oneOf
+        [ Decode.map StringPayload Decode.string
+        , Decode.map IntPayload Decode.int
+        ]
+
+
+webSocketEventDecoder : Decode.Decoder WebSocketMessage
+webSocketEventDecoder =
+    Pipe.decode WebSocketMessage
         |> Pipe.required "event" Decode.string
-        |> Pipe.required "payload" Decode.string
+        |> Pipe.required "payload" webSocketPayloadDecoder
 
 
 
@@ -733,41 +738,37 @@ subscribeToWebSockets client streamType message =
         WebSocket.listen url message
 
 
-
-{-
-   Sorry for this beast, but the websocket connection return messages
-   containing an escaped JSON string under the `payload` key. This JSON string
-   can either represent a `Notification` when the event field of the returned json
-   is equal to 'notification' or a `Status` when the string is equal to
-   'update'.
-   If someone has a better way of doing this, I'me all for it
--}
-
-
-decodeWebSocketMessage : String -> WebSocketEventResult String (Result String Notification) (Result String Status)
+decodeWebSocketMessage : String -> WebSocketEvent
 decodeWebSocketMessage message =
-    let
-        websocketEvent =
-            Decode.decodeString
-                websocketEventDecoder
-                message
-    in
-        case websocketEvent of
-            Ok event ->
-                if event.event == "notification" then
-                    NotificationResult
-                        (Decode.decodeString
-                            notificationDecoder
-                            event.payload
-                        )
-                else if event.event == "update" then
-                    StatusResult
-                        (Decode.decodeString
-                            statusDecoder
-                            event.payload
-                        )
-                else
-                    EventError "Unknown event type for WebSocket"
+    case (Decode.decodeString webSocketEventDecoder message) of
+        Ok message ->
+            case message.event of
+                "update" ->
+                    case message.payload of
+                        StringPayload payload ->
+                            StatusUpdateEvent (Decode.decodeString statusDecoder payload)
 
-            Err error ->
-                EventError error
+                        _ ->
+                            ErrorEvent "WS status update event payload must be a string"
+
+                "delete" ->
+                    case message.payload of
+                        IntPayload payload ->
+                            StatusDeleteEvent <| Ok payload
+
+                        _ ->
+                            ErrorEvent "WS status delete event payload must be an int"
+
+                "notification" ->
+                    case message.payload of
+                        StringPayload payload ->
+                            NotificationEvent (Decode.decodeString notificationDecoder payload)
+
+                        _ ->
+                            ErrorEvent "WS notification event payload must be an string"
+
+                event ->
+                    ErrorEvent <| "Unknown WS event " ++ event
+
+        Err error ->
+            ErrorEvent error
