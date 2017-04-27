@@ -7,7 +7,7 @@ import Html.Events exposing (..)
 import List.Extra exposing (elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model
-import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
+import Model exposing (..)
 import ViewHelper
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
@@ -21,6 +21,22 @@ visibilities =
         , ( "unlisted", "do not show in public timelines" )
         , ( "private", "post to followers only" )
         , ( "direct", "post to mentioned users only" )
+        ]
+
+
+closeablePanelheading : String -> String -> Msg -> Html Msg
+closeablePanelheading iconName label onClose =
+    div [ class "panel-heading" ]
+        [ div [ class "row" ]
+            [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ]
+            , div [ class "col-xs-3 text-right" ]
+                [ a
+                    [ href ""
+                    , ViewHelper.onClickWithPreventAndStop onClose
+                    ]
+                    [ icon "remove" ]
+                ]
+            ]
         ]
 
 
@@ -192,15 +208,7 @@ accountTimelineView account statuses label iconName =
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
                 [ div [ class "row" ]
-                    [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ]
-                    , div [ class "col-xs-3 text-right" ]
-                        [ a
-                            [ href ""
-                            , ViewHelper.onClickWithPreventAndStop ClearOpenedAccount
-                            ]
-                            [ icon "remove" ]
-                        ]
-                    ]
+                    [ closeablePanelheading iconName label ClearOpenedAccount ]
                 ]
             , div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
                 [ div [ class "opacity-layer" ]
@@ -296,8 +304,8 @@ statusActionsView status =
             ]
 
 
-statusEntryView : String -> Mastodon.Model.Status -> Html Msg
-statusEntryView context status =
+statusEntryView : String -> String -> Mastodon.Model.Status -> Html Msg
+statusEntryView context className status =
     let
         nsfwClass =
             case status.sensitive of
@@ -307,7 +315,7 @@ statusEntryView context status =
                 _ ->
                     ""
     in
-        li [ class <| "list-group-item " ++ nsfwClass ]
+        li [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
             [ statusView context status
             , statusActionsView status
             ]
@@ -322,7 +330,7 @@ timelineView label iconName context statuses =
                 , text label
                 ]
             , ul [ class "list-group" ] <|
-                List.map (statusEntryView context) statuses
+                List.map (statusEntryView context "") statuses
             ]
         ]
 
@@ -536,6 +544,33 @@ draftView { draft } =
             ]
 
 
+threadView : Thread -> Html Msg
+threadView thread =
+    let
+        statuses =
+            List.concat
+                [ thread.context.ancestors
+                , [ thread.status ]
+                , thread.context.descendants
+                ]
+
+        threadEntry status =
+            statusEntryView "thread"
+                (if status == thread.status then
+                    "thread-target"
+                 else
+                    ""
+                )
+                status
+    in
+        div [ class "col-md-3" ]
+            [ div [ class "panel panel-default" ]
+                [ closeablePanelheading "list" "Thread" CloseThread
+                , ul [ class "list-group" ] <| List.map threadEntry statuses
+                ]
+            ]
+
+
 optionsView : Model -> Html Msg
 optionsView model =
     div [ class "panel panel-default" ]
@@ -569,16 +604,19 @@ homepageView model =
         [ sidebarView model
         , timelineView "Home timeline" "home" "home" model.userTimeline
         , notificationListView model.notifications
-        , case model.account of
-            Just account ->
+        , case model.currentView of
+            Model.LocalTimelineView ->
+                timelineView "Local timeline" "th-large" "local" model.localTimeline
+
+            Model.GlobalTimelineView ->
+                timelineView "Global timeline" "globe" "global" model.globalTimeline
+
+            Model.AccountView account ->
                 -- Todo: Load the user timeline
                 accountTimelineView account [] "Account" "user"
 
-            Nothing ->
-                if model.useGlobalTimeline then
-                    timelineView "Global timeline" "globe" "global" model.globalTimeline
-                else
-                    timelineView "Local timeline" "th-large" "local" model.localTimeline
+            Model.ThreadView thread ->
+                threadView thread
         ]
 
 

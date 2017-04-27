@@ -60,6 +60,7 @@ type WebSocketMsg
 type Msg
     = AddFavorite Int
     | ClearOpenedAccount
+    | CloseThread
     | DraftEvent DraftMsg
     | LoadUserAccount Int
     | MastodonEvent MastodonMsg
@@ -98,6 +99,14 @@ type alias Viewer =
     }
 
 
+type CurrentView
+    = -- Basically, what we should be displaying in the fourth column
+      AccountView Mastodon.Model.Account
+    | ThreadView Thread
+    | LocalTimelineView
+    | GlobalTimelineView
+
+
 type alias Model =
     { server : String
     , registration : Maybe Mastodon.Model.AppRegistration
@@ -107,12 +116,11 @@ type alias Model =
     , globalTimeline : List Mastodon.Model.Status
     , notifications : List Mastodon.Model.NotificationAggregate
     , draft : Draft
-    , account : Maybe Mastodon.Model.Account
     , errors : List String
     , location : Navigation.Location
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
-    , thread : Maybe Thread
+    , currentView : CurrentView
     }
 
 
@@ -150,12 +158,11 @@ init flags location =
         , globalTimeline = []
         , notifications = []
         , draft = defaultDraft
-        , account = Nothing
         , errors = []
         , location = location
         , useGlobalTimeline = False
         , viewer = Nothing
-        , thread = Nothing
+        , currentView = LocalTimelineView
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -240,6 +247,14 @@ loadTimelines client =
 
         Nothing ->
             Cmd.none
+
+
+preferredTimeline : Model -> CurrentView
+preferredTimeline model =
+    if model.useGlobalTimeline then
+        GlobalTimelineView
+    else
+        LocalTimelineView
 
 
 postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
@@ -419,10 +434,14 @@ processMastodonEvent msg model =
                         thread =
                             Thread status context
                     in
-                        { model | thread = Just thread } ! []
+                        { model | currentView = ThreadView thread } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model
+                        | currentView = preferredTimeline model
+                        , errors = (errorText error) :: model.errors
+                    }
+                        ! []
 
         FavoriteAdded result ->
             case result of
@@ -486,10 +505,14 @@ processMastodonEvent msg model =
         UserAccount result ->
             case result of
                 Ok account ->
-                    { model | account = Just account } ! []
+                    { model | currentView = AccountView account } ! []
 
                 Err error ->
-                    { model | account = Nothing, errors = (errorText error) :: model.errors } ! []
+                    { model
+                        | currentView = preferredTimeline model
+                        , errors = (errorText error) :: model.errors
+                    }
+                        ! []
 
         UserTimeline result ->
             case result of
@@ -627,6 +650,9 @@ update msg model =
                 Nothing ->
                     model ! []
 
+        CloseThread ->
+            { model | currentView = preferredTimeline model } ! []
+
         Reblog id ->
             -- Note: The case of reblogging is specific as it seems the server
             -- response takes a lot of time to be received by the client, so we
@@ -717,7 +743,7 @@ update msg model =
             { model | useGlobalTimeline = flag } ! []
 
         ClearOpenedAccount ->
-            { model | account = Nothing } ! []
+            { model | currentView = preferredTimeline model } ! []
 
 
 subscriptions : Model -> Sub Msg
