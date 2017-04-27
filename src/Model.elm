@@ -740,7 +740,11 @@ update msg model =
                         []
 
         UseGlobalTimeline flag ->
-            { model | useGlobalTimeline = flag } ! []
+            let
+                newModel =
+                    { model | useGlobalTimeline = flag }
+            in
+                { model | currentView = preferredTimeline newModel } ! []
 
         ClearOpenedAccount ->
             { model | currentView = preferredTimeline model } ! []
