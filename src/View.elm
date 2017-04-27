@@ -206,10 +206,7 @@ accountTimelineView : Mastodon.Model.Account -> List Mastodon.Model.Status -> St
 accountTimelineView account statuses label iconName =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ]
-                [ div [ class "row" ]
-                    [ closeablePanelheading iconName label ClearOpenedAccount ]
-                ]
+            [ closeablePanelheading iconName label ClearOpenedAccount
             , div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
                 [ div [ class "opacity-layer" ]
                     [ img [ src account.avatar ] []
