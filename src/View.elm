@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (elemIndex, getAt)
-import Mastodon
+import Mastodon.Helper
 import Mastodon.Model
 import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
@@ -242,7 +242,7 @@ statusActionsView : Mastodon.Model.Status -> Html Msg
 statusActionsView status =
     let
         targetStatus =
-            Mastodon.extractReblog status
+            Mastodon.Helper.extractReblog status
 
         baseBtnClasses =
             "btn btn-sm btn-default"

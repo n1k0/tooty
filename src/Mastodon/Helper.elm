@@ -1,4 +1,4 @@
-module Mastodon
+module Mastodon.Helper
     exposing
         ( extractReblog
         , aggregateNotifications

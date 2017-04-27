@@ -3,9 +3,9 @@ module Model exposing (..)
 import Dom
 import Json.Encode as Encode
 import Navigation
-import Mastodon
 import Mastodon.Decoder
 import Mastodon.Encoder
+import Mastodon.Helper
 import Mastodon.Http
 import Mastodon.Model
 import Mastodon.WebSocket
@@ -274,7 +274,7 @@ updateTimelinesWithBoolFlag : Int -> Bool -> (Mastodon.Model.Status -> Mastodon.
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
         update flag status =
-            if (Mastodon.extractReblog status).id == statusId then
+            if (Mastodon.Helper.extractReblog status).id == statusId then
                 statusUpdater status
             else
                 status
@@ -299,7 +299,13 @@ processReblog statusId flag model =
 deleteStatusFromTimeline : Int -> List Mastodon.Model.Status -> List Mastodon.Model.Status
 deleteStatusFromTimeline statusId timeline =
     timeline
-        |> List.filter (\s -> s.id /= statusId && (Mastodon.extractReblog s).id /= statusId)
+        |> List.filter
+            (\s ->
+                s.id
+                    /= statusId
+                    && (Mastodon.Helper.extractReblog s).id
+                    /= statusId
+            )
 
 
 updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
@@ -423,7 +429,7 @@ processMastodonEvent msg model =
         Notifications result ->
             case result of
                 Ok notifications ->
-                    { model | notifications = Mastodon.aggregateNotifications notifications } ! []
+                    { model | notifications = Mastodon.Helper.aggregateNotifications notifications } ! []
 
                 Err error ->
                     { model | notifications = [], errors = (errorText error) :: model.errors } ! []
@@ -501,7 +507,9 @@ processWebSocketMsg msg model =
                         Ok notification ->
                             let
                                 notifications =
-                                    Mastodon.addNotificationToAggregates notification model.notifications
+                                    Mastodon.Helper.addNotificationToAggregates
+                                        notification
+                                        model.notifications
                             in
                                 { model | notifications = notifications } ! []
 
