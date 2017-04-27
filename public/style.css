@@ -226,64 +226,53 @@ body {
 
 /* Status text content rules */
 
-.attachment {
+.attachment, .hashtag, .ellipsis {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
 
-.hashtag {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-}
-
-.ellipsis {
-  display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.ellipsis:after {
+  content:"…"
 }
 
 .invisible {
-    display: none;
+  display: none;
 }
-
 
 /* Account rules */
 .account-detail {
-    text-align:center;
+  text-align:center;
 }
 .account-detail .opacity-layer{
-    background: rgba(49,53,67,0.9);
+  background: rgba(49,53,67,0.9);
 }
 
 .account-detail img {
-    border-radius: 90px;
-    padding:20px;
-    display: block;
-    margin:0 auto 0;
+  border-radius: 90px;
+  padding:20px;
+  display: block;
+  margin:0 auto 0;
 }
 
 
 .account-detail .account-display-name {
-    display: block;
-    font-size: 130%;
-    font-weight: bold;
+  display: block;
+  font-size: 130%;
+  font-weight: bold;
 }
-
 
 .account-detail .account-username {
-    display: block;
+  display: block;
 }
 
-
 .account-detail .account-note {
-    display: block;
-    padding: 5px 15px 15px 15px;
+  display: block;
+  padding: 5px 15px 15px 15px;
 }
 
 .account-infos {
-    text-align:center;
-    padding: 15px;
+  text-align:center;
+  padding: 15px;
 }
 
 /* Viewer */
@@ -357,6 +346,6 @@ body {
 /* 100% image width on smaller screens */
 @media only screen and (max-width: 700px) {
   .viewer-content {
-    width: 100%;
+  width: 100%;
   }
 }
