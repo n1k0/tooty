@@ -10,12 +10,7 @@ module Mastodon.Encoder
 
 import Http
 import Json.Encode as Encode
-import Mastodon.Model
-    exposing
-        ( AppRegistration
-        , Client
-        , StatusRequestBody
-        )
+import Mastodon.Model exposing (..)
 
 
 encodeMaybe : (a -> Encode.Value) -> Maybe a -> Encode.Value

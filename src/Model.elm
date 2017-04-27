@@ -6,6 +6,7 @@ import Navigation
 import Mastodon
 import Mastodon.Decoder
 import Mastodon.Encoder
+import Mastodon.Http
 import Mastodon.Model
 import Mastodon.WebSocket
 import Ports
@@ -156,8 +157,8 @@ initCommands registration client authCode =
             Just authCode ->
                 case registration of
                     Just registration ->
-                        [ Mastodon.getAccessToken registration authCode
-                            |> Mastodon.send (MastodonEvent << AccessToken)
+                        [ Mastodon.Http.getAccessToken registration authCode
+                            |> Mastodon.Http.send (MastodonEvent << AccessToken)
                         ]
 
                     Nothing ->
@@ -179,13 +180,13 @@ registerApp { server, location } =
             else
                 server
     in
-        Mastodon.register
+        Mastodon.Http.register
             cleanServer
             "tooty"
             appUrl
             "read write follow"
             "https://github.com/n1k0/tooty"
-            |> Mastodon.send (MastodonEvent << AppRegistered)
+            |> Mastodon.Http.send (MastodonEvent << AppRegistered)
 
 
 saveClient : Mastodon.Model.Client -> Cmd Msg
@@ -206,8 +207,8 @@ loadNotifications : Maybe Mastodon.Model.Client -> Cmd Msg
 loadNotifications client =
     case client of
         Just client ->
-            Mastodon.fetchNotifications client
-                |> Mastodon.send (MastodonEvent << Notifications)
+            Mastodon.Http.fetchNotifications client
+                |> Mastodon.Http.send (MastodonEvent << Notifications)
 
         Nothing ->
             Cmd.none
@@ -218,9 +219,12 @@ loadTimelines client =
     case client of
         Just client ->
             Cmd.batch
-                [ Mastodon.fetchUserTimeline client |> Mastodon.send (MastodonEvent << UserTimeline)
-                , Mastodon.fetchLocalTimeline client |> Mastodon.send (MastodonEvent << LocalTimeline)
-                , Mastodon.fetchGlobalTimeline client |> Mastodon.send (MastodonEvent << GlobalTimeline)
+                [ Mastodon.Http.fetchUserTimeline client
+                    |> Mastodon.Http.send (MastodonEvent << UserTimeline)
+                , Mastodon.Http.fetchLocalTimeline client
+                    |> Mastodon.Http.send (MastodonEvent << LocalTimeline)
+                , Mastodon.Http.fetchGlobalTimeline client
+                    |> Mastodon.Http.send (MastodonEvent << GlobalTimeline)
                 , loadNotifications <| Just client
                 ]
 
@@ -230,8 +234,8 @@ loadTimelines client =
 
 postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
 postStatus client draft =
-    Mastodon.postStatus client draft
-        |> Mastodon.send (MastodonEvent << StatusPosted)
+    Mastodon.Http.postStatus client draft
+        |> Mastodon.Http.send (MastodonEvent << StatusPosted)
 
 
 errorText : Mastodon.Model.Error -> String
@@ -386,7 +390,7 @@ processMastodonEvent msg model =
                 Ok registration ->
                     { model | registration = Just registration }
                         ! [ saveRegistration registration
-                          , Navigation.load <| Mastodon.getAuthorizationUrl registration
+                          , Navigation.load <| Mastodon.Http.getAuthorizationUrl registration
                           ]
 
                 Err error ->
@@ -589,8 +593,8 @@ update msg model =
             case model.client of
                 Just client ->
                     processReblog id True model
-                        ! [ Mastodon.reblog client id
-                                |> Mastodon.send (MastodonEvent << Reblogged)
+                        ! [ Mastodon.Http.reblog client id
+                                |> Mastodon.Http.send (MastodonEvent << Reblogged)
                           ]
 
                 Nothing ->
@@ -600,8 +604,8 @@ update msg model =
             case model.client of
                 Just client ->
                     processReblog id False model
-                        ! [ Mastodon.unfavourite client id
-                                |> Mastodon.send (MastodonEvent << Unreblogged)
+                        ! [ Mastodon.Http.unfavourite client id
+                                |> Mastodon.Http.send (MastodonEvent << Unreblogged)
                           ]
 
                 Nothing ->
@@ -611,8 +615,8 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.favourite client id
-                            |> Mastodon.send (MastodonEvent << FavoriteAdded)
+                        [ Mastodon.Http.favourite client id
+                            |> Mastodon.Http.send (MastodonEvent << FavoriteAdded)
                         ]
 
                     Nothing ->
@@ -622,8 +626,8 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.unfavourite client id
-                            |> Mastodon.send (MastodonEvent << FavoriteRemoved)
+                        [ Mastodon.Http.unfavourite client id
+                            |> Mastodon.Http.send (MastodonEvent << FavoriteRemoved)
                         ]
 
                     Nothing ->
@@ -661,8 +665,8 @@ update msg model =
             model
                 ! case model.client of
                     Just client ->
-                        [ Mastodon.fetchAccount client accountId
-                            |> Mastodon.send (MastodonEvent << UserAccount)
+                        [ Mastodon.Http.fetchAccount client accountId
+                            |> Mastodon.Http.send (MastodonEvent << UserAccount)
                         ]
 
                     Nothing ->

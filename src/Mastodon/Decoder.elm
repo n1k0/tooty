@@ -17,25 +17,8 @@ module Mastodon.Decoder
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipe
-import Mastodon.Model
-    exposing
-        ( AccessTokenResult
-        , Account
-        , AppRegistration
-        , Attachment
-        , Mention
-        , Notification
-        , Tag
-        , Reblog(..)
-        , Status
-        )
-import Mastodon.WebSocket
-    exposing
-        ( WebSocketEvent(..)
-        , WebSocketPayload(..)
-        , WebSocketMessage
-        , StreamType(..)
-        )
+import Mastodon.Model exposing (..)
+import Mastodon.WebSocket exposing (..)
 
 
 appRegistrationDecoder : String -> String -> Decode.Decoder AppRegistration

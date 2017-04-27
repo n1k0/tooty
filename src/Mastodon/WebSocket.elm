@@ -11,7 +11,7 @@ import String.Extra exposing (replaceSlice)
 import WebSocket
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Encoder exposing (encodeUrl)
-import Mastodon.Model exposing (Client, Notification, Status)
+import Mastodon.Model exposing (..)
 
 
 type StreamType
