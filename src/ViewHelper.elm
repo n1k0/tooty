@@ -11,9 +11,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onWithOptions)
 import HtmlParser
 import Json.Decode as Decode
-import Mastodon
+import String.Extra exposing (replace)
+import Mastodon.Model
 import Model exposing (Msg(OnLoadUserAccount))
-import Util
 
 
 -- Custom Events
@@ -31,24 +31,24 @@ onClickWithPreventAndStop msg =
 -- Views
 
 
-formatContent : String -> List Mastodon.Mention -> List (Html Msg)
+formatContent : String -> List Mastodon.Model.Mention -> List (Html Msg)
 formatContent content mentions =
     content
-        |> Util.replace " ?" "&nbsp;?"
-        |> Util.replace " !" "&nbsp;!"
-        |> Util.replace " :" "&nbsp;:"
+        |> replace " ?" "&nbsp;?"
+        |> replace " !" "&nbsp;!"
+        |> replace " :" "&nbsp;:"
         |> HtmlParser.parse
         |> toVirtualDom mentions
 
 
 {-| Converts nodes to virtual dom nodes.
 -}
-toVirtualDom : List Mastodon.Mention -> List HtmlParser.Node -> List (Html Msg)
+toVirtualDom : List Mastodon.Model.Mention -> List HtmlParser.Node -> List (Html Msg)
 toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
 
 
-createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mastodon.Mention -> Html Msg
+createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mastodon.Model.Mention -> Html Msg
 createLinkNode attrs children mentions =
     let
         maybeMention =
@@ -76,7 +76,7 @@ getHrefLink attrs =
         |> List.head
 
 
-getMentionForLink : List ( String, String ) -> List Mastodon.Mention -> Maybe Mastodon.Mention
+getMentionForLink : List ( String, String ) -> List Mastodon.Model.Mention -> Maybe Mastodon.Model.Mention
 getMentionForLink attrs mentions =
     case getHrefLink attrs of
         Just href ->
@@ -88,7 +88,7 @@ getMentionForLink attrs mentions =
             Nothing
 
 
-toVirtualDomEach : List Mastodon.Mention -> HtmlParser.Node -> Html Msg
+toVirtualDomEach : List Mastodon.Model.Mention -> HtmlParser.Node -> Html Msg
 toVirtualDomEach mentions node =
     case node of
         HtmlParser.Element "a" attrs children ->

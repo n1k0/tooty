@@ -5,7 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (elemIndex, getAt)
-import Mastodon
+import Mastodon.Helper
+import Mastodon.Model
 import Model exposing (Model, Draft, DraftMsg(..), Viewer, ViewerMsg(..), Msg(..))
 import ViewHelper
 import Date
@@ -49,7 +50,7 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
-accountLink : Mastodon.Account -> Html Msg
+accountLink : Mastodon.Model.Account -> Html Msg
 accountLink account =
     a
         [ href account.url
@@ -58,7 +59,7 @@ accountLink account =
         [ text <| "@" ++ account.username ]
 
 
-accountAvatarLink : Mastodon.Account -> Html Msg
+accountAvatarLink : Mastodon.Model.Account -> Html Msg
 accountAvatarLink account =
     a
         [ href account.url
@@ -68,7 +69,7 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview : String -> Maybe Bool -> List Mastodon.Attachment -> Mastodon.Attachment -> Html Msg
+attachmentPreview : String -> Maybe Bool -> List Mastodon.Model.Attachment -> Mastodon.Model.Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
@@ -111,7 +112,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
                 [ media ]
 
 
-attachmentListView : String -> Mastodon.Status -> Html Msg
+attachmentListView : String -> Mastodon.Model.Status -> Html Msg
 attachmentListView context { media_attachments, sensitive } =
     case media_attachments of
         [] ->
@@ -122,7 +123,7 @@ attachmentListView context { media_attachments, sensitive } =
                 List.map (attachmentPreview context sensitive attachments) attachments
 
 
-statusContentView : String -> Mastodon.Status -> Html Msg
+statusContentView : String -> Mastodon.Model.Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
@@ -148,19 +149,20 @@ statusContentView context status =
                     ]
 
 
-statusView : String -> Mastodon.Status -> Html Msg
+statusView : String -> Mastodon.Model.Status -> Html Msg
 statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
             [ href account.url
-              -- When clicking on a status, we should not let the browser
-              -- redirect to a new page. That's why we're preventing the default
-              -- behavior here
+
+            -- When clicking on a status, we should not let the browser
+            -- redirect to a new page. That's why we're preventing the default
+            -- behavior here
             , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
             ]
     in
         case reblog of
-            Just (Mastodon.Reblog reblog) ->
+            Just (Mastodon.Model.Reblog reblog) ->
                 div [ class "reblog" ]
                     [ p [ class "status-info" ]
                         [ icon "fire"
@@ -184,7 +186,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-accountTimelineView : Mastodon.Account -> List Mastodon.Status -> String -> String -> Html Msg
+accountTimelineView : Mastodon.Model.Account -> List Mastodon.Model.Status -> String -> String -> Html Msg
 accountTimelineView account statuses label iconName =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
@@ -236,11 +238,11 @@ accountTimelineView account statuses label iconName =
         ]
 
 
-statusActionsView : Mastodon.Status -> Html Msg
+statusActionsView : Mastodon.Model.Status -> Html Msg
 statusActionsView status =
     let
         targetStatus =
-            Mastodon.extractReblog status
+            Mastodon.Helper.extractReblog status
 
         baseBtnClasses =
             "btn btn-sm btn-default"
@@ -294,7 +296,7 @@ statusActionsView status =
             ]
 
 
-statusEntryView : String -> Mastodon.Status -> Html Msg
+statusEntryView : String -> Mastodon.Model.Status -> Html Msg
 statusEntryView context status =
     let
         nsfwClass =
@@ -311,7 +313,7 @@ statusEntryView context status =
             ]
 
 
-timelineView : String -> String -> String -> List Mastodon.Status -> Html Msg
+timelineView : String -> String -> String -> List Mastodon.Model.Status -> Html Msg
 timelineView label iconName context statuses =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
@@ -325,7 +327,7 @@ timelineView label iconName context statuses =
         ]
 
 
-notificationHeading : List Mastodon.Account -> String -> String -> Html Msg
+notificationHeading : List Mastodon.Model.Account -> String -> String -> Html Msg
 notificationHeading accounts str iconType =
     div [ class "status-info" ]
         [ div [ class "avatars" ] <| List.map accountAvatarLink accounts
@@ -338,7 +340,7 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> Mastodon.Status -> Mastodon.NotificationAggregate -> Html Msg
+notificationStatusView : String -> Mastodon.Model.Status -> Mastodon.Model.NotificationAggregate -> Html Msg
 notificationStatusView context status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -355,7 +357,7 @@ notificationStatusView context status { type_, accounts } =
         ]
 
 
-notificationFollowView : Mastodon.NotificationAggregate -> Html Msg
+notificationFollowView : Mastodon.Model.NotificationAggregate -> Html Msg
 notificationFollowView { accounts } =
     let
         profileView account =
@@ -371,7 +373,7 @@ notificationFollowView { accounts } =
             ]
 
 
-notificationEntryView : Mastodon.NotificationAggregate -> Html Msg
+notificationEntryView : Mastodon.Model.NotificationAggregate -> Html Msg
 notificationEntryView notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -383,7 +385,7 @@ notificationEntryView notification =
         ]
 
 
-notificationListView : List Mastodon.NotificationAggregate -> Html Msg
+notificationListView : List Mastodon.Model.NotificationAggregate -> Html Msg
 notificationListView notifications =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]

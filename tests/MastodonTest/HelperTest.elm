@@ -1,9 +1,8 @@
-module NotificationTests exposing (..)
+module MastodonTest.HelperTest exposing (..)
 
 import Test exposing (..)
 import Expect
-import String
-import Mastodon
+import Mastodon.Helper
 import Fixtures
 
 
@@ -14,7 +13,7 @@ all =
             [ test "Aggregate Notifications" <|
                 \() ->
                     Fixtures.notifications
-                        |> Mastodon.aggregateNotifications
+                        |> Mastodon.Helper.aggregateNotifications
                         |> Expect.equal
                             [ { type_ = "mention"
                               , status = Just Fixtures.statusNicoToVjousse
@@ -30,8 +29,8 @@ all =
             , test "Add follows notification to aggregate" <|
                 \() ->
                     Fixtures.notifications
-                        |> Mastodon.aggregateNotifications
-                        |> (Mastodon.addNotificationToAggregates Fixtures.notificationPloumFollowsVjousse)
+                        |> Mastodon.Helper.aggregateNotifications
+                        |> (Mastodon.Helper.addNotificationToAggregates Fixtures.notificationPloumFollowsVjousse)
                         |> Expect.equal
                             [ { type_ = "mention"
                               , status = Just Fixtures.statusNicoToVjousse
@@ -47,8 +46,8 @@ all =
             , test "Add mention notification to aggregate" <|
                 \() ->
                     Fixtures.notifications
-                        |> Mastodon.aggregateNotifications
-                        |> (Mastodon.addNotificationToAggregates Fixtures.notificationNicoMentionVjousse)
+                        |> Mastodon.Helper.aggregateNotifications
+                        |> (Mastodon.Helper.addNotificationToAggregates Fixtures.notificationNicoMentionVjousse)
                         |> Expect.equal
                             [ { type_ = "mention"
                               , status = Just Fixtures.statusNicoToVjousse
@@ -64,8 +63,8 @@ all =
             , test "Add new mention notification to aggregate" <|
                 \() ->
                     Fixtures.notifications
-                        |> Mastodon.aggregateNotifications
-                        |> (Mastodon.addNotificationToAggregates Fixtures.notificationNicoMentionVjousseAgain)
+                        |> Mastodon.Helper.aggregateNotifications
+                        |> (Mastodon.Helper.addNotificationToAggregates Fixtures.notificationNicoMentionVjousseAgain)
                         |> Expect.equal
                             [ { type_ = "mention"
                               , status = Just Fixtures.statusNicoToVjousseAgain
