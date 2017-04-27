@@ -235,7 +235,7 @@ accountTimelineView account statuses label iconName =
                     , text <| toString account.followers_count
                     ]
                 ]
-            , ul [ class "list-group" ] <|
+            , ul [ class "list-group timeline" ] <|
                 List.map
                     (\s ->
                         li [ class "list-group-item status" ]
@@ -329,7 +329,7 @@ timelineView label iconName context statuses =
                 [ icon iconName
                 , text label
                 ]
-            , ul [ class "list-group" ] <|
+            , ul [ class "list-group timeline" ] <|
                 List.map (statusEntryView context "") statuses
             ]
         ]
@@ -401,7 +401,7 @@ notificationListView notifications =
                 [ icon "bell"
                 , text "Notifications"
                 ]
-            , ul [ class "list-group" ] <|
+            , ul [ class "list-group timeline" ] <|
                 List.map notificationEntryView notifications
             ]
         ]
@@ -566,7 +566,8 @@ threadView thread =
         div [ class "col-md-3" ]
             [ div [ class "panel panel-default" ]
                 [ closeablePanelheading "list" "Thread" CloseThread
-                , ul [ class "list-group" ] <| List.map threadEntry statuses
+                , ul [ class "list-group timeline" ] <|
+                    List.map threadEntry statuses
                 ]
             ]
 
