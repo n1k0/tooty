@@ -54,7 +54,7 @@ accountLink : Mastodon.Model.Account -> Html Msg
 accountLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
         ]
         [ text <| "@" ++ account.username ]
 
@@ -63,7 +63,7 @@ accountAvatarLink : Mastodon.Model.Account -> Html Msg
 accountAvatarLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+        , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
         , title <| "@" ++ account.username
         ]
         [ img [ class "avatar", src account.avatar ] [] ]
@@ -158,7 +158,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
             -- When clicking on a status, we should not let the browser
             -- redirect to a new page. That's why we're preventing the default
             -- behavior here
-            , ViewHelper.onClickWithPreventAndStop (OnLoadUserAccount account.id)
+            , ViewHelper.onClickWithPreventAndStop (LoadUserAccount account.id)
             ]
     in
         case reblog of
@@ -290,7 +290,7 @@ statusActionsView status =
             , a
                 [ class baseBtnClasses
                 , href status.url
-                , target "_blank"
+                , ViewHelper.onClickWithPreventAndStop <| OpenThread status
                 ]
                 [ icon "time", formatDate ]
             ]

@@ -1,6 +1,7 @@
 module Mastodon.Http
     exposing
         ( Request
+        , context
         , reblog
         , unreblog
         , favourite

@@ -38,6 +38,7 @@ type ViewerMsg
 type MastodonMsg
     = AccessToken (Result Mastodon.Model.Error Mastodon.Model.AccessTokenResult)
     | AppRegistered (Result Mastodon.Model.Error Mastodon.Model.AppRegistration)
+    | ContextLoaded Mastodon.Model.Status (Result Mastodon.Model.Error Mastodon.Model.Context)
     | FavoriteAdded (Result Mastodon.Model.Error Mastodon.Model.Status)
     | FavoriteRemoved (Result Mastodon.Model.Error Mastodon.Model.Status)
     | LocalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
@@ -58,10 +59,12 @@ type WebSocketMsg
 
 type Msg
     = AddFavorite Int
+    | ClearOpenedAccount
     | DraftEvent DraftMsg
+    | LoadUserAccount Int
     | MastodonEvent MastodonMsg
     | NoOp
-    | OnLoadUserAccount Int
+    | OpenThread Mastodon.Model.Status
     | Reblog Int
     | Register
     | RemoveFavorite Int
@@ -69,7 +72,6 @@ type Msg
     | SubmitDraft
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
-    | ClearOpenedAccount
     | Unreblog Int
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
@@ -81,6 +83,12 @@ type alias Draft =
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String
+    }
+
+
+type alias Thread =
+    { status : Mastodon.Model.Status
+    , context : Mastodon.Model.Context
     }
 
 
@@ -104,6 +112,7 @@ type alias Model =
     , location : Navigation.Location
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
+    , thread : Maybe Thread
     }
 
 
@@ -146,6 +155,7 @@ init flags location =
         , location = location
         , useGlobalTimeline = False
         , viewer = Nothing
+        , thread = Nothing
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -402,6 +412,18 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        ContextLoaded status result ->
+            case result of
+                Ok context ->
+                    let
+                        thread =
+                            Thread status context
+                    in
+                        { model | thread = Just thread } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         FavoriteAdded result ->
             case result of
                 Ok status ->
@@ -594,6 +616,17 @@ update msg model =
         Register ->
             model ! [ registerApp model ]
 
+        OpenThread status ->
+            case model.client of
+                Just client ->
+                    model
+                        ! [ Mastodon.Http.context client status.id
+                                |> Mastodon.Http.send (MastodonEvent << (ContextLoaded status))
+                          ]
+
+                Nothing ->
+                    model ! []
+
         Reblog id ->
             -- Note: The case of reblogging is specific as it seems the server
             -- response takes a lot of time to be received by the client, so we
@@ -664,7 +697,7 @@ update msg model =
                     Nothing ->
                         []
 
-        OnLoadUserAccount accountId ->
+        LoadUserAccount accountId ->
             {-
                @TODO
                When requesting a user profile, we should load a new "page"
