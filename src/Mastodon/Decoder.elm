@@ -117,7 +117,7 @@ statusDecoder =
         |> Pipe.required "in_reply_to_id" (Decode.nullable Decode.int)
         |> Pipe.required "media_attachments" (Decode.list attachmentDecoder)
         |> Pipe.required "mentions" (Decode.list mentionDecoder)
-        |> Pipe.optional "reblog" (Decode.nullable reblogDecoder) Nothing
+        |> Pipe.optional "reblog" (Decode.lazy (\_ -> Decode.nullable reblogDecoder)) Nothing
         |> Pipe.optional "reblogged" (Decode.nullable Decode.bool) Nothing
         |> Pipe.required "reblogs_count" Decode.int
         |> Pipe.required "sensitive" (Decode.nullable Decode.bool)
