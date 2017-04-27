@@ -10,6 +10,7 @@ module Mastodon.Http
         , getAuthorizationUrl
         , getAccessToken
         , fetchAccount
+        , fetchAccountTimeline
         , fetchLocalTimeline
         , fetchNotifications
         , fetchGlobalTimeline
@@ -21,6 +22,7 @@ module Mastodon.Http
 import Http
 import HttpBuilder
 import Json.Decode as Decode
+import Task
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
@@ -119,6 +121,11 @@ fetchLocalTimeline client =
 fetchGlobalTimeline : Client -> Request (List Status)
 fetchGlobalTimeline client =
     fetch client (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
+
+
+fetchAccountTimeline : Client -> Int -> Request (List Status)
+fetchAccountTimeline client id =
+    fetch client (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
 
 
 fetchNotifications : Client -> Request (List Notification)
