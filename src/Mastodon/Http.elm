@@ -20,7 +20,6 @@ module Mastodon.Http
 import Http
 import HttpBuilder
 import Json.Decode as Decode
-import Json.Encode as Encode
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
