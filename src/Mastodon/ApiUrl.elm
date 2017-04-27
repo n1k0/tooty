@@ -8,6 +8,7 @@ module Mastodon.ApiUrl
         , publicTimeline
         , notifications
         , statuses
+        , context
         , reblog
         , unreblog
         , favourite
@@ -72,6 +73,11 @@ notifications =
 statuses : Server -> String
 statuses server =
     server ++ "/api/v1/statuses"
+
+
+context : Server -> Int -> String
+context server id =
+    statuses server ++ (toString id) ++ "/context"
 
 
 reblog : Server -> Int -> String

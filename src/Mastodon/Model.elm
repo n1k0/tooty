@@ -5,6 +5,7 @@ module Mastodon.Model
         , Account
         , Attachment
         , Client
+        , Context
         , Error(..)
         , Mention
         , Notification
@@ -14,8 +15,6 @@ module Mastodon.Model
         , Status
         , StatusRequestBody
         )
-
-import HttpBuilder
 
 
 type alias AccountId =
@@ -104,6 +103,12 @@ type alias Attachment =
 type alias Client =
     { server : Server
     , token : Token
+    }
+
+
+type alias Context =
+    { ancestors : List Status
+    , descendants : List Status
     }
 
 

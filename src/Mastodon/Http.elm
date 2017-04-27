@@ -133,6 +133,13 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
 
 
+context : Client -> Int -> Request Context
+context client id =
+    HttpBuilder.post (ApiUrl.context client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson contextDecoder)
+
+
 reblog : Client -> Int -> Request Status
 reblog client id =
     HttpBuilder.post (ApiUrl.reblog client.server id)
