@@ -85,7 +85,12 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview : String -> Maybe Bool -> List Mastodon.Model.Attachment -> Mastodon.Model.Attachment -> Html Msg
+attachmentPreview :
+    String
+    -> Maybe Bool
+    -> List Mastodon.Model.Attachment
+    -> Mastodon.Model.Attachment
+    -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
@@ -202,13 +207,21 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-accountTimelineView : Mastodon.Model.Account -> List Mastodon.Model.Status -> String -> String -> Html Msg
+accountTimelineView :
+    Mastodon.Model.Account
+    -> List Mastodon.Model.Status
+    -> String
+    -> String
+    -> Html Msg
 accountTimelineView account statuses label iconName =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ closeablePanelheading iconName label ClearOpenedAccount
             , div [ class "timeline" ]
-                [ div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
+                [ div
+                    [ class "account-detail"
+                    , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
+                    ]
                     [ div [ class "opacity-layer" ]
                         [ img [ src account.avatar ] []
                         , span [ class "account-display-name" ] [ text account.display_name ]
@@ -326,7 +339,13 @@ statusEntryView context className currentUser status =
             ]
 
 
-timelineView : String -> String -> String -> Mastodon.Model.Account -> List Mastodon.Model.Status -> Html Msg
+timelineView :
+    String
+    -> String
+    -> String
+    -> Mastodon.Model.Account
+    -> List Mastodon.Model.Status
+    -> Html Msg
 timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -352,7 +371,12 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> Mastodon.Model.Account -> Mastodon.Model.Status -> Mastodon.Model.NotificationAggregate -> Html Msg
+notificationStatusView :
+    String
+    -> Mastodon.Model.Account
+    -> Mastodon.Model.Status
+    -> Mastodon.Model.NotificationAggregate
+    -> Html Msg
 notificationStatusView context currentUser status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -631,14 +655,29 @@ homepageView model =
         Just currentUser ->
             div [ class "row" ]
                 [ sidebarView model
-                , timelineView "Home timeline" "home" "home" currentUser model.userTimeline
+                , timelineView
+                    "Home timeline"
+                    "home"
+                    "home"
+                    currentUser
+                    model.userTimeline
                 , notificationListView currentUser model.notifications
                 , case model.currentView of
                     Model.LocalTimelineView ->
-                        timelineView "Local timeline" "th-large" "local" currentUser model.localTimeline
+                        timelineView
+                            "Local timeline"
+                            "th-large"
+                            "local"
+                            currentUser
+                            model.localTimeline
 
                     Model.GlobalTimelineView ->
-                        timelineView "Global timeline" "globe" "global" currentUser model.globalTimeline
+                        timelineView
+                            "Global timeline"
+                            "globe"
+                            "global"
+                            currentUser
+                            model.globalTimeline
 
                     Model.AccountView account ->
                         -- Todo: Load the user timeline
