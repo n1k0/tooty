@@ -24810,16 +24810,31 @@ var _n1k0$tooty$Model$updateDraft = F2(
 					{ctor: '[]'});
 			case 'UpdateReplyTo':
 				var _p20 = _p19._0;
-				var mention = A2(_elm_lang$core$Basics_ops['++'], '@', _p20.account.acct);
+				var mentions = A2(
+					_elm_lang$core$String$join,
+					' ',
+					A2(
+						_elm_lang$core$List$map,
+						function (m) {
+							return A2(_elm_lang$core$Basics_ops['++'], '@', m.acct);
+						},
+						_p20.mentions));
+				var prefix = A2(
+					_elm_lang$core$Basics_ops['++'],
+					'@',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_p20.account.acct,
+						A2(_elm_lang$core$Basics_ops['++'], ' ', mentions)));
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
 							in_reply_to: _elm_lang$core$Maybe$Just(_p20),
-							status: A2(_elm_lang$core$String$startsWith, mention, draft.status) ? draft.status : A2(
+							status: A2(
 								_elm_lang$core$Basics_ops['++'],
-								mention,
+								prefix,
 								A2(_elm_lang$core$Basics_ops['++'], ' ', draft.status)),
 							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p20.sensitive),
 							spoiler_text: _elm_lang$core$Native_Utils.eq(_p20.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p20.spoiler_text),
