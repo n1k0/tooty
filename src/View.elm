@@ -432,8 +432,22 @@ draftReplyToView draft =
             text ""
 
 
+currentUserView : Maybe Mastodon.Model.Account -> Html Msg
+currentUserView currentUser =
+    case currentUser of
+        Just currentUser ->
+            div [ class "current-user" ]
+                [ accountAvatarLink currentUser
+                , div [ class "username" ] [ accountLink currentUser ]
+                , p [ class "status-text" ] <| formatContent currentUser.note []
+                ]
+
+        Nothing ->
+            text ""
+
+
 draftView : Model -> Html Msg
-draftView { draft } =
+draftView { draft, currentUser } =
     let
         hasSpoiler =
             draft.spoiler_text /= Nothing
@@ -452,7 +466,8 @@ draftView { draft } =
                         "Post a message"
                 ]
             , div [ class "panel-body" ]
-                [ draftReplyToView draft
+                [ currentUserView currentUser
+                , draftReplyToView draft
                 , Html.form [ class "form", onSubmit SubmitDraft ]
                     [ div [ class "form-group checkbox" ]
                         [ label []

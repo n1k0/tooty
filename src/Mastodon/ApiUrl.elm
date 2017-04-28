@@ -3,6 +3,7 @@ module Mastodon.ApiUrl
         ( apps
         , oauthAuthorize
         , oauthToken
+        , userAccount
         , account
         , accountTimeline
         , homeTimeline
@@ -45,6 +46,11 @@ accounts =
 account : Int -> String
 account id =
     accounts ++ (toString id)
+
+
+userAccount : Server -> String
+userAccount server =
+    server ++ accounts ++ "verify_credentials"
 
 
 homeTimeline : String
