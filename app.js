@@ -25707,6 +25707,20 @@ var _n1k0$tooty$ViewHelper$getMentionForLink = F2(
 			return _elm_lang$core$Maybe$Nothing;
 		}
 	});
+var _n1k0$tooty$ViewHelper$onClickWithStop = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'click',
+		{preventDefault: false, stopPropagation: true},
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _n1k0$tooty$ViewHelper$onClickWithPrevent = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'click',
+		{preventDefault: true, stopPropagation: false},
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
 var _n1k0$tooty$ViewHelper$onClickWithPreventAndStop = function (msg) {
 	return A3(
 		_elm_lang$html$Html_Events$onWithOptions,
@@ -25736,7 +25750,18 @@ var _n1k0$tooty$ViewHelper$createLinkNode = F3(
 			return A3(
 				_elm_lang$html$Html$node,
 				'a',
-				A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, attrs),
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, attrs),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$ViewHelper$onClickWithStop(_n1k0$tooty$Model$NoOp),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$target('_blank'),
+							_1: {ctor: '[]'}
+						}
+					}),
 				A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, children));
 		}
 	});
@@ -27280,7 +27305,7 @@ var _n1k0$tooty$View$statusContentView = F2(
 					_0: _elm_lang$html$Html_Attributes$class('status-text'),
 					_1: {
 						ctor: '::',
-						_0: _elm_lang$html$Html_Events$onClick(
+						_0: _n1k0$tooty$ViewHelper$onClickWithStop(
 							_n1k0$tooty$Model$OpenThread(status)),
 						_1: {ctor: '[]'}
 					}
