@@ -289,6 +289,17 @@ body {
   clear: both;
 }
 
+.in-reply-to .well {
+  padding: 10px;
+}
+
+.in-reply-to .status-text {
+  max-height: 92px;
+  font-size: 95%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
 .in-reply-to .attachments {
   margin: 0;
 }
