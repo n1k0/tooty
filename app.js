@@ -23149,11 +23149,16 @@ var _n1k0$tooty$Mastodon_Model$Reblog = function (a) {
 var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications) {
 	var extractAggregate = function (statusGroup) {
 		var accounts = A2(
-			_elm_lang$core$List$map,
+			_elm_community$list_extra$List_Extra$uniqueBy,
 			function (_) {
-				return _.account;
+				return _.id;
 			},
-			statusGroup);
+			A2(
+				_elm_lang$core$List$map,
+				function (_) {
+					return _.account;
+				},
+				statusGroup));
 		var _p0 = statusGroup;
 		if (_p0.ctor === '::') {
 			var _p1 = _p0._0;
