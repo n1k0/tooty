@@ -16,6 +16,7 @@ module Mastodon.Http
         , fetchGlobalTimeline
         , fetchUserTimeline
         , postStatus
+        , deleteStatus
         , userAccount
         , send
         )
@@ -146,6 +147,13 @@ postStatus client statusRequestBody =
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+
+
+deleteStatus : Client -> Int -> Request Int
+deleteStatus client id =
+    HttpBuilder.delete (ApiUrl.status client.server id)
+        |> HttpBuilder.withExpect (Http.expectJson <| Decode.succeed id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
 
 
 context : Client -> Int -> Request Context

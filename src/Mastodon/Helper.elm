@@ -1,9 +1,11 @@
 module Mastodon.Helper
     exposing
-        ( extractReblog
+        ( accountMentioned
+        , extractReblog
         , aggregateNotifications
         , addNotificationToAggregates
         , notificationToAggregate
+        , sameAccount
         )
 
 import List.Extra exposing (groupWhile, uniqueBy)
@@ -139,3 +141,13 @@ aggregateNotifications notifications =
             |> List.concat
             |> List.sortBy .created_at
             |> List.reverse
+
+
+accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
+accountMentioned { acct, username } mention =
+    acct == mention.acct && username == mention.username
+
+
+sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
+sameAccount { acct, username } account =
+    acct == account.acct && username == account.username

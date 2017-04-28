@@ -4,43 +4,6 @@ body {
   overflow: hidden;
 }
 
-::-webkit-scrollbar {
-    width: 10px;
-    height: 8px
-}
-
-::-webkit-scrollbar-thumb {
-    background: #444;
-    border: 0px none #ffffff;
-    border-radius: 50px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #777;
-}
-
-::-webkit-scrollbar-thumb:active {
-    background: #777;
-}
-
-::-webkit-scrollbar-track {
-    border: 0px none #ffffff;
-    border-radius: 0;
-    background: rgba(0,0,0,0.1);
-}
-
-::-webkit-scrollbar-track:hover {
-    background: #2a2e31;
-}
-
-::-webkit-scrollbar-track:active {
-    background: #2a2e31;
-}
-
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
@@ -191,6 +154,10 @@ body {
 
 .actions .reblogged {
   color: #d56344;
+}
+
+.btn-delete .glyphicon {
+  font-size: 80%;
 }
 
 /* Attachments */
@@ -440,4 +407,43 @@ body {
   .viewer-content {
   width: 100%;
   }
+}
+
+/* Scrollbars */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 8px
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border: 0px none #ffffff;
+    border-radius: 50px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+::-webkit-scrollbar-thumb:active {
+    background: #777;
+}
+
+::-webkit-scrollbar-track {
+    border: 0px none #ffffff;
+    border-radius: 0;
+    background: rgba(0,0,0,0.1);
+}
+
+::-webkit-scrollbar-track:hover {
+    background: #2a2e31;
+}
+
+::-webkit-scrollbar-track:active {
+    background: #2a2e31;
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }

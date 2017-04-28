@@ -245,8 +245,8 @@ accountTimelineView account statuses label iconName =
         ]
 
 
-statusActionsView : Mastodon.Model.Status -> Html Msg
-statusActionsView status =
+statusActionsView : Mastodon.Model.Status -> Mastodon.Model.Account -> Html Msg
+statusActionsView status currentUser =
     let
         targetStatus =
             Mastodon.Helper.extractReblog status
@@ -294,17 +294,23 @@ statusActionsView status =
                 , onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
+            , if Mastodon.Helper.sameAccount status.account currentUser then
+                a
+                    [ class <| baseBtnClasses ++ " btn-delete"
+                    , href ""
+                    , onClickWithPreventAndStop <| DeleteStatus status.id
+                    ]
+                    [ icon "trash" ]
+              else
+                text ""
             , a
-                [ class baseBtnClasses
-                , href status.url
-                , onClickWithPreventAndStop <| OpenThread status
-                ]
+                [ class baseBtnClasses, href status.url, target "_blank" ]
                 [ icon "time", formatDate ]
             ]
 
 
-statusEntryView : String -> String -> Mastodon.Model.Status -> Html Msg
-statusEntryView context className status =
+statusEntryView : String -> String -> Mastodon.Model.Account -> Mastodon.Model.Status -> Html Msg
+statusEntryView context className currentUser status =
     let
         nsfwClass =
             case status.sensitive of
@@ -316,19 +322,19 @@ statusEntryView context className status =
     in
         li [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
             [ statusView context status
-            , statusActionsView status
+            , statusActionsView status currentUser
             ]
 
 
-timelineView : String -> String -> String -> List Mastodon.Model.Status -> Html Msg
-timelineView label iconName context statuses =
+timelineView : String -> String -> String -> Mastodon.Model.Account -> List Mastodon.Model.Status -> Html Msg
+timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn context ]
                 [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
             , ul [ id context, class "list-group timeline" ] <|
-                List.map (statusEntryView context "") statuses
+                List.map (statusEntryView context "" currentUser) statuses
             ]
         ]
 
@@ -346,8 +352,8 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> Mastodon.Model.Status -> Mastodon.Model.NotificationAggregate -> Html Msg
-notificationStatusView context status { type_, accounts } =
+notificationStatusView : String -> Mastodon.Model.Account -> Mastodon.Model.Status -> Mastodon.Model.NotificationAggregate -> Html Msg
+notificationStatusView context currentUser status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
@@ -359,12 +365,12 @@ notificationStatusView context status { type_, accounts } =
             _ ->
                 text ""
         , statusView context status
-        , statusActionsView status
+        , statusActionsView status currentUser
         ]
 
 
-notificationFollowView : Mastodon.Model.NotificationAggregate -> Html Msg
-notificationFollowView { accounts } =
+notificationFollowView : Mastodon.Model.Account -> Mastodon.Model.NotificationAggregate -> Html Msg
+notificationFollowView currentUser { accounts } =
     let
         profileView account =
             div [ class "status follow-profile" ]
@@ -384,27 +390,30 @@ notificationFollowView { accounts } =
             ]
 
 
-notificationEntryView : Mastodon.Model.NotificationAggregate -> Html Msg
-notificationEntryView notification =
+notificationEntryView :
+    Mastodon.Model.Account
+    -> Mastodon.Model.NotificationAggregate
+    -> Html Msg
+notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                notificationStatusView "notification" status notification
+                notificationStatusView "notification" currentUser status notification
 
             Nothing ->
-                notificationFollowView notification
+                notificationFollowView currentUser notification
         ]
 
 
-notificationListView : List Mastodon.Model.NotificationAggregate -> Html Msg
-notificationListView notifications =
+notificationListView : Mastodon.Model.Account -> List Mastodon.Model.NotificationAggregate -> Html Msg
+notificationListView currentUser notifications =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn "notifications" ]
                 [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
             , ul [ id "notifications", class "list-group timeline" ] <|
-                List.map notificationEntryView notifications
+                List.map (notificationEntryView currentUser) notifications
             ]
         ]
 
@@ -561,8 +570,8 @@ draftView { draft, currentUser } =
             ]
 
 
-threadView : Thread -> Html Msg
-threadView thread =
+threadView : Mastodon.Model.Account -> Thread -> Html Msg
+threadView currentUser thread =
     let
         statuses =
             List.concat
@@ -578,6 +587,7 @@ threadView thread =
                  else
                     ""
                 )
+                currentUser
                 status
     in
         div [ class "col-md-3 column" ]
@@ -614,24 +624,29 @@ sidebarView model =
 
 homepageView : Model -> Html Msg
 homepageView model =
-    div [ class "row" ]
-        [ sidebarView model
-        , timelineView "Home timeline" "home" "home" model.userTimeline
-        , notificationListView model.notifications
-        , case model.currentView of
-            Model.LocalTimelineView ->
-                timelineView "Local timeline" "th-large" "local" model.localTimeline
+    case model.currentUser of
+        Nothing ->
+            text ""
 
-            Model.GlobalTimelineView ->
-                timelineView "Global timeline" "globe" "global" model.globalTimeline
+        Just currentUser ->
+            div [ class "row" ]
+                [ sidebarView model
+                , timelineView "Home timeline" "home" "home" currentUser model.userTimeline
+                , notificationListView currentUser model.notifications
+                , case model.currentView of
+                    Model.LocalTimelineView ->
+                        timelineView "Local timeline" "th-large" "local" currentUser model.localTimeline
 
-            Model.AccountView account ->
-                -- Todo: Load the user timeline
-                accountTimelineView account model.accountTimeline "Account" "user"
+                    Model.GlobalTimelineView ->
+                        timelineView "Global timeline" "globe" "global" currentUser model.globalTimeline
 
-            Model.ThreadView thread ->
-                threadView thread
-        ]
+                    Model.AccountView account ->
+                        -- Todo: Load the user timeline
+                        accountTimelineView account model.accountTimeline "Account" "user"
+
+                    Model.ThreadView thread ->
+                        threadView currentUser thread
+                ]
 
 
 authView : Model -> Html Msg
