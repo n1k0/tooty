@@ -27278,7 +27278,12 @@ var _n1k0$tooty$View$statusContentView = F2(
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$class('status-text'),
-					_1: {ctor: '[]'}
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_n1k0$tooty$Model$OpenThread(status)),
+						_1: {ctor: '[]'}
+					}
 				},
 				{
 					ctor: '::',
