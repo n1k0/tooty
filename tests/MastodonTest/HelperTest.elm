@@ -26,6 +26,12 @@ all =
                               , created_at = "2017-04-24T20:13:47.431Z"
                               }
                             ]
+            , test "Dedupes aggregated accounts" <|
+                \() ->
+                    Fixtures.duplicateAccountNotifications
+                        |> Mastodon.Helper.aggregateNotifications
+                        |> List.map (.accounts >> List.length)
+                        |> Expect.equal [ 1 ]
             , test "Add follows notification to aggregate" <|
                 \() ->
                     Fixtures.notifications

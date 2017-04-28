@@ -204,41 +204,43 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
 
 accountTimelineView : Mastodon.Model.Account -> List Mastodon.Model.Status -> String -> String -> Html Msg
 accountTimelineView account statuses label iconName =
-    div [ class "col-md-3" ]
+    div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ closeablePanelheading iconName label ClearOpenedAccount
-            , div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
-                [ div [ class "opacity-layer" ]
-                    [ img [ src account.avatar ] []
-                    , span [ class "account-display-name" ] [ text account.display_name ]
-                    , span [ class "account-username" ] [ text ("@" ++ account.username) ]
-                    , span [ class "account-note" ] (formatContent account.note [])
+            , div [ class "timeline" ]
+                [ div [ class "account-detail", style [ ( "background-image", "url('" ++ account.header ++ "')" ) ] ]
+                    [ div [ class "opacity-layer" ]
+                        [ img [ src account.avatar ] []
+                        , span [ class "account-display-name" ] [ text account.display_name ]
+                        , span [ class "account-username" ] [ text ("@" ++ account.username) ]
+                        , span [ class "account-note" ] (formatContent account.note [])
+                        ]
                     ]
+                , div [ class "row account-infos" ]
+                    [ div [ class "col-md-4" ]
+                        [ text "Statuses"
+                        , br [] []
+                        , text <| toString account.statuses_count
+                        ]
+                    , div [ class "col-md-4" ]
+                        [ text "Following"
+                        , br [] []
+                        , text <| toString account.following_count
+                        ]
+                    , div [ class "col-md-4" ]
+                        [ text "Followers"
+                        , br [] []
+                        , text <| toString account.followers_count
+                        ]
+                    ]
+                , ul [ class "list-group" ] <|
+                    List.map
+                        (\s ->
+                            li [ class "list-group-item status" ]
+                                [ statusView "account" s ]
+                        )
+                        statuses
                 ]
-            , div [ class "row account-infos" ]
-                [ div [ class "col-md-4" ]
-                    [ text "Statuses"
-                    , br [] []
-                    , text <| toString account.statuses_count
-                    ]
-                , div [ class "col-md-4" ]
-                    [ text "Following"
-                    , br [] []
-                    , text <| toString account.following_count
-                    ]
-                , div [ class "col-md-4" ]
-                    [ text "Followers"
-                    , br [] []
-                    , text <| toString account.followers_count
-                    ]
-                ]
-            , ul [ class "list-group timeline" ] <|
-                List.map
-                    (\s ->
-                        li [ class "list-group-item status" ]
-                            [ statusView "account" s ]
-                    )
-                    statuses
             ]
         ]
 
@@ -320,7 +322,7 @@ statusEntryView context className status =
 
 timelineView : String -> String -> String -> List Mastodon.Model.Status -> Html Msg
 timelineView label iconName context statuses =
-    div [ class "col-md-3" ]
+    div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn context ]
@@ -396,7 +398,7 @@ notificationEntryView notification =
 
 notificationListView : List Mastodon.Model.NotificationAggregate -> Html Msg
 notificationListView notifications =
-    div [ class "col-md-3" ]
+    div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn "notifications" ]
@@ -578,7 +580,7 @@ threadView thread =
                 )
                 status
     in
-        div [ class "col-md-3" ]
+        div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ closeablePanelheading "list" "Thread" CloseThread
                 , ul [ class "list-group timeline" ] <|
@@ -604,7 +606,7 @@ optionsView model =
 
 sidebarView : Model -> Html Msg
 sidebarView model =
-    div [ class "col-md-3" ]
+    div [ class "col-md-3 column" ]
         [ draftView model
         , optionsView model
         ]

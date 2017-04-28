@@ -56,6 +56,10 @@ body {
   text-decoration: none;
 }
 
+.timeline .list-group {
+  margin-bottom: 0;
+}
+
 .status, .follow-profile, .current-user {
   min-height: 50px;
   clear: both;
@@ -287,6 +291,17 @@ body {
 
 .form {
   clear: both;
+}
+
+.in-reply-to .well {
+  padding: 10px;
+}
+
+.in-reply-to .status-text {
+  max-height: 92px;
+  font-size: 95%;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .in-reply-to .attachments {

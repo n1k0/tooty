@@ -6,7 +6,7 @@ module Mastodon.Helper
         , notificationToAggregate
         )
 
-import List.Extra exposing (groupWhile)
+import List.Extra exposing (groupWhile, uniqueBy)
 import Mastodon.Model
     exposing
         ( Notification
@@ -114,7 +114,7 @@ aggregateNotifications notifications =
         extractAggregate statusGroup =
             let
                 accounts =
-                    List.map .account statusGroup
+                    statusGroup |> List.map .account |> uniqueBy .id
             in
                 case statusGroup of
                     notification :: _ ->
