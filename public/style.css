@@ -5,7 +5,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
     height: 8px
 }
 
