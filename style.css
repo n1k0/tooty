@@ -56,6 +56,10 @@ body {
   text-decoration: none;
 }
 
+.timeline .list-group {
+  margin-bottom: 0;
+}
+
 .status, .follow-profile, .current-user {
   min-height: 50px;
   clear: both;
