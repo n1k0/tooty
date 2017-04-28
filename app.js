@@ -24271,207 +24271,6 @@ var _n1k0$tooty$Model$deleteStatusFromTimeline = F2(
 			},
 			timeline);
 	});
-var _n1k0$tooty$Model$processWebSocketMsg = F2(
-	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'NewWebsocketUserMessage':
-				var _p1 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p0._0);
-				switch (_p1.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p1._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p2 = _p1._0;
-						if (_p2.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										userTimeline: {ctor: '::', _0: _p2._0, _1: model.userTimeline}
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p2._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p3 = _p1._0;
-						if (_p3.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p3._0, model.userTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p3._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						var _p4 = _p1._0;
-						if (_p4.ctor === 'Ok') {
-							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p4._0, model.notifications);
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{notifications: notifications}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p4._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-				}
-			case 'NewWebsocketLocalMessage':
-				var _p5 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p0._0);
-				switch (_p5.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p5._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p6 = _p5._0;
-						if (_p6.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										localTimeline: {ctor: '::', _0: _p6._0, _1: model.localTimeline}
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p6._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p7 = _p5._0;
-						if (_p7.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p7._0, model.localTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p7._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-				}
-			default:
-				var _p8 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p0._0);
-				switch (_p8.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p8._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p9 = _p8._0;
-						if (_p9.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: {ctor: '::', _0: _p9._0, _1: model.globalTimeline}
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p9._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p10 = _p8._0;
-						if (_p10.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p10._0, model.globalTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p10._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-				}
-		}
-	});
 var _n1k0$tooty$Model$updateTimelinesWithBoolFlag = F4(
 	function (statusId, flag, statusUpdater, model) {
 		var update = F2(
@@ -24531,9 +24330,9 @@ var _n1k0$tooty$Model$toStatusRequestBody = function (draft) {
 	return {
 		status: draft.status,
 		in_reply_to_id: function () {
-			var _p11 = draft.in_reply_to;
-			if (_p11.ctor === 'Just') {
-				return _elm_lang$core$Maybe$Just(_p11._0.id);
+			var _p0 = draft.in_reply_to;
+			if (_p0.ctor === 'Just') {
+				return _elm_lang$core$Maybe$Just(_p0._0.id);
 			} else {
 				return _elm_lang$core$Maybe$Nothing;
 			}
@@ -24544,36 +24343,36 @@ var _n1k0$tooty$Model$toStatusRequestBody = function (draft) {
 	};
 };
 var _n1k0$tooty$Model$errorText = function (error) {
-	var _p12 = error;
-	switch (_p12.ctor) {
+	var _p1 = error;
+	switch (_p1.ctor) {
 		case 'MastodonError':
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'HTTP ',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p12._0),
+					_elm_lang$core$Basics$toString(_p1._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						' ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p12._1,
-							A2(_elm_lang$core$Basics_ops['++'], ': ', _p12._2)))));
+							_p1._1,
+							A2(_elm_lang$core$Basics_ops['++'], ': ', _p1._2)))));
 		case 'ServerError':
 			return A2(
 				_elm_lang$core$Basics_ops['++'],
 				'HTTP ',
 				A2(
 					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p12._0),
+					_elm_lang$core$Basics$toString(_p1._0),
 					A2(
 						_elm_lang$core$Basics_ops['++'],
 						' ',
 						A2(
 							_elm_lang$core$Basics_ops['++'],
-							_p12._1,
-							A2(_elm_lang$core$Basics_ops['++'], ': ', _p12._2)))));
+							_p1._1,
+							A2(_elm_lang$core$Basics_ops['++'], ': ', _p1._2)))));
 		case 'TimeoutError':
 			return 'Request timed out.';
 		default:
@@ -24581,14 +24380,14 @@ var _n1k0$tooty$Model$errorText = function (error) {
 	}
 };
 var _n1k0$tooty$Model$sameAccount = F2(
-	function (_p13, account) {
-		var _p14 = _p13;
-		return _elm_lang$core$Native_Utils.eq(_p14.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p14.username, account.username);
+	function (_p2, account) {
+		var _p3 = _p2;
+		return _elm_lang$core$Native_Utils.eq(_p3.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p3.username, account.username);
 	});
 var _n1k0$tooty$Model$accountMentioned = F2(
-	function (_p15, mention) {
-		var _p16 = _p15;
-		return _elm_lang$core$Native_Utils.eq(_p16.acct, mention.acct) && _elm_lang$core$Native_Utils.eq(_p16.username, mention.username);
+	function (_p4, mention) {
+		var _p5 = _p4;
+		return _elm_lang$core$Native_Utils.eq(_p5.acct, mention.acct) && _elm_lang$core$Native_Utils.eq(_p5.username, mention.username);
 	});
 var _n1k0$tooty$Model$saveRegistration = function (registration) {
 	return _n1k0$tooty$Ports$saveRegistration(
@@ -24605,15 +24404,225 @@ var _n1k0$tooty$Model$saveClient = function (client) {
 			_n1k0$tooty$Mastodon_Encoder$clientEncoder(client)));
 };
 var _n1k0$tooty$Model$defaultDraft = {status: '', in_reply_to: _elm_lang$core$Maybe$Nothing, spoiler_text: _elm_lang$core$Maybe$Nothing, sensitive: false, visibility: 'public'};
-var _n1k0$tooty$Model$extractAuthCode = function (_p17) {
-	var _p18 = _p17;
-	var _p19 = A2(_elm_lang$core$String$split, '?code=', _p18.search);
-	if (((_p19.ctor === '::') && (_p19._1.ctor === '::')) && (_p19._1._1.ctor === '[]')) {
-		return _elm_lang$core$Maybe$Just(_p19._1._0);
+var _n1k0$tooty$Model$extractAuthCode = function (_p6) {
+	var _p7 = _p6;
+	var _p8 = A2(_elm_lang$core$String$split, '?code=', _p7.search);
+	if (((_p8.ctor === '::') && (_p8._1.ctor === '::')) && (_p8._1._1.ctor === '[]')) {
+		return _elm_lang$core$Maybe$Just(_p8._1._0);
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
 };
+var _n1k0$tooty$Model$maxBuffer = 100;
+var _n1k0$tooty$Model$truncate = function (entries) {
+	return A2(_elm_lang$core$List$take, _n1k0$tooty$Model$maxBuffer, entries);
+};
+var _n1k0$tooty$Model$processWebSocketMsg = F2(
+	function (msg, model) {
+		var _p9 = msg;
+		switch (_p9.ctor) {
+			case 'NewWebsocketUserMessage':
+				var _p10 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
+				switch (_p10.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p10._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p11 = _p10._0;
+						if (_p11.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p11._0, _1: model.userTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p11._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p12 = _p10._0;
+						if (_p12.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p12._0, model.userTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p12._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						var _p13 = _p10._0;
+						if (_p13.ctor === 'Ok') {
+							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p13._0, model.notifications);
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										notifications: _n1k0$tooty$Model$truncate(notifications)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p13._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+				}
+			case 'NewWebsocketLocalMessage':
+				var _p14 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
+				switch (_p14.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p14._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p15 = _p14._0;
+						if (_p15.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										localTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p15._0, _1: model.localTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p15._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p16 = _p14._0;
+						if (_p16.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p16._0, model.localTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p16._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+				}
+			default:
+				var _p17 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
+				switch (_p17.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p17._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p18 = _p17._0;
+						if (_p18.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										globalTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p18._0, _1: model.globalTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p18._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p19 = _p17._0;
+						if (_p19.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p19._0, model.globalTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p19._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+				}
+		}
+	});
 var _n1k0$tooty$Model$Flags = F2(
 	function (a, b) {
 		return {client: a, registration: b};
