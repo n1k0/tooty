@@ -127,6 +127,7 @@ body {
 .status-text {
   margin-left: 65px;
   color: #efefef;
+  cursor: pointer;
 }
 
 .status-text a, .u-url, .status .mention, .hashtag, .tag {
@@ -141,6 +142,7 @@ body {
 
 .thread-target .status-text {
   font-size: 1.3em;
+  cursor: default;
 }
 
 /* Status actions */

@@ -143,7 +143,7 @@ statusContentView : String -> Mastodon.Model.Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text" ]
+            div [ class "status-text", onClick <| OpenThread status ]
                 [ div [] <| ViewHelper.formatContent status.content status.mentions
                 , attachmentListView context status
                 ]
