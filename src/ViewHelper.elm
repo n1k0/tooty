@@ -2,6 +2,8 @@ module ViewHelper
     exposing
         ( formatContent
         , getMentionForLink
+        , onClickWithStop
+        , onClickWithPrevent
         , onClickWithPreventAndStop
         , toVirtualDom
         )
@@ -24,6 +26,22 @@ onClickWithPreventAndStop msg =
     onWithOptions
         "click"
         { preventDefault = True, stopPropagation = True }
+        (Decode.succeed msg)
+
+
+onClickWithPrevent : msg -> Attribute msg
+onClickWithPrevent msg =
+    onWithOptions
+        "click"
+        { preventDefault = True, stopPropagation = False }
+        (Decode.succeed msg)
+
+
+onClickWithStop : msg -> Attribute msg
+onClickWithStop msg =
+    onWithOptions
+        "click"
+        { preventDefault = False, stopPropagation = True }
         (Decode.succeed msg)
 
 
@@ -63,7 +81,11 @@ createLinkNode attrs children mentions =
                     (toVirtualDom mentions children)
 
             Nothing ->
-                Html.node "a" (List.map toAttribute attrs) (toVirtualDom mentions children)
+                Html.node "a"
+                    ((List.map toAttribute attrs)
+                        ++ [ onClickWithStop Model.NoOp, target "_blank" ]
+                    )
+                    (toVirtualDom mentions children)
 
 
 getHrefLink : List ( String, String ) -> Maybe String

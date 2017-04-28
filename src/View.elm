@@ -8,7 +8,7 @@ import List.Extra exposing (elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model
 import Model exposing (..)
-import ViewHelper
+import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
@@ -32,7 +32,7 @@ closeablePanelheading iconName label onClose =
             , div [ class "col-xs-3 text-right" ]
                 [ a
                     [ href ""
-                    , ViewHelper.onClickWithPreventAndStop onClose
+                    , onClickWithPreventAndStop onClose
                     ]
                     [ icon "remove" ]
                 ]
@@ -70,7 +70,7 @@ accountLink : Mastodon.Model.Account -> Html Msg
 accountLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
+        , onClickWithPreventAndStop (LoadAccount account.id)
         ]
         [ text <| "@" ++ account.username ]
 
@@ -79,7 +79,7 @@ accountAvatarLink : Mastodon.Model.Account -> Html Msg
 accountAvatarLink account =
     a
         [ href account.url
-        , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
+        , onClickWithPreventAndStop (LoadAccount account.id)
         , title <| "@" ++ account.username
         ]
         [ img [ class "avatar", src account.avatar ] [] ]
@@ -103,7 +103,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
             a
                 [ class "attachment-image"
                 , href url
-                , ViewHelper.onClickWithPreventAndStop <|
+                , onClickWithPreventAndStop <|
                     ViewerEvent (OpenViewer attachments attachment)
                 , style
                     [ ( "background"
@@ -143,8 +143,8 @@ statusContentView : String -> Mastodon.Model.Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text", onClick <| OpenThread status ]
-                [ div [] <| ViewHelper.formatContent status.content status.mentions
+            div [ class "status-text", onClickWithStop <| OpenThread status ]
+                [ div [] <| formatContent status.content status.mentions
                 , attachmentListView context status
                 ]
 
@@ -159,7 +159,7 @@ statusContentView context status =
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ]
-                        [ div [] <| ViewHelper.formatContent status.content status.mentions
+                        [ div [] <| formatContent status.content status.mentions
                         , attachmentListView context status
                         ]
                     ]
@@ -174,7 +174,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
             -- When clicking on a status, we should not let the browser
             -- redirect to a new page. That's why we're preventing the default
             -- behavior here
-            , ViewHelper.onClickWithPreventAndStop (LoadAccount account.id)
+            , onClickWithPreventAndStop (LoadAccount account.id)
             ]
     in
         case reblog of
@@ -212,7 +212,7 @@ accountTimelineView account statuses label iconName =
                     [ img [ src account.avatar ] []
                     , span [ class "account-display-name" ] [ text account.display_name ]
                     , span [ class "account-username" ] [ text ("@" ++ account.username) ]
-                    , span [ class "account-note" ] (ViewHelper.formatContent account.note [])
+                    , span [ class "account-note" ] (formatContent account.note [])
                     ]
                 ]
             , div [ class "row account-infos" ]
@@ -278,24 +278,24 @@ statusActionsView status =
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
-                , ViewHelper.onClickWithPreventAndStop <|
+                , onClickWithPreventAndStop <|
                     DraftEvent (UpdateReplyTo targetStatus)
                 ]
                 [ icon "share-alt" ]
             , a
                 [ class reblogClasses
-                , ViewHelper.onClickWithPreventAndStop reblogEvent
+                , onClickWithPreventAndStop reblogEvent
                 ]
                 [ icon "fire", text (toString status.reblogs_count) ]
             , a
                 [ class favClasses
-                , ViewHelper.onClickWithPreventAndStop favEvent
+                , onClickWithPreventAndStop favEvent
                 ]
                 [ icon "star", text (toString status.favourites_count) ]
             , a
                 [ class baseBtnClasses
                 , href status.url
-                , ViewHelper.onClickWithPreventAndStop <| OpenThread status
+                , onClickWithPreventAndStop <| OpenThread status
                 ]
                 [ icon "time", formatDate ]
             ]
@@ -374,7 +374,7 @@ notificationFollowView { accounts } =
                     , onClick <| LoadAccount account.id
                     ]
                   <|
-                    ViewHelper.formatContent account.note []
+                    formatContent account.note []
                 ]
     in
         div [ class "notification follow" ]
@@ -419,7 +419,7 @@ draftReplyToView draft =
                         [ text "In reply to this toot ("
                         , a
                             [ href ""
-                            , ViewHelper.onClickWithPreventAndStop <| DraftEvent ClearReplyTo
+                            , onClickWithPreventAndStop <| DraftEvent ClearReplyTo
                             ]
                             [ icon "remove" ]
                         , text ")"
@@ -689,7 +689,7 @@ viewerView { attachments, attachment } =
                     a
                         [ href ""
                         , class className
-                        , ViewHelper.onClickWithPreventAndStop <|
+                        , onClickWithPreventAndStop <|
                             ViewerEvent (OpenViewer attachments target)
                         ]
                         [ text label ]
@@ -697,7 +697,7 @@ viewerView { attachments, attachment } =
         div
             [ class "viewer"
             , tabindex -1
-            , ViewHelper.onClickWithPreventAndStop <| ViewerEvent CloseViewer
+            , onClickWithPreventAndStop <| ViewerEvent CloseViewer
             ]
             [ span [ class "close" ] [ text "×" ]
             , navLink "❮" "prev" prev
