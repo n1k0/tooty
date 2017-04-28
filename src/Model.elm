@@ -592,10 +592,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model
-                                | userTimeline = truncate (status :: model.userTimeline)
-                            }
-                                ! []
+                            { model | userTimeline = truncate (status :: model.userTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -617,10 +614,7 @@ processWebSocketMsg msg model =
                                         notification
                                         model.notifications
                             in
-                                { model
-                                    | notifications = truncate notifications
-                                }
-                                    ! []
+                                { model | notifications = truncate notifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -633,10 +627,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model
-                                | localTimeline = truncate (status :: model.localTimeline)
-                            }
-                                ! []
+                            { model | localTimeline = truncate (status :: model.localTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -660,10 +651,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model
-                                | globalTimeline = truncate (status :: model.globalTimeline)
-                            }
-                                ! []
+                            { model | globalTimeline = truncate (status :: model.globalTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
