@@ -322,11 +322,10 @@ timelineView : String -> String -> String -> List Mastodon.Model.Status -> Html 
 timelineView label iconName context statuses =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ]
-                [ icon iconName
-                , text label
-                ]
-            , ul [ class "list-group timeline" ] <|
+            [ a
+                [ href "", onClickWithPreventAndStop <| ScrollColumn context ]
+                [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
+            , ul [ id context, class "list-group timeline" ] <|
                 List.map (statusEntryView context "") statuses
             ]
         ]
@@ -399,11 +398,10 @@ notificationListView : List Mastodon.Model.NotificationAggregate -> Html Msg
 notificationListView notifications =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ]
-                [ icon "bell"
-                , text "Notifications"
-                ]
-            , ul [ class "list-group timeline" ] <|
+            [ a
+                [ href "", onClickWithPreventAndStop <| ScrollColumn "notifications" ]
+                [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
+            , ul [ id "notifications", class "list-group timeline" ] <|
                 List.map notificationEntryView notifications
             ]
         ]
@@ -596,11 +594,7 @@ optionsView model =
         , div [ class "panel-body" ]
             [ div [ class "checkbox" ]
                 [ label []
-                    [ input
-                        [ type_ "checkbox"
-                        , onCheck UseGlobalTimeline
-                        ]
-                        []
+                    [ input [ type_ "checkbox", onCheck UseGlobalTimeline ] []
                     , text " 4th column renders the global timeline"
                     ]
                 ]

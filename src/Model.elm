@@ -11,6 +11,7 @@ import Mastodon.Model
 import Mastodon.WebSocket
 import Ports
 import Task
+import Dom.Scroll
 
 
 type alias Flags =
@@ -62,6 +63,7 @@ type Msg
     = AddFavorite Int
     | ClearOpenedAccount
     | CloseThread
+    | DomResult (Result Dom.Error ())
     | DraftEvent DraftMsg
     | LoadAccount Int
     | MastodonEvent MastodonMsg
@@ -77,6 +79,7 @@ type Msg
     | Unreblog Int
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+    | ScrollColumn String
 
 
 type alias Draft =
@@ -660,6 +663,9 @@ update msg model =
         NoOp ->
             model ! []
 
+        DomResult result ->
+            model ! []
+
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =
@@ -799,6 +805,9 @@ update msg model =
 
         ClearOpenedAccount ->
             { model | currentView = preferredTimeline model } ! []
+
+        ScrollColumn context ->
+            model ! [ Task.attempt DomResult <| Dom.Scroll.toTop context ]
 
 
 subscriptions : Model -> Sub Msg
