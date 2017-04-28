@@ -47,6 +47,15 @@ body {
   max-height: calc(100vh - 60px);
 }
 
+.panel > a {
+  text-decoration: none;
+  color: #c8c8c8;
+}
+
+.panel > a:hover {
+  text-decoration: none;
+}
+
 .status, .follow-profile, .current-user {
   min-height: 50px;
   clear: both;

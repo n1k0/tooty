@@ -9837,6 +9837,26 @@ var _elm_lang$dom$Dom$NotFound = function (a) {
 var _elm_lang$dom$Dom_LowLevel$onWindow = _elm_lang$dom$Native_Dom.onWindow;
 var _elm_lang$dom$Dom_LowLevel$onDocument = _elm_lang$dom$Native_Dom.onDocument;
 
+var _elm_lang$dom$Dom_Size$width = _elm_lang$dom$Native_Dom.width;
+var _elm_lang$dom$Dom_Size$height = _elm_lang$dom$Native_Dom.height;
+var _elm_lang$dom$Dom_Size$VisibleContentWithBordersAndMargins = {ctor: 'VisibleContentWithBordersAndMargins'};
+var _elm_lang$dom$Dom_Size$VisibleContentWithBorders = {ctor: 'VisibleContentWithBorders'};
+var _elm_lang$dom$Dom_Size$VisibleContent = {ctor: 'VisibleContent'};
+var _elm_lang$dom$Dom_Size$Content = {ctor: 'Content'};
+
+var _elm_lang$dom$Dom_Scroll$toX = _elm_lang$dom$Native_Dom.setScrollLeft;
+var _elm_lang$dom$Dom_Scroll$x = _elm_lang$dom$Native_Dom.getScrollLeft;
+var _elm_lang$dom$Dom_Scroll$toRight = _elm_lang$dom$Native_Dom.toRight;
+var _elm_lang$dom$Dom_Scroll$toLeft = function (id) {
+	return A2(_elm_lang$dom$Dom_Scroll$toX, id, 0);
+};
+var _elm_lang$dom$Dom_Scroll$toY = _elm_lang$dom$Native_Dom.setScrollTop;
+var _elm_lang$dom$Dom_Scroll$y = _elm_lang$dom$Native_Dom.getScrollTop;
+var _elm_lang$dom$Dom_Scroll$toBottom = _elm_lang$dom$Native_Dom.toBottom;
+var _elm_lang$dom$Dom_Scroll$toTop = function (id) {
+	return A2(_elm_lang$dom$Dom_Scroll$toY, id, 0);
+};
+
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
 
@@ -24731,6 +24751,9 @@ var _n1k0$tooty$Model$NewWebsocketGlobalMessage = function (a) {
 var _n1k0$tooty$Model$NewWebsocketUserMessage = function (a) {
 	return {ctor: 'NewWebsocketUserMessage', _0: a};
 };
+var _n1k0$tooty$Model$ScrollColumn = function (a) {
+	return {ctor: 'ScrollColumn', _0: a};
+};
 var _n1k0$tooty$Model$WebSocketEvent = function (a) {
 	return {ctor: 'WebSocketEvent', _0: a};
 };
@@ -25026,6 +25049,9 @@ var _n1k0$tooty$Model$LoadAccount = function (a) {
 };
 var _n1k0$tooty$Model$DraftEvent = function (a) {
 	return {ctor: 'DraftEvent', _0: a};
+};
+var _n1k0$tooty$Model$DomResult = function (a) {
+	return {ctor: 'DomResult', _0: a};
 };
 var _n1k0$tooty$Model$CloseThread = {ctor: 'CloseThread'};
 var _n1k0$tooty$Model$ClearOpenedAccount = {ctor: 'ClearOpenedAccount'};
@@ -25466,6 +25492,11 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					model,
 					{ctor: '[]'});
+			case 'DomResult':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{ctor: '[]'});
 			case 'MastodonEvent':
 				var _p60 = A2(_n1k0$tooty$Model$processMastodonEvent, _p59._0, model);
 				var newModel = _p60._0;
@@ -25741,7 +25772,7 @@ var _n1k0$tooty$Model$update = F2(
 							currentView: _n1k0$tooty$Model$preferredTimeline(newModel)
 						}),
 					{ctor: '[]'});
-			default:
+			case 'ClearOpenedAccount':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -25750,6 +25781,18 @@ var _n1k0$tooty$Model$update = F2(
 							currentView: _n1k0$tooty$Model$preferredTimeline(model)
 						}),
 					{ctor: '[]'});
+			default:
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					model,
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$core$Task$attempt,
+							_n1k0$tooty$Model$DomResult,
+							_elm_lang$dom$Dom_Scroll$toTop(_p59._0)),
+						_1: {ctor: '[]'}
+					});
 		}
 	});
 
@@ -27936,20 +27979,36 @@ var _n1k0$tooty$View$timelineView = F4(
 					{
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$div,
+							_elm_lang$html$Html$a,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$href(''),
+								_1: {
+									ctor: '::',
+									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+										_n1k0$tooty$Model$ScrollColumn(context)),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
-								_0: _n1k0$tooty$View$icon(iconName),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(label),
-									_1: {ctor: '[]'}
-								}
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _n1k0$tooty$View$icon(iconName),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(label),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
@@ -27957,8 +28016,12 @@ var _n1k0$tooty$View$timelineView = F4(
 								_elm_lang$html$Html$ul,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-									_1: {ctor: '[]'}
+									_0: _elm_lang$html$Html_Attributes$id(context),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+										_1: {ctor: '[]'}
+									}
 								},
 								A2(
 									_elm_lang$core$List$map,
@@ -28177,20 +28240,36 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 				{
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$div,
+						_elm_lang$html$Html$a,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-							_1: {ctor: '[]'}
+							_0: _elm_lang$html$Html_Attributes$href(''),
+							_1: {
+								ctor: '::',
+								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+									_n1k0$tooty$Model$ScrollColumn('notifications')),
+								_1: {ctor: '[]'}
+							}
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$icon('bell'),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html$text('Notifications'),
-								_1: {ctor: '[]'}
-							}
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _n1k0$tooty$View$icon('bell'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Notifications'),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
 						}),
 					_1: {
 						ctor: '::',
@@ -28198,8 +28277,12 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 							_elm_lang$html$Html$ul,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$id('notifications'),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+									_1: {ctor: '[]'}
+								}
 							},
 							A2(_elm_lang$core$List$map, _n1k0$tooty$View$notificationEntryView, notifications)),
 						_1: {ctor: '[]'}
