@@ -22,7 +22,6 @@ type alias Flags =
 
 type DraftMsg
     = ClearDraft
-    | ClearReplyTo
     | UpdateSensitive Bool
     | UpdateSpoiler String
     | UpdateStatus String
@@ -40,6 +39,7 @@ type MastodonMsg
     = AccessToken (Result Mastodon.Model.Error Mastodon.Model.AccessTokenResult)
     | AppRegistered (Result Mastodon.Model.Error Mastodon.Model.AppRegistration)
     | ContextLoaded Mastodon.Model.Status (Result Mastodon.Model.Error Mastodon.Model.Context)
+    | CurrentUser (Result Mastodon.Model.Error Mastodon.Model.Account)
     | FavoriteAdded (Result Mastodon.Model.Error Mastodon.Model.Status)
     | FavoriteRemoved (Result Mastodon.Model.Error Mastodon.Model.Status)
     | LocalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
@@ -125,6 +125,7 @@ type alias Model =
     , location : Navigation.Location
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
+    , currentUser : Maybe Mastodon.Model.Account
     , currentView : CurrentView
     }
 
@@ -169,6 +170,7 @@ init flags location =
         , useGlobalTimeline = False
         , viewer = Nothing
         , currentView = LocalTimelineView
+        , currentUser = Nothing
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -188,7 +190,7 @@ initCommands registration client authCode =
                         []
 
             Nothing ->
-                [ loadTimelines client ]
+                [ loadUserAccount client, loadTimelines client ]
 
 
 registerApp : Model -> Cmd Msg
@@ -237,6 +239,17 @@ loadNotifications client =
             Cmd.none
 
 
+loadUserAccount : Maybe Mastodon.Model.Client -> Cmd Msg
+loadUserAccount client =
+    case client of
+        Just client ->
+            Mastodon.Http.userAccount client
+                |> Mastodon.Http.send (MastodonEvent << CurrentUser)
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Mastodon.Model.Client -> Cmd Msg
 loadTimelines client =
     case client of
@@ -261,6 +274,16 @@ preferredTimeline model =
         GlobalTimelineView
     else
         LocalTimelineView
+
+
+accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
+accountMentioned { acct, username } mention =
+    acct == mention.acct && username == mention.username
+
+
+sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
+sameAccount { acct, username } account =
+    acct == account.acct && username == account.username
 
 
 postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
@@ -339,8 +362,8 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
-updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
-updateDraft draftMsg draft =
+updateDraft : DraftMsg -> Mastodon.Model.Account -> Draft -> ( Draft, Cmd Msg )
+updateDraft draftMsg currentUser draft =
     case draftMsg of
         ClearDraft ->
             defaultDraft ! []
@@ -371,16 +394,19 @@ updateDraft draftMsg draft =
             let
                 mentions =
                     status.mentions
+                        |> List.filter (\m -> not (accountMentioned currentUser m))
                         |> List.map (\m -> "@" ++ m.acct)
                         |> String.join " "
 
-                prefix =
-                    "@" ++ status.account.acct ++ " " ++ mentions
+                newStatus =
+                    if sameAccount status.account currentUser then
+                        mentions
+                    else
+                        "@" ++ status.account.acct ++ " " ++ mentions
             in
                 { draft
                     | in_reply_to = Just status
-                    , status =
-                        prefix ++ " " ++ draft.status
+                    , status = (String.trim newStatus) ++ " "
                     , sensitive = Maybe.withDefault False status.sensitive
                     , spoiler_text =
                         if status.spoiler_text == "" then
@@ -390,9 +416,6 @@ updateDraft draftMsg draft =
                     , visibility = status.visibility
                 }
                     ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
-
-        ClearReplyTo ->
-            { draft | in_reply_to = Nothing } ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -450,6 +473,14 @@ processMastodonEvent msg model =
                         , errors = (errorText error) :: model.errors
                     }
                         ! []
+
+        CurrentUser result ->
+            case result of
+                Ok currentUser ->
+                    { model | currentUser = Just currentUser } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         FavoriteAdded result ->
             case result of
@@ -729,11 +760,16 @@ update msg model =
                         []
 
         DraftEvent draftMsg ->
-            let
-                ( draft, commands ) =
-                    updateDraft draftMsg model.draft
-            in
-                { model | draft = draft } ! [ commands ]
+            case model.currentUser of
+                Just user ->
+                    let
+                        ( draft, commands ) =
+                            updateDraft draftMsg user model.draft
+                    in
+                        { model | draft = draft } ! [ commands ]
+
+                Nothing ->
+                    model ! []
 
         ViewerEvent viewerMsg ->
             let

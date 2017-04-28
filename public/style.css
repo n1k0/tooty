@@ -5,7 +5,7 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
     height: 8px
 }
 
@@ -56,10 +56,17 @@ body {
   text-decoration: none;
 }
 
-
-.status, .follow-profile {
+.status, .follow-profile, .current-user {
   min-height: 50px;
   clear: both;
+}
+
+.current-user {
+  min-height: 55px;
+}
+
+.current-user .status-text {
+  font-size: 90%;
 }
 
 .follow-profile .status-text {
@@ -277,6 +284,10 @@ body {
 }
 
 /* Draft form */
+
+.form {
+  clear: both;
+}
 
 .in-reply-to .attachments {
   margin: 0;
