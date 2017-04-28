@@ -25,10 +25,10 @@ type DraftMsg
     | ClearReplyTo
     | UpdateSensitive Bool
     | UpdateSpoiler String
-    | UpdateStatus String
     | UpdateVisibility String
     | UpdateReplyTo Mastodon.Model.Status
     | ToggleSpoiler Bool
+    | GetInputInformation InputDraftInformation
 
 
 type ViewerMsg
@@ -82,6 +82,12 @@ type Msg
     | ResetAutocomplete
 
 
+type alias InputDraftInformation =
+    { status : String
+    , selectionStart : Int
+    }
+
+
 type alias Draft =
     { status : String
     , in_reply_to : Maybe Mastodon.Model.Status
@@ -100,6 +106,12 @@ type alias Thread =
 type alias Viewer =
     { attachments : List Mastodon.Model.Attachment
     , attachment : Mastodon.Model.Attachment
+    }
+
+
+type alias InputInformation =
+    { value : String
+    , selectionStart : Int
     }
 
 
@@ -127,7 +139,10 @@ type alias Model =
     , viewer : Maybe Viewer
     , currentView : CurrentView
     , autocompleteState : Autocomplete.State
-    , mentionAccounts : List Mastodon.Model.Account
+    , autocompleteAccounts : List Mastodon.Model.Account
+    , autocompleteQuery : String
+    , atPosition : Maybe Int
+    , cursorPosition : Int
     }
 
 
@@ -172,7 +187,10 @@ init flags location =
         , viewer = Nothing
         , currentView = LocalTimelineView
         , autocompleteState = Autocomplete.empty
-        , mentionAccounts = []
+        , autocompleteAccounts = []
+        , autocompleteQuery = ""
+        , atPosition = Nothing
+        , cursorPosition = 0
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -364,60 +382,98 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
-updateDraft : DraftMsg -> Draft -> ( Draft, Cmd Msg )
-updateDraft draftMsg draft =
-    case draftMsg of
-        ClearDraft ->
-            defaultDraft ! []
+updateDraft : DraftMsg -> Model -> ( Model, Cmd Msg )
+updateDraft draftMsg model =
+    let
+        oldDraft =
+            model.draft
+    in
+        case draftMsg of
+            ClearDraft ->
+                { model | draft = defaultDraft } ! []
 
-        ToggleSpoiler enabled ->
-            { draft
-                | spoiler_text =
-                    if enabled then
-                        Just ""
-                    else
-                        Nothing
-            }
-                ! []
-
-        UpdateSensitive sensitive ->
-            { draft | sensitive = sensitive } ! []
-
-        UpdateSpoiler spoiler_text ->
-            { draft | spoiler_text = Just spoiler_text } ! []
-
-        UpdateStatus status ->
-            { draft | status = status } ! []
-
-        UpdateVisibility visibility ->
-            { draft | visibility = visibility } ! []
-
-        UpdateReplyTo status ->
-            let
-                mentions =
-                    status.mentions
-                        |> List.map (\m -> "@" ++ m.acct)
-                        |> String.join " "
-
-                prefix =
-                    "@" ++ status.account.acct ++ " " ++ mentions
-            in
-                { draft
-                    | in_reply_to = Just status
-                    , status =
-                        prefix ++ " " ++ draft.status
-                    , sensitive = Maybe.withDefault False status.sensitive
-                    , spoiler_text =
-                        if status.spoiler_text == "" then
-                            Nothing
-                        else
-                            Just status.spoiler_text
-                    , visibility = status.visibility
+            ToggleSpoiler enabled ->
+                { model
+                    | draft =
+                        { oldDraft
+                            | spoiler_text =
+                                if enabled then
+                                    Just ""
+                                else
+                                    Nothing
+                        }
                 }
-                    ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
+                    ! []
 
-        ClearReplyTo ->
-            { draft | in_reply_to = Nothing } ! []
+            UpdateSensitive sensitive ->
+                { model | draft = { oldDraft | sensitive = sensitive } } ! []
+
+            UpdateSpoiler spoiler_text ->
+                { model | draft = { oldDraft | spoiler_text = Just spoiler_text } } ! []
+
+            GetInputInformation { status, selectionStart } ->
+                let
+                    newModel =
+                        { model | draft = { oldDraft | status = status }, cursorPosition = selectionStart }
+
+                    stringToPos =
+                        (String.slice 0 newModel.cursorPosition status)
+
+                    atPosition =
+                        (case (String.right 1 stringToPos) of
+                            "@" ->
+                                Just newModel.cursorPosition
+
+                            " " ->
+                                Nothing
+
+                            _ ->
+                                model.atPosition
+                        )
+
+                    query =
+                        (case atPosition of
+                            Just position ->
+                                String.slice position (String.length stringToPos) stringToPos
+
+                            Nothing ->
+                                ""
+                        )
+                in
+                    { newModel | atPosition = atPosition, autocompleteQuery = query } ! []
+
+            UpdateVisibility visibility ->
+                { model | draft = { oldDraft | visibility = visibility } } ! []
+
+            UpdateReplyTo status ->
+                let
+                    mentions =
+                        status.mentions
+                            |> List.map (\m -> "@" ++ m.acct)
+                            |> String.join " "
+
+                    prefix =
+                        "@" ++ status.account.acct ++ " " ++ mentions
+                in
+                    { model
+                        | draft =
+                            { oldDraft
+                                | in_reply_to = Just status
+                                , status =
+                                    prefix ++ " " ++ model.draft.status
+                                , sensitive = Maybe.withDefault False status.sensitive
+                                , spoiler_text =
+                                    if status.spoiler_text == "" then
+                                        Nothing
+                                    else
+                                        Just status.spoiler_text
+                                , visibility = status.visibility
+                            }
+                    }
+                        ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
+
+            ClearReplyTo ->
+                { model | draft = { oldDraft | in_reply_to = Nothing } } ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -742,11 +798,7 @@ update msg model =
                         []
 
         DraftEvent draftMsg ->
-            let
-                ( draft, commands ) =
-                    updateDraft draftMsg model.draft
-            in
-                { model | draft = draft } ! [ commands ]
+            updateDraft draftMsg model
 
         ViewerEvent viewerMsg ->
             let

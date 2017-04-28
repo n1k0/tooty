@@ -12,6 +12,9 @@ import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
+import Autocomplete
+import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 visibilities : Dict.Dict String String
@@ -498,9 +501,12 @@ draftView { draft } =
                                     "This text will be hidden by default, as you have enabled a spoiler."
                                 else
                                     "Once upon a time..."
-                            , onInput <| DraftEvent << UpdateStatus
+                            , onInputInformation <| DraftEvent << GetInputInformation
+                            , onClickInformation <| DraftEvent << GetInputInformation
                             , required True
-                            , value draft.status
+
+                            -- Cf: https://github.com/evancz/elm-html/pull/81
+                            , property "defaultValue" (Encode.string draft.status)
                             ]
                             []
                         ]
@@ -717,6 +723,25 @@ viewerView { attachments, attachment } =
             ]
 
 
+
+-- setup for your autocomplete view
+
+
+viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
+viewConfig =
+    let
+        customizedLi keySelected mouseSelected account =
+            { attributes = [ classList [ ( "autocomplete-item", True ), ( "is-selected", keySelected || mouseSelected ) ] ]
+            , children = [ text account.username ]
+            }
+    in
+        Autocomplete.viewConfig
+            { toId = .id >> toString
+            , ul = [ class "autocomplete-list" ] -- set classes for your list
+            , li = customizedLi -- given selection states and a person, create some Html!
+            }
+
+
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
@@ -734,3 +759,20 @@ view model =
             Nothing ->
                 text ""
         ]
+
+
+onClickInformation : (InputDraftInformation -> msg) -> Attribute msg
+onClickInformation msg =
+    on "click" (Decode.map msg decodePositionInformation)
+
+
+onInputInformation : (InputDraftInformation -> msg) -> Attribute msg
+onInputInformation msg =
+    on "input" (Decode.map msg decodePositionInformation)
+
+
+decodePositionInformation : Decode.Decoder InputDraftInformation
+decodePositionInformation =
+    Decode.map2 InputDraftInformation
+        (Decode.at [ "target", "value" ] Decode.string)
+        (Decode.at [ "target", "selectionStart" ] Decode.int)
