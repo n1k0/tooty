@@ -198,6 +198,14 @@ notifications =
     ]
 
 
+duplicateAccountNotifications : List Notification
+duplicateAccountNotifications =
+    [ notificationSkroFollowsVjousse
+    , notificationSkroFollowsVjousse
+    , notificationSkroFollowsVjousse
+    ]
+
+
 notificationAggregates : List NotificationAggregate
 notificationAggregates =
     [ { type_ = "mention"
