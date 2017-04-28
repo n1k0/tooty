@@ -16,13 +16,13 @@ module Mastodon.Http
         , fetchGlobalTimeline
         , fetchUserTimeline
         , postStatus
+        , userAccount
         , send
         )
 
 import Http
 import HttpBuilder
 import Json.Decode as Decode
-import Task
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
@@ -131,6 +131,13 @@ fetchAccountTimeline client id =
 fetchNotifications : Client -> Request (List Notification)
 fetchNotifications client =
     fetch client (ApiUrl.notifications) <| Decode.list notificationDecoder
+
+
+userAccount : Client -> Request Account
+userAccount client =
+    HttpBuilder.get (ApiUrl.userAccount client.server)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
 
 
 postStatus : Client -> StatusRequestBody -> Request Status

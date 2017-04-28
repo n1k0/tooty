@@ -47,9 +47,17 @@ body {
   max-height: calc(100vh - 60px);
 }
 
-.status, .follow-profile {
+.status, .follow-profile, .current-user {
   min-height: 50px;
   clear: both;
+}
+
+.current-user {
+  min-height: 55px;
+}
+
+.current-user .status-text {
+  font-size: 90%;
 }
 
 .follow-profile .status-text {
@@ -267,6 +275,10 @@ body {
 }
 
 /* Draft form */
+
+.form {
+  clear: both;
+}
 
 .in-reply-to .attachments {
   margin: 0;
