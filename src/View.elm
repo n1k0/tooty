@@ -369,7 +369,12 @@ notificationFollowView { accounts } =
             div [ class "status follow-profile" ]
                 [ accountAvatarLink account
                 , div [ class "username" ] [ accountLink account ]
-                , p [ class "status-text" ] <| ViewHelper.formatContent account.note []
+                , p
+                    [ class "status-text"
+                    , onClick <| LoadAccount account.id
+                    ]
+                  <|
+                    ViewHelper.formatContent account.note []
                 ]
     in
         div [ class "notification follow" ]
