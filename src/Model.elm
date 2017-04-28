@@ -63,6 +63,7 @@ type Msg
     = AddFavorite Int
     | ClearOpenedAccount
     | CloseThread
+    | DomResult (Result Dom.Error ())
     | DraftEvent DraftMsg
     | LoadAccount Int
     | MastodonEvent MastodonMsg
@@ -324,11 +325,6 @@ processFavourite statusId flag model =
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
-
-
-processScroll : String -> Model
-processScroll context =
-    Dom.Scroll.toTop context
 
 
 deleteStatusFromTimeline : Int -> List Mastodon.Model.Status -> List Mastodon.Model.Status
@@ -636,6 +632,18 @@ update msg model =
         NoOp ->
             model ! []
 
+        DomResult result ->
+            case result of
+                Ok _ ->
+                    model ! []
+
+                Err err ->
+                    let
+                        _ =
+                            Debug.log "domerr" err
+                    in
+                        model ! []
+
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =
@@ -772,12 +780,7 @@ update msg model =
             { model | currentView = preferredTimeline model } ! []
 
         ScrollColumn context ->
-            case model.client of
-                Just client ->
-                    processScroll context
-
-                Nothing ->
-                    model ! []
+            model ! [ Task.attempt DomResult <| Dom.Scroll.toTop context ]
 
 
 subscriptions : Model -> Sub Msg
