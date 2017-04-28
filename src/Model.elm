@@ -366,16 +366,18 @@ updateDraft draftMsg draft =
 
         UpdateReplyTo status ->
             let
-                mention =
-                    "@" ++ status.account.acct
+                mentions =
+                    status.mentions
+                        |> List.map (\m -> "@" ++ m.acct)
+                        |> String.join " "
+
+                prefix =
+                    "@" ++ status.account.acct ++ " " ++ mentions
             in
                 { draft
                     | in_reply_to = Just status
                     , status =
-                        if String.startsWith mention draft.status then
-                            draft.status
-                        else
-                            mention ++ " " ++ draft.status
+                        prefix ++ " " ++ draft.status
                     , sensitive = Maybe.withDefault False status.sensitive
                     , spoiler_text =
                         if status.spoiler_text == "" then
