@@ -27969,7 +27969,7 @@ var _n1k0$tooty$View$timelineView = F4(
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -28230,7 +28230,7 @@ var _n1k0$tooty$View$notificationListView = function (notifications) {
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
 			_1: {ctor: '[]'}
 		},
 		{
@@ -28573,7 +28573,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -28594,24 +28594,8 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('account-detail'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$style(
-											{
-												ctor: '::',
-												_0: {
-													ctor: '_Tuple2',
-													_0: 'background-image',
-													_1: A2(
-														_elm_lang$core$Basics_ops['++'],
-														'url(\'',
-														A2(_elm_lang$core$Basics_ops['++'], account.header, '\')'))
-												},
-												_1: {ctor: '[]'}
-											}),
-										_1: {ctor: '[]'}
-									}
+									_0: _elm_lang$html$Html_Attributes$class('timeline'),
+									_1: {ctor: '[]'}
 								},
 								{
 									ctor: '::',
@@ -28619,130 +28603,103 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 										_elm_lang$html$Html$div,
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('opacity-layer'),
-											_1: {ctor: '[]'}
+											_0: _elm_lang$html$Html_Attributes$class('account-detail'),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$style(
+													{
+														ctor: '::',
+														_0: {
+															ctor: '_Tuple2',
+															_0: 'background-image',
+															_1: A2(
+																_elm_lang$core$Basics_ops['++'],
+																'url(\'',
+																A2(_elm_lang$core$Basics_ops['++'], account.header, '\')'))
+														},
+														_1: {ctor: '[]'}
+													}),
+												_1: {ctor: '[]'}
+											}
 										},
 										{
 											ctor: '::',
 											_0: A2(
-												_elm_lang$html$Html$img,
+												_elm_lang$html$Html$div,
 												{
 													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$src(account.avatar),
+													_0: _elm_lang$html$Html_Attributes$class('opacity-layer'),
 													_1: {ctor: '[]'}
 												},
-												{ctor: '[]'}),
-											_1: {
-												ctor: '::',
-												_0: A2(
-													_elm_lang$html$Html$span,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('account-display-name'),
-														_1: {ctor: '[]'}
-													},
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(account.display_name),
-														_1: {ctor: '[]'}
-													}),
-												_1: {
+												{
 													ctor: '::',
 													_0: A2(
-														_elm_lang$html$Html$span,
+														_elm_lang$html$Html$img,
 														{
 															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('account-username'),
+															_0: _elm_lang$html$Html_Attributes$src(account.avatar),
 															_1: {ctor: '[]'}
 														},
-														{
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(
-																A2(_elm_lang$core$Basics_ops['++'], '@', account.username)),
-															_1: {ctor: '[]'}
-														}),
+														{ctor: '[]'}),
 													_1: {
 														ctor: '::',
 														_0: A2(
 															_elm_lang$html$Html$span,
 															{
 																ctor: '::',
-																_0: _elm_lang$html$Html_Attributes$class('account-note'),
+																_0: _elm_lang$html$Html_Attributes$class('account-display-name'),
 																_1: {ctor: '[]'}
 															},
-															A2(
-																_n1k0$tooty$ViewHelper$formatContent,
-																account.note,
-																{ctor: '[]'})),
-														_1: {ctor: '[]'}
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text(account.display_name),
+																_1: {ctor: '[]'}
+															}),
+														_1: {
+															ctor: '::',
+															_0: A2(
+																_elm_lang$html$Html$span,
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html_Attributes$class('account-username'),
+																	_1: {ctor: '[]'}
+																},
+																{
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(
+																		A2(_elm_lang$core$Basics_ops['++'], '@', account.username)),
+																	_1: {ctor: '[]'}
+																}),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$span,
+																	{
+																		ctor: '::',
+																		_0: _elm_lang$html$Html_Attributes$class('account-note'),
+																		_1: {ctor: '[]'}
+																	},
+																	A2(
+																		_n1k0$tooty$ViewHelper$formatContent,
+																		account.note,
+																		{ctor: '[]'})),
+																_1: {ctor: '[]'}
+															}
+														}
 													}
-												}
-											}
+												}),
+											_1: {ctor: '[]'}
 										}),
-									_1: {ctor: '[]'}
-								}),
-							_1: {
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('row account-infos'),
-										_1: {ctor: '[]'}
-									},
-									{
+									_1: {
 										ctor: '::',
 										_0: A2(
 											_elm_lang$html$Html$div,
 											{
 												ctor: '::',
-												_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+												_0: _elm_lang$html$Html_Attributes$class('row account-infos'),
 												_1: {ctor: '[]'}
 											},
 											{
-												ctor: '::',
-												_0: _elm_lang$html$Html$text('Statuses'),
-												_1: {
-													ctor: '::',
-													_0: A2(
-														_elm_lang$html$Html$br,
-														{ctor: '[]'},
-														{ctor: '[]'}),
-													_1: {
-														ctor: '::',
-														_0: _elm_lang$html$Html$text(
-															_elm_lang$core$Basics$toString(account.statuses_count)),
-														_1: {ctor: '[]'}
-													}
-												}
-											}),
-										_1: {
-											ctor: '::',
-											_0: A2(
-												_elm_lang$html$Html$div,
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
-													_1: {ctor: '[]'}
-												},
-												{
-													ctor: '::',
-													_0: _elm_lang$html$Html$text('Following'),
-													_1: {
-														ctor: '::',
-														_0: A2(
-															_elm_lang$html$Html$br,
-															{ctor: '[]'},
-															{ctor: '[]'}),
-														_1: {
-															ctor: '::',
-															_0: _elm_lang$html$Html$text(
-																_elm_lang$core$Basics$toString(account.following_count)),
-															_1: {ctor: '[]'}
-														}
-													}
-												}),
-											_1: {
 												ctor: '::',
 												_0: A2(
 													_elm_lang$html$Html$div,
@@ -28753,7 +28710,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 													},
 													{
 														ctor: '::',
-														_0: _elm_lang$html$Html$text('Followers'),
+														_0: _elm_lang$html$Html$text('Statuses'),
 														_1: {
 															ctor: '::',
 															_0: A2(
@@ -28763,44 +28720,98 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 															_1: {
 																ctor: '::',
 																_0: _elm_lang$html$Html$text(
-																	_elm_lang$core$Basics$toString(account.followers_count)),
+																	_elm_lang$core$Basics$toString(account.statuses_count)),
 																_1: {ctor: '[]'}
 															}
 														}
 													}),
-												_1: {ctor: '[]'}
-											}
-										}
-									}),
-								_1: {
-									ctor: '::',
-									_0: A2(
-										_elm_lang$html$Html$ul,
-										{
+												_1: {
+													ctor: '::',
+													_0: A2(
+														_elm_lang$html$Html$div,
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+															_1: {ctor: '[]'}
+														},
+														{
+															ctor: '::',
+															_0: _elm_lang$html$Html$text('Following'),
+															_1: {
+																ctor: '::',
+																_0: A2(
+																	_elm_lang$html$Html$br,
+																	{ctor: '[]'},
+																	{ctor: '[]'}),
+																_1: {
+																	ctor: '::',
+																	_0: _elm_lang$html$Html$text(
+																		_elm_lang$core$Basics$toString(account.following_count)),
+																	_1: {ctor: '[]'}
+																}
+															}
+														}),
+													_1: {
+														ctor: '::',
+														_0: A2(
+															_elm_lang$html$Html$div,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('col-md-4'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html$text('Followers'),
+																_1: {
+																	ctor: '::',
+																	_0: A2(
+																		_elm_lang$html$Html$br,
+																		{ctor: '[]'},
+																		{ctor: '[]'}),
+																	_1: {
+																		ctor: '::',
+																		_0: _elm_lang$html$Html$text(
+																			_elm_lang$core$Basics$toString(account.followers_count)),
+																		_1: {ctor: '[]'}
+																	}
+																}
+															}),
+														_1: {ctor: '[]'}
+													}
+												}
+											}),
+										_1: {
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-											_1: {ctor: '[]'}
-										},
-										A2(
-											_elm_lang$core$List$map,
-											function (s) {
-												return A2(
-													_elm_lang$html$Html$li,
-													{
-														ctor: '::',
-														_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
-														_1: {ctor: '[]'}
+											_0: A2(
+												_elm_lang$html$Html$ul,
+												{
+													ctor: '::',
+													_0: _elm_lang$html$Html_Attributes$class('list-group'),
+													_1: {ctor: '[]'}
+												},
+												A2(
+													_elm_lang$core$List$map,
+													function (s) {
+														return A2(
+															_elm_lang$html$Html$li,
+															{
+																ctor: '::',
+																_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
+																_1: {ctor: '[]'}
+															},
+															{
+																ctor: '::',
+																_0: A2(_n1k0$tooty$View$statusView, 'account', s),
+																_1: {ctor: '[]'}
+															});
 													},
-													{
-														ctor: '::',
-														_0: A2(_n1k0$tooty$View$statusView, 'account', s),
-														_1: {ctor: '[]'}
-													});
-											},
-											statuses)),
-									_1: {ctor: '[]'}
-								}
-							}
+													statuses)),
+											_1: {ctor: '[]'}
+										}
+									}
+								}),
+							_1: {ctor: '[]'}
 						}
 					}),
 				_1: {ctor: '[]'}
@@ -28836,7 +28847,7 @@ var _n1k0$tooty$View$threadView = function (thread) {
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
 			_1: {ctor: '[]'}
 		},
 		{
@@ -29308,7 +29319,7 @@ var _n1k0$tooty$View$sidebarView = function (model) {
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3'),
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
 			_1: {ctor: '[]'}
 		},
 		{
