@@ -4,6 +4,7 @@ module Mastodon.ApiUrl
         , oauthAuthorize
         , oauthToken
         , account
+        , accountTimeline
         , homeTimeline
         , publicTimeline
         , notifications
@@ -63,6 +64,11 @@ publicTimeline local =
                     ""
     in
         "/api/v1/timelines/public" ++ isLocal
+
+
+accountTimeline : Int -> String
+accountTimeline id =
+    (account id) ++ "/statuses"
 
 
 notifications : String

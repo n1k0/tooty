@@ -48,7 +48,8 @@ type MastodonMsg
     | Reblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
     | StatusPosted (Result Mastodon.Model.Error Mastodon.Model.Status)
     | Unreblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | UserAccount (Result Mastodon.Model.Error Mastodon.Model.Account)
+    | Account (Result Mastodon.Model.Error Mastodon.Model.Account)
+    | AccountTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
     | UserTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
 
 
@@ -63,7 +64,7 @@ type Msg
     | ClearOpenedAccount
     | CloseThread
     | DraftEvent DraftMsg
-    | LoadUserAccount Int
+    | LoadAccount Int
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Mastodon.Model.Status
@@ -117,6 +118,7 @@ type alias Model =
     , userTimeline : List Mastodon.Model.Status
     , localTimeline : List Mastodon.Model.Status
     , globalTimeline : List Mastodon.Model.Status
+    , accountTimeline : List Mastodon.Model.Status
     , notifications : List Mastodon.Model.NotificationAggregate
     , draft : Draft
     , errors : List String
@@ -161,6 +163,7 @@ init flags location =
         , userTimeline = []
         , localTimeline = []
         , globalTimeline = []
+        , accountTimeline = []
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -391,16 +394,18 @@ updateDraft draftMsg draft =
 
         UpdateReplyTo status ->
             let
-                mention =
-                    "@" ++ status.account.acct
+                mentions =
+                    status.mentions
+                        |> List.map (\m -> "@" ++ m.acct)
+                        |> String.join " "
+
+                prefix =
+                    "@" ++ status.account.acct ++ " " ++ mentions
             in
                 { draft
                     | in_reply_to = Just status
                     , status =
-                        if String.startsWith mention draft.status then
-                            draft.status
-                        else
-                            mention ++ " " ++ draft.status
+                        prefix ++ " " ++ draft.status
                     , sensitive = Maybe.withDefault False status.sensitive
                     , spoiler_text =
                         if status.spoiler_text == "" then
@@ -530,7 +535,7 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        UserAccount result ->
+        Account result ->
             case result of
                 Ok account ->
                     { model | currentView = AccountView account } ! []
@@ -541,6 +546,14 @@ processMastodonEvent msg model =
                         , errors = (errorText error) :: model.errors
                     }
                         ! []
+
+        AccountTimeline result ->
+            case result of
+                Ok statuses ->
+                    { model | accountTimeline = statuses } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         UserTimeline result ->
             case result of
@@ -751,17 +764,19 @@ update msg model =
                     Nothing ->
                         []
 
-        LoadUserAccount accountId ->
+        LoadAccount accountId ->
             {-
                @TODO
                When requesting a user profile, we should load a new "page"
                so that the URL in the browser matches the user displayed
             -}
-            model
+            { model | currentView = preferredTimeline model }
                 ! case model.client of
                     Just client ->
                         [ Mastodon.Http.fetchAccount client accountId
-                            |> Mastodon.Http.send (MastodonEvent << UserAccount)
+                            |> Mastodon.Http.send (MastodonEvent << Account)
+                        , Mastodon.Http.fetchAccountTimeline client accountId
+                            |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
                         ]
 
                     Nothing ->
