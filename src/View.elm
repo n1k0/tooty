@@ -322,9 +322,14 @@ timelineView : String -> String -> String -> List Mastodon.Model.Status -> Html 
 timelineView label iconName context statuses =
     div [ class "col-md-3" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ]
-                [ icon iconName
-                , text label
+            [ a
+                [ href ""
+                , onClickWithPreventAndStop <| ScrollColumn context
+                ]
+                [ div [ id context, class "panel-heading" ]
+                    [ icon iconName
+                    , text label
+                    ]
                 ]
             , ul [ class "list-group timeline" ] <|
                 List.map (statusEntryView context "") statuses

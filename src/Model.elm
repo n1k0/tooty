@@ -11,6 +11,7 @@ import Mastodon.Model
 import Mastodon.WebSocket
 import Ports
 import Task
+import Dom.Scroll
 
 
 type alias Flags =
@@ -77,6 +78,7 @@ type Msg
     | Unreblog Int
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+    | ScrollColumn String
 
 
 type alias Draft =
@@ -322,6 +324,11 @@ processFavourite statusId flag model =
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
+
+
+processScroll : String -> Model
+processScroll context =
+    Dom.Scroll.toTop context
 
 
 deleteStatusFromTimeline : Int -> List Mastodon.Model.Status -> List Mastodon.Model.Status
@@ -763,6 +770,14 @@ update msg model =
 
         ClearOpenedAccount ->
             { model | currentView = preferredTimeline model } ! []
+
+        ScrollColumn context ->
+            case model.client of
+                Just client ->
+                    processScroll context
+
+                Nothing ->
+                    model ! []
 
 
 subscriptions : Model -> Sub Msg
