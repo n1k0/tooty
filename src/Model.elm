@@ -14,6 +14,12 @@ import Task
 import Dom.Scroll
 
 
+maxBuffer : Int
+maxBuffer =
+    -- Max number of entries to keep in columns
+    100
+
+
 type alias Flags =
     { client : Maybe Mastodon.Model.Client
     , registration : Maybe Mastodon.Model.AppRegistration
@@ -581,7 +587,10 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = status :: model.userTimeline } ! []
+                            { model
+                                | userTimeline = (status :: model.userTimeline) |> List.take maxBuffer
+                            }
+                                ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -603,7 +612,10 @@ processWebSocketMsg msg model =
                                         notification
                                         model.notifications
                             in
-                                { model | notifications = notifications } ! []
+                                { model
+                                    | notifications = notifications |> List.take maxBuffer
+                                }
+                                    ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -616,7 +628,10 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = status :: model.localTimeline } ! []
+                            { model
+                                | localTimeline = (status :: model.localTimeline) |> List.take maxBuffer
+                            }
+                                ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -640,7 +655,10 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = status :: model.globalTimeline } ! []
+                            { model
+                                | globalTimeline = (status :: model.globalTimeline) |> List.take maxBuffer
+                            }
+                                ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
