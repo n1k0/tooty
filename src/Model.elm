@@ -14,6 +14,12 @@ import Task
 import Dom.Scroll
 
 
+maxBuffer : Int
+maxBuffer =
+    -- Max number of entries to keep in columns
+    100
+
+
 type alias Flags =
     { client : Maybe Mastodon.Model.Client
     , registration : Maybe Mastodon.Model.AppRegistration
@@ -274,6 +280,11 @@ preferredTimeline model =
         GlobalTimelineView
     else
         LocalTimelineView
+
+
+truncate : List a -> List a
+truncate entries =
+    List.take maxBuffer entries
 
 
 accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
@@ -581,7 +592,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = status :: model.userTimeline } ! []
+                            { model | userTimeline = truncate (status :: model.userTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -603,7 +614,7 @@ processWebSocketMsg msg model =
                                         notification
                                         model.notifications
                             in
-                                { model | notifications = notifications } ! []
+                                { model | notifications = truncate notifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -616,7 +627,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = status :: model.localTimeline } ! []
+                            { model | localTimeline = truncate (status :: model.localTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -640,7 +651,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = status :: model.globalTimeline } ! []
+                            { model | globalTimeline = truncate (status :: model.globalTimeline) } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
