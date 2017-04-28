@@ -664,16 +664,7 @@ update msg model =
             model ! []
 
         DomResult result ->
-            case result of
-                Ok _ ->
-                    model ! []
-
-                Err err ->
-                    let
-                        _ =
-                            Debug.log "domerr" err
-                    in
-                        model ! []
+            model ! []
 
         MastodonEvent msg ->
             let
