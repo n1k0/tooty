@@ -282,6 +282,11 @@ preferredTimeline model =
         LocalTimelineView
 
 
+truncate : List a -> List a
+truncate entries =
+    List.take maxBuffer entries
+
+
 accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
 accountMentioned { acct, username } mention =
     acct == mention.acct && username == mention.username
@@ -588,7 +593,7 @@ processWebSocketMsg msg model =
                     case result of
                         Ok status ->
                             { model
-                                | userTimeline = (status :: model.userTimeline) |> List.take maxBuffer
+                                | userTimeline = truncate (status :: model.userTimeline)
                             }
                                 ! []
 
@@ -613,7 +618,7 @@ processWebSocketMsg msg model =
                                         model.notifications
                             in
                                 { model
-                                    | notifications = notifications |> List.take maxBuffer
+                                    | notifications = truncate notifications
                                 }
                                     ! []
 
@@ -629,7 +634,7 @@ processWebSocketMsg msg model =
                     case result of
                         Ok status ->
                             { model
-                                | localTimeline = (status :: model.localTimeline) |> List.take maxBuffer
+                                | localTimeline = truncate (status :: model.localTimeline)
                             }
                                 ! []
 
@@ -656,7 +661,7 @@ processWebSocketMsg msg model =
                     case result of
                         Ok status ->
                             { model
-                                | globalTimeline = (status :: model.globalTimeline) |> List.take maxBuffer
+                                | globalTimeline = truncate (status :: model.globalTimeline)
                             }
                                 ! []
 
