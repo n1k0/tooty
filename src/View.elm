@@ -419,7 +419,7 @@ draftReplyToView draft =
                         [ text "In reply to this toot ("
                         , a
                             [ href ""
-                            , onClickWithPreventAndStop <| DraftEvent ClearReplyTo
+                            , onClickWithPreventAndStop <| DraftEvent ClearDraft
                             ]
                             [ icon "remove" ]
                         , text ")"

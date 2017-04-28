@@ -21,7 +21,6 @@ type alias Flags =
 
 type DraftMsg
     = ClearDraft
-    | ClearReplyTo
     | UpdateSensitive Bool
     | UpdateSpoiler String
     | UpdateStatus String
@@ -396,7 +395,7 @@ updateDraft draftMsg currentUser draft =
                         |> List.map (\m -> "@" ++ m.acct)
                         |> String.join " "
 
-                prefix =
+                newStatus =
                     if sameAccount status.account currentUser then
                         mentions
                     else
@@ -404,8 +403,7 @@ updateDraft draftMsg currentUser draft =
             in
                 { draft
                     | in_reply_to = Just status
-                    , status =
-                        prefix ++ " " ++ draft.status
+                    , status = (String.trim newStatus) ++ " "
                     , sensitive = Maybe.withDefault False status.sensitive
                     , spoiler_text =
                         if status.spoiler_text == "" then
@@ -415,9 +413,6 @@ updateDraft draftMsg currentUser draft =
                     , visibility = status.visibility
                 }
                     ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
-
-        ClearReplyTo ->
-            { draft | in_reply_to = Nothing } ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
