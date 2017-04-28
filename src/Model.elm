@@ -1,5 +1,6 @@
 module Model exposing (..)
 
+import Autocomplete
 import Dom
 import Json.Encode as Encode
 import Navigation
@@ -76,6 +77,8 @@ type Msg
     | Unreblog Int
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+    | SelectAccount String
+    | ResetAutocomplete
 
 
 type alias Draft =
@@ -121,6 +124,8 @@ type alias Model =
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
     , currentView : CurrentView
+    , autocompleteState : Autocomplete.State
+    , mentionAccounts : List Mastodon.Model.Account
     }
 
 
@@ -163,6 +168,8 @@ init flags location =
         , useGlobalTimeline = False
         , viewer = Nothing
         , currentView = LocalTimelineView
+        , autocompleteState = Autocomplete.empty
+        , mentionAccounts = []
         }
             ! [ initCommands flags.registration flags.client authCode ]
 
@@ -183,6 +190,27 @@ initCommands registration client authCode =
 
             Nothing ->
                 [ loadTimelines client ]
+
+
+updateConfig : Autocomplete.UpdateConfig Msg Mastodon.Model.Account
+updateConfig =
+    Autocomplete.updateConfig
+        { toId = .id >> toString
+        , onKeyDown =
+            \code maybeId ->
+                if code == 38 || code == 40 then
+                    Nothing
+                else if code == 13 then
+                    Maybe.map SelectAccount maybeId
+                else
+                    Just ResetAutocomplete
+        , onTooLow = Nothing
+        , onTooHigh = Nothing
+        , onMouseEnter = \_ -> Nothing
+        , onMouseLeave = \_ -> Nothing
+        , onMouseClick = \id -> Just <| SelectAccount id
+        , separateSelections = False
+        }
 
 
 registerApp : Model -> Cmd Msg
@@ -748,6 +776,12 @@ update msg model =
 
         ClearOpenedAccount ->
             { model | currentView = preferredTimeline model } ! []
+
+        ResetAutocomplete ->
+            { model | autocompleteState = Autocomplete.reset updateConfig model.autocompleteState } ! []
+
+        SelectAccount id ->
+            model ! []
 
 
 subscriptions : Model -> Sub Msg
