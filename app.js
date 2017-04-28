@@ -23146,6 +23146,16 @@ var _n1k0$tooty$Mastodon_Model$Reblog = function (a) {
 	return {ctor: 'Reblog', _0: a};
 };
 
+var _n1k0$tooty$Mastodon_Helper$sameAccount = F2(
+	function (_p0, account) {
+		var _p1 = _p0;
+		return _elm_lang$core$Native_Utils.eq(_p1.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p1.username, account.username);
+	});
+var _n1k0$tooty$Mastodon_Helper$accountMentioned = F2(
+	function (_p2, mention) {
+		var _p3 = _p2;
+		return _elm_lang$core$Native_Utils.eq(_p3.acct, mention.acct) && _elm_lang$core$Native_Utils.eq(_p3.username, mention.username);
+	});
 var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications) {
 	var extractAggregate = function (statusGroup) {
 		var accounts = A2(
@@ -23159,12 +23169,12 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 					return _.account;
 				},
 				statusGroup));
-		var _p0 = statusGroup;
-		if (_p0.ctor === '::') {
-			var _p1 = _p0._0;
+		var _p4 = statusGroup;
+		if (_p4.ctor === '::') {
+			var _p5 = _p4._0;
 			return {
 				ctor: '::',
-				_0: A4(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p1.type_, _p1.status, accounts, _p1.created_at),
+				_0: A4(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p5.type_, _p5.status, accounts, _p5.created_at),
 				_1: {ctor: '[]'}
 			};
 		} else {
@@ -23177,9 +23187,9 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 	};
 	var sameStatus = F2(
 		function (n1, n2) {
-			var _p2 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
-			if (((_p2.ctor === '_Tuple2') && (_p2._0.ctor === 'Just')) && (_p2._1.ctor === 'Just')) {
-				return _elm_lang$core$Native_Utils.eq(_p2._0._0.id, _p2._1._0.id);
+			var _p6 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
+			if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
+				return _elm_lang$core$Native_Utils.eq(_p6._0._0.id, _p6._1._0.id);
 			} else {
 				return false;
 			}
@@ -23227,7 +23237,7 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 									A2(
 										_elm_community$list_extra$List_Extra$groupWhile,
 										F2(
-											function (_p4, _p3) {
+											function (_p8, _p7) {
 												return true;
 											}),
 										A2(only, 'follow', notifications))),
@@ -23253,9 +23263,9 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 	function (notification, aggregates) {
 		var addNewAccountToSameStatus = F2(
 			function (aggregate, notification) {
-				var _p5 = {ctor: '_Tuple2', _0: aggregate.status, _1: notification.status};
-				if ((_p5._0.ctor === 'Just') && (_p5._1.ctor === 'Just')) {
-					return _elm_lang$core$Native_Utils.eq(_p5._0._0.id, _p5._1._0.id) ? _elm_lang$core$Native_Utils.update(
+				var _p9 = {ctor: '_Tuple2', _0: aggregate.status, _1: notification.status};
+				if ((_p9._0.ctor === 'Just') && (_p9._1.ctor === 'Just')) {
+					return _elm_lang$core$Native_Utils.eq(_p9._0._0.id, _p9._1._0.id) ? _elm_lang$core$Native_Utils.update(
 						aggregate,
 						{
 							accounts: {ctor: '::', _0: notification.account, _1: aggregate.accounts}
@@ -23267,9 +23277,9 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 		var newAggregates = A2(
 			_elm_lang$core$List$map,
 			function (aggregate) {
-				var _p6 = {ctor: '_Tuple2', _0: aggregate.type_, _1: notification.type_};
-				if (_p6._1 === 'follow') {
-					if (_p6._0 === 'follow') {
+				var _p10 = {ctor: '_Tuple2', _0: aggregate.type_, _1: notification.type_};
+				if (_p10._1 === 'follow') {
+					if (_p10._0 === 'follow') {
 						return _elm_lang$core$Native_Utils.update(
 							aggregate,
 							{
@@ -23279,7 +23289,7 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 						return aggregate;
 					}
 				} else {
-					return _elm_lang$core$Native_Utils.eq(_p6._0, _p6._1) ? A2(addNewAccountToSameStatus, aggregate, notification) : aggregate;
+					return _elm_lang$core$Native_Utils.eq(_p10._0, _p10._1) ? A2(addNewAccountToSameStatus, aggregate, notification) : aggregate;
 				}
 			},
 			aggregates);
@@ -23290,9 +23300,9 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 		} : newAggregates;
 	});
 var _n1k0$tooty$Mastodon_Helper$extractReblog = function (status) {
-	var _p7 = status.reblog;
-	if (_p7.ctor === 'Just') {
-		return _p7._0._0;
+	var _p11 = status.reblog;
+	if (_p11.ctor === 'Just') {
+		return _p11._0._0;
 	} else {
 		return status;
 	}
@@ -23329,6 +23339,16 @@ var _n1k0$tooty$Mastodon_ApiUrl$reblog = F2(
 					_elm_lang$core$Basics_ops['++'],
 					_elm_lang$core$Basics$toString(id),
 					'/reblog')));
+	});
+var _n1k0$tooty$Mastodon_ApiUrl$status = F2(
+	function (server, id) {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			_n1k0$tooty$Mastodon_ApiUrl$statuses(server),
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				'/',
+				_elm_lang$core$Basics$toString(id)));
 	});
 var _n1k0$tooty$Mastodon_ApiUrl$unreblog = F2(
 	function (server, id) {
@@ -24078,6 +24098,19 @@ var _n1k0$tooty$Mastodon_Http$context = F2(
 				_lukewestby$elm_http_builder$HttpBuilder$get(
 					A2(_n1k0$tooty$Mastodon_ApiUrl$context, client.server, id))));
 	});
+var _n1k0$tooty$Mastodon_Http$deleteStatus = F2(
+	function (client, id) {
+		return A3(
+			_lukewestby$elm_http_builder$HttpBuilder$withHeader,
+			'Authorization',
+			A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
+			A2(
+				_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+				_elm_lang$http$Http$expectJson(
+					_elm_lang$core$Json_Decode$succeed(id)),
+				_lukewestby$elm_http_builder$HttpBuilder$delete(
+					A2(_n1k0$tooty$Mastodon_ApiUrl$status, client.server, id))));
+	});
 var _n1k0$tooty$Mastodon_Http$postStatus = F2(
 	function (client, statusRequestBody) {
 		return A2(
@@ -24379,16 +24412,6 @@ var _n1k0$tooty$Model$errorText = function (error) {
 			return 'Unreachable host.';
 	}
 };
-var _n1k0$tooty$Model$sameAccount = F2(
-	function (_p2, account) {
-		var _p3 = _p2;
-		return _elm_lang$core$Native_Utils.eq(_p3.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p3.username, account.username);
-	});
-var _n1k0$tooty$Model$accountMentioned = F2(
-	function (_p4, mention) {
-		var _p5 = _p4;
-		return _elm_lang$core$Native_Utils.eq(_p5.acct, mention.acct) && _elm_lang$core$Native_Utils.eq(_p5.username, mention.username);
-	});
 var _n1k0$tooty$Model$saveRegistration = function (registration) {
 	return _n1k0$tooty$Ports$saveRegistration(
 		A2(
@@ -24404,11 +24427,11 @@ var _n1k0$tooty$Model$saveClient = function (client) {
 			_n1k0$tooty$Mastodon_Encoder$clientEncoder(client)));
 };
 var _n1k0$tooty$Model$defaultDraft = {status: '', in_reply_to: _elm_lang$core$Maybe$Nothing, spoiler_text: _elm_lang$core$Maybe$Nothing, sensitive: false, visibility: 'public'};
-var _n1k0$tooty$Model$extractAuthCode = function (_p6) {
-	var _p7 = _p6;
-	var _p8 = A2(_elm_lang$core$String$split, '?code=', _p7.search);
-	if (((_p8.ctor === '::') && (_p8._1.ctor === '::')) && (_p8._1._1.ctor === '[]')) {
-		return _elm_lang$core$Maybe$Just(_p8._1._0);
+var _n1k0$tooty$Model$extractAuthCode = function (_p2) {
+	var _p3 = _p2;
+	var _p4 = A2(_elm_lang$core$String$split, '?code=', _p3.search);
+	if (((_p4.ctor === '::') && (_p4._1.ctor === '::')) && (_p4._1._1.ctor === '[]')) {
+		return _elm_lang$core$Maybe$Just(_p4._1._0);
 	} else {
 		return _elm_lang$core$Maybe$Nothing;
 	}
@@ -24419,10 +24442,88 @@ var _n1k0$tooty$Model$truncate = function (entries) {
 };
 var _n1k0$tooty$Model$processWebSocketMsg = F2(
 	function (msg, model) {
-		var _p9 = msg;
-		switch (_p9.ctor) {
+		var _p5 = msg;
+		switch (_p5.ctor) {
 			case 'NewWebsocketUserMessage':
-				var _p10 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
+				var _p6 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p5._0);
+				switch (_p6.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p6._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p7 = _p6._0;
+						if (_p7.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p7._0, _1: model.userTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p7._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p8 = _p6._0;
+						if (_p8.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p8._0, model.userTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p8._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						var _p9 = _p6._0;
+						if (_p9.ctor === 'Ok') {
+							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p9._0, model.notifications);
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										notifications: _n1k0$tooty$Model$truncate(notifications)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p9._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+				}
+			case 'NewWebsocketLocalMessage':
+				var _p10 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p5._0);
 				switch (_p10.ctor) {
 					case 'ErrorEvent':
 						return A2(
@@ -24441,8 +24542,8 @@ var _n1k0$tooty$Model$processWebSocketMsg = F2(
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										userTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p11._0, _1: model.userTimeline})
+										localTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p11._0, _1: model.localTimeline})
 									}),
 								{ctor: '[]'});
 						} else {
@@ -24463,7 +24564,7 @@ var _n1k0$tooty$Model$processWebSocketMsg = F2(
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p12._0, model.userTimeline)
+										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p12._0, model.localTimeline)
 									}),
 								{ctor: '[]'});
 						} else {
@@ -24477,15 +24578,33 @@ var _n1k0$tooty$Model$processWebSocketMsg = F2(
 								{ctor: '[]'});
 						}
 					default:
-						var _p13 = _p10._0;
-						if (_p13.ctor === 'Ok') {
-							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p13._0, model.notifications);
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+				}
+			default:
+				var _p13 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p5._0);
+				switch (_p13.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p13._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p14 = _p13._0;
+						if (_p14.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										notifications: _n1k0$tooty$Model$truncate(notifications)
+										globalTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p14._0, _1: model.globalTimeline})
 									}),
 								{ctor: '[]'});
 						} else {
@@ -24494,33 +24613,19 @@ var _n1k0$tooty$Model$processWebSocketMsg = F2(
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										errors: {ctor: '::', _0: _p13._0, _1: model.errors}
+										errors: {ctor: '::', _0: _p14._0, _1: model.errors}
 									}),
 								{ctor: '[]'});
 						}
-				}
-			case 'NewWebsocketLocalMessage':
-				var _p14 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
-				switch (_p14.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p14._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p15 = _p14._0;
+					case 'StatusDeleteEvent':
+						var _p15 = _p13._0;
 						if (_p15.ctor === 'Ok') {
 							return A2(
 								_elm_lang$core$Platform_Cmd_ops['!'],
 								_elm_lang$core$Native_Utils.update(
 									model,
 									{
-										localTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p15._0, _1: model.localTimeline})
+										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p15._0, model.globalTimeline)
 									}),
 								{ctor: '[]'});
 						} else {
@@ -24530,88 +24635,6 @@ var _n1k0$tooty$Model$processWebSocketMsg = F2(
 									model,
 									{
 										errors: {ctor: '::', _0: _p15._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p16 = _p14._0;
-						if (_p16.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p16._0, model.localTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p16._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-				}
-			default:
-				var _p17 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p9._0);
-				switch (_p17.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p17._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p18 = _p17._0;
-						if (_p18.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p18._0, _1: model.globalTimeline})
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p18._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p19 = _p17._0;
-						if (_p19.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p19._0, model.globalTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p19._0, _1: model.errors}
 									}),
 								{ctor: '[]'});
 						}
@@ -24641,8 +24664,8 @@ var _n1k0$tooty$Model$Viewer = F2(
 	});
 var _n1k0$tooty$Model$updateViewer = F2(
 	function (viewerMsg, viewer) {
-		var _p20 = viewerMsg;
-		if (_p20.ctor === 'CloseViewer') {
+		var _p16 = viewerMsg;
+		if (_p16.ctor === 'CloseViewer') {
 			return A2(
 				_elm_lang$core$Platform_Cmd_ops['!'],
 				_elm_lang$core$Maybe$Nothing,
@@ -24651,7 +24674,7 @@ var _n1k0$tooty$Model$updateViewer = F2(
 			return A2(
 				_elm_lang$core$Platform_Cmd_ops['!'],
 				_elm_lang$core$Maybe$Just(
-					A2(_n1k0$tooty$Model$Viewer, _p20._0, _p20._1)),
+					A2(_n1k0$tooty$Model$Viewer, _p16._0, _p16._1)),
 				{ctor: '[]'});
 		}
 	});
@@ -24725,6 +24748,9 @@ var _n1k0$tooty$Model$Unreblogged = function (a) {
 var _n1k0$tooty$Model$StatusPosted = function (a) {
 	return {ctor: 'StatusPosted', _0: a};
 };
+var _n1k0$tooty$Model$StatusDeleted = function (a) {
+	return {ctor: 'StatusDeleted', _0: a};
+};
 var _n1k0$tooty$Model$Reblogged = function (a) {
 	return {ctor: 'Reblogged', _0: a};
 };
@@ -24772,23 +24798,23 @@ var _n1k0$tooty$Model$WebSocketEvent = function (a) {
 	return {ctor: 'WebSocketEvent', _0: a};
 };
 var _n1k0$tooty$Model$subscriptions = function (model) {
-	var _p21 = model.client;
-	if (_p21.ctor === 'Just') {
-		var _p22 = _p21._0;
+	var _p17 = model.client;
+	if (_p17.ctor === 'Just') {
+		var _p18 = _p17._0;
 		var subs = A2(
 			_elm_lang$core$Basics_ops['++'],
 			{
 				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p22, _n1k0$tooty$Mastodon_WebSocket$UserStream, _n1k0$tooty$Model$NewWebsocketUserMessage),
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p18, _n1k0$tooty$Mastodon_WebSocket$UserStream, _n1k0$tooty$Model$NewWebsocketUserMessage),
 				_1: {ctor: '[]'}
 			},
 			model.useGlobalTimeline ? {
 				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p22, _n1k0$tooty$Mastodon_WebSocket$GlobalPublicStream, _n1k0$tooty$Model$NewWebsocketGlobalMessage),
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p18, _n1k0$tooty$Mastodon_WebSocket$GlobalPublicStream, _n1k0$tooty$Model$NewWebsocketGlobalMessage),
 				_1: {ctor: '[]'}
 			} : {
 				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p22, _n1k0$tooty$Mastodon_WebSocket$LocalPublicStream, _n1k0$tooty$Model$NewWebsocketLocalMessage),
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p18, _n1k0$tooty$Mastodon_WebSocket$LocalPublicStream, _n1k0$tooty$Model$NewWebsocketLocalMessage),
 				_1: {ctor: '[]'}
 			});
 		return _elm_lang$core$Platform_Sub$batch(
@@ -24830,8 +24856,8 @@ var _n1k0$tooty$Model$OpenThread = function (a) {
 var _n1k0$tooty$Model$NoOp = {ctor: 'NoOp'};
 var _n1k0$tooty$Model$updateDraft = F3(
 	function (draftMsg, currentUser, draft) {
-		var _p23 = draftMsg;
-		switch (_p23.ctor) {
+		var _p19 = draftMsg;
+		switch (_p19.ctor) {
 			case 'ClearDraft':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -24843,7 +24869,7 @@ var _n1k0$tooty$Model$updateDraft = F3(
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							spoiler_text: _p23._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
+							spoiler_text: _p19._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
 						}),
 					{ctor: '[]'});
 			case 'UpdateSensitive':
@@ -24851,7 +24877,7 @@ var _n1k0$tooty$Model$updateDraft = F3(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{sensitive: _p23._0}),
+						{sensitive: _p19._0}),
 					{ctor: '[]'});
 			case 'UpdateSpoiler':
 				return A2(
@@ -24859,7 +24885,7 @@ var _n1k0$tooty$Model$updateDraft = F3(
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							spoiler_text: _elm_lang$core$Maybe$Just(_p23._0)
+							spoiler_text: _elm_lang$core$Maybe$Just(_p19._0)
 						}),
 					{ctor: '[]'});
 			case 'UpdateStatus':
@@ -24867,17 +24893,17 @@ var _n1k0$tooty$Model$updateDraft = F3(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{status: _p23._0}),
+						{status: _p19._0}),
 					{ctor: '[]'});
 			case 'UpdateVisibility':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
-						{visibility: _p23._0}),
+						{visibility: _p19._0}),
 					{ctor: '[]'});
 			default:
-				var _p24 = _p23._0;
+				var _p20 = _p19._0;
 				var mentions = A2(
 					_elm_lang$core$String$join,
 					' ',
@@ -24889,29 +24915,29 @@ var _n1k0$tooty$Model$updateDraft = F3(
 						A2(
 							_elm_lang$core$List$filter,
 							function (m) {
-								return !A2(_n1k0$tooty$Model$accountMentioned, currentUser, m);
+								return !A2(_n1k0$tooty$Mastodon_Helper$accountMentioned, currentUser, m);
 							},
-							_p24.mentions)));
-				var newStatus = A2(_n1k0$tooty$Model$sameAccount, _p24.account, currentUser) ? mentions : A2(
+							_p20.mentions)));
+				var newStatus = A2(_n1k0$tooty$Mastodon_Helper$sameAccount, _p20.account, currentUser) ? mentions : A2(
 					_elm_lang$core$Basics_ops['++'],
 					'@',
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_p24.account.acct,
+						_p20.account.acct,
 						A2(_elm_lang$core$Basics_ops['++'], ' ', mentions)));
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
-							in_reply_to: _elm_lang$core$Maybe$Just(_p24),
+							in_reply_to: _elm_lang$core$Maybe$Just(_p20),
 							status: A2(
 								_elm_lang$core$Basics_ops['++'],
 								_elm_lang$core$String$trim(newStatus),
 								' '),
-							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p24.sensitive),
-							spoiler_text: _elm_lang$core$Native_Utils.eq(_p24.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p24.spoiler_text),
-							visibility: _p24.visibility
+							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p20.sensitive),
+							spoiler_text: _elm_lang$core$Native_Utils.eq(_p20.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p20.spoiler_text),
+							visibility: _p20.visibility
 						}),
 					{
 						ctor: '::',
@@ -24926,84 +24952,84 @@ var _n1k0$tooty$Model$updateDraft = F3(
 var _n1k0$tooty$Model$MastodonEvent = function (a) {
 	return {ctor: 'MastodonEvent', _0: a};
 };
-var _n1k0$tooty$Model$registerApp = function (_p25) {
-	var _p26 = _p25;
-	var _p29 = _p26.server;
-	var _p28 = _p26.location;
-	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p29) ? A2(_elm_lang$core$String$dropRight, 1, _p29) : _p29;
-	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p28.origin, _p28.pathname);
+var _n1k0$tooty$Model$registerApp = function (_p21) {
+	var _p22 = _p21;
+	var _p25 = _p22.server;
+	var _p24 = _p22.location;
+	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p25) ? A2(_elm_lang$core$String$dropRight, 1, _p25) : _p25;
+	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p24.origin, _p24.pathname);
 	return A2(
 		_n1k0$tooty$Mastodon_Http$send,
-		function (_p27) {
+		function (_p23) {
 			return _n1k0$tooty$Model$MastodonEvent(
-				_n1k0$tooty$Model$AppRegistered(_p27));
+				_n1k0$tooty$Model$AppRegistered(_p23));
 		},
 		A5(_n1k0$tooty$Mastodon_Http$register, cleanServer, 'tooty', appUrl, 'read write follow', 'https://github.com/n1k0/tooty'));
 };
 var _n1k0$tooty$Model$loadNotifications = function (client) {
-	var _p30 = client;
-	if (_p30.ctor === 'Just') {
+	var _p26 = client;
+	if (_p26.ctor === 'Just') {
 		return A2(
 			_n1k0$tooty$Mastodon_Http$send,
-			function (_p31) {
+			function (_p27) {
 				return _n1k0$tooty$Model$MastodonEvent(
-					_n1k0$tooty$Model$Notifications(_p31));
+					_n1k0$tooty$Model$Notifications(_p27));
 			},
-			_n1k0$tooty$Mastodon_Http$fetchNotifications(_p30._0));
+			_n1k0$tooty$Mastodon_Http$fetchNotifications(_p26._0));
 	} else {
 		return _elm_lang$core$Platform_Cmd$none;
 	}
 };
 var _n1k0$tooty$Model$loadUserAccount = function (client) {
-	var _p32 = client;
-	if (_p32.ctor === 'Just') {
+	var _p28 = client;
+	if (_p28.ctor === 'Just') {
 		return A2(
 			_n1k0$tooty$Mastodon_Http$send,
-			function (_p33) {
+			function (_p29) {
 				return _n1k0$tooty$Model$MastodonEvent(
-					_n1k0$tooty$Model$CurrentUser(_p33));
+					_n1k0$tooty$Model$CurrentUser(_p29));
 			},
-			_n1k0$tooty$Mastodon_Http$userAccount(_p32._0));
+			_n1k0$tooty$Mastodon_Http$userAccount(_p28._0));
 	} else {
 		return _elm_lang$core$Platform_Cmd$none;
 	}
 };
 var _n1k0$tooty$Model$loadTimelines = function (client) {
-	var _p34 = client;
-	if (_p34.ctor === 'Just') {
-		var _p38 = _p34._0;
+	var _p30 = client;
+	if (_p30.ctor === 'Just') {
+		var _p34 = _p30._0;
 		return _elm_lang$core$Platform_Cmd$batch(
 			{
 				ctor: '::',
 				_0: A2(
 					_n1k0$tooty$Mastodon_Http$send,
-					function (_p35) {
+					function (_p31) {
 						return _n1k0$tooty$Model$MastodonEvent(
-							_n1k0$tooty$Model$UserTimeline(_p35));
+							_n1k0$tooty$Model$UserTimeline(_p31));
 					},
-					_n1k0$tooty$Mastodon_Http$fetchUserTimeline(_p38)),
+					_n1k0$tooty$Mastodon_Http$fetchUserTimeline(_p34)),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_n1k0$tooty$Mastodon_Http$send,
-						function (_p36) {
+						function (_p32) {
 							return _n1k0$tooty$Model$MastodonEvent(
-								_n1k0$tooty$Model$LocalTimeline(_p36));
+								_n1k0$tooty$Model$LocalTimeline(_p32));
 						},
-						_n1k0$tooty$Mastodon_Http$fetchLocalTimeline(_p38)),
+						_n1k0$tooty$Mastodon_Http$fetchLocalTimeline(_p34)),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_n1k0$tooty$Mastodon_Http$send,
-							function (_p37) {
+							function (_p33) {
 								return _n1k0$tooty$Model$MastodonEvent(
-									_n1k0$tooty$Model$GlobalTimeline(_p37));
+									_n1k0$tooty$Model$GlobalTimeline(_p33));
 							},
-							_n1k0$tooty$Mastodon_Http$fetchGlobalTimeline(_p38)),
+							_n1k0$tooty$Mastodon_Http$fetchGlobalTimeline(_p34)),
 						_1: {
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(
-								_elm_lang$core$Maybe$Just(_p38)),
+								_elm_lang$core$Maybe$Just(_p34)),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -25017,19 +25043,19 @@ var _n1k0$tooty$Model$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p39 = authCode;
-				if (_p39.ctor === 'Just') {
-					var _p40 = registration;
-					if (_p40.ctor === 'Just') {
+				var _p35 = authCode;
+				if (_p35.ctor === 'Just') {
+					var _p36 = registration;
+					if (_p36.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon_Http$send,
-								function (_p41) {
+								function (_p37) {
 									return _n1k0$tooty$Model$MastodonEvent(
-										_n1k0$tooty$Model$AccessToken(_p41));
+										_n1k0$tooty$Model$AccessToken(_p37));
 								},
-								A2(_n1k0$tooty$Mastodon_Http$getAccessToken, _p40._0, _p39._0)),
+								A2(_n1k0$tooty$Mastodon_Http$getAccessToken, _p36._0, _p35._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
@@ -25052,17 +25078,30 @@ var _n1k0$tooty$Model$postStatus = F2(
 	function (client, draft) {
 		return A2(
 			_n1k0$tooty$Mastodon_Http$send,
-			function (_p42) {
+			function (_p38) {
 				return _n1k0$tooty$Model$MastodonEvent(
-					_n1k0$tooty$Model$StatusPosted(_p42));
+					_n1k0$tooty$Model$StatusPosted(_p38));
 			},
 			A2(_n1k0$tooty$Mastodon_Http$postStatus, client, draft));
+	});
+var _n1k0$tooty$Model$deleteStatus = F2(
+	function (client, id) {
+		return A2(
+			_n1k0$tooty$Mastodon_Http$send,
+			function (_p39) {
+				return _n1k0$tooty$Model$MastodonEvent(
+					_n1k0$tooty$Model$StatusDeleted(_p39));
+			},
+			A2(_n1k0$tooty$Mastodon_Http$deleteStatus, client, id));
 	});
 var _n1k0$tooty$Model$LoadAccount = function (a) {
 	return {ctor: 'LoadAccount', _0: a};
 };
 var _n1k0$tooty$Model$DraftEvent = function (a) {
 	return {ctor: 'DraftEvent', _0: a};
+};
+var _n1k0$tooty$Model$DeleteStatus = function (a) {
+	return {ctor: 'DeleteStatus', _0: a};
 };
 var _n1k0$tooty$Model$DomResult = function (a) {
 	return {ctor: 'DomResult', _0: a};
@@ -25113,12 +25152,12 @@ var _n1k0$tooty$Model$AccountView = function (a) {
 };
 var _n1k0$tooty$Model$processMastodonEvent = F2(
 	function (msg, model) {
-		var _p43 = msg;
-		switch (_p43.ctor) {
+		var _p40 = msg;
+		switch (_p40.ctor) {
 			case 'AccessToken':
-				var _p44 = _p43._0;
-				if (_p44.ctor === 'Ok') {
-					var client = A2(_n1k0$tooty$Mastodon_Model$Client, _p44._0.server, _p44._0.accessToken);
+				var _p41 = _p40._0;
+				if (_p41.ctor === 'Ok') {
+					var client = A2(_n1k0$tooty$Mastodon_Model$Client, _p41._0.server, _p41._0.accessToken);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -25148,30 +25187,30 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p44._0),
+									_0: _n1k0$tooty$Model$errorText(_p41._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'AppRegistered':
-				var _p45 = _p43._0;
-				if (_p45.ctor === 'Ok') {
-					var _p46 = _p45._0;
+				var _p42 = _p40._0;
+				if (_p42.ctor === 'Ok') {
+					var _p43 = _p42._0;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								registration: _elm_lang$core$Maybe$Just(_p46)
+								registration: _elm_lang$core$Maybe$Just(_p43)
 							}),
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$Model$saveRegistration(_p46),
+							_0: _n1k0$tooty$Model$saveRegistration(_p43),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$navigation$Navigation$load(
-									_n1k0$tooty$Mastodon_Http$getAuthorizationUrl(_p46)),
+									_n1k0$tooty$Mastodon_Http$getAuthorizationUrl(_p43)),
 								_1: {ctor: '[]'}
 							}
 						});
@@ -25183,16 +25222,16 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p45._0),
+									_0: _n1k0$tooty$Model$errorText(_p42._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'ContextLoaded':
-				var _p47 = _p43._1;
-				if (_p47.ctor === 'Ok') {
-					var thread = A2(_n1k0$tooty$Model$Thread, _p43._0, _p47._0);
+				var _p44 = _p40._1;
+				if (_p44.ctor === 'Ok') {
+					var thread = A2(_n1k0$tooty$Model$Thread, _p40._0, _p44._0);
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
@@ -25210,21 +25249,21 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								currentView: _n1k0$tooty$Model$preferredTimeline(model),
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p47._0),
+									_0: _n1k0$tooty$Model$errorText(_p44._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'CurrentUser':
-				var _p48 = _p43._0;
-				if (_p48.ctor === 'Ok') {
+				var _p45 = _p40._0;
+				if (_p45.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								currentUser: _elm_lang$core$Maybe$Just(_p48._0)
+								currentUser: _elm_lang$core$Maybe$Just(_p45._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -25235,18 +25274,18 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p48._0),
+									_0: _n1k0$tooty$Model$errorText(_p45._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'FavoriteAdded':
-				var _p49 = _p43._0;
-				if (_p49.ctor === 'Ok') {
+				var _p46 = _p40._0;
+				if (_p46.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p49._0.id, true, model),
+						A3(_n1k0$tooty$Model$processFavourite, _p46._0.id, true, model),
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -25260,18 +25299,18 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p49._0),
+									_0: _n1k0$tooty$Model$errorText(_p46._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'FavoriteRemoved':
-				var _p50 = _p43._0;
-				if (_p50.ctor === 'Ok') {
+				var _p47 = _p40._0;
+				if (_p47.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFavourite, _p50._0.id, false, model),
+						A3(_n1k0$tooty$Model$processFavourite, _p47._0.id, false, model),
 						{
 							ctor: '::',
 							_0: _n1k0$tooty$Model$loadNotifications(model.client),
@@ -25285,20 +25324,20 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p50._0),
+									_0: _n1k0$tooty$Model$errorText(_p47._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'LocalTimeline':
-				var _p51 = _p43._0;
-				if (_p51.ctor === 'Ok') {
+				var _p48 = _p40._0;
+				if (_p48.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{localTimeline: _p51._0}),
+							{localTimeline: _p48._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -25309,21 +25348,21 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								localTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p51._0),
+									_0: _n1k0$tooty$Model$errorText(_p48._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'Notifications':
-				var _p52 = _p43._0;
-				if (_p52.ctor === 'Ok') {
+				var _p49 = _p40._0;
+				if (_p49.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								notifications: _n1k0$tooty$Mastodon_Helper$aggregateNotifications(_p52._0)
+								notifications: _n1k0$tooty$Mastodon_Helper$aggregateNotifications(_p49._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -25335,20 +25374,20 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								notifications: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p52._0),
+									_0: _n1k0$tooty$Model$errorText(_p49._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'GlobalTimeline':
-				var _p53 = _p43._0;
-				if (_p53.ctor === 'Ok') {
+				var _p50 = _p40._0;
+				if (_p50.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{globalTimeline: _p53._0}),
+							{globalTimeline: _p50._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -25359,14 +25398,74 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								globalTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p53._0),
+									_0: _n1k0$tooty$Model$errorText(_p50._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'Reblogged':
-				var _p54 = _p43._0;
+				var _p51 = _p40._0;
+				if (_p51.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Model$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p51._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'StatusPosted':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{draft: _n1k0$tooty$Model$defaultDraft}),
+					{ctor: '[]'});
+			case 'StatusDeleted':
+				var _p52 = _p40._0;
+				if (_p52.ctor === 'Ok') {
+					var _p53 = _p52._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p53, model.userTimeline),
+								localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p53, model.localTimeline),
+								globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p53, model.globalTimeline)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p52._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'Unreblogged':
+				var _p54 = _p40._0;
 				if (_p54.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -25390,47 +25489,15 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							}),
 						{ctor: '[]'});
 				}
-			case 'StatusPosted':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{draft: _n1k0$tooty$Model$defaultDraft}),
-					{ctor: '[]'});
-			case 'Unreblogged':
-				var _p55 = _p43._0;
+			case 'Account':
+				var _p55 = _p40._0;
 				if (_p55.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Model$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p55._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'Account':
-				var _p56 = _p43._0;
-				if (_p56.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentView: _n1k0$tooty$Model$AccountView(_p56._0)
+								currentView: _n1k0$tooty$Model$AccountView(_p55._0)
 							}),
 						{ctor: '[]'});
 				} else {
@@ -25442,20 +25509,20 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								currentView: _n1k0$tooty$Model$preferredTimeline(model),
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p56._0),
+									_0: _n1k0$tooty$Model$errorText(_p55._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			case 'AccountTimeline':
-				var _p57 = _p43._0;
-				if (_p57.ctor === 'Ok') {
+				var _p56 = _p40._0;
+				if (_p56.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{accountTimeline: _p57._0}),
+							{accountTimeline: _p56._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -25465,20 +25532,20 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							{
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p57._0),
+									_0: _n1k0$tooty$Model$errorText(_p56._0),
 									_1: model.errors
 								}
 							}),
 						{ctor: '[]'});
 				}
 			default:
-				var _p58 = _p43._0;
-				if (_p58.ctor === 'Ok') {
+				var _p57 = _p40._0;
+				if (_p57.ctor === 'Ok') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{userTimeline: _p58._0}),
+							{userTimeline: _p57._0}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -25489,7 +25556,7 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								userTimeline: {ctor: '[]'},
 								errors: {
 									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p58._0),
+									_0: _n1k0$tooty$Model$errorText(_p57._0),
 									_1: model.errors
 								}
 							}),
@@ -25499,8 +25566,8 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 	});
 var _n1k0$tooty$Model$update = F2(
 	function (msg, model) {
-		var _p59 = msg;
-		switch (_p59.ctor) {
+		var _p58 = msg;
+		switch (_p58.ctor) {
 			case 'NoOp':
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
@@ -25512,9 +25579,9 @@ var _n1k0$tooty$Model$update = F2(
 					model,
 					{ctor: '[]'});
 			case 'MastodonEvent':
-				var _p60 = A2(_n1k0$tooty$Model$processMastodonEvent, _p59._0, model);
-				var newModel = _p60._0;
-				var commands = _p60._1;
+				var _p59 = A2(_n1k0$tooty$Model$processMastodonEvent, _p58._0, model);
+				var newModel = _p59._0;
+				var commands = _p59._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					newModel,
@@ -25524,9 +25591,9 @@ var _n1k0$tooty$Model$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'WebSocketEvent':
-				var _p61 = A2(_n1k0$tooty$Model$processWebSocketMsg, _p59._0, model);
-				var newModel = _p61._0;
-				var commands = _p61._1;
+				var _p60 = A2(_n1k0$tooty$Model$processWebSocketMsg, _p58._0, model);
+				var newModel = _p60._0;
+				var commands = _p60._1;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					newModel,
@@ -25540,7 +25607,7 @@ var _n1k0$tooty$Model$update = F2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						model,
-						{server: _p59._0}),
+						{server: _p58._0}),
 					{ctor: '[]'});
 			case 'UrlChange':
 				return A2(
@@ -25557,9 +25624,9 @@ var _n1k0$tooty$Model$update = F2(
 						_1: {ctor: '[]'}
 					});
 			case 'OpenThread':
-				var _p64 = _p59._0;
-				var _p62 = model.client;
-				if (_p62.ctor === 'Just') {
+				var _p63 = _p58._0;
+				var _p61 = model.client;
+				if (_p61.ctor === 'Just') {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
@@ -25567,11 +25634,11 @@ var _n1k0$tooty$Model$update = F2(
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon_Http$send,
-								function (_p63) {
+								function (_p62) {
 									return _n1k0$tooty$Model$MastodonEvent(
-										A2(_n1k0$tooty$Model$ContextLoaded, _p64, _p63));
+										A2(_n1k0$tooty$Model$ContextLoaded, _p63, _p62));
 								},
-								A2(_n1k0$tooty$Mastodon_Http$context, _p62._0, _p64.id)),
+								A2(_n1k0$tooty$Mastodon_Http$context, _p61._0, _p63.id)),
 							_1: {ctor: '[]'}
 						});
 				} else {
@@ -25589,8 +25656,25 @@ var _n1k0$tooty$Model$update = F2(
 							currentView: _n1k0$tooty$Model$preferredTimeline(model)
 						}),
 					{ctor: '[]'});
+			case 'DeleteStatus':
+				var _p64 = model.client;
+				if (_p64.ctor === 'Just') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Model$deleteStatus, _p64._0, _p58._0),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
+				}
 			case 'Reblog':
-				var _p67 = _p59._0;
+				var _p67 = _p58._0;
 				var _p65 = model.client;
 				if (_p65.ctor === 'Just') {
 					return A2(
@@ -25614,7 +25698,7 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'Unreblog':
-				var _p70 = _p59._0;
+				var _p70 = _p58._0;
 				var _p68 = model.client;
 				if (_p68.ctor === 'Just') {
 					return A2(
@@ -25652,7 +25736,7 @@ var _n1k0$tooty$Model$update = F2(
 										return _n1k0$tooty$Model$MastodonEvent(
 											_n1k0$tooty$Model$FavoriteAdded(_p72));
 									},
-									A2(_n1k0$tooty$Mastodon_Http$favourite, _p71._0, _p59._0)),
+									A2(_n1k0$tooty$Mastodon_Http$favourite, _p71._0, _p58._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
@@ -25674,7 +25758,7 @@ var _n1k0$tooty$Model$update = F2(
 										return _n1k0$tooty$Model$MastodonEvent(
 											_n1k0$tooty$Model$FavoriteRemoved(_p74));
 									},
-									A2(_n1k0$tooty$Mastodon_Http$unfavourite, _p73._0, _p59._0)),
+									A2(_n1k0$tooty$Mastodon_Http$unfavourite, _p73._0, _p58._0)),
 								_1: {ctor: '[]'}
 							};
 						} else {
@@ -25684,7 +25768,7 @@ var _n1k0$tooty$Model$update = F2(
 			case 'DraftEvent':
 				var _p75 = model.currentUser;
 				if (_p75.ctor === 'Just') {
-					var _p76 = A3(_n1k0$tooty$Model$updateDraft, _p59._0, _p75._0, model.draft);
+					var _p76 = A3(_n1k0$tooty$Model$updateDraft, _p58._0, _p75._0, model.draft);
 					var draft = _p76._0;
 					var commands = _p76._1;
 					return A2(
@@ -25704,7 +25788,7 @@ var _n1k0$tooty$Model$update = F2(
 						{ctor: '[]'});
 				}
 			case 'ViewerEvent':
-				var _p77 = A2(_n1k0$tooty$Model$updateViewer, _p59._0, model.viewer);
+				var _p77 = A2(_n1k0$tooty$Model$updateViewer, _p58._0, model.viewer);
 				var viewer = _p77._0;
 				var commands = _p77._1;
 				return A2(
@@ -25737,7 +25821,7 @@ var _n1k0$tooty$Model$update = F2(
 						}
 					}());
 			case 'LoadAccount':
-				var _p83 = _p59._0;
+				var _p83 = _p58._0;
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -25777,7 +25861,7 @@ var _n1k0$tooty$Model$update = F2(
 			case 'UseGlobalTimeline':
 				var newModel = _elm_lang$core$Native_Utils.update(
 					model,
-					{useGlobalTimeline: _p59._0});
+					{useGlobalTimeline: _p58._0});
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
@@ -25804,7 +25888,7 @@ var _n1k0$tooty$Model$update = F2(
 						_0: A2(
 							_elm_lang$core$Task$attempt,
 							_n1k0$tooty$Model$DomResult,
-							_elm_lang$dom$Dom_Scroll$toTop(_p59._0)),
+							_elm_lang$dom$Dom_Scroll$toTop(_p58._0)),
 						_1: {ctor: '[]'}
 					});
 		}
@@ -27787,100 +27871,78 @@ var _n1k0$tooty$View$statusView = F2(
 				});
 		}
 	});
-var _n1k0$tooty$View$statusActionsView = function (status) {
-	var statusDate = A2(
-		_elm_lang$core$Result$withDefault,
-		_elm_lang$core$Date$fromTime(0),
-		_elm_lang$core$Date$fromString(status.created_at));
-	var formatDate = _elm_lang$html$Html$text(
-		A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', statusDate));
-	var baseBtnClasses = 'btn btn-sm btn-default';
-	var targetStatus = _n1k0$tooty$Mastodon_Helper$extractReblog(status);
-	var _p22 = function () {
-		var _p23 = status.reblogged;
-		if ((_p23.ctor === 'Just') && (_p23._0 === true)) {
-			return {
-				ctor: '_Tuple2',
-				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
-				_1: _n1k0$tooty$Model$Unreblog(targetStatus.id)
-			};
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: baseBtnClasses,
-				_1: _n1k0$tooty$Model$Reblog(targetStatus.id)
-			};
-		}
-	}();
-	var reblogClasses = _p22._0;
-	var reblogEvent = _p22._1;
-	var _p24 = function () {
-		var _p25 = status.favourited;
-		if ((_p25.ctor === 'Just') && (_p25._0 === true)) {
-			return {
-				ctor: '_Tuple2',
-				_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
-				_1: _n1k0$tooty$Model$RemoveFavorite(targetStatus.id)
-			};
-		} else {
-			return {
-				ctor: '_Tuple2',
-				_0: baseBtnClasses,
-				_1: _n1k0$tooty$Model$AddFavorite(targetStatus.id)
-			};
-		}
-	}();
-	var favClasses = _p24._0;
-	var favEvent = _p24._1;
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('btn-group actions'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$a,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class(baseBtnClasses),
-					_1: {
-						ctor: '::',
-						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-							_n1k0$tooty$Model$DraftEvent(
-								_n1k0$tooty$Model$UpdateReplyTo(targetStatus))),
-						_1: {ctor: '[]'}
-					}
-				},
-				{
-					ctor: '::',
-					_0: _n1k0$tooty$View$icon('share-alt'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
+var _n1k0$tooty$View$statusActionsView = F2(
+	function (status, currentUser) {
+		var statusDate = A2(
+			_elm_lang$core$Result$withDefault,
+			_elm_lang$core$Date$fromTime(0),
+			_elm_lang$core$Date$fromString(status.created_at));
+		var formatDate = _elm_lang$html$Html$text(
+			A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', statusDate));
+		var baseBtnClasses = 'btn btn-sm btn-default';
+		var targetStatus = _n1k0$tooty$Mastodon_Helper$extractReblog(status);
+		var _p22 = function () {
+			var _p23 = status.reblogged;
+			if ((_p23.ctor === 'Just') && (_p23._0 === true)) {
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
+					_1: _n1k0$tooty$Model$Unreblog(targetStatus.id)
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: baseBtnClasses,
+					_1: _n1k0$tooty$Model$Reblog(targetStatus.id)
+				};
+			}
+		}();
+		var reblogClasses = _p22._0;
+		var reblogEvent = _p22._1;
+		var _p24 = function () {
+			var _p25 = status.favourited;
+			if ((_p25.ctor === 'Just') && (_p25._0 === true)) {
+				return {
+					ctor: '_Tuple2',
+					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
+					_1: _n1k0$tooty$Model$RemoveFavorite(targetStatus.id)
+				};
+			} else {
+				return {
+					ctor: '_Tuple2',
+					_0: baseBtnClasses,
+					_1: _n1k0$tooty$Model$AddFavorite(targetStatus.id)
+				};
+			}
+		}();
+		var favClasses = _p24._0;
+		var favEvent = _p24._1;
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('btn-group actions'),
+				_1: {ctor: '[]'}
+			},
+			{
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$a,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class(reblogClasses),
+						_0: _elm_lang$html$Html_Attributes$class(baseBtnClasses),
 						_1: {
 							ctor: '::',
-							_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(reblogEvent),
+							_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+								_n1k0$tooty$Model$DraftEvent(
+									_n1k0$tooty$Model$UpdateReplyTo(targetStatus))),
 							_1: {ctor: '[]'}
 						}
 					},
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$View$icon('fire'),
-						_1: {
-							ctor: '::',
-							_0: _elm_lang$html$Html$text(
-								_elm_lang$core$Basics$toString(status.reblogs_count)),
-							_1: {ctor: '[]'}
-						}
+						_0: _n1k0$tooty$View$icon('share-alt'),
+						_1: {ctor: '[]'}
 					}),
 				_1: {
 					ctor: '::',
@@ -27888,20 +27950,20 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 						_elm_lang$html$Html$a,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class(favClasses),
+							_0: _elm_lang$html$Html_Attributes$class(reblogClasses),
 							_1: {
 								ctor: '::',
-								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(favEvent),
+								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(reblogEvent),
 								_1: {ctor: '[]'}
 							}
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$icon('star'),
+							_0: _n1k0$tooty$View$icon('fire'),
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html$text(
-									_elm_lang$core$Basics$toString(status.favourites_count)),
+									_elm_lang$core$Basics$toString(status.reblogs_count)),
 								_1: {ctor: '[]'}
 							}
 						}),
@@ -27911,35 +27973,82 @@ var _n1k0$tooty$View$statusActionsView = function (status) {
 							_elm_lang$html$Html$a,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class(baseBtnClasses),
+								_0: _elm_lang$html$Html_Attributes$class(favClasses),
 								_1: {
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$href(status.url),
-									_1: {
-										ctor: '::',
-										_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-											_n1k0$tooty$Model$OpenThread(status)),
-										_1: {ctor: '[]'}
-									}
+									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(favEvent),
+									_1: {ctor: '[]'}
 								}
 							},
 							{
 								ctor: '::',
-								_0: _n1k0$tooty$View$icon('time'),
+								_0: _n1k0$tooty$View$icon('star'),
 								_1: {
 									ctor: '::',
-									_0: formatDate,
+									_0: _elm_lang$html$Html$text(
+										_elm_lang$core$Basics$toString(status.favourites_count)),
 									_1: {ctor: '[]'}
 								}
 							}),
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Mastodon_Helper$sameAccount, status.account, currentUser) ? A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class(
+										A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' btn-delete')),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$href(''),
+										_1: {
+											ctor: '::',
+											_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+												_n1k0$tooty$Model$DeleteStatus(status.id)),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _n1k0$tooty$View$icon('trash'),
+									_1: {ctor: '[]'}
+								}) : _elm_lang$html$Html$text(''),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$a,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class(baseBtnClasses),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$href(status.url),
+											_1: {
+												ctor: '::',
+												_0: _elm_lang$html$Html_Attributes$target('_blank'),
+												_1: {ctor: '[]'}
+											}
+										}
+									},
+									{
+										ctor: '::',
+										_0: _n1k0$tooty$View$icon('time'),
+										_1: {
+											ctor: '::',
+											_0: formatDate,
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}
+						}
 					}
 				}
-			}
-		});
-};
-var _n1k0$tooty$View$statusEntryView = F3(
-	function (context, className, status) {
+			});
+	});
+var _n1k0$tooty$View$statusEntryView = F4(
+	function (context, className, currentUser, status) {
 		var nsfwClass = function () {
 			var _p26 = status.sensitive;
 			if ((_p26.ctor === 'Just') && (_p26._0 === true)) {
@@ -27967,13 +28076,13 @@ var _n1k0$tooty$View$statusEntryView = F3(
 				_0: A2(_n1k0$tooty$View$statusView, context, status),
 				_1: {
 					ctor: '::',
-					_0: _n1k0$tooty$View$statusActionsView(status),
+					_0: A2(_n1k0$tooty$View$statusActionsView, status, currentUser),
 					_1: {ctor: '[]'}
 				}
 			});
 	});
-var _n1k0$tooty$View$timelineView = F4(
-	function (label, iconName, context, statuses) {
+var _n1k0$tooty$View$timelineView = F5(
+	function (label, iconName, context, currentUser, statuses) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -28039,7 +28148,7 @@ var _n1k0$tooty$View$timelineView = F4(
 								},
 								A2(
 									_elm_lang$core$List$map,
-									A2(_n1k0$tooty$View$statusEntryView, context, ''),
+									A3(_n1k0$tooty$View$statusEntryView, context, '', currentUser),
 									statuses)),
 							_1: {ctor: '[]'}
 						}
@@ -28101,8 +28210,8 @@ var _n1k0$tooty$View$notificationHeading = F3(
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationStatusView = F3(
-	function (context, status, _p27) {
+var _n1k0$tooty$View$notificationStatusView = F4(
+	function (context, currentUser, status, _p27) {
 		var _p28 = _p27;
 		var _p31 = _p28.type_;
 		var _p30 = _p28.accounts;
@@ -28132,179 +28241,185 @@ var _n1k0$tooty$View$notificationStatusView = F3(
 					_0: A2(_n1k0$tooty$View$statusView, context, status),
 					_1: {
 						ctor: '::',
-						_0: _n1k0$tooty$View$statusActionsView(status),
+						_0: A2(_n1k0$tooty$View$statusActionsView, status, currentUser),
 						_1: {ctor: '[]'}
 					}
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationFollowView = function (_p32) {
-	var _p33 = _p32;
-	var _p34 = _p33.accounts;
-	var profileView = function (account) {
+var _n1k0$tooty$View$notificationFollowView = F2(
+	function (currentUser, _p32) {
+		var _p33 = _p32;
+		var _p34 = _p33.accounts;
+		var profileView = function (account) {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('status follow-profile'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: _n1k0$tooty$View$accountAvatarLink(account),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('username'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _n1k0$tooty$View$accountLink(account),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$p,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('status-text'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Events$onClick(
+											_n1k0$tooty$Model$LoadAccount(account.id)),
+										_1: {ctor: '[]'}
+									}
+								},
+								A2(
+									_n1k0$tooty$ViewHelper$formatContent,
+									account.note,
+									{ctor: '[]'})),
+							_1: {ctor: '[]'}
+						}
+					}
+				});
+		};
 		return A2(
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('status follow-profile'),
+				_0: _elm_lang$html$Html_Attributes$class('notification follow'),
 				_1: {ctor: '[]'}
 			},
 			{
 				ctor: '::',
-				_0: _n1k0$tooty$View$accountAvatarLink(account),
+				_0: A3(_n1k0$tooty$View$notificationHeading, _p34, 'started following you', 'user'),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_elm_lang$html$Html$div,
 						{
 							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$class('username'),
+							_0: _elm_lang$html$Html_Attributes$class(''),
 							_1: {ctor: '[]'}
 						},
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$View$accountLink(account),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$p,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('status-text'),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html_Events$onClick(
-										_n1k0$tooty$Model$LoadAccount(account.id)),
-									_1: {ctor: '[]'}
-								}
-							},
-							A2(
-								_n1k0$tooty$ViewHelper$formatContent,
-								account.note,
-								{ctor: '[]'})),
-						_1: {ctor: '[]'}
-					}
+						A2(_elm_lang$core$List$map, profileView, _p34)),
+					_1: {ctor: '[]'}
 				}
 			});
-	};
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('notification follow'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A3(_n1k0$tooty$View$notificationHeading, _p34, 'started following you', 'user'),
-			_1: {
+	});
+var _n1k0$tooty$View$notificationEntryView = F2(
+	function (currentUser, notification) {
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('list-group-item'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: function () {
+					var _p35 = notification.status;
+					if (_p35.ctor === 'Just') {
+						return A4(_n1k0$tooty$View$notificationStatusView, 'notification', currentUser, _p35._0, notification);
+					} else {
+						return A2(_n1k0$tooty$View$notificationFollowView, currentUser, notification);
+					}
+				}(),
+				_1: {ctor: '[]'}
+			});
+	});
+var _n1k0$tooty$View$notificationListView = F2(
+	function (currentUser, notifications) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
+				_1: {ctor: '[]'}
+			},
+			{
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$div,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class(''),
+						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
 						_1: {ctor: '[]'}
 					},
-					A2(_elm_lang$core$List$map, profileView, _p34)),
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _n1k0$tooty$View$notificationEntryView = function (notification) {
-	return A2(
-		_elm_lang$html$Html$li,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('list-group-item'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: function () {
-				var _p35 = notification.status;
-				if (_p35.ctor === 'Just') {
-					return A3(_n1k0$tooty$View$notificationStatusView, 'notification', _p35._0, notification);
-				} else {
-					return _n1k0$tooty$View$notificationFollowView(notification);
-				}
-			}(),
-			_1: {ctor: '[]'}
-		});
-};
-var _n1k0$tooty$View$notificationListView = function (notifications) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html$a,
-						{
-							ctor: '::',
-							_0: _elm_lang$html$Html_Attributes$href(''),
-							_1: {
-								ctor: '::',
-								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-									_n1k0$tooty$Model$ScrollColumn('notifications')),
-								_1: {ctor: '[]'}
-							}
-						},
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$div,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-									_1: {ctor: '[]'}
-								},
-								{
-									ctor: '::',
-									_0: _n1k0$tooty$View$icon('bell'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html$text('Notifications'),
-										_1: {ctor: '[]'}
-									}
-								}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {
+					{
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$ul,
+							_elm_lang$html$Html$a,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$id('notifications'),
+								_0: _elm_lang$html$Html_Attributes$href(''),
 								_1: {
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+										_n1k0$tooty$Model$ScrollColumn('notifications')),
 									_1: {ctor: '[]'}
 								}
 							},
-							A2(_elm_lang$core$List$map, _n1k0$tooty$View$notificationEntryView, notifications)),
-						_1: {ctor: '[]'}
-					}
-				}),
-			_1: {ctor: '[]'}
-		});
-};
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _n1k0$tooty$View$icon('bell'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Notifications'),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$ul,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$id('notifications'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+										_1: {ctor: '[]'}
+									}
+								},
+								A2(
+									_elm_lang$core$List$map,
+									_n1k0$tooty$View$notificationEntryView(currentUser),
+									notifications)),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
 var _n1k0$tooty$View$draftReplyToView = function (draft) {
 	var _p36 = draft.in_reply_to;
 	if (_p36.ctor === 'Just') {
@@ -28826,67 +28941,69 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 				_1: {ctor: '[]'}
 			});
 	});
-var _n1k0$tooty$View$threadView = function (thread) {
-	var threadEntry = function (status) {
-		return A3(
-			_n1k0$tooty$View$statusEntryView,
-			'thread',
-			_elm_lang$core$Native_Utils.eq(status, thread.status) ? 'thread-target' : '',
-			status);
-	};
-	var statuses = _elm_lang$core$List$concat(
-		{
-			ctor: '::',
-			_0: thread.context.ancestors,
-			_1: {
+var _n1k0$tooty$View$threadView = F2(
+	function (currentUser, thread) {
+		var threadEntry = function (status) {
+			return A4(
+				_n1k0$tooty$View$statusEntryView,
+				'thread',
+				_elm_lang$core$Native_Utils.eq(status, thread.status) ? 'thread-target' : '',
+				currentUser,
+				status);
+		};
+		var statuses = _elm_lang$core$List$concat(
+			{
 				ctor: '::',
-				_0: {
-					ctor: '::',
-					_0: thread.status,
-					_1: {ctor: '[]'}
-				},
+				_0: thread.context.ancestors,
 				_1: {
 					ctor: '::',
-					_0: thread.context.descendants,
-					_1: {ctor: '[]'}
-				}
-			}
-		});
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-					_1: {ctor: '[]'}
-				},
-				{
-					ctor: '::',
-					_0: A3(_n1k0$tooty$View$closeablePanelheading, 'list', 'Thread', _n1k0$tooty$Model$CloseThread),
+					_0: {
+						ctor: '::',
+						_0: thread.status,
+						_1: {ctor: '[]'}
+					},
 					_1: {
 						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$ul,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-								_1: {ctor: '[]'}
-							},
-							A2(_elm_lang$core$List$map, threadEntry, statuses)),
+						_0: thread.context.descendants,
 						_1: {ctor: '[]'}
 					}
-				}),
-			_1: {ctor: '[]'}
-		});
-};
+				}
+			});
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A3(_n1k0$tooty$View$closeablePanelheading, 'list', 'Thread', _n1k0$tooty$Model$CloseThread),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$ul,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+									_1: {ctor: '[]'}
+								},
+								A2(_elm_lang$core$List$map, threadEntry, statuses)),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
 var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
 	{
 		ctor: '::',
@@ -29342,42 +29459,48 @@ var _n1k0$tooty$View$sidebarView = function (model) {
 		});
 };
 var _n1k0$tooty$View$homepageView = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('row'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _n1k0$tooty$View$sidebarView(model),
-			_1: {
+	var _p49 = model.currentUser;
+	if (_p49.ctor === 'Nothing') {
+		return _elm_lang$html$Html$text('');
+	} else {
+		var _p51 = _p49._0;
+		return A2(
+			_elm_lang$html$Html$div,
+			{
 				ctor: '::',
-				_0: A4(_n1k0$tooty$View$timelineView, 'Home timeline', 'home', 'home', model.userTimeline),
+				_0: _elm_lang$html$Html_Attributes$class('row'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: _n1k0$tooty$View$sidebarView(model),
 				_1: {
 					ctor: '::',
-					_0: _n1k0$tooty$View$notificationListView(model.notifications),
+					_0: A5(_n1k0$tooty$View$timelineView, 'Home timeline', 'home', 'home', _p51, model.userTimeline),
 					_1: {
 						ctor: '::',
-						_0: function () {
-							var _p49 = model.currentView;
-							switch (_p49.ctor) {
-								case 'LocalTimelineView':
-									return A4(_n1k0$tooty$View$timelineView, 'Local timeline', 'th-large', 'local', model.localTimeline);
-								case 'GlobalTimelineView':
-									return A4(_n1k0$tooty$View$timelineView, 'Global timeline', 'globe', 'global', model.globalTimeline);
-								case 'AccountView':
-									return A4(_n1k0$tooty$View$accountTimelineView, _p49._0, model.accountTimeline, 'Account', 'user');
-								default:
-									return _n1k0$tooty$View$threadView(_p49._0);
-							}
-						}(),
-						_1: {ctor: '[]'}
+						_0: A2(_n1k0$tooty$View$notificationListView, _p51, model.notifications),
+						_1: {
+							ctor: '::',
+							_0: function () {
+								var _p50 = model.currentView;
+								switch (_p50.ctor) {
+									case 'LocalTimelineView':
+										return A5(_n1k0$tooty$View$timelineView, 'Local timeline', 'th-large', 'local', _p51, model.localTimeline);
+									case 'GlobalTimelineView':
+										return A5(_n1k0$tooty$View$timelineView, 'Global timeline', 'globe', 'global', _p51, model.globalTimeline);
+									case 'AccountView':
+										return A4(_n1k0$tooty$View$accountTimelineView, _p50._0, model.accountTimeline, 'Account', 'user');
+									default:
+										return A2(_n1k0$tooty$View$threadView, _p51, _p50._0);
+								}
+							}(),
+							_1: {ctor: '[]'}
+						}
 					}
 				}
-			}
-		});
+			});
+	}
 };
 var _n1k0$tooty$View$view = function (model) {
 	return A2(
@@ -29393,8 +29516,8 @@ var _n1k0$tooty$View$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: function () {
-					var _p50 = model.client;
-					if (_p50.ctor === 'Just') {
+					var _p52 = model.client;
+					if (_p52.ctor === 'Just') {
 						return _n1k0$tooty$View$homepageView(model);
 					} else {
 						return _n1k0$tooty$View$authView(model);
@@ -29403,9 +29526,9 @@ var _n1k0$tooty$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p51 = model.viewer;
-						if (_p51.ctor === 'Just') {
-							return _n1k0$tooty$View$viewerView(_p51._0);
+						var _p53 = model.viewer;
+						if (_p53.ctor === 'Just') {
+							return _n1k0$tooty$View$viewerView(_p53._0);
 						} else {
 							return _elm_lang$html$Html$text('');
 						}
