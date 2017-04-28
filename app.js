@@ -27941,7 +27941,12 @@ var _n1k0$tooty$View$notificationFollowView = function (_p30) {
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$class('status-text'),
-								_1: {ctor: '[]'}
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Events$onClick(
+										_n1k0$tooty$Model$LoadAccount(account.id)),
+									_1: {ctor: '[]'}
+								}
 							},
 							A2(
 								_n1k0$tooty$ViewHelper$formatContent,
