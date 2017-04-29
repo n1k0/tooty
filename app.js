@@ -23149,12 +23149,7 @@ var _n1k0$tooty$Mastodon_Model$Reblog = function (a) {
 var _n1k0$tooty$Mastodon_Helper$sameAccount = F2(
 	function (_p0, account) {
 		var _p1 = _p0;
-		return _elm_lang$core$Native_Utils.eq(_p1.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p1.username, account.username);
-	});
-var _n1k0$tooty$Mastodon_Helper$accountMentioned = F2(
-	function (_p2, mention) {
-		var _p3 = _p2;
-		return _elm_lang$core$Native_Utils.eq(_p3.acct, mention.acct) && _elm_lang$core$Native_Utils.eq(_p3.username, mention.username);
+		return _elm_lang$core$Native_Utils.eq(_p1.id, account.id) && (_elm_lang$core$Native_Utils.eq(_p1.acct, account.acct) && _elm_lang$core$Native_Utils.eq(_p1.username, account.username));
 	});
 var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications) {
 	var extractAggregate = function (statusGroup) {
@@ -23169,12 +23164,12 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 					return _.account;
 				},
 				statusGroup));
-		var _p4 = statusGroup;
-		if (_p4.ctor === '::') {
-			var _p5 = _p4._0;
+		var _p2 = statusGroup;
+		if (_p2.ctor === '::') {
+			var _p3 = _p2._0;
 			return {
 				ctor: '::',
-				_0: A4(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p5.type_, _p5.status, accounts, _p5.created_at),
+				_0: A4(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p3.type_, _p3.status, accounts, _p3.created_at),
 				_1: {ctor: '[]'}
 			};
 		} else {
@@ -23187,9 +23182,9 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 	};
 	var sameStatus = F2(
 		function (n1, n2) {
-			var _p6 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
-			if (((_p6.ctor === '_Tuple2') && (_p6._0.ctor === 'Just')) && (_p6._1.ctor === 'Just')) {
-				return _elm_lang$core$Native_Utils.eq(_p6._0._0.id, _p6._1._0.id);
+			var _p4 = {ctor: '_Tuple2', _0: n1.status, _1: n2.status};
+			if (((_p4.ctor === '_Tuple2') && (_p4._0.ctor === 'Just')) && (_p4._1.ctor === 'Just')) {
+				return _elm_lang$core$Native_Utils.eq(_p4._0._0.id, _p4._1._0.id);
 			} else {
 				return false;
 			}
@@ -23237,7 +23232,7 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 									A2(
 										_elm_community$list_extra$List_Extra$groupWhile,
 										F2(
-											function (_p8, _p7) {
+											function (_p6, _p5) {
 												return true;
 											}),
 										A2(only, 'follow', notifications))),
@@ -23263,9 +23258,9 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 	function (notification, aggregates) {
 		var addNewAccountToSameStatus = F2(
 			function (aggregate, notification) {
-				var _p9 = {ctor: '_Tuple2', _0: aggregate.status, _1: notification.status};
-				if ((_p9._0.ctor === 'Just') && (_p9._1.ctor === 'Just')) {
-					return _elm_lang$core$Native_Utils.eq(_p9._0._0.id, _p9._1._0.id) ? _elm_lang$core$Native_Utils.update(
+				var _p7 = {ctor: '_Tuple2', _0: aggregate.status, _1: notification.status};
+				if ((_p7._0.ctor === 'Just') && (_p7._1.ctor === 'Just')) {
+					return _elm_lang$core$Native_Utils.eq(_p7._0._0.id, _p7._1._0.id) ? _elm_lang$core$Native_Utils.update(
 						aggregate,
 						{
 							accounts: {ctor: '::', _0: notification.account, _1: aggregate.accounts}
@@ -23277,9 +23272,9 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 		var newAggregates = A2(
 			_elm_lang$core$List$map,
 			function (aggregate) {
-				var _p10 = {ctor: '_Tuple2', _0: aggregate.type_, _1: notification.type_};
-				if (_p10._1 === 'follow') {
-					if (_p10._0 === 'follow') {
+				var _p8 = {ctor: '_Tuple2', _0: aggregate.type_, _1: notification.type_};
+				if (_p8._1 === 'follow') {
+					if (_p8._0 === 'follow') {
 						return _elm_lang$core$Native_Utils.update(
 							aggregate,
 							{
@@ -23289,7 +23284,7 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 						return aggregate;
 					}
 				} else {
-					return _elm_lang$core$Native_Utils.eq(_p10._0, _p10._1) ? A2(addNewAccountToSameStatus, aggregate, notification) : aggregate;
+					return _elm_lang$core$Native_Utils.eq(_p8._0, _p8._1) ? A2(addNewAccountToSameStatus, aggregate, notification) : aggregate;
 				}
 			},
 			aggregates);
@@ -23299,10 +23294,62 @@ var _n1k0$tooty$Mastodon_Helper$addNotificationToAggregates = F2(
 			_1: aggregates
 		} : newAggregates;
 	});
+var _n1k0$tooty$Mastodon_Helper$toMention = function (_p9) {
+	var _p10 = _p9;
+	return A4(_n1k0$tooty$Mastodon_Model$Mention, _p10.id, _p10.url, _p10.username, _p10.acct);
+};
+var _n1k0$tooty$Mastodon_Helper$getReplyPrefix = F2(
+	function (replier, status) {
+		var posters = function () {
+			var _p11 = status.reblog;
+			if (_p11.ctor === 'Just') {
+				return A2(
+					_elm_lang$core$List$map,
+					_n1k0$tooty$Mastodon_Helper$toMention,
+					{
+						ctor: '::',
+						_0: _p11._0._0.account,
+						_1: {
+							ctor: '::',
+							_0: status.account,
+							_1: {ctor: '[]'}
+						}
+					});
+			} else {
+				return {
+					ctor: '::',
+					_0: _n1k0$tooty$Mastodon_Helper$toMention(status.account),
+					_1: status.mentions
+				};
+			}
+		}();
+		var finalPosters = A2(
+			_elm_lang$core$List$map,
+			function (m) {
+				return A2(_elm_lang$core$Basics_ops['++'], '@', m.acct);
+			},
+			A2(
+				_elm_lang$core$List$filter,
+				function (m) {
+					return !_elm_lang$core$Native_Utils.eq(
+						m,
+						_n1k0$tooty$Mastodon_Helper$toMention(replier));
+				},
+				A2(
+					_elm_community$list_extra$List_Extra$uniqueBy,
+					function (_) {
+						return _.acct;
+					},
+					posters)));
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			A2(_elm_lang$core$String$join, ' ', finalPosters),
+			' ');
+	});
 var _n1k0$tooty$Mastodon_Helper$extractReblog = function (status) {
-	var _p11 = status.reblog;
-	if (_p11.ctor === 'Just') {
-		return _p11._0._0;
+	var _p12 = status.reblog;
+	if (_p12.ctor === 'Just') {
+		return _p12._0._0;
 	} else {
 		return status;
 	}
@@ -24904,37 +24951,13 @@ var _n1k0$tooty$Model$updateDraft = F3(
 					{ctor: '[]'});
 			default:
 				var _p20 = _p19._0;
-				var mentions = A2(
-					_elm_lang$core$String$join,
-					' ',
-					A2(
-						_elm_lang$core$List$map,
-						function (m) {
-							return A2(_elm_lang$core$Basics_ops['++'], '@', m.acct);
-						},
-						A2(
-							_elm_lang$core$List$filter,
-							function (m) {
-								return !A2(_n1k0$tooty$Mastodon_Helper$accountMentioned, currentUser, m);
-							},
-							_p20.mentions)));
-				var newStatus = A2(_n1k0$tooty$Mastodon_Helper$sameAccount, _p20.account, currentUser) ? mentions : A2(
-					_elm_lang$core$Basics_ops['++'],
-					'@',
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						_p20.account.acct,
-						A2(_elm_lang$core$Basics_ops['++'], ' ', mentions)));
 				return A2(
 					_elm_lang$core$Platform_Cmd_ops['!'],
 					_elm_lang$core$Native_Utils.update(
 						draft,
 						{
 							in_reply_to: _elm_lang$core$Maybe$Just(_p20),
-							status: A2(
-								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$String$trim(newStatus),
-								' '),
+							status: A2(_n1k0$tooty$Mastodon_Helper$getReplyPrefix, currentUser, _p20),
 							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p20.sensitive),
 							spoiler_text: _elm_lang$core$Native_Utils.eq(_p20.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p20.spoiler_text),
 							visibility: _p20.visibility
@@ -27880,20 +27903,20 @@ var _n1k0$tooty$View$statusActionsView = F2(
 		var formatDate = _elm_lang$html$Html$text(
 			A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', statusDate));
 		var baseBtnClasses = 'btn btn-sm btn-default';
-		var targetStatus = _n1k0$tooty$Mastodon_Helper$extractReblog(status);
+		var sourceStatus = _n1k0$tooty$Mastodon_Helper$extractReblog(status);
 		var _p22 = function () {
 			var _p23 = status.reblogged;
 			if ((_p23.ctor === 'Just') && (_p23._0 === true)) {
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
-					_1: _n1k0$tooty$Model$Unreblog(targetStatus.id)
+					_1: _n1k0$tooty$Model$Unreblog(sourceStatus.id)
 				};
 			} else {
 				return {
 					ctor: '_Tuple2',
 					_0: baseBtnClasses,
-					_1: _n1k0$tooty$Model$Reblog(targetStatus.id)
+					_1: _n1k0$tooty$Model$Reblog(sourceStatus.id)
 				};
 			}
 		}();
@@ -27905,13 +27928,13 @@ var _n1k0$tooty$View$statusActionsView = F2(
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
-					_1: _n1k0$tooty$Model$RemoveFavorite(targetStatus.id)
+					_1: _n1k0$tooty$Model$RemoveFavorite(sourceStatus.id)
 				};
 			} else {
 				return {
 					ctor: '_Tuple2',
 					_0: baseBtnClasses,
-					_1: _n1k0$tooty$Model$AddFavorite(targetStatus.id)
+					_1: _n1k0$tooty$Model$AddFavorite(sourceStatus.id)
 				};
 			}
 		}();
@@ -27935,7 +27958,7 @@ var _n1k0$tooty$View$statusActionsView = F2(
 							ctor: '::',
 							_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
 								_n1k0$tooty$Model$DraftEvent(
-									_n1k0$tooty$Model$UpdateReplyTo(targetStatus))),
+									_n1k0$tooty$Model$UpdateReplyTo(status))),
 							_1: {ctor: '[]'}
 						}
 					},
@@ -27963,7 +27986,7 @@ var _n1k0$tooty$View$statusActionsView = F2(
 							_1: {
 								ctor: '::',
 								_0: _elm_lang$html$Html$text(
-									_elm_lang$core$Basics$toString(status.reblogs_count)),
+									_elm_lang$core$Basics$toString(sourceStatus.reblogs_count)),
 								_1: {ctor: '[]'}
 							}
 						}),
@@ -27986,13 +28009,13 @@ var _n1k0$tooty$View$statusActionsView = F2(
 								_1: {
 									ctor: '::',
 									_0: _elm_lang$html$Html$text(
-										_elm_lang$core$Basics$toString(status.favourites_count)),
+										_elm_lang$core$Basics$toString(sourceStatus.favourites_count)),
 									_1: {ctor: '[]'}
 								}
 							}),
 						_1: {
 							ctor: '::',
-							_0: A2(_n1k0$tooty$Mastodon_Helper$sameAccount, status.account, currentUser) ? A2(
+							_0: A2(_n1k0$tooty$Mastodon_Helper$sameAccount, sourceStatus.account, currentUser) ? A2(
 								_elm_lang$html$Html$a,
 								{
 									ctor: '::',
@@ -28004,7 +28027,7 @@ var _n1k0$tooty$View$statusActionsView = F2(
 										_1: {
 											ctor: '::',
 											_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-												_n1k0$tooty$Model$DeleteStatus(status.id)),
+												_n1k0$tooty$Model$DeleteStatus(sourceStatus.id)),
 											_1: {ctor: '[]'}
 										}
 									}
