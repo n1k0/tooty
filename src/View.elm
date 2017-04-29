@@ -202,8 +202,8 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-followView : Maybe Relationship -> Account -> Html Msg
-followView relationship account =
+followView : Account -> Maybe Relationship -> Account -> Html Msg
+followView currentUser relationship account =
     let
         ( follower, following, btnClasses, iconName, tooltip ) =
             case relationship of
@@ -249,8 +249,11 @@ followView relationship account =
                 , br [] []
                 , text <| "@" ++ account.acct
                 ]
-            , button [ class btnClasses, title tooltip ]
-                [ icon iconName ]
+            , if Mastodon.Helper.sameAccount account currentUser then
+                text ""
+              else
+                button [ class btnClasses, title tooltip ]
+                    [ icon iconName ]
             ]
 
 
@@ -311,14 +314,15 @@ accountTimelineView label statuses account =
                 statuses
 
 
-accountFollowView : String -> List Account -> List Relationship -> Account -> Html Msg
-accountFollowView label accounts relationships account =
+accountFollowView : String -> Account -> List Account -> List Relationship -> Account -> Html Msg
+accountFollowView label currentUser accounts relationships account =
     accountView label "user" account <|
         ul [ class "list-group" ] <|
             List.map
                 (\account ->
                     li [ class "list-group-item status" ]
                         [ followView
+                            currentUser
                             (find (\r -> r.id == account.id) relationships)
                             account
                         ]
@@ -739,6 +743,7 @@ homepageView model =
                     AccountFollowersView account followers ->
                         accountFollowView
                             "Account followers"
+                            currentUser
                             model.accountFollowers
                             model.accountRelationships
                             account
@@ -746,6 +751,7 @@ homepageView model =
                     AccountFollowingView account following ->
                         accountFollowView
                             "Account following"
+                            currentUser
                             model.accountFollowing
                             model.accountRelationships
                             account

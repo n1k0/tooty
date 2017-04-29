@@ -151,6 +151,11 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
+processFollowEvent : Account -> Bool -> Model -> Model
+processFollowEvent account flag model =
+    model
+
+
 updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg currentUser draft =
     case draftMsg of
@@ -225,16 +230,16 @@ processMastodonEvent msg model =
 
         AccountFollowed result ->
             case result of
-                Ok _ ->
-                    model ! []
+                Ok account ->
+                    processFollowEvent account True model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountUnfollowed result ->
             case result of
-                Ok _ ->
-                    model ! []
+                Ok account ->
+                    processFollowEvent account False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
