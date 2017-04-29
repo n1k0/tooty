@@ -155,28 +155,27 @@ deleteStatusFromTimeline statusId timeline =
 processFollowEvent : Relationship -> Bool -> Model -> Model
 processFollowEvent relationship flag model =
     let
-        toggle entries =
-            { model
-                | accountRelationships =
-                    model.accountRelationships
-                        |> List.map
-                            (\r ->
-                                if r.id == relationship.id then
-                                    { r | following = flag }
-                                else
-                                    r
-                            )
-            }
+        updateRelationship r =
+            if r.id == relationship.id then
+                { r | following = flag }
+            else
+                r
+
+        accountRelationships =
+            model.accountRelationships |> List.map updateRelationship
+
+        accountRelationship =
+            case model.accountRelationship of
+                Just relationship ->
+                    Just { relationship | following = flag }
+
+                Nothing ->
+                    Nothing
     in
-        case model.currentView of
-            AccountFollowersView account followers ->
-                toggle followers
-
-            AccountFollowingView account following ->
-                toggle following
-
-            _ ->
-                model
+        { model
+            | accountRelationships = accountRelationships
+            , accountRelationship = accountRelationship
+        }
 
 
 updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
