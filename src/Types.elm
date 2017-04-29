@@ -27,29 +27,29 @@ type ViewerMsg
 
 type MastodonMsg
     = AccessToken (Result Error AccessTokenResult)
+    | AccountFollowers (Result Error (List Account))
+    | AccountFollowing (Result Error (List Account))
+    | AccountReceived (Result Error Account)
+    | AccountTimeline (Result Error (List Status))
     | AppRegistered (Result Error AppRegistration)
     | ContextLoaded Status (Result Error Context)
     | CurrentUser (Result Error Account)
     | FavoriteAdded (Result Error Status)
     | FavoriteRemoved (Result Error Status)
+    | GlobalTimeline (Result Error (List Status))
     | LocalTimeline (Result Error (List Status))
     | Notifications (Result Error (List Notification))
-    | GlobalTimeline (Result Error (List Status))
     | Reblogged (Result Error Status)
     | StatusDeleted (Result Error Int)
     | StatusPosted (Result Error Status)
     | Unreblogged (Result Error Status)
-    | AccountFollowers (Result Error (List Account))
-    | AccountFollowing (Result Error (List Account))
-    | AccountReceived (Result Error Account)
-    | AccountTimeline (Result Error (List Status))
     | UserTimeline (Result Error (List Status))
 
 
 type WebSocketMsg
-    = NewWebsocketUserMessage String
-    | NewWebsocketGlobalMessage String
+    = NewWebsocketGlobalMessage String
     | NewWebsocketLocalMessage String
+    | NewWebsocketUserMessage String
 
 
 type Msg
@@ -109,12 +109,12 @@ type alias Viewer =
 
 type CurrentView
     = -- Basically, what we should be displaying in the fourth column
-      AccountView Account
-    | AccountFollowersView Account (List Account)
+      AccountFollowersView Account (List Account)
     | AccountFollowingView Account (List Account)
-    | ThreadView Thread
-    | LocalTimelineView
+    | AccountView Account
     | GlobalTimelineView
+    | LocalTimelineView
+    | ThreadView Thread
 
 
 type alias Model =
