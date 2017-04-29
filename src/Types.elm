@@ -27,11 +27,13 @@ type ViewerMsg
 
 type MastodonMsg
     = AccessToken (Result Error AccessTokenResult)
+    | AccountFollowed (Result Error Account)
     | AccountFollowers (Result Error (List Account))
     | AccountFollowing (Result Error (List Account))
     | AccountReceived (Result Error Account)
     | AccountRelationships (Result Error (List Relationship))
     | AccountTimeline (Result Error (List Status))
+    | AccountUnfollowed (Result Error Account)
     | AppRegistered (Result Error AppRegistration)
     | ContextLoaded Status (Result Error Context)
     | CurrentUser (Result Error Account)

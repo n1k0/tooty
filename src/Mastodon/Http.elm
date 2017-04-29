@@ -6,6 +6,8 @@ module Mastodon.Http
         , unreblog
         , favourite
         , unfavourite
+        , follow
+        , unfollow
         , register
         , getAuthorizationUrl
         , getAccessToken
@@ -207,3 +209,17 @@ unfavourite client id =
     HttpBuilder.post (ApiUrl.unfavourite client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+follow : Client -> Int -> Request Account
+follow client id =
+    HttpBuilder.post (ApiUrl.follow client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
+
+
+unfollow : Client -> Int -> Request Account
+unfollow client id =
+    HttpBuilder.post (ApiUrl.unfollow client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)

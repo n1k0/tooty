@@ -223,6 +223,22 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        AccountFollowed result ->
+            case result of
+                Ok _ ->
+                    model ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountUnfollowed result ->
+            case result of
+                Ok _ ->
+                    model ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         AppRegistered result ->
             case result of
                 Ok registration ->

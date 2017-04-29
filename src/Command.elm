@@ -20,6 +20,8 @@ module Command
         , unreblogStatus
         , favouriteStatus
         , unfavouriteStatus
+        , follow
+        , unfollow
         )
 
 import Json.Encode as Encode
@@ -256,6 +258,28 @@ unfavouriteStatus client statusId =
         Just client ->
             Mastodon.Http.unfavourite client statusId
                 |> Mastodon.Http.send (MastodonEvent << FavoriteRemoved)
+
+        Nothing ->
+            Cmd.none
+
+
+follow : Maybe Client -> Int -> Cmd Msg
+follow client id =
+    case client of
+        Just client ->
+            Mastodon.Http.follow client id
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowed)
+
+        Nothing ->
+            Cmd.none
+
+
+unfollow : Maybe Client -> Int -> Cmd Msg
+unfollow client id =
+    case client of
+        Just client ->
+            Mastodon.Http.unfollow client id
+                |> Mastodon.Http.send (MastodonEvent << AccountUnfollowed)
 
         Nothing ->
             Cmd.none

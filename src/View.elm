@@ -205,11 +205,15 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
 followView : Maybe Relationship -> Account -> Html Msg
 followView relationship account =
     let
-        ( follower, following, iconName, tooltip ) =
+        ( follower, following, btnClasses, iconName, tooltip ) =
             case relationship of
                 Just relationship ->
                     ( relationship.followed_by
                     , relationship.following
+                    , if relationship.following then
+                        "btn btn-default btn-primary"
+                      else
+                        "btn btn-default"
                     , if relationship.following then
                         "eye-close"
                       else
@@ -221,7 +225,7 @@ followView relationship account =
                     )
 
                 Nothing ->
-                    ( False, False, "", "" )
+                    ( False, False, "btn btn-default btn-disabled", "eye-open", "" )
     in
         div [ class "follow-entry" ]
             [ accountAvatarLink account
@@ -245,7 +249,7 @@ followView relationship account =
                 , br [] []
                 , text <| "@" ++ account.acct
                 ]
-            , button [ class "btn btn-default", title tooltip ]
+            , button [ class btnClasses, title tooltip ]
                 [ icon iconName ]
             ]
 

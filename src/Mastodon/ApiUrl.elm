@@ -19,6 +19,8 @@ module Mastodon.ApiUrl
         , unreblog
         , favourite
         , unfavourite
+        , follow
+        , unfollow
         , streaming
         )
 
@@ -50,6 +52,16 @@ accounts =
 account : Int -> String
 account id =
     accounts ++ (toString id)
+
+
+follow : Server -> Int -> String
+follow server id =
+    server ++ accounts ++ (toString id) ++ "/follow"
+
+
+unfollow : Server -> Int -> String
+unfollow server id =
+    server ++ accounts ++ (toString id) ++ "/unfollow"
 
 
 userAccount : Server -> String
