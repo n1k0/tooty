@@ -2,7 +2,8 @@ module Main exposing (..)
 
 import Navigation
 import View exposing (view)
-import Model exposing (Flags, Model, Msg(..), init, update, subscriptions)
+import Model exposing (..)
+import Types exposing (..)
 
 
 main : Program Flags Model Msg
