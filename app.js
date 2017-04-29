@@ -28933,10 +28933,10 @@ var _n1k0$tooty$Model$processFollowEvent = F3(
 		var accountRelationship = function () {
 			var _p3 = model.accountRelationship;
 			if (_p3.ctor === 'Just') {
-				return _elm_lang$core$Maybe$Just(
+				return _elm_lang$core$Native_Utils.eq(_p3._0.id, relationship.id) ? _elm_lang$core$Maybe$Just(
 					_elm_lang$core$Native_Utils.update(
-						_p3._0,
-						{following: flag}));
+						relationship,
+						{following: flag})) : model.accountRelationship;
 			} else {
 				return _elm_lang$core$Maybe$Nothing;
 			}
