@@ -1,141 +1,21 @@
 module Model exposing (..)
 
+import Command
 import Dom
-import Json.Encode as Encode
+import Dom.Scroll
 import Navigation
 import Mastodon.Decoder
-import Mastodon.Encoder
 import Mastodon.Helper
-import Mastodon.Http
-import Mastodon.Model
+import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
-import Ports
 import Task
-import Dom.Scroll
+import Types exposing (..)
 
 
 maxBuffer : Int
 maxBuffer =
     -- Max number of entries to keep in columns
     100
-
-
-type alias Flags =
-    { client : Maybe Mastodon.Model.Client
-    , registration : Maybe Mastodon.Model.AppRegistration
-    }
-
-
-type DraftMsg
-    = ClearDraft
-    | UpdateSensitive Bool
-    | UpdateSpoiler String
-    | UpdateStatus String
-    | UpdateVisibility String
-    | UpdateReplyTo Mastodon.Model.Status
-    | ToggleSpoiler Bool
-
-
-type ViewerMsg
-    = CloseViewer
-    | OpenViewer (List Mastodon.Model.Attachment) Mastodon.Model.Attachment
-
-
-type MastodonMsg
-    = AccessToken (Result Mastodon.Model.Error Mastodon.Model.AccessTokenResult)
-    | AppRegistered (Result Mastodon.Model.Error Mastodon.Model.AppRegistration)
-    | ContextLoaded Mastodon.Model.Status (Result Mastodon.Model.Error Mastodon.Model.Context)
-    | CurrentUser (Result Mastodon.Model.Error Mastodon.Model.Account)
-    | FavoriteAdded (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | FavoriteRemoved (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | LocalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
-    | Notifications (Result Mastodon.Model.Error (List Mastodon.Model.Notification))
-    | GlobalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
-    | Reblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | StatusDeleted (Result Mastodon.Model.Error Int)
-    | StatusPosted (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | Unreblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
-    | Account (Result Mastodon.Model.Error Mastodon.Model.Account)
-    | AccountTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
-    | UserTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
-
-
-type WebSocketMsg
-    = NewWebsocketUserMessage String
-    | NewWebsocketGlobalMessage String
-    | NewWebsocketLocalMessage String
-
-
-type Msg
-    = AddFavorite Int
-    | ClearOpenedAccount
-    | CloseThread
-    | DomResult (Result Dom.Error ())
-    | DeleteStatus Int
-    | DraftEvent DraftMsg
-    | LoadAccount Int
-    | MastodonEvent MastodonMsg
-    | NoOp
-    | OpenThread Mastodon.Model.Status
-    | Reblog Int
-    | Register
-    | RemoveFavorite Int
-    | ServerChange String
-    | SubmitDraft
-    | UrlChange Navigation.Location
-    | UseGlobalTimeline Bool
-    | Unreblog Int
-    | ViewerEvent ViewerMsg
-    | WebSocketEvent WebSocketMsg
-    | ScrollColumn String
-
-
-type alias Draft =
-    { status : String
-    , in_reply_to : Maybe Mastodon.Model.Status
-    , spoiler_text : Maybe String
-    , sensitive : Bool
-    , visibility : String
-    }
-
-
-type alias Thread =
-    { status : Mastodon.Model.Status
-    , context : Mastodon.Model.Context
-    }
-
-
-type alias Viewer =
-    { attachments : List Mastodon.Model.Attachment
-    , attachment : Mastodon.Model.Attachment
-    }
-
-
-type CurrentView
-    = -- Basically, what we should be displaying in the fourth column
-      AccountView Mastodon.Model.Account
-    | ThreadView Thread
-    | LocalTimelineView
-    | GlobalTimelineView
-
-
-type alias Model =
-    { server : String
-    , registration : Maybe Mastodon.Model.AppRegistration
-    , client : Maybe Mastodon.Model.Client
-    , userTimeline : List Mastodon.Model.Status
-    , localTimeline : List Mastodon.Model.Status
-    , globalTimeline : List Mastodon.Model.Status
-    , accountTimeline : List Mastodon.Model.Status
-    , notifications : List Mastodon.Model.NotificationAggregate
-    , draft : Draft
-    , errors : List String
-    , location : Navigation.Location
-    , useGlobalTimeline : Bool
-    , viewer : Maybe Viewer
-    , currentUser : Maybe Mastodon.Model.Account
-    , currentView : CurrentView
-    }
 
 
 extractAuthCode : Navigation.Location -> Maybe String
@@ -171,6 +51,8 @@ init flags location =
         , localTimeline = []
         , globalTimeline = []
         , accountTimeline = []
+        , accountFollowers = []
+        , accountFollowing = []
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -180,100 +62,7 @@ init flags location =
         , currentView = LocalTimelineView
         , currentUser = Nothing
         }
-            ! [ initCommands flags.registration flags.client authCode ]
-
-
-initCommands : Maybe Mastodon.Model.AppRegistration -> Maybe Mastodon.Model.Client -> Maybe String -> Cmd Msg
-initCommands registration client authCode =
-    Cmd.batch <|
-        case authCode of
-            Just authCode ->
-                case registration of
-                    Just registration ->
-                        [ Mastodon.Http.getAccessToken registration authCode
-                            |> Mastodon.Http.send (MastodonEvent << AccessToken)
-                        ]
-
-                    Nothing ->
-                        []
-
-            Nothing ->
-                [ loadUserAccount client, loadTimelines client ]
-
-
-registerApp : Model -> Cmd Msg
-registerApp { server, location } =
-    let
-        appUrl =
-            location.origin ++ location.pathname
-
-        cleanServer =
-            if String.endsWith "/" server then
-                String.dropRight 1 server
-            else
-                server
-    in
-        Mastodon.Http.register
-            cleanServer
-            "tooty"
-            appUrl
-            "read write follow"
-            "https://github.com/n1k0/tooty"
-            |> Mastodon.Http.send (MastodonEvent << AppRegistered)
-
-
-saveClient : Mastodon.Model.Client -> Cmd Msg
-saveClient client =
-    Mastodon.Encoder.clientEncoder client
-        |> Encode.encode 0
-        |> Ports.saveClient
-
-
-saveRegistration : Mastodon.Model.AppRegistration -> Cmd Msg
-saveRegistration registration =
-    Mastodon.Encoder.registrationEncoder registration
-        |> Encode.encode 0
-        |> Ports.saveRegistration
-
-
-loadNotifications : Maybe Mastodon.Model.Client -> Cmd Msg
-loadNotifications client =
-    case client of
-        Just client ->
-            Mastodon.Http.fetchNotifications client
-                |> Mastodon.Http.send (MastodonEvent << Notifications)
-
-        Nothing ->
-            Cmd.none
-
-
-loadUserAccount : Maybe Mastodon.Model.Client -> Cmd Msg
-loadUserAccount client =
-    case client of
-        Just client ->
-            Mastodon.Http.userAccount client
-                |> Mastodon.Http.send (MastodonEvent << CurrentUser)
-
-        Nothing ->
-            Cmd.none
-
-
-loadTimelines : Maybe Mastodon.Model.Client -> Cmd Msg
-loadTimelines client =
-    case client of
-        Just client ->
-            Cmd.batch
-                [ Mastodon.Http.fetchUserTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << UserTimeline)
-                , Mastodon.Http.fetchLocalTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << LocalTimeline)
-                , Mastodon.Http.fetchGlobalTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << GlobalTimeline)
-                , loadNotifications <| Just client
-                ]
-
-        Nothing ->
-            Cmd.none
+            ! [ Command.initCommands flags.registration flags.client authCode ]
 
 
 preferredTimeline : Model -> CurrentView
@@ -289,35 +78,23 @@ truncate entries =
     List.take maxBuffer entries
 
 
-postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
-postStatus client draft =
-    Mastodon.Http.postStatus client draft
-        |> Mastodon.Http.send (MastodonEvent << StatusPosted)
-
-
-deleteStatus : Mastodon.Model.Client -> Int -> Cmd Msg
-deleteStatus client id =
-    Mastodon.Http.deleteStatus client id
-        |> Mastodon.Http.send (MastodonEvent << StatusDeleted)
-
-
-errorText : Mastodon.Model.Error -> String
+errorText : Error -> String
 errorText error =
     case error of
-        Mastodon.Model.MastodonError statusCode statusMsg errorMsg ->
+        MastodonError statusCode statusMsg errorMsg ->
             "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
-        Mastodon.Model.ServerError statusCode statusMsg errorMsg ->
+        ServerError statusCode statusMsg errorMsg ->
             "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
-        Mastodon.Model.TimeoutError ->
+        TimeoutError ->
             "Request timed out."
 
-        Mastodon.Model.NetworkError ->
+        NetworkError ->
             "Unreachable host."
 
 
-toStatusRequestBody : Draft -> Mastodon.Model.StatusRequestBody
+toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
     , in_reply_to_id =
@@ -333,7 +110,7 @@ toStatusRequestBody draft =
     }
 
 
-updateTimelinesWithBoolFlag : Int -> Bool -> (Mastodon.Model.Status -> Mastodon.Model.Status) -> Model -> Model
+updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
         update flag status =
@@ -351,15 +128,17 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
 
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
+    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | favourited = Just flag }) model
 
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
+    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
 
 
-deleteStatusFromTimeline : Int -> List Mastodon.Model.Status -> List Mastodon.Model.Status
+deleteStatusFromTimeline : Int -> List Status -> List Status
 deleteStatusFromTimeline statusId timeline =
     timeline
         |> List.filter
@@ -371,7 +150,7 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
-updateDraft : DraftMsg -> Mastodon.Model.Account -> Draft -> ( Draft, Cmd Msg )
+updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg currentUser draft =
     case draftMsg of
         ClearDraft ->
@@ -432,12 +211,12 @@ processMastodonEvent msg model =
                 Ok { server, accessToken } ->
                     let
                         client =
-                            Mastodon.Model.Client server accessToken
+                            Client server accessToken
                     in
                         { model | client = Just client }
-                            ! [ loadTimelines <| Just client
+                            ! [ Command.loadTimelines <| Just client
                               , Navigation.modifyUrl model.location.pathname
-                              , saveClient client
+                              , Command.saveClient client
                               ]
 
                 Err error ->
@@ -447,8 +226,8 @@ processMastodonEvent msg model =
             case result of
                 Ok registration ->
                     { model | registration = Just registration }
-                        ! [ saveRegistration registration
-                          , Navigation.load <| Mastodon.Http.getAuthorizationUrl registration
+                        ! [ Command.saveRegistration registration
+                          , Command.navigateToAuthUrl registration
                           ]
 
                 Err error ->
@@ -457,11 +236,7 @@ processMastodonEvent msg model =
         ContextLoaded status result ->
             case result of
                 Ok context ->
-                    let
-                        thread =
-                            Thread status context
-                    in
-                        { model | currentView = ThreadView thread } ! []
+                    { model | currentView = ThreadView (Thread status context) } ! []
 
                 Err error ->
                     { model
@@ -481,7 +256,7 @@ processMastodonEvent msg model =
         FavoriteAdded result ->
             case result of
                 Ok status ->
-                    processFavourite status.id True model ! [ loadNotifications model.client ]
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -489,7 +264,7 @@ processMastodonEvent msg model =
         FavoriteRemoved result ->
             case result of
                 Ok status ->
-                    processFavourite status.id False model ! [ loadNotifications model.client ]
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -500,7 +275,7 @@ processMastodonEvent msg model =
                     { model | localTimeline = localTimeline } ! []
 
                 Err error ->
-                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         Notifications result ->
             case result of
@@ -508,7 +283,7 @@ processMastodonEvent msg model =
                     { model | notifications = Mastodon.Helper.aggregateNotifications notifications } ! []
 
                 Err error ->
-                    { model | notifications = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         GlobalTimeline result ->
             case result of
@@ -516,12 +291,12 @@ processMastodonEvent msg model =
                     { model | globalTimeline = globalTimeline } ! []
 
                 Err error ->
-                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         Reblogged result ->
             case result of
                 Ok status ->
-                    model ! [ loadNotifications model.client ]
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -545,15 +320,16 @@ processMastodonEvent msg model =
         Unreblogged result ->
             case result of
                 Ok status ->
-                    model ! [ loadNotifications model.client ]
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        Account result ->
+        AccountReceived result ->
             case result of
                 Ok account ->
-                    { model | currentView = AccountView account } ! []
+                    { model | currentView = AccountView account }
+                        ! [ Command.loadAccountInfo model.client account.id ]
 
                 Err error ->
                     { model
@@ -570,13 +346,29 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        AccountFollowers result ->
+            case result of
+                Ok statuses ->
+                    { model | accountFollowers = statuses } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountFollowing result ->
+            case result of
+                Ok statuses ->
+                    { model | accountFollowing = statuses } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         UserTimeline result ->
             case result of
                 Ok userTimeline ->
                     { model | userTimeline = userTimeline } ! []
 
                 Err error ->
-                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
 
 processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
@@ -672,9 +464,6 @@ update msg model =
         NoOp ->
             model ! []
 
-        DomResult result ->
-            model ! []
-
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =
@@ -696,76 +485,28 @@ update msg model =
             model ! []
 
         Register ->
-            model ! [ registerApp model ]
+            model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            case model.client of
-                Just client ->
-                    model
-                        ! [ Mastodon.Http.context client status.id
-                                |> Mastodon.Http.send (MastodonEvent << (ContextLoaded status))
-                          ]
-
-                Nothing ->
-                    model ! []
+            model ! [ Command.loadThread model.client status ]
 
         CloseThread ->
             { model | currentView = preferredTimeline model } ! []
 
         DeleteStatus id ->
-            case model.client of
-                Just client ->
-                    model ! [ deleteStatus client id ]
+            model ! [ Command.deleteStatus model.client id ]
 
-                Nothing ->
-                    model ! []
+        ReblogStatus id ->
+            processReblog id True model ! [ Command.reblogStatus model.client id ]
 
-        Reblog id ->
-            -- Note: The case of reblogging is specific as it seems the server
-            -- response takes a lot of time to be received by the client, so we
-            -- perform optimistic updates here.
-            case model.client of
-                Just client ->
-                    processReblog id True model
-                        ! [ Mastodon.Http.reblog client id
-                                |> Mastodon.Http.send (MastodonEvent << Reblogged)
-                          ]
-
-                Nothing ->
-                    model ! []
-
-        Unreblog id ->
-            case model.client of
-                Just client ->
-                    processReblog id False model
-                        ! [ Mastodon.Http.unfavourite client id
-                                |> Mastodon.Http.send (MastodonEvent << Unreblogged)
-                          ]
-
-                Nothing ->
-                    model ! []
+        UnreblogStatus id ->
+            processReblog id False model ! [ Command.unreblogStatus model.client id ]
 
         AddFavorite id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.Http.favourite client id
-                            |> Mastodon.Http.send (MastodonEvent << FavoriteAdded)
-                        ]
-
-                    Nothing ->
-                        []
+            processFavourite id True model ! [ Command.favouriteStatus model.client id ]
 
         RemoveFavorite id ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.Http.unfavourite client id
-                            |> Mastodon.Http.send (MastodonEvent << FavoriteRemoved)
-                        ]
-
-                    Nothing ->
-                        []
+            processFavourite id False model ! [ Command.unfavouriteStatus model.client id ]
 
         DraftEvent draftMsg ->
             case model.currentUser of
@@ -787,31 +528,20 @@ update msg model =
                 { model | viewer = viewer } ! [ commands ]
 
         SubmitDraft ->
-            model
-                ! case model.client of
-                    Just client ->
-                        [ postStatus client <| toStatusRequestBody model.draft ]
-
-                    Nothing ->
-                        []
+            model ! [ Command.postStatus model.client <| toStatusRequestBody model.draft ]
 
         LoadAccount accountId ->
-            {-
-               @TODO
-               When requesting a user profile, we should load a new "page"
-               so that the URL in the browser matches the user displayed
-            -}
             { model | currentView = preferredTimeline model }
-                ! case model.client of
-                    Just client ->
-                        [ Mastodon.Http.fetchAccount client accountId
-                            |> Mastodon.Http.send (MastodonEvent << Account)
-                        , Mastodon.Http.fetchAccountTimeline client accountId
-                            |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
-                        ]
+                ! [ Command.loadAccount model.client accountId ]
 
-                    Nothing ->
-                        []
+        ViewAccountFollowers account ->
+            { model | currentView = AccountFollowersView account model.accountFollowers } ! []
+
+        ViewAccountFollowing account ->
+            { model | currentView = AccountFollowingView account model.accountFollowing } ! []
+
+        ViewAccountStatuses account ->
+            { model | currentView = AccountView account } ! []
 
         UseGlobalTimeline flag ->
             let
@@ -820,11 +550,17 @@ update msg model =
             in
                 { model | currentView = preferredTimeline newModel } ! []
 
-        ClearOpenedAccount ->
-            { model | currentView = preferredTimeline model } ! []
+        CloseAccount ->
+            { model
+                | currentView = preferredTimeline model
+                , accountTimeline = []
+                , accountFollowing = []
+                , accountFollowers = []
+            }
+                ! []
 
         ScrollColumn context ->
-            model ! [ Task.attempt DomResult <| Dom.Scroll.toTop context ]
+            model ! [ Task.attempt (always NoOp) <| Dom.Scroll.toTop context ]
 
 
 subscriptions : Model -> Sub Msg

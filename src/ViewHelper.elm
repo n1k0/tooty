@@ -15,7 +15,7 @@ import HtmlParser
 import Json.Decode as Decode
 import String.Extra exposing (replace)
 import Mastodon.Model
-import Model exposing (Msg(LoadAccount))
+import Types exposing (..)
 
 
 -- Custom Events
@@ -83,7 +83,7 @@ createLinkNode attrs children mentions =
             Nothing ->
                 Html.node "a"
                     ((List.map toAttribute attrs)
-                        ++ [ onClickWithStop Model.NoOp, target "_blank" ]
+                        ++ [ onClickWithStop NoOp, target "_blank" ]
                     )
                     (toVirtualDom mentions children)
 
@@ -91,10 +91,8 @@ createLinkNode attrs children mentions =
 getHrefLink : List ( String, String ) -> Maybe String
 getHrefLink attrs =
     attrs
-        |> List.filter
-            (\( name, value ) -> (name == "href"))
-        |> List.map
-            (\( name, value ) -> value)
+        |> List.filter (\( name, value ) -> (name == "href"))
+        |> List.map (\( name, value ) -> value)
         |> List.head
 
 

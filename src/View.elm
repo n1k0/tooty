@@ -6,8 +6,8 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (elemIndex, getAt)
 import Mastodon.Helper
-import Mastodon.Model
-import Model exposing (..)
+import Mastodon.Model exposing (..)
+import Types exposing (..)
 import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
@@ -66,7 +66,7 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
-accountLink : Mastodon.Model.Account -> Html Msg
+accountLink : Account -> Html Msg
 accountLink account =
     a
         [ href account.url
@@ -75,7 +75,7 @@ accountLink account =
         [ text <| "@" ++ account.username ]
 
 
-accountAvatarLink : Mastodon.Model.Account -> Html Msg
+accountAvatarLink : Account -> Html Msg
 accountAvatarLink account =
     a
         [ href account.url
@@ -85,12 +85,7 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview :
-    String
-    -> Maybe Bool
-    -> List Mastodon.Model.Attachment
-    -> Mastodon.Model.Attachment
-    -> Html Msg
+attachmentPreview : String -> Maybe Bool -> List Attachment -> Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
@@ -133,7 +128,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
                 [ media ]
 
 
-attachmentListView : String -> Mastodon.Model.Status -> Html Msg
+attachmentListView : String -> Status -> Html Msg
 attachmentListView context { media_attachments, sensitive } =
     case media_attachments of
         [] ->
@@ -144,7 +139,7 @@ attachmentListView context { media_attachments, sensitive } =
                 List.map (attachmentPreview context sensitive attachments) attachments
 
 
-statusContentView : String -> Mastodon.Model.Status -> Html Msg
+statusContentView : String -> Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
@@ -170,7 +165,7 @@ statusContentView context status =
                     ]
 
 
-statusView : String -> Mastodon.Model.Status -> Html Msg
+statusView : String -> Status -> Html Msg
 statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
@@ -183,7 +178,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
             ]
     in
         case reblog of
-            Just (Mastodon.Model.Reblog reblog) ->
+            Just (Reblog reblog) ->
                 div [ class "reblog" ]
                     [ p [ class "status-info" ]
                         [ icon "fire"
@@ -207,58 +202,94 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-accountTimelineView :
-    Mastodon.Model.Account
-    -> List Mastodon.Model.Status
-    -> String
-    -> String
-    -> Html Msg
-accountTimelineView account statuses label iconName =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default" ]
-            [ closeablePanelheading iconName label ClearOpenedAccount
-            , div [ class "timeline" ]
-                [ div
-                    [ class "account-detail"
-                    , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
-                    ]
-                    [ div [ class "opacity-layer" ]
-                        [ img [ src account.avatar ] []
-                        , span [ class "account-display-name" ] [ text account.display_name ]
-                        , span [ class "account-username" ] [ text ("@" ++ account.username) ]
-                        , span [ class "account-note" ] (formatContent account.note [])
-                        ]
-                    ]
-                , div [ class "row account-infos" ]
-                    [ div [ class "col-md-4" ]
-                        [ text "Statuses"
-                        , br [] []
-                        , text <| toString account.statuses_count
-                        ]
-                    , div [ class "col-md-4" ]
-                        [ text "Following"
-                        , br [] []
-                        , text <| toString account.following_count
-                        ]
-                    , div [ class "col-md-4" ]
-                        [ text "Followers"
-                        , br [] []
-                        , text <| toString account.followers_count
-                        ]
-                    ]
-                , ul [ class "list-group" ] <|
-                    List.map
-                        (\s ->
-                            li [ class "list-group-item status" ]
-                                [ statusView "account" s ]
-                        )
-                        statuses
+followView : Account -> Html Msg
+followView account =
+    div [ class "follow-entry" ]
+        [ accountAvatarLink account
+        , div [ class "username" ]
+            [ strong []
+                [ text <|
+                    if account.display_name /= "" then
+                        account.display_name
+                    else
+                        account.username
                 ]
+            , br [] []
+            , text <| "@" ++ account.acct
             ]
         ]
 
 
-statusActionsView : Mastodon.Model.Status -> Mastodon.Model.Account -> Html Msg
+accountCounterLink : String -> Int -> (Account -> Msg) -> Account -> Html Msg
+accountCounterLink label count tagger account =
+    a
+        [ href ""
+        , class "col-md-4"
+        , onClickWithPreventAndStop <| tagger account
+        ]
+        [ text label
+        , br [] []
+        , text <| toString count
+        ]
+
+
+accountView : String -> String -> Account -> Html Msg -> Html Msg
+accountView label iconName account panelContent =
+    let
+        { statuses_count, following_count, followers_count } =
+            account
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default" ]
+                [ closeablePanelheading iconName label CloseAccount
+                , div [ class "timeline" ]
+                    [ div
+                        [ class "account-detail"
+                        , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
+                        ]
+                        [ div [ class "opacity-layer" ]
+                            [ img [ src account.avatar ] []
+                            , span [ class "account-display-name" ] [ text account.display_name ]
+                            , span [ class "account-username" ] [ text ("@" ++ account.username) ]
+                            , span [ class "account-note" ] (formatContent account.note [])
+                            ]
+                        ]
+                    , div [ class "row account-infos" ]
+                        [ accountCounterLink "Statuses" statuses_count ViewAccountStatuses account
+                        , accountCounterLink "Following" following_count ViewAccountFollowing account
+                        , accountCounterLink "Followers" followers_count ViewAccountFollowers account
+                        ]
+                    , panelContent
+                    ]
+                ]
+            ]
+
+
+accountTimelineView : String -> List Status -> Account -> Html Msg
+accountTimelineView label statuses account =
+    accountView label "user" account <|
+        ul [ class "list-group" ] <|
+            List.map
+                (\s ->
+                    li [ class "list-group-item status" ]
+                        [ statusView "account" s ]
+                )
+                statuses
+
+
+accountFollowView : String -> List Account -> Account -> Html Msg
+accountFollowView label accounts account =
+    accountView label "user" account <|
+        ul [ class "list-group" ] <|
+            List.map
+                (\account ->
+                    li [ class "list-group-item status" ]
+                        [ followView account ]
+                )
+                accounts
+
+
+statusActionsView : Status -> Account -> Html Msg
 statusActionsView status currentUser =
     let
         sourceStatus =
@@ -270,10 +301,10 @@ statusActionsView status currentUser =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", Unreblog sourceStatus.id )
+                    ( baseBtnClasses ++ " reblogged", UnreblogStatus sourceStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, Reblog sourceStatus.id )
+                    ( baseBtnClasses, ReblogStatus sourceStatus.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
@@ -322,7 +353,7 @@ statusActionsView status currentUser =
             ]
 
 
-statusEntryView : String -> String -> Mastodon.Model.Account -> Mastodon.Model.Status -> Html Msg
+statusEntryView : String -> String -> Account -> Status -> Html Msg
 statusEntryView context className currentUser status =
     let
         nsfwClass =
@@ -339,13 +370,7 @@ statusEntryView context className currentUser status =
             ]
 
 
-timelineView :
-    String
-    -> String
-    -> String
-    -> Mastodon.Model.Account
-    -> List Mastodon.Model.Status
-    -> Html Msg
+timelineView : String -> String -> String -> Account -> List Status -> Html Msg
 timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -358,7 +383,7 @@ timelineView label iconName context currentUser statuses =
         ]
 
 
-notificationHeading : List Mastodon.Model.Account -> String -> String -> Html Msg
+notificationHeading : List Account -> String -> String -> Html Msg
 notificationHeading accounts str iconType =
     div [ class "status-info" ]
         [ div [ class "avatars" ] <| List.map accountAvatarLink accounts
@@ -371,12 +396,7 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView :
-    String
-    -> Mastodon.Model.Account
-    -> Mastodon.Model.Status
-    -> Mastodon.Model.NotificationAggregate
-    -> Html Msg
+notificationStatusView : String -> Account -> Status -> NotificationAggregate -> Html Msg
 notificationStatusView context currentUser status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -393,7 +413,7 @@ notificationStatusView context currentUser status { type_, accounts } =
         ]
 
 
-notificationFollowView : Mastodon.Model.Account -> Mastodon.Model.NotificationAggregate -> Html Msg
+notificationFollowView : Account -> NotificationAggregate -> Html Msg
 notificationFollowView currentUser { accounts } =
     let
         profileView account =
@@ -414,10 +434,7 @@ notificationFollowView currentUser { accounts } =
             ]
 
 
-notificationEntryView :
-    Mastodon.Model.Account
-    -> Mastodon.Model.NotificationAggregate
-    -> Html Msg
+notificationEntryView : Account -> NotificationAggregate -> Html Msg
 notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -429,7 +446,7 @@ notificationEntryView currentUser notification =
         ]
 
 
-notificationListView : Mastodon.Model.Account -> List Mastodon.Model.NotificationAggregate -> Html Msg
+notificationListView : Account -> List NotificationAggregate -> Html Msg
 notificationListView currentUser notifications =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -465,7 +482,7 @@ draftReplyToView draft =
             text ""
 
 
-currentUserView : Maybe Mastodon.Model.Account -> Html Msg
+currentUserView : Maybe Account -> Html Msg
 currentUserView currentUser =
     case currentUser of
         Just currentUser ->
@@ -594,7 +611,7 @@ draftView { draft, currentUser } =
             ]
 
 
-threadView : Mastodon.Model.Account -> Thread -> Html Msg
+threadView : Account -> Thread -> Html Msg
 threadView currentUser thread =
     let
         statuses =
@@ -663,7 +680,7 @@ homepageView model =
                     model.userTimeline
                 , notificationListView currentUser model.notifications
                 , case model.currentView of
-                    Model.LocalTimelineView ->
+                    LocalTimelineView ->
                         timelineView
                             "Local timeline"
                             "th-large"
@@ -671,7 +688,7 @@ homepageView model =
                             currentUser
                             model.localTimeline
 
-                    Model.GlobalTimelineView ->
+                    GlobalTimelineView ->
                         timelineView
                             "Global timeline"
                             "globe"
@@ -679,11 +696,16 @@ homepageView model =
                             currentUser
                             model.globalTimeline
 
-                    Model.AccountView account ->
-                        -- Todo: Load the user timeline
-                        accountTimelineView account model.accountTimeline "Account" "user"
+                    AccountView account ->
+                        accountTimelineView "Account" model.accountTimeline account
 
-                    Model.ThreadView thread ->
+                    AccountFollowersView account followers ->
+                        accountFollowView "Account followers" model.accountFollowers account
+
+                    AccountFollowingView account following ->
+                        accountFollowView "Account following" model.accountFollowing account
+
+                    ThreadView thread ->
                         threadView currentUser thread
                 ]
 

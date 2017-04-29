@@ -11,6 +11,8 @@ module Mastodon.Http
         , getAccessToken
         , fetchAccount
         , fetchAccountTimeline
+        , fetchAccountFollowers
+        , fetchAccountFollowing
         , fetchLocalTimeline
         , fetchNotifications
         , fetchGlobalTimeline
@@ -132,6 +134,16 @@ fetchAccountTimeline client id =
 fetchNotifications : Client -> Request (List Notification)
 fetchNotifications client =
     fetch client (ApiUrl.notifications) <| Decode.list notificationDecoder
+
+
+fetchAccountFollowers : Client -> Int -> Request (List Account)
+fetchAccountFollowers client accountId =
+    fetch client (ApiUrl.followers accountId) <| Decode.list accountDecoder
+
+
+fetchAccountFollowing : Client -> Int -> Request (List Account)
+fetchAccountFollowing client accountId =
+    fetch client (ApiUrl.following accountId) <| Decode.list accountDecoder
 
 
 userAccount : Client -> Request Account

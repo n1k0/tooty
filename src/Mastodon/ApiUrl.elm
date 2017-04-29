@@ -6,6 +6,8 @@ module Mastodon.ApiUrl
         , userAccount
         , account
         , accountTimeline
+        , followers
+        , following
         , status
         , homeTimeline
         , publicTimeline
@@ -52,6 +54,16 @@ account id =
 userAccount : Server -> String
 userAccount server =
     server ++ accounts ++ "verify_credentials"
+
+
+followers : Int -> String
+followers id =
+    (account id) ++ "/followers"
+
+
+following : Int -> String
+following id =
+    (account id) ++ "/following"
 
 
 homeTimeline : String
