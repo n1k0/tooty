@@ -216,31 +216,28 @@ followButton currentUser relationship account =
         text ""
     else
         let
-            ( follower, following, followEvent, btnClasses, iconName, tooltip ) =
+            ( followEvent, btnClasses, iconName, tooltip ) =
                 case relationship of
-                    Just relationship ->
-                        ( relationship.followed_by
-                        , relationship.following
-                        , if relationship.following then
-                            UnfollowAccount account.id
-                          else
-                            FollowAccount account.id
-                        , if relationship.following then
-                            "btn btn-default btn-primary"
-                          else
-                            "btn btn-default"
-                        , if relationship.following then
-                            "eye-close"
-                          else
-                            "eye-open"
-                        , if relationship.following then
-                            "Unfollow"
-                          else
-                            "Follow"
+                    Nothing ->
+                        ( NoOp
+                        , "btn btn-default btn-disabled"
+                        , "question-sign"
+                        , "Unknown relationship"
                         )
 
-                    Nothing ->
-                        ( False, False, NoOp, "btn btn-default btn-disabled", "eye-open", "" )
+                    Just relationship ->
+                        if relationship.following then
+                            ( UnfollowAccount account.id
+                            , "btn btn-default btn-primary"
+                            , "eye-close"
+                            , "Unfollow"
+                            )
+                        else
+                            ( FollowAccount account.id
+                            , "btn btn-default"
+                            , "eye-open"
+                            , "Follow"
+                            )
         in
             button [ class btnClasses, title tooltip, onClick followEvent ]
                 [ icon iconName ]
