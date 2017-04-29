@@ -6,6 +6,8 @@ module Mastodon.Http
         , unreblog
         , favourite
         , unfavourite
+        , follow
+        , unfollow
         , register
         , getAuthorizationUrl
         , getAccessToken
@@ -17,6 +19,7 @@ module Mastodon.Http
         , fetchNotifications
         , fetchGlobalTimeline
         , fetchUserTimeline
+        , fetchRelationships
         , postStatus
         , deleteStatus
         , userAccount
@@ -116,6 +119,11 @@ fetchUserTimeline client =
     fetch client ApiUrl.homeTimeline <| Decode.list statusDecoder
 
 
+fetchRelationships : Client -> List Int -> Request (List Relationship)
+fetchRelationships client ids =
+    fetch client (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
+
+
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
     fetch client (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
@@ -201,3 +209,17 @@ unfavourite client id =
     HttpBuilder.post (ApiUrl.unfavourite client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+
+
+follow : Client -> Int -> Request Relationship
+follow client id =
+    HttpBuilder.post (ApiUrl.follow client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
+
+
+unfollow : Client -> Int -> Request Relationship
+unfollow client id =
+    HttpBuilder.post (ApiUrl.unfollow client.server id)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)

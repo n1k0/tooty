@@ -53,6 +53,8 @@ init flags location =
         , accountTimeline = []
         , accountFollowers = []
         , accountFollowing = []
+        , accountRelationships = []
+        , accountRelationship = Nothing
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -150,6 +152,38 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
+{-| Update viewed account relationships as well as the relationship with the
+current connected user, both according to the "following" status provided.
+-}
+processFollowEvent : Relationship -> Bool -> Model -> Model
+processFollowEvent relationship flag model =
+    let
+        updateRelationship r =
+            if r.id == relationship.id then
+                { r | following = flag }
+            else
+                r
+
+        accountRelationships =
+            model.accountRelationships |> List.map updateRelationship
+
+        accountRelationship =
+            case model.accountRelationship of
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
+                        Just { relationship | following = flag }
+                    else
+                        model.accountRelationship
+
+                Nothing ->
+                    Nothing
+    in
+        { model
+            | accountRelationships = accountRelationships
+            , accountRelationship = accountRelationship
+        }
+
+
 updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg currentUser draft =
     case draftMsg of
@@ -218,6 +252,22 @@ processMastodonEvent msg model =
                               , Navigation.modifyUrl model.location.pathname
                               , Command.saveClient client
                               ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountFollowed result ->
+            case result of
+                Ok relationship ->
+                    processFollowEvent relationship True model ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountUnfollowed result ->
+            case result of
+                Ok relationship ->
+                    processFollowEvent relationship False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -329,7 +379,7 @@ processMastodonEvent msg model =
             case result of
                 Ok account ->
                     { model | currentView = AccountView account }
-                        ! [ Command.loadAccountInfo model.client account.id ]
+                        ! [ Command.loadAccountTimeline model.client account.id ]
 
                 Err error ->
                     { model
@@ -348,16 +398,37 @@ processMastodonEvent msg model =
 
         AccountFollowers result ->
             case result of
-                Ok statuses ->
-                    { model | accountFollowers = statuses } ! []
+                Ok followers ->
+                    { model | accountFollowers = followers }
+                        ! [ Command.loadRelationships model.client <| List.map .id followers ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowing result ->
             case result of
-                Ok statuses ->
-                    { model | accountFollowing = statuses } ! []
+                Ok following ->
+                    { model | accountFollowing = following }
+                        ! [ Command.loadRelationships model.client <| List.map .id following ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountRelationship result ->
+            case result of
+                Ok [ relationship ] ->
+                    { model | accountRelationship = Just relationship } ! []
+
+                Ok _ ->
+                    model ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountRelationships result ->
+            case result of
+                Ok relationships ->
+                    { model | accountRelationships = relationships } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -493,6 +564,12 @@ update msg model =
         CloseThread ->
             { model | currentView = preferredTimeline model } ! []
 
+        FollowAccount id ->
+            model ! [ Command.follow model.client id ]
+
+        UnfollowAccount id ->
+            model ! [ Command.unfollow model.client id ]
+
         DeleteStatus id ->
             model ! [ Command.deleteStatus model.client id ]
 
@@ -531,14 +608,22 @@ update msg model =
             model ! [ Command.postStatus model.client <| toStatusRequestBody model.draft ]
 
         LoadAccount accountId ->
-            { model | currentView = preferredTimeline model }
+            { model
+                | accountTimeline = []
+                , accountFollowers = []
+                , accountFollowing = []
+                , accountRelationships = []
+                , accountRelationship = Nothing
+            }
                 ! [ Command.loadAccount model.client accountId ]
 
         ViewAccountFollowers account ->
-            { model | currentView = AccountFollowersView account model.accountFollowers } ! []
+            { model | currentView = AccountFollowersView account model.accountFollowers }
+                ! [ Command.loadAccountFollowers model.client account.id ]
 
         ViewAccountFollowing account ->
-            { model | currentView = AccountFollowingView account model.accountFollowing } ! []
+            { model | currentView = AccountFollowingView account model.accountFollowing }
+                ! [ Command.loadAccountFollowing model.client account.id ]
 
         ViewAccountStatuses account ->
             { model | currentView = AccountView account } ! []

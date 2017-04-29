@@ -11,6 +11,7 @@ module Mastodon.Decoder
         , notificationDecoder
         , tagDecoder
         , reblogDecoder
+        , relationshipDecoder
         , statusDecoder
         , webSocketPayloadDecoder
         , webSocketEventDecoder
@@ -98,6 +99,17 @@ notificationDecoder =
         |> Pipe.required "created_at" Decode.string
         |> Pipe.required "account" accountDecoder
         |> Pipe.optional "status" (Decode.nullable statusDecoder) Nothing
+
+
+relationshipDecoder : Decode.Decoder Relationship
+relationshipDecoder =
+    Pipe.decode Relationship
+        |> Pipe.required "id" Decode.int
+        |> Pipe.required "blocking" Decode.bool
+        |> Pipe.required "followed_by" Decode.bool
+        |> Pipe.required "following" Decode.bool
+        |> Pipe.required "muting" Decode.bool
+        |> Pipe.required "requested" Decode.bool
 
 
 tagDecoder : Decode.Decoder Tag

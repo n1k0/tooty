@@ -4,7 +4,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import List.Extra exposing (elemIndex, getAt)
+import List.Extra exposing (find, elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -12,6 +12,14 @@ import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
+
+
+type alias CurrentUser =
+    Account
+
+
+type alias CurrentUserRelation =
+    Maybe Relationship
 
 
 visibilities : Dict.Dict String String
@@ -202,21 +210,60 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-followView : Account -> Html Msg
-followView account =
+followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
+followButton currentUser relationship account =
+    if Mastodon.Helper.sameAccount account currentUser then
+        text ""
+    else
+        let
+            ( followEvent, btnClasses, iconName, tooltip ) =
+                case relationship of
+                    Nothing ->
+                        ( NoOp
+                        , "btn btn-default btn-disabled"
+                        , "question-sign"
+                        , "Unknown relationship"
+                        )
+
+                    Just relationship ->
+                        if relationship.following then
+                            ( UnfollowAccount account.id
+                            , "btn btn-default btn-primary"
+                            , "eye-close"
+                            , "Unfollow"
+                            )
+                        else
+                            ( FollowAccount account.id
+                            , "btn btn-default"
+                            , "eye-open"
+                            , "Follow"
+                            )
+        in
+            button [ class btnClasses, title tooltip, onClick followEvent ]
+                [ icon iconName ]
+
+
+followView : CurrentUser -> Maybe Relationship -> Account -> Html Msg
+followView currentUser relationship account =
     div [ class "follow-entry" ]
         [ accountAvatarLink account
-        , div [ class "username" ]
+        , div [ class "userinfo" ]
             [ strong []
-                [ text <|
-                    if account.display_name /= "" then
-                        account.display_name
-                    else
-                        account.username
+                [ a
+                    [ href account.url
+                    , onClickWithPreventAndStop <| LoadAccount account.id
+                    ]
+                    [ text <|
+                        if account.display_name /= "" then
+                            account.display_name
+                        else
+                            account.username
+                    ]
                 ]
             , br [] []
             , text <| "@" ++ account.acct
             ]
+        , followButton currentUser relationship account
         ]
 
 
@@ -233,22 +280,23 @@ accountCounterLink label count tagger account =
         ]
 
 
-accountView : String -> String -> Account -> Html Msg -> Html Msg
-accountView label iconName account panelContent =
+accountView : CurrentUser -> Account -> CurrentUserRelation -> Html Msg -> Html Msg
+accountView currentUser account relationship panelContent =
     let
         { statuses_count, following_count, followers_count } =
             account
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ closeablePanelheading iconName label CloseAccount
+                [ closeablePanelheading "user" "Account" CloseAccount
                 , div [ class "timeline" ]
                     [ div
                         [ class "account-detail"
                         , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
                         ]
                         [ div [ class "opacity-layer" ]
-                            [ img [ src account.avatar ] []
+                            [ followButton currentUser relationship account
+                            , img [ src account.avatar ] []
                             , span [ class "account-display-name" ] [ text account.display_name ]
                             , span [ class "account-username" ] [ text ("@" ++ account.username) ]
                             , span [ class "account-note" ] (formatContent account.note [])
@@ -265,9 +313,9 @@ accountView label iconName account panelContent =
             ]
 
 
-accountTimelineView : String -> List Status -> Account -> Html Msg
-accountTimelineView label statuses account =
-    accountView label "user" account <|
+accountTimelineView : CurrentUser -> List Status -> CurrentUserRelation -> Account -> Html Msg
+accountTimelineView currentUser statuses relationship account =
+    accountView currentUser account relationship <|
         ul [ class "list-group" ] <|
             List.map
                 (\s ->
@@ -277,19 +325,29 @@ accountTimelineView label statuses account =
                 statuses
 
 
-accountFollowView : String -> List Account -> Account -> Html Msg
-accountFollowView label accounts account =
-    accountView label "user" account <|
+accountFollowView :
+    CurrentUser
+    -> List Account
+    -> List Relationship
+    -> CurrentUserRelation
+    -> Account
+    -> Html Msg
+accountFollowView currentUser accounts relationships relationship account =
+    accountView currentUser account relationship <|
         ul [ class "list-group" ] <|
             List.map
                 (\account ->
                     li [ class "list-group-item status" ]
-                        [ followView account ]
+                        [ followView
+                            currentUser
+                            (find (\r -> r.id == account.id) relationships)
+                            account
+                        ]
                 )
                 accounts
 
 
-statusActionsView : Status -> Account -> Html Msg
+statusActionsView : Status -> CurrentUser -> Html Msg
 statusActionsView status currentUser =
     let
         sourceStatus =
@@ -353,7 +411,7 @@ statusActionsView status currentUser =
             ]
 
 
-statusEntryView : String -> String -> Account -> Status -> Html Msg
+statusEntryView : String -> String -> CurrentUser -> Status -> Html Msg
 statusEntryView context className currentUser status =
     let
         nsfwClass =
@@ -370,7 +428,7 @@ statusEntryView context className currentUser status =
             ]
 
 
-timelineView : String -> String -> String -> Account -> List Status -> Html Msg
+timelineView : String -> String -> String -> CurrentUser -> List Status -> Html Msg
 timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -396,7 +454,7 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> Account -> Status -> NotificationAggregate -> Html Msg
+notificationStatusView : String -> CurrentUser -> Status -> NotificationAggregate -> Html Msg
 notificationStatusView context currentUser status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -413,7 +471,7 @@ notificationStatusView context currentUser status { type_, accounts } =
         ]
 
 
-notificationFollowView : Account -> NotificationAggregate -> Html Msg
+notificationFollowView : CurrentUser -> NotificationAggregate -> Html Msg
 notificationFollowView currentUser { accounts } =
     let
         profileView account =
@@ -434,7 +492,7 @@ notificationFollowView currentUser { accounts } =
             ]
 
 
-notificationEntryView : Account -> NotificationAggregate -> Html Msg
+notificationEntryView : CurrentUser -> NotificationAggregate -> Html Msg
 notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -446,7 +504,7 @@ notificationEntryView currentUser notification =
         ]
 
 
-notificationListView : Account -> List NotificationAggregate -> Html Msg
+notificationListView : CurrentUser -> List NotificationAggregate -> Html Msg
 notificationListView currentUser notifications =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -482,7 +540,7 @@ draftReplyToView draft =
             text ""
 
 
-currentUserView : Maybe Account -> Html Msg
+currentUserView : Maybe CurrentUser -> Html Msg
 currentUserView currentUser =
     case currentUser of
         Just currentUser ->
@@ -611,7 +669,7 @@ draftView { draft, currentUser } =
             ]
 
 
-threadView : Account -> Thread -> Html Msg
+threadView : CurrentUser -> Thread -> Html Msg
 threadView currentUser thread =
     let
         statuses =
@@ -697,13 +755,27 @@ homepageView model =
                             model.globalTimeline
 
                     AccountView account ->
-                        accountTimelineView "Account" model.accountTimeline account
+                        accountTimelineView
+                            currentUser
+                            model.accountTimeline
+                            model.accountRelationship
+                            account
 
                     AccountFollowersView account followers ->
-                        accountFollowView "Account followers" model.accountFollowers account
+                        accountFollowView
+                            currentUser
+                            model.accountFollowers
+                            model.accountRelationships
+                            model.accountRelationship
+                            account
 
                     AccountFollowingView account following ->
-                        accountFollowView "Account following" model.accountFollowing account
+                        accountFollowView
+                            currentUser
+                            model.accountFollowing
+                            model.accountRelationships
+                            model.accountRelationship
+                            account
 
                     ThreadView thread ->
                         threadView currentUser thread

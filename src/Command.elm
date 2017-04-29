@@ -8,7 +8,10 @@ module Command
         , loadNotifications
         , loadUserAccount
         , loadAccount
-        , loadAccountInfo
+        , loadAccountTimeline
+        , loadAccountFollowers
+        , loadAccountFollowing
+        , loadRelationships
         , loadThread
         , loadTimelines
         , postStatus
@@ -17,6 +20,8 @@ module Command
         , unreblogStatus
         , favouriteStatus
         , unfavouriteStatus
+        , follow
+        , unfollow
         )
 
 import Json.Encode as Encode
@@ -112,25 +117,56 @@ loadAccount : Maybe Client -> Int -> Cmd Msg
 loadAccount client accountId =
     case client of
         Just client ->
-            Mastodon.Http.fetchAccount client accountId
-                |> Mastodon.Http.send (MastodonEvent << AccountReceived)
+            Cmd.batch
+                [ Mastodon.Http.fetchAccount client accountId
+                    |> Mastodon.Http.send (MastodonEvent << AccountReceived)
+                , Mastodon.Http.fetchRelationships client [ accountId ]
+                    |> Mastodon.Http.send (MastodonEvent << AccountRelationship)
+                ]
 
         Nothing ->
             Cmd.none
 
 
-loadAccountInfo : Maybe Client -> Int -> Cmd Msg
-loadAccountInfo client accountId =
+loadAccountTimeline : Maybe Client -> Int -> Cmd Msg
+loadAccountTimeline client accountId =
     case client of
         Just client ->
-            Cmd.batch
-                [ Mastodon.Http.fetchAccountTimeline client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
-                , Mastodon.Http.fetchAccountFollowers client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
-                , Mastodon.Http.fetchAccountFollowing client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
-                ]
+            Mastodon.Http.fetchAccountTimeline client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
+
+        Nothing ->
+            Cmd.none
+
+
+loadAccountFollowers : Maybe Client -> Int -> Cmd Msg
+loadAccountFollowers client accountId =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchAccountFollowers client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
+
+        Nothing ->
+            Cmd.none
+
+
+loadAccountFollowing : Maybe Client -> Int -> Cmd Msg
+loadAccountFollowing client accountId =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchAccountFollowing client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
+
+        Nothing ->
+            Cmd.none
+
+
+loadRelationships : Maybe Client -> List Int -> Cmd Msg
+loadRelationships client accountIds =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchRelationships client accountIds
+                |> Mastodon.Http.send (MastodonEvent << AccountRelationships)
 
         Nothing ->
             Cmd.none
@@ -226,6 +262,28 @@ unfavouriteStatus client statusId =
         Just client ->
             Mastodon.Http.unfavourite client statusId
                 |> Mastodon.Http.send (MastodonEvent << FavoriteRemoved)
+
+        Nothing ->
+            Cmd.none
+
+
+follow : Maybe Client -> Int -> Cmd Msg
+follow client id =
+    case client of
+        Just client ->
+            Mastodon.Http.follow client id
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowed)
+
+        Nothing ->
+            Cmd.none
+
+
+unfollow : Maybe Client -> Int -> Cmd Msg
+unfollow client id =
+    case client of
+        Just client ->
+            Mastodon.Http.unfollow client id
+                |> Mastodon.Http.send (MastodonEvent << AccountUnfollowed)
 
         Nothing ->
             Cmd.none
