@@ -256,7 +256,7 @@ processMastodonEvent msg model =
         FavoriteAdded result ->
             case result of
                 Ok status ->
-                    model ! []
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -264,7 +264,7 @@ processMastodonEvent msg model =
         FavoriteRemoved result ->
             case result of
                 Ok status ->
-                    model ! []
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -296,7 +296,7 @@ processMastodonEvent msg model =
         Reblogged result ->
             case result of
                 Ok status ->
-                    model ! []
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -320,7 +320,7 @@ processMastodonEvent msg model =
         Unreblogged result ->
             case result of
                 Ok status ->
-                    model ! []
+                    model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
