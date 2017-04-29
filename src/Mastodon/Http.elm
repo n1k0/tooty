@@ -17,6 +17,7 @@ module Mastodon.Http
         , fetchNotifications
         , fetchGlobalTimeline
         , fetchUserTimeline
+        , fetchRelationships
         , postStatus
         , deleteStatus
         , userAccount
@@ -114,6 +115,11 @@ fetchAccount client accountId =
 fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
     fetch client ApiUrl.homeTimeline <| Decode.list statusDecoder
+
+
+fetchRelationships : Client -> List Int -> Request (List Relationship)
+fetchRelationships client ids =
+    fetch client (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
 
 
 fetchLocalTimeline : Client -> Request (List Status)

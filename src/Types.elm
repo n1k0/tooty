@@ -30,6 +30,7 @@ type MastodonMsg
     | AccountFollowers (Result Error (List Account))
     | AccountFollowing (Result Error (List Account))
     | AccountReceived (Result Error Account)
+    | AccountRelationships (Result Error (List Relationship))
     | AccountTimeline (Result Error (List Status))
     | AppRegistered (Result Error AppRegistration)
     | ContextLoaded Status (Result Error Context)
@@ -127,6 +128,7 @@ type alias Model =
     , accountTimeline : List Status
     , accountFollowers : List Account
     , accountFollowing : List Account
+    , accountRelationships : List Relationship
     , notifications : List NotificationAggregate
     , draft : Draft
     , errors : List String

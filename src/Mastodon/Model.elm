@@ -11,6 +11,7 @@ module Mastodon.Model
         , Notification
         , NotificationAggregate
         , Reblog(..)
+        , Relationship
         , Tag
         , Status
         , StatusRequestBody
@@ -146,6 +147,16 @@ type alias NotificationAggregate =
 
 type Reblog
     = Reblog Status
+
+
+type alias Relationship =
+    { id : Int
+    , blocking : Bool
+    , followed_by : Bool
+    , following : Bool
+    , muting : Bool
+    , requested : Bool
+    }
 
 
 type alias Status =

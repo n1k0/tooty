@@ -4,7 +4,7 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import List.Extra exposing (elemIndex, getAt)
+import List.Extra exposing (find, elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -202,22 +202,52 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-followView : Account -> Html Msg
-followView account =
-    div [ class "follow-entry" ]
-        [ accountAvatarLink account
-        , div [ class "username" ]
-            [ strong []
-                [ text <|
-                    if account.display_name /= "" then
-                        account.display_name
-                    else
-                        account.username
+followView : Maybe Relationship -> Account -> Html Msg
+followView relationship account =
+    let
+        ( follower, following, iconName, tooltip ) =
+            case relationship of
+                Just relationship ->
+                    ( relationship.followed_by
+                    , relationship.following
+                    , if relationship.following then
+                        "eye-close"
+                      else
+                        "eye-open"
+                    , if relationship.following then
+                        "Unfollow"
+                      else
+                        "Follow"
+                    )
+
+                Nothing ->
+                    ( False, False, "", "" )
+    in
+        div [ class "follow-entry" ]
+            [ accountAvatarLink account
+            , div [ class "userinfo" ]
+                [ strong []
+                    [ a
+                        [ href account.url
+                        , onClickWithPreventAndStop <| LoadAccount account.id
+                        ]
+                        [ text <|
+                            if account.display_name /= "" then
+                                account.display_name
+                            else
+                                account.username
+                        ]
+                    ]
+                , if follower then
+                    text " follows you"
+                  else
+                    text ""
+                , br [] []
+                , text <| "@" ++ account.acct
                 ]
-            , br [] []
-            , text <| "@" ++ account.acct
+            , button [ class "btn btn-default", title tooltip ]
+                [ icon iconName ]
             ]
-        ]
 
 
 accountCounterLink : String -> Int -> (Account -> Msg) -> Account -> Html Msg
@@ -277,14 +307,17 @@ accountTimelineView label statuses account =
                 statuses
 
 
-accountFollowView : String -> List Account -> Account -> Html Msg
-accountFollowView label accounts account =
+accountFollowView : String -> List Account -> List Relationship -> Account -> Html Msg
+accountFollowView label accounts relationships account =
     accountView label "user" account <|
         ul [ class "list-group" ] <|
             List.map
                 (\account ->
                     li [ class "list-group-item status" ]
-                        [ followView account ]
+                        [ followView
+                            (find (\r -> r.id == account.id) relationships)
+                            account
+                        ]
                 )
                 accounts
 
@@ -700,10 +733,18 @@ homepageView model =
                         accountTimelineView "Account" model.accountTimeline account
 
                     AccountFollowersView account followers ->
-                        accountFollowView "Account followers" model.accountFollowers account
+                        accountFollowView
+                            "Account followers"
+                            model.accountFollowers
+                            model.accountRelationships
+                            account
 
                     AccountFollowingView account following ->
-                        accountFollowView "Account following" model.accountFollowing account
+                        accountFollowView
+                            "Account following"
+                            model.accountFollowing
+                            model.accountRelationships
+                            account
 
                     ThreadView thread ->
                         threadView currentUser thread

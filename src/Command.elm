@@ -8,7 +8,10 @@ module Command
         , loadNotifications
         , loadUserAccount
         , loadAccount
-        , loadAccountInfo
+        , loadAccountTimeline
+        , loadAccountFollowers
+        , loadAccountFollowing
+        , loadRelationships
         , loadThread
         , loadTimelines
         , postStatus
@@ -119,18 +122,45 @@ loadAccount client accountId =
             Cmd.none
 
 
-loadAccountInfo : Maybe Client -> Int -> Cmd Msg
-loadAccountInfo client accountId =
+loadAccountTimeline : Maybe Client -> Int -> Cmd Msg
+loadAccountTimeline client accountId =
     case client of
         Just client ->
-            Cmd.batch
-                [ Mastodon.Http.fetchAccountTimeline client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
-                , Mastodon.Http.fetchAccountFollowers client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
-                , Mastodon.Http.fetchAccountFollowing client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
-                ]
+            Mastodon.Http.fetchAccountTimeline client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
+
+        Nothing ->
+            Cmd.none
+
+
+loadAccountFollowers : Maybe Client -> Int -> Cmd Msg
+loadAccountFollowers client accountId =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchAccountFollowers client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
+
+        Nothing ->
+            Cmd.none
+
+
+loadAccountFollowing : Maybe Client -> Int -> Cmd Msg
+loadAccountFollowing client accountId =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchAccountFollowing client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
+
+        Nothing ->
+            Cmd.none
+
+
+loadRelationships : Maybe Client -> List Int -> Cmd Msg
+loadRelationships client accountIds =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchRelationships client accountIds
+                |> Mastodon.Http.send (MastodonEvent << AccountRelationships)
 
         Nothing ->
             Cmd.none

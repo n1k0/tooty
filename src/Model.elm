@@ -53,6 +53,7 @@ init flags location =
         , accountTimeline = []
         , accountFollowers = []
         , accountFollowing = []
+        , accountRelationships = []
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -329,7 +330,7 @@ processMastodonEvent msg model =
             case result of
                 Ok account ->
                     { model | currentView = AccountView account }
-                        ! [ Command.loadAccountInfo model.client account.id ]
+                        ! [ Command.loadAccountTimeline model.client account.id ]
 
                 Err error ->
                     { model
@@ -348,16 +349,26 @@ processMastodonEvent msg model =
 
         AccountFollowers result ->
             case result of
-                Ok statuses ->
-                    { model | accountFollowers = statuses } ! []
+                Ok followers ->
+                    { model | accountFollowers = followers }
+                        ! [ Command.loadRelationships model.client <| List.map .id followers ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowing result ->
             case result of
-                Ok statuses ->
-                    { model | accountFollowing = statuses } ! []
+                Ok following ->
+                    { model | accountFollowing = following }
+                        ! [ Command.loadRelationships model.client <| List.map .id following ]
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountRelationships result ->
+            case result of
+                Ok relationships ->
+                    { model | accountRelationships = relationships } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -531,14 +542,21 @@ update msg model =
             model ! [ Command.postStatus model.client <| toStatusRequestBody model.draft ]
 
         LoadAccount accountId ->
-            { model | currentView = preferredTimeline model }
+            { model
+                | accountTimeline = []
+                , accountFollowers = []
+                , accountFollowing = []
+                , accountRelationships = []
+            }
                 ! [ Command.loadAccount model.client accountId ]
 
         ViewAccountFollowers account ->
-            { model | currentView = AccountFollowersView account model.accountFollowers } ! []
+            { model | currentView = AccountFollowersView account model.accountFollowers }
+                ! [ Command.loadAccountFollowers model.client account.id ]
 
         ViewAccountFollowing account ->
-            { model | currentView = AccountFollowingView account model.accountFollowing } ! []
+            { model | currentView = AccountFollowingView account model.accountFollowing }
+                ! [ Command.loadAccountFollowing model.client account.id ]
 
         ViewAccountStatuses account ->
             { model | currentView = AccountView account } ! []

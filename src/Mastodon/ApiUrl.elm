@@ -12,6 +12,7 @@ module Mastodon.ApiUrl
         , homeTimeline
         , publicTimeline
         , notifications
+        , relationships
         , statuses
         , context
         , reblog
@@ -54,6 +55,17 @@ account id =
 userAccount : Server -> String
 userAccount server =
     server ++ accounts ++ "verify_credentials"
+
+
+relationships : List Int -> String
+relationships ids =
+    let
+        qs =
+            ids
+                |> List.map (\id -> "id[]=" ++ (toString id))
+                |> String.join "&"
+    in
+        accounts ++ "relationships?" ++ qs
 
 
 followers : Int -> String
