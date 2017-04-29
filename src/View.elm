@@ -233,8 +233,8 @@ accountCounterLink label count tagger account =
         ]
 
 
-accountView : Account -> String -> String -> Html Msg -> Html Msg
-accountView account label iconName panelContent =
+accountView : String -> String -> Account -> Html Msg -> Html Msg
+accountView label iconName account panelContent =
     let
         { statuses_count, following_count, followers_count } =
             account
@@ -265,9 +265,9 @@ accountView account label iconName panelContent =
             ]
 
 
-accountTimelineView : Account -> List Status -> String -> String -> Html Msg
-accountTimelineView account statuses label iconName =
-    accountView account label iconName <|
+accountTimelineView : String -> List Status -> Account -> Html Msg
+accountTimelineView label statuses account =
+    accountView label "user" account <|
         ul [ class "list-group" ] <|
             List.map
                 (\s ->
@@ -277,9 +277,9 @@ accountTimelineView account statuses label iconName =
                 statuses
 
 
-accountFollowView : Account -> List Account -> String -> String -> Html Msg
-accountFollowView account accounts label iconName =
-    accountView account label iconName <|
+accountFollowView : String -> List Account -> Account -> Html Msg
+accountFollowView label accounts account =
+    accountView label "user" account <|
         ul [ class "list-group" ] <|
             List.map
                 (\account ->
@@ -697,13 +697,13 @@ homepageView model =
                             model.globalTimeline
 
                     AccountView account ->
-                        accountTimelineView account model.accountTimeline "Account" "user"
+                        accountTimelineView "Account" model.accountTimeline account
 
                     AccountFollowersView account followers ->
-                        accountFollowView account model.accountFollowers "Account followers" "user"
+                        accountFollowView "Account followers" model.accountFollowers account
 
                     AccountFollowingView account following ->
-                        accountFollowView account model.accountFollowing "Account following" "user"
+                        accountFollowView "Account following" model.accountFollowing account
 
                     ThreadView thread ->
                         threadView currentUser thread
