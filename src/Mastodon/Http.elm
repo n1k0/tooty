@@ -134,6 +134,16 @@ fetchNotifications client =
     fetch client (ApiUrl.notifications) <| Decode.list notificationDecoder
 
 
+fetchFollowers : Client -> Int -> Request (List Account)
+fetchFollowers client accountId =
+    fetch client (ApiUrl.followers accountId) <| Decode.list accountDecoder
+
+
+fetchFollowing : Client -> Int -> Request (List Account)
+fetchFollowing client accountId =
+    fetch client (ApiUrl.following accountId) <| Decode.list accountDecoder
+
+
 userAccount : Client -> Request Account
 userAccount client =
     HttpBuilder.get (ApiUrl.userAccount client.server)
