@@ -205,11 +205,15 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
 followView : Account -> Maybe Relationship -> Account -> Html Msg
 followView currentUser relationship account =
     let
-        ( follower, following, btnClasses, iconName, tooltip ) =
+        ( follower, following, followEvent, btnClasses, iconName, tooltip ) =
             case relationship of
                 Just relationship ->
                     ( relationship.followed_by
                     , relationship.following
+                    , if relationship.following then
+                        UnfollowAccount account.id
+                      else
+                        FollowAccount account.id
                     , if relationship.following then
                         "btn btn-default btn-primary"
                       else
@@ -225,7 +229,7 @@ followView currentUser relationship account =
                     )
 
                 Nothing ->
-                    ( False, False, "btn btn-default btn-disabled", "eye-open", "" )
+                    ( False, False, NoOp, "btn btn-default btn-disabled", "eye-open", "" )
     in
         div [ class "follow-entry" ]
             [ accountAvatarLink account
@@ -252,7 +256,7 @@ followView currentUser relationship account =
             , if Mastodon.Helper.sameAccount account currentUser then
                 text ""
               else
-                button [ class btnClasses, title tooltip ]
+                button [ class btnClasses, title tooltip, onClick followEvent ]
                     [ icon iconName ]
             ]
 

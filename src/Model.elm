@@ -151,9 +151,31 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
-processFollowEvent : Account -> Bool -> Model -> Model
-processFollowEvent account flag model =
-    model
+processFollowEvent : Relationship -> Bool -> Model -> Model
+processFollowEvent relationship flag model =
+    let
+        toggle entries =
+            { model
+                | accountRelationships =
+                    model.accountRelationships
+                        |> List.map
+                            (\r ->
+                                if r.id == relationship.id then
+                                    { r | following = flag }
+                                else
+                                    r
+                            )
+            }
+    in
+        case model.currentView of
+            AccountFollowersView account followers ->
+                toggle followers
+
+            AccountFollowingView account following ->
+                toggle following
+
+            _ ->
+                model
 
 
 updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
@@ -230,16 +252,16 @@ processMastodonEvent msg model =
 
         AccountFollowed result ->
             case result of
-                Ok account ->
-                    processFollowEvent account True model ! []
+                Ok relationship ->
+                    processFollowEvent relationship True model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountUnfollowed result ->
             case result of
-                Ok account ->
-                    processFollowEvent account False model ! []
+                Ok relationship ->
+                    processFollowEvent relationship False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -524,6 +546,12 @@ update msg model =
 
         CloseThread ->
             { model | currentView = preferredTimeline model } ! []
+
+        FollowAccount id ->
+            model ! [ Command.follow model.client id ]
+
+        UnfollowAccount id ->
+            model ! [ Command.unfollow model.client id ]
 
         DeleteStatus id ->
             model ! [ Command.deleteStatus model.client id ]

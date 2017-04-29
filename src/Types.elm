@@ -27,13 +27,13 @@ type ViewerMsg
 
 type MastodonMsg
     = AccessToken (Result Error AccessTokenResult)
-    | AccountFollowed (Result Error Account)
+    | AccountFollowed (Result Error Relationship)
     | AccountFollowers (Result Error (List Account))
     | AccountFollowing (Result Error (List Account))
     | AccountReceived (Result Error Account)
     | AccountRelationships (Result Error (List Relationship))
     | AccountTimeline (Result Error (List Status))
-    | AccountUnfollowed (Result Error Account)
+    | AccountUnfollowed (Result Error Relationship)
     | AppRegistered (Result Error AppRegistration)
     | ContextLoaded Status (Result Error Context)
     | CurrentUser (Result Error Account)
@@ -61,6 +61,7 @@ type Msg
     | CloseThread
     | DeleteStatus Int
     | DraftEvent DraftMsg
+    | FollowAccount Int
     | LoadAccount Int
     | MastodonEvent MastodonMsg
     | NoOp
@@ -71,6 +72,7 @@ type Msg
     | ScrollColumn String
     | ServerChange String
     | SubmitDraft
+    | UnfollowAccount Int
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
     | UnreblogStatus Int

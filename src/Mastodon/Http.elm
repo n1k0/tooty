@@ -211,15 +211,15 @@ unfavourite client id =
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
-follow : Client -> Int -> Request Account
+follow : Client -> Int -> Request Relationship
 follow client id =
     HttpBuilder.post (ApiUrl.follow client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
+        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
 
 
-unfollow : Client -> Int -> Request Account
+unfollow : Client -> Int -> Request Relationship
 unfollow client id =
     HttpBuilder.post (ApiUrl.unfollow client.server id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
+        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
