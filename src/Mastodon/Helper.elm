@@ -1,7 +1,6 @@
 module Mastodon.Helper
     exposing
-        ( accountMentioned
-        , extractReblog
+        ( extractReblog
         , aggregateNotifications
         , addNotificationToAggregates
         , getReplyPrefix
@@ -163,12 +162,6 @@ aggregateNotifications notifications =
             |> List.concat
             |> List.sortBy .created_at
             |> List.reverse
-
-
-accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
-accountMentioned { id, acct, username } mention =
-    -- Note: different instances can share the same id for different accounts.
-    id == mention.id && acct == mention.acct && username == mention.username
 
 
 sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
