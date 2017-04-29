@@ -152,6 +152,9 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
+{-| Update viewed account relationships as well as the relationship with the
+current connected user, both according to the "following" status provided.
+-}
 processFollowEvent : Relationship -> Bool -> Model -> Model
 processFollowEvent relationship flag model =
     let
@@ -166,8 +169,11 @@ processFollowEvent relationship flag model =
 
         accountRelationship =
             case model.accountRelationship of
-                Just relationship ->
-                    Just { relationship | following = flag }
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
+                        Just { relationship | following = flag }
+                    else
+                        model.accountRelationship
 
                 Nothing ->
                     Nothing
