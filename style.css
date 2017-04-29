@@ -92,10 +92,27 @@ body {
   margin-top: 2px;
 }
 
-.username {
+.status .username,
+.current-user .username {
   font-weight: bold;
   margin-left: 65px;
   margin-bottom: 4px;
+}
+
+.follow-entry {
+  min-height: 38px;
+}
+
+.follow-entry .avatar {
+  width: 38px;
+  height: 38px;
+}
+.follow-entry .username {
+  font-weight: normal;
+  font-size: 97%;
+  margin-left: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .acct {
@@ -332,6 +349,17 @@ body {
 .account-infos {
   text-align:center;
   padding: 15px;
+}
+
+.account-infos a {
+  color: #c8c8c8;
+}
+
+.account-infos a:hover,
+.account-infos a:focus,
+.account-infos a:active {
+  text-decoration: none;
+  color: #fff;
 }
 
 /* Viewer */
