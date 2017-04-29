@@ -7,6 +7,7 @@ module Command
         , saveRegistration
         , loadNotifications
         , loadUserAccount
+        , loadAccount
         , loadAccountInfo
         , loadThread
         , loadTimelines
@@ -107,15 +108,28 @@ loadUserAccount client =
             Cmd.none
 
 
+loadAccount : Maybe Client -> Int -> Cmd Msg
+loadAccount client accountId =
+    case client of
+        Just client ->
+            Mastodon.Http.fetchAccount client accountId
+                |> Mastodon.Http.send (MastodonEvent << AccountReceived)
+
+        Nothing ->
+            Cmd.none
+
+
 loadAccountInfo : Maybe Client -> Int -> Cmd Msg
 loadAccountInfo client accountId =
     case client of
         Just client ->
             Cmd.batch
-                [ Mastodon.Http.fetchAccount client accountId
-                    |> Mastodon.Http.send (MastodonEvent << AccountReceived)
-                , Mastodon.Http.fetchAccountTimeline client accountId
+                [ Mastodon.Http.fetchAccountTimeline client accountId
                     |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
+                , Mastodon.Http.fetchAccountFollowers client accountId
+                    |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
+                , Mastodon.Http.fetchAccountFollowing client accountId
+                    |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
                 ]
 
         Nothing ->

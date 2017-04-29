@@ -334,6 +334,17 @@ body {
   padding: 15px;
 }
 
+.account-infos a {
+  color: #c8c8c8;
+}
+
+.account-infos a:hover,
+.account-infos a:focus,
+.account-infos a:active {
+  text-decoration: none;
+  color: #fff;
+}
+
 /* Viewer */
 
 .viewer {

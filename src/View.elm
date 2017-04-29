@@ -85,12 +85,7 @@ accountAvatarLink account =
         [ img [ class "avatar", src account.avatar ] [] ]
 
 
-attachmentPreview :
-    String
-    -> Maybe Bool
-    -> List Attachment
-    -> Attachment
-    -> Html Msg
+attachmentPreview : String -> Maybe Bool -> List Attachment -> Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
         nsfw =
@@ -207,55 +202,78 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-accountTimelineView :
-    Account
-    -> List Status
-    -> String
-    -> String
-    -> Html Msg
-accountTimelineView account statuses label iconName =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default" ]
-            [ closeablePanelheading iconName label ClearOpenedAccount
-            , div [ class "timeline" ]
-                [ div
-                    [ class "account-detail"
-                    , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
+followView : Account -> Html Msg
+followView account =
+    div [] [ text account.acct ]
+
+
+accountCounterLink : String -> Int -> (Account -> Msg) -> Account -> Html Msg
+accountCounterLink label count tagger account =
+    a
+        [ href ""
+        , class "col-md-4"
+        , onClickWithPreventAndStop <| tagger account
+        ]
+        [ text label
+        , br [] []
+        , text <| toString count
+        ]
+
+
+accountView : Account -> String -> String -> Html Msg -> Html Msg
+accountView account label iconName panelContent =
+    let
+        { statuses_count, following_count, followers_count } =
+            account
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default" ]
+                [ closeablePanelheading iconName label CloseAccount
+                , div [ class "timeline" ]
+                    [ div
+                        [ class "account-detail"
+                        , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
+                        ]
+                        [ div [ class "opacity-layer" ]
+                            [ img [ src account.avatar ] []
+                            , span [ class "account-display-name" ] [ text account.display_name ]
+                            , span [ class "account-username" ] [ text ("@" ++ account.username) ]
+                            , span [ class "account-note" ] (formatContent account.note [])
+                            ]
+                        ]
+                    , div [ class "row account-infos" ]
+                        [ accountCounterLink "Statuses" statuses_count ViewAccountStatuses account
+                        , accountCounterLink "Following" following_count ViewAccountFollowing account
+                        , accountCounterLink "Followers" followers_count ViewAccountFollowers account
+                        ]
+                    , panelContent
                     ]
-                    [ div [ class "opacity-layer" ]
-                        [ img [ src account.avatar ] []
-                        , span [ class "account-display-name" ] [ text account.display_name ]
-                        , span [ class "account-username" ] [ text ("@" ++ account.username) ]
-                        , span [ class "account-note" ] (formatContent account.note [])
-                        ]
-                    ]
-                , div [ class "row account-infos" ]
-                    [ div [ class "col-md-4" ]
-                        [ text "Statuses"
-                        , br [] []
-                        , text <| toString account.statuses_count
-                        ]
-                    , div [ class "col-md-4" ]
-                        [ text "Following"
-                        , br [] []
-                        , text <| toString account.following_count
-                        ]
-                    , div [ class "col-md-4" ]
-                        [ text "Followers"
-                        , br [] []
-                        , text <| toString account.followers_count
-                        ]
-                    ]
-                , ul [ class "list-group" ] <|
-                    List.map
-                        (\s ->
-                            li [ class "list-group-item status" ]
-                                [ statusView "account" s ]
-                        )
-                        statuses
                 ]
             ]
-        ]
+
+
+accountTimelineView : Account -> List Status -> String -> String -> Html Msg
+accountTimelineView account statuses label iconName =
+    accountView account label iconName <|
+        ul [ class "list-group" ] <|
+            List.map
+                (\s ->
+                    li [ class "list-group-item status" ]
+                        [ statusView "account" s ]
+                )
+                statuses
+
+
+accountFollowView : Account -> List Account -> String -> String -> Html Msg
+accountFollowView account accounts label iconName =
+    accountView account label iconName <|
+        ul [ class "list-group" ] <|
+            List.map
+                (\account ->
+                    li [ class "list-group-item status" ]
+                        [ followView account ]
+                )
+                accounts
 
 
 statusActionsView : Status -> Account -> Html Msg
@@ -339,13 +357,7 @@ statusEntryView context className currentUser status =
             ]
 
 
-timelineView :
-    String
-    -> String
-    -> String
-    -> Account
-    -> List Status
-    -> Html Msg
+timelineView : String -> String -> String -> Account -> List Status -> Html Msg
 timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
@@ -371,12 +383,7 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView :
-    String
-    -> Account
-    -> Status
-    -> NotificationAggregate
-    -> Html Msg
+notificationStatusView : String -> Account -> Status -> NotificationAggregate -> Html Msg
 notificationStatusView context currentUser status { type_, accounts } =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
@@ -414,10 +421,7 @@ notificationFollowView currentUser { accounts } =
             ]
 
 
-notificationEntryView :
-    Account
-    -> NotificationAggregate
-    -> Html Msg
+notificationEntryView : Account -> NotificationAggregate -> Html Msg
 notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
@@ -680,8 +684,13 @@ homepageView model =
                             model.globalTimeline
 
                     AccountView account ->
-                        -- Todo: Load the user timeline
                         accountTimelineView account model.accountTimeline "Account" "user"
+
+                    AccountFollowersView account followers ->
+                        accountFollowView account model.accountFollowers "Account followers" "user"
+
+                    AccountFollowingView account following ->
+                        accountFollowView account model.accountFollowing "Account following" "user"
 
                     ThreadView thread ->
                         threadView currentUser thread

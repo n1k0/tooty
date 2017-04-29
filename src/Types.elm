@@ -39,6 +39,8 @@ type MastodonMsg
     | StatusDeleted (Result Error Int)
     | StatusPosted (Result Error Status)
     | Unreblogged (Result Error Status)
+    | AccountFollowers (Result Error (List Account))
+    | AccountFollowing (Result Error (List Account))
     | AccountReceived (Result Error Account)
     | AccountTimeline (Result Error (List Status))
     | UserTimeline (Result Error (List Status))
@@ -52,7 +54,7 @@ type WebSocketMsg
 
 type Msg
     = AddFavorite Int
-    | ClearOpenedAccount
+    | CloseAccount
     | CloseThread
     | DeleteStatus Int
     | DraftEvent DraftMsg
@@ -63,14 +65,17 @@ type Msg
     | ReblogStatus Int
     | Register
     | RemoveFavorite Int
+    | ScrollColumn String
     | ServerChange String
     | SubmitDraft
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
     | UnreblogStatus Int
+    | ViewAccountFollowing Account
+    | ViewAccountFollowers Account
+    | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
-    | ScrollColumn String
 
 
 type alias AccountViewInfo =
@@ -105,6 +110,8 @@ type alias Viewer =
 type CurrentView
     = -- Basically, what we should be displaying in the fourth column
       AccountView Account
+    | AccountFollowersView Account (List Account)
+    | AccountFollowingView Account (List Account)
     | ThreadView Thread
     | LocalTimelineView
     | GlobalTimelineView
@@ -118,6 +125,8 @@ type alias Model =
     , localTimeline : List Status
     , globalTimeline : List Status
     , accountTimeline : List Status
+    , accountFollowers : List Account
+    , accountFollowing : List Account
     , notifications : List NotificationAggregate
     , draft : Draft
     , errors : List String

@@ -6,7 +6,7 @@ import Dom.Scroll
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
-import Mastodon.Model
+import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import Task
 import Types exposing (..)
@@ -51,6 +51,8 @@ init flags location =
         , localTimeline = []
         , globalTimeline = []
         , accountTimeline = []
+        , accountFollowers = []
+        , accountFollowing = []
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -76,23 +78,23 @@ truncate entries =
     List.take maxBuffer entries
 
 
-errorText : Mastodon.Model.Error -> String
+errorText : Error -> String
 errorText error =
     case error of
-        Mastodon.Model.MastodonError statusCode statusMsg errorMsg ->
+        MastodonError statusCode statusMsg errorMsg ->
             "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
-        Mastodon.Model.ServerError statusCode statusMsg errorMsg ->
+        ServerError statusCode statusMsg errorMsg ->
             "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
-        Mastodon.Model.TimeoutError ->
+        TimeoutError ->
             "Request timed out."
 
-        Mastodon.Model.NetworkError ->
+        NetworkError ->
             "Unreachable host."
 
 
-toStatusRequestBody : Draft -> Mastodon.Model.StatusRequestBody
+toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
     , in_reply_to_id =
@@ -108,7 +110,7 @@ toStatusRequestBody draft =
     }
 
 
-updateTimelinesWithBoolFlag : Int -> Bool -> (Mastodon.Model.Status -> Mastodon.Model.Status) -> Model -> Model
+updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
         update flag status =
@@ -126,15 +128,17 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
 
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
+    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | favourited = Just flag }) model
 
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
+    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
 
 
-deleteStatusFromTimeline : Int -> List Mastodon.Model.Status -> List Mastodon.Model.Status
+deleteStatusFromTimeline : Int -> List Status -> List Status
 deleteStatusFromTimeline statusId timeline =
     timeline
         |> List.filter
@@ -146,7 +150,7 @@ deleteStatusFromTimeline statusId timeline =
             )
 
 
-updateDraft : DraftMsg -> Mastodon.Model.Account -> Draft -> ( Draft, Cmd Msg )
+updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
 updateDraft draftMsg currentUser draft =
     case draftMsg of
         ClearDraft ->
@@ -207,7 +211,7 @@ processMastodonEvent msg model =
                 Ok { server, accessToken } ->
                     let
                         client =
-                            Mastodon.Model.Client server accessToken
+                            Client server accessToken
                     in
                         { model | client = Just client }
                             ! [ Command.loadTimelines <| Just client
@@ -252,7 +256,7 @@ processMastodonEvent msg model =
         FavoriteAdded result ->
             case result of
                 Ok status ->
-                    processFavourite status.id True model ! []
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -260,7 +264,7 @@ processMastodonEvent msg model =
         FavoriteRemoved result ->
             case result of
                 Ok status ->
-                    processFavourite status.id False model ! []
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -271,7 +275,7 @@ processMastodonEvent msg model =
                     { model | localTimeline = localTimeline } ! []
 
                 Err error ->
-                    { model | localTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         Notifications result ->
             case result of
@@ -279,7 +283,7 @@ processMastodonEvent msg model =
                     { model | notifications = Mastodon.Helper.aggregateNotifications notifications } ! []
 
                 Err error ->
-                    { model | notifications = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         GlobalTimeline result ->
             case result of
@@ -287,12 +291,11 @@ processMastodonEvent msg model =
                     { model | globalTimeline = globalTimeline } ! []
 
                 Err error ->
-                    { model | globalTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         Reblogged result ->
             case result of
                 Ok status ->
-                    -- QUESTION: why don't we reprocess timelines here?
                     model ! []
 
                 Err error ->
@@ -317,7 +320,6 @@ processMastodonEvent msg model =
         Unreblogged result ->
             case result of
                 Ok status ->
-                    -- QUESTION: why don't we reprocess timelines here?
                     model ! []
 
                 Err error ->
@@ -326,7 +328,8 @@ processMastodonEvent msg model =
         AccountReceived result ->
             case result of
                 Ok account ->
-                    { model | currentView = AccountView account } ! []
+                    { model | currentView = AccountView account }
+                        ! [ Command.loadAccountInfo model.client account.id ]
 
                 Err error ->
                     { model
@@ -343,13 +346,29 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        AccountFollowers result ->
+            case result of
+                Ok statuses ->
+                    { model | accountFollowers = statuses } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AccountFollowing result ->
+            case result of
+                Ok statuses ->
+                    { model | accountFollowing = statuses } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         UserTimeline result ->
             case result of
                 Ok userTimeline ->
                     { model | userTimeline = userTimeline } ! []
 
                 Err error ->
-                    { model | userTimeline = [], errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText error) :: model.errors } ! []
 
 
 processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
@@ -478,22 +497,16 @@ update msg model =
             model ! [ Command.deleteStatus model.client id ]
 
         ReblogStatus id ->
-            -- Note: The case of (un)reblogging is specific as it seems the server
-            -- response takes a lot of time to be received by the client, so we
-            -- perform optimistic updates here.
             processReblog id True model ! [ Command.reblogStatus model.client id ]
 
         UnreblogStatus id ->
-            -- Note: The case of (un)reblogging is specific as it seems the server
-            -- response takes a lot of time to be received by the client, so we
-            -- perform optimistic updates here.
             processReblog id False model ! [ Command.unreblogStatus model.client id ]
 
         AddFavorite id ->
-            model ! [ Command.favouriteStatus model.client id ]
+            processFavourite id True model ! [ Command.favouriteStatus model.client id ]
 
         RemoveFavorite id ->
-            model ! [ Command.unfavouriteStatus model.client id ]
+            processFavourite id False model ! [ Command.unfavouriteStatus model.client id ]
 
         DraftEvent draftMsg ->
             case model.currentUser of
@@ -518,13 +531,17 @@ update msg model =
             model ! [ Command.postStatus model.client <| toStatusRequestBody model.draft ]
 
         LoadAccount accountId ->
-            {-
-               @TODO
-               When requesting a user profile, we should load a new "page"
-               so that the URL in the browser matches the user displayed
-            -}
             { model | currentView = preferredTimeline model }
-                ! [ Command.loadAccountInfo model.client accountId ]
+                ! [ Command.loadAccount model.client accountId ]
+
+        ViewAccountFollowers account ->
+            { model | currentView = AccountFollowersView account model.accountFollowers } ! []
+
+        ViewAccountFollowing account ->
+            { model | currentView = AccountFollowingView account model.accountFollowing } ! []
+
+        ViewAccountStatuses account ->
+            { model | currentView = AccountView account } ! []
 
         UseGlobalTimeline flag ->
             let
@@ -533,8 +550,14 @@ update msg model =
             in
                 { model | currentView = preferredTimeline newModel } ! []
 
-        ClearOpenedAccount ->
-            { model | currentView = preferredTimeline model } ! []
+        CloseAccount ->
+            { model
+                | currentView = preferredTimeline model
+                , accountTimeline = []
+                , accountFollowing = []
+                , accountFollowers = []
+            }
+                ! []
 
         ScrollColumn context ->
             model ! [ Task.attempt (always NoOp) <| Dom.Scroll.toTop context ]
