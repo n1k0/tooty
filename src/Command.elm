@@ -117,8 +117,12 @@ loadAccount : Maybe Client -> Int -> Cmd Msg
 loadAccount client accountId =
     case client of
         Just client ->
-            Mastodon.Http.fetchAccount client accountId
-                |> Mastodon.Http.send (MastodonEvent << AccountReceived)
+            Cmd.batch
+                [ Mastodon.Http.fetchAccount client accountId
+                    |> Mastodon.Http.send (MastodonEvent << AccountReceived)
+                , Mastodon.Http.fetchRelationships client [ accountId ]
+                    |> Mastodon.Http.send (MastodonEvent << AccountRelationship)
+                ]
 
         Nothing ->
             Cmd.none

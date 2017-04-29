@@ -54,6 +54,7 @@ init flags location =
         , accountFollowers = []
         , accountFollowing = []
         , accountRelationships = []
+        , accountRelationship = Nothing
         , notifications = []
         , draft = defaultDraft
         , errors = []
@@ -408,6 +409,17 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
+        AccountRelationship result ->
+            case result of
+                Ok [ relationship ] ->
+                    { model | accountRelationship = Just relationship } ! []
+
+                Ok _ ->
+                    model ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
         AccountRelationships result ->
             case result of
                 Ok relationships ->
@@ -596,6 +608,7 @@ update msg model =
                 , accountFollowers = []
                 , accountFollowing = []
                 , accountRelationships = []
+                , accountRelationship = Nothing
             }
                 ! [ Command.loadAccount model.client accountId ]
 
