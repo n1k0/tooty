@@ -204,7 +204,20 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
 
 followView : Account -> Html Msg
 followView account =
-    div [] [ text account.acct ]
+    div [ class "follow-entry" ]
+        [ accountAvatarLink account
+        , div [ class "username" ]
+            [ strong []
+                [ text <|
+                    if account.display_name /= "" then
+                        account.display_name
+                    else
+                        account.username
+                ]
+            , br [] []
+            , text <| "@" ++ account.acct
+            ]
+        ]
 
 
 accountCounterLink : String -> Int -> (Account -> Msg) -> Account -> Html Msg
