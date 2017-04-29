@@ -18,6 +18,10 @@ type alias CurrentUser =
     Account
 
 
+type alias CurrentUserRelation =
+    Maybe Relationship
+
+
 visibilities : Dict.Dict String String
 visibilities =
     Dict.fromList
@@ -206,7 +210,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                     ]
 
 
-followButton : CurrentUser -> Maybe Relationship -> Account -> Html Msg
+followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 followButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
         text ""
@@ -279,7 +283,7 @@ accountCounterLink label count tagger account =
         ]
 
 
-accountView : CurrentUser -> Account -> Maybe Relationship -> Html Msg -> Html Msg
+accountView : CurrentUser -> Account -> CurrentUserRelation -> Html Msg -> Html Msg
 accountView currentUser account relationship panelContent =
     let
         { statuses_count, following_count, followers_count } =
@@ -312,7 +316,7 @@ accountView currentUser account relationship panelContent =
             ]
 
 
-accountTimelineView : CurrentUser -> List Status -> Maybe Relationship -> Account -> Html Msg
+accountTimelineView : CurrentUser -> List Status -> CurrentUserRelation -> Account -> Html Msg
 accountTimelineView currentUser statuses relationship account =
     accountView currentUser account relationship <|
         ul [ class "list-group" ] <|
@@ -324,7 +328,13 @@ accountTimelineView currentUser statuses relationship account =
                 statuses
 
 
-accountFollowView : CurrentUser -> List Account -> List Relationship -> Maybe Relationship -> Account -> Html Msg
+accountFollowView :
+    CurrentUser
+    -> List Account
+    -> List Relationship
+    -> CurrentUserRelation
+    -> Account
+    -> Html Msg
 accountFollowView currentUser accounts relationships relationship account =
     accountView currentUser account relationship <|
         ul [ class "list-group" ] <|
