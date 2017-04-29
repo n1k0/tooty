@@ -261,7 +261,7 @@ accountTimelineView account statuses label iconName =
 statusActionsView : Mastodon.Model.Status -> Mastodon.Model.Account -> Html Msg
 statusActionsView status currentUser =
     let
-        targetStatus =
+        sourceStatus =
             Mastodon.Helper.extractReblog status
 
         baseBtnClasses =
@@ -270,18 +270,18 @@ statusActionsView status currentUser =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", Unreblog targetStatus.id )
+                    ( baseBtnClasses ++ " reblogged", Unreblog sourceStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, Reblog targetStatus.id )
+                    ( baseBtnClasses, Reblog sourceStatus.id )
 
         ( favClasses, favEvent ) =
             case status.favourited of
                 Just True ->
-                    ( baseBtnClasses ++ " favourited", RemoveFavorite targetStatus.id )
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite sourceStatus.id )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite targetStatus.id )
+                    ( baseBtnClasses, AddFavorite sourceStatus.id )
 
         statusDate =
             Date.fromString status.created_at
@@ -294,24 +294,24 @@ statusActionsView status currentUser =
             [ a
                 [ class baseBtnClasses
                 , onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo targetStatus)
+                    DraftEvent (UpdateReplyTo status)
                 ]
                 [ icon "share-alt" ]
             , a
                 [ class reblogClasses
                 , onClickWithPreventAndStop reblogEvent
                 ]
-                [ icon "fire", text (toString status.reblogs_count) ]
+                [ icon "fire", text (toString sourceStatus.reblogs_count) ]
             , a
                 [ class favClasses
                 , onClickWithPreventAndStop favEvent
                 ]
-                [ icon "star", text (toString status.favourites_count) ]
-            , if Mastodon.Helper.sameAccount status.account currentUser then
+                [ icon "star", text (toString sourceStatus.favourites_count) ]
+            , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
                 a
                     [ class <| baseBtnClasses ++ " btn-delete"
                     , href ""
-                    , onClickWithPreventAndStop <| DeleteStatus status.id
+                    , onClickWithPreventAndStop <| DeleteStatus sourceStatus.id
                     ]
                     [ icon "trash" ]
               else

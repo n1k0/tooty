@@ -400,31 +400,18 @@ updateDraft draftMsg currentUser draft =
             { draft | visibility = visibility } ! []
 
         UpdateReplyTo status ->
-            let
-                mentions =
-                    status.mentions
-                        |> List.filter (\m -> not (Mastodon.Helper.accountMentioned currentUser m))
-                        |> List.map (\m -> "@" ++ m.acct)
-                        |> String.join " "
-
-                newStatus =
-                    if Mastodon.Helper.sameAccount status.account currentUser then
-                        mentions
+            { draft
+                | in_reply_to = Just status
+                , status = Mastodon.Helper.getReplyPrefix currentUser status
+                , sensitive = Maybe.withDefault False status.sensitive
+                , spoiler_text =
+                    if status.spoiler_text == "" then
+                        Nothing
                     else
-                        "@" ++ status.account.acct ++ " " ++ mentions
-            in
-                { draft
-                    | in_reply_to = Just status
-                    , status = (String.trim newStatus) ++ " "
-                    , sensitive = Maybe.withDefault False status.sensitive
-                    , spoiler_text =
-                        if status.spoiler_text == "" then
-                            Nothing
-                        else
-                            Just status.spoiler_text
-                    , visibility = status.visibility
-                }
-                    ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
+                        Just status.spoiler_text
+                , visibility = status.visibility
+            }
+                ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )

@@ -1,21 +1,15 @@
 module Mastodon.Helper
     exposing
-        ( accountMentioned
-        , extractReblog
+        ( extractReblog
         , aggregateNotifications
         , addNotificationToAggregates
+        , getReplyPrefix
         , notificationToAggregate
         , sameAccount
         )
 
 import List.Extra exposing (groupWhile, uniqueBy)
-import Mastodon.Model
-    exposing
-        ( Notification
-        , NotificationAggregate
-        , Reblog(..)
-        , Status
-        )
+import Mastodon.Model exposing (..)
 
 
 extractReblog : Status -> Status
@@ -26,6 +20,33 @@ extractReblog status =
 
         Nothing ->
             status
+
+
+getReplyPrefix : Account -> Status -> String
+getReplyPrefix replier status =
+    -- Note: the Mastodon API doesn't consistently return mentions in the order
+    --       they appear in the status text, we do nothing about that.
+    let
+        posters =
+            case status.reblog of
+                Just (Mastodon.Model.Reblog reblog) ->
+                    [ reblog.account, status.account ] |> List.map toMention
+
+                Nothing ->
+                    (toMention status.account) :: status.mentions
+
+        finalPosters =
+            posters
+                |> uniqueBy .acct
+                |> List.filter (\m -> m /= (toMention replier))
+                |> List.map (\m -> "@" ++ m.acct)
+    in
+        (String.join " " finalPosters) ++ " "
+
+
+toMention : Account -> Mention
+toMention { id, url, username, acct } =
+    Mention id url username acct
 
 
 notificationToAggregate : Notification -> NotificationAggregate
@@ -143,11 +164,7 @@ aggregateNotifications notifications =
             |> List.reverse
 
 
-accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
-accountMentioned { acct, username } mention =
-    acct == mention.acct && username == mention.username
-
-
 sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
-sameAccount { acct, username } account =
-    acct == account.acct && username == account.username
+sameAccount { id, acct, username } account =
+    -- Note: different instances can share the same id for different accounts.
+    id == account.id && acct == account.acct && username == account.username

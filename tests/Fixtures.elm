@@ -1,6 +1,6 @@
 module Fixtures exposing (..)
 
-import Mastodon.Model exposing (Account, Notification, NotificationAggregate, Status)
+import Mastodon.Model exposing (..)
 
 
 accountSkro : Account
@@ -131,6 +131,60 @@ statusNicoToVjousseAgain =
     , tags = []
     , uri = "tag:mamot.fr,2017-04-25:objectId=752169:objectType=Status"
     , url = "https://mamot.fr/@n1k0/752169"
+    , visibility = "public"
+    }
+
+
+statusPloumToVjousse : Status
+statusPloumToVjousse =
+    { account = accountPloum
+    , content = "<p>hey @vjousse</p>"
+    , created_at = "2017-04-25T07:41:23.492Z"
+    , favourited = Nothing
+    , favourites_count = 0
+    , id = 752169
+    , in_reply_to_account_id = Nothing
+    , in_reply_to_id = Nothing
+    , media_attachments = []
+    , mentions =
+        [ { id = 26303
+          , url = "https://mamot.fr/@vjousse"
+          , username = "vjousse"
+          , acct = "vjousse"
+          }
+        ]
+    , reblog = Nothing
+    , reblogged = Nothing
+    , reblogs_count = 0
+    , sensitive = Just False
+    , spoiler_text = ""
+    , tags = []
+    , uri = "tag:mamot.fr,2017-04-25:objectId=752169:objectType=Status"
+    , url = "https://mamot.fr/@n1k0/752169"
+    , visibility = "public"
+    }
+
+
+statusReblogged : Status
+statusReblogged =
+    { account = accountVjousse
+    , content = "<p>fake post</p>"
+    , created_at = "2017-04-24T20:16:20.922Z"
+    , favourited = Nothing
+    , favourites_count = 0
+    , id = 737932
+    , in_reply_to_account_id = Nothing
+    , in_reply_to_id = Nothing
+    , media_attachments = []
+    , mentions = []
+    , reblog = Just (Reblog statusPloumToVjousse)
+    , reblogged = Nothing
+    , reblogs_count = 0
+    , sensitive = Just False
+    , spoiler_text = ""
+    , tags = []
+    , uri = "tag:mamot.fr,2017-04-24:objectId=737932:objectType=Status"
+    , url = "https://mamot.fr/@n1k0/737932"
     , visibility = "public"
     }
 
