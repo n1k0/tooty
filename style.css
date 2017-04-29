@@ -100,19 +100,37 @@ body {
 }
 
 .follow-entry {
-  min-height: 38px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  align-items: flex-start;
 }
 
 .follow-entry .avatar {
+  order: 0;
+  flex: 0 1 auto;
+  align-self: auto;
   width: 38px;
   height: 38px;
+  margin-right: 10px;
 }
-.follow-entry .username {
-  font-weight: normal;
-  font-size: 97%;
-  margin-left: 50px;
+
+.follow-entry .userinfo {
+  order: 0;
+  flex: 10 1 auto;
+  align-self: auto;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.follow-entry button {
+  order: 0;
+  flex: 0 1 auto;
+  align-self: auto;
+  width: 40px;
+  height: 40px;
 }
 
 .acct {
