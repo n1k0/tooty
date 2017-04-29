@@ -6,6 +6,7 @@ module Mastodon.ApiUrl
         , userAccount
         , account
         , accountTimeline
+        , status
         , homeTimeline
         , publicTimeline
         , notifications
@@ -95,6 +96,11 @@ context server id =
 reblog : Server -> Int -> String
 reblog server id =
     statuses server ++ "/" ++ (toString id) ++ "/reblog"
+
+
+status : Server -> Int -> String
+status server id =
+    statuses server ++ "/" ++ (toString id)
 
 
 unreblog : Server -> Int -> String

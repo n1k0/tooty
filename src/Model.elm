@@ -52,6 +52,7 @@ type MastodonMsg
     | Notifications (Result Mastodon.Model.Error (List Mastodon.Model.Notification))
     | GlobalTimeline (Result Mastodon.Model.Error (List Mastodon.Model.Status))
     | Reblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
+    | StatusDeleted (Result Mastodon.Model.Error Int)
     | StatusPosted (Result Mastodon.Model.Error Mastodon.Model.Status)
     | Unreblogged (Result Mastodon.Model.Error Mastodon.Model.Status)
     | Account (Result Mastodon.Model.Error Mastodon.Model.Account)
@@ -70,6 +71,7 @@ type Msg
     | ClearOpenedAccount
     | CloseThread
     | DomResult (Result Dom.Error ())
+    | DeleteStatus Int
     | DraftEvent DraftMsg
     | LoadAccount Int
     | MastodonEvent MastodonMsg
@@ -287,20 +289,16 @@ truncate entries =
     List.take maxBuffer entries
 
 
-accountMentioned : Mastodon.Model.Account -> Mastodon.Model.Mention -> Bool
-accountMentioned { acct, username } mention =
-    acct == mention.acct && username == mention.username
-
-
-sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
-sameAccount { acct, username } account =
-    acct == account.acct && username == account.username
-
-
 postStatus : Mastodon.Model.Client -> Mastodon.Model.StatusRequestBody -> Cmd Msg
 postStatus client draft =
     Mastodon.Http.postStatus client draft
         |> Mastodon.Http.send (MastodonEvent << StatusPosted)
+
+
+deleteStatus : Mastodon.Model.Client -> Int -> Cmd Msg
+deleteStatus client id =
+    Mastodon.Http.deleteStatus client id
+        |> Mastodon.Http.send (MastodonEvent << StatusDeleted)
 
 
 errorText : Mastodon.Model.Error -> String
@@ -405,12 +403,12 @@ updateDraft draftMsg currentUser draft =
             let
                 mentions =
                     status.mentions
-                        |> List.filter (\m -> not (accountMentioned currentUser m))
+                        |> List.filter (\m -> not (Mastodon.Helper.accountMentioned currentUser m))
                         |> List.map (\m -> "@" ++ m.acct)
                         |> String.join " "
 
                 newStatus =
-                    if sameAccount status.account currentUser then
+                    if Mastodon.Helper.sameAccount status.account currentUser then
                         mentions
                     else
                         "@" ++ status.account.acct ++ " " ++ mentions
@@ -543,6 +541,19 @@ processMastodonEvent msg model =
 
         StatusPosted _ ->
             { model | draft = defaultDraft } ! []
+
+        StatusDeleted result ->
+            case result of
+                Ok id ->
+                    { model
+                        | userTimeline = deleteStatusFromTimeline id model.userTimeline
+                        , localTimeline = deleteStatusFromTimeline id model.localTimeline
+                        , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
+                    }
+                        ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
 
         Unreblogged result ->
             case result of
@@ -713,6 +724,14 @@ update msg model =
 
         CloseThread ->
             { model | currentView = preferredTimeline model } ! []
+
+        DeleteStatus id ->
+            case model.client of
+                Just client ->
+                    model ! [ deleteStatus client id ]
+
+                Nothing ->
+                    model ! []
 
         Reblog id ->
             -- Note: The case of reblogging is specific as it seems the server
