@@ -24241,18 +24241,6 @@ var _n1k0$tooty$Types$CloseViewer = {ctor: 'CloseViewer'};
 var _n1k0$tooty$Types$UserTimeline = function (a) {
 	return {ctor: 'UserTimeline', _0: a};
 };
-var _n1k0$tooty$Types$AccountTimeline = function (a) {
-	return {ctor: 'AccountTimeline', _0: a};
-};
-var _n1k0$tooty$Types$AccountReceived = function (a) {
-	return {ctor: 'AccountReceived', _0: a};
-};
-var _n1k0$tooty$Types$AccountFollowing = function (a) {
-	return {ctor: 'AccountFollowing', _0: a};
-};
-var _n1k0$tooty$Types$AccountFollowers = function (a) {
-	return {ctor: 'AccountFollowers', _0: a};
-};
 var _n1k0$tooty$Types$Unreblogged = function (a) {
 	return {ctor: 'Unreblogged', _0: a};
 };
@@ -24265,14 +24253,14 @@ var _n1k0$tooty$Types$StatusDeleted = function (a) {
 var _n1k0$tooty$Types$Reblogged = function (a) {
 	return {ctor: 'Reblogged', _0: a};
 };
-var _n1k0$tooty$Types$GlobalTimeline = function (a) {
-	return {ctor: 'GlobalTimeline', _0: a};
-};
 var _n1k0$tooty$Types$Notifications = function (a) {
 	return {ctor: 'Notifications', _0: a};
 };
 var _n1k0$tooty$Types$LocalTimeline = function (a) {
 	return {ctor: 'LocalTimeline', _0: a};
+};
+var _n1k0$tooty$Types$GlobalTimeline = function (a) {
+	return {ctor: 'GlobalTimeline', _0: a};
 };
 var _n1k0$tooty$Types$FavoriteRemoved = function (a) {
 	return {ctor: 'FavoriteRemoved', _0: a};
@@ -24290,17 +24278,29 @@ var _n1k0$tooty$Types$ContextLoaded = F2(
 var _n1k0$tooty$Types$AppRegistered = function (a) {
 	return {ctor: 'AppRegistered', _0: a};
 };
+var _n1k0$tooty$Types$AccountTimeline = function (a) {
+	return {ctor: 'AccountTimeline', _0: a};
+};
+var _n1k0$tooty$Types$AccountReceived = function (a) {
+	return {ctor: 'AccountReceived', _0: a};
+};
+var _n1k0$tooty$Types$AccountFollowing = function (a) {
+	return {ctor: 'AccountFollowing', _0: a};
+};
+var _n1k0$tooty$Types$AccountFollowers = function (a) {
+	return {ctor: 'AccountFollowers', _0: a};
+};
 var _n1k0$tooty$Types$AccessToken = function (a) {
 	return {ctor: 'AccessToken', _0: a};
+};
+var _n1k0$tooty$Types$NewWebsocketUserMessage = function (a) {
+	return {ctor: 'NewWebsocketUserMessage', _0: a};
 };
 var _n1k0$tooty$Types$NewWebsocketLocalMessage = function (a) {
 	return {ctor: 'NewWebsocketLocalMessage', _0: a};
 };
 var _n1k0$tooty$Types$NewWebsocketGlobalMessage = function (a) {
 	return {ctor: 'NewWebsocketGlobalMessage', _0: a};
-};
-var _n1k0$tooty$Types$NewWebsocketUserMessage = function (a) {
-	return {ctor: 'NewWebsocketUserMessage', _0: a};
 };
 var _n1k0$tooty$Types$WebSocketEvent = function (a) {
 	return {ctor: 'WebSocketEvent', _0: a};
@@ -24361,10 +24361,13 @@ var _n1k0$tooty$Types$CloseAccount = {ctor: 'CloseAccount'};
 var _n1k0$tooty$Types$AddFavorite = function (a) {
 	return {ctor: 'AddFavorite', _0: a};
 };
-var _n1k0$tooty$Types$GlobalTimelineView = {ctor: 'GlobalTimelineView'};
-var _n1k0$tooty$Types$LocalTimelineView = {ctor: 'LocalTimelineView'};
 var _n1k0$tooty$Types$ThreadView = function (a) {
 	return {ctor: 'ThreadView', _0: a};
+};
+var _n1k0$tooty$Types$LocalTimelineView = {ctor: 'LocalTimelineView'};
+var _n1k0$tooty$Types$GlobalTimelineView = {ctor: 'GlobalTimelineView'};
+var _n1k0$tooty$Types$AccountView = function (a) {
+	return {ctor: 'AccountView', _0: a};
 };
 var _n1k0$tooty$Types$AccountFollowingView = F2(
 	function (a, b) {
@@ -24374,9 +24377,6 @@ var _n1k0$tooty$Types$AccountFollowersView = F2(
 	function (a, b) {
 		return {ctor: 'AccountFollowersView', _0: a, _1: b};
 	});
-var _n1k0$tooty$Types$AccountView = function (a) {
-	return {ctor: 'AccountView', _0: a};
-};
 
 var _n1k0$tooty$Command$unfavouriteStatus = F2(
 	function (client, statusId) {
@@ -28974,7 +28974,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -28995,7 +28999,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -29087,7 +29095,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -29143,7 +29155,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						model,
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
