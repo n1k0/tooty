@@ -22,6 +22,7 @@ module Mastodon.ApiUrl
         , follow
         , unfollow
         , streaming
+        , searchAccount
         )
 
 
@@ -67,6 +68,22 @@ unfollow server id =
 userAccount : Server -> String
 userAccount server =
     server ++ accounts ++ "verify_credentials"
+
+
+searchAccount : Server -> String -> Int -> Bool -> String
+searchAccount server query limit resolve =
+    server
+        ++ accounts
+        ++ "search?q="
+        ++ query
+        ++ "&limit="
+        ++ (toString limit)
+        ++ "&resolve="
+        ++ (if resolve then
+                "true"
+            else
+                "false"
+           )
 
 
 relationships : List Int -> String

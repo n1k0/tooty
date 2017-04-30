@@ -50,6 +50,7 @@ type MastodonMsg
     | StatusPosted (Result Error Status)
     | Unreblogged (Result Error Status)
     | UserTimeline (Result Error (List Status))
+    | AutoSearch (Result Error (List Account))
 
 
 type WebSocketMsg

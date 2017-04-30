@@ -280,7 +280,7 @@ updateDraft draftMsg currentUser model =
                         , autoQuery = query
                         , showAutoMenu = showMenu
                     }
-                        ! []
+                        ! [ Command.searchAccounts model.client query model.autoMaxResults False ]
 
             SelectAccount id ->
                 let
@@ -298,16 +298,13 @@ updateDraft draftMsg currentUser model =
                     stringToPos =
                         (String.slice 0 model.autoCursorPosition model.draft.status)
 
-                    dQuery =
-                        (model.autoQuery)
-
                     newStatus =
                         case model.autoAtPosition of
                             Just atPosition ->
                                 (String.Extra.replaceSlice
                                     (case account of
                                         Just a ->
-                                            a.username ++ " "
+                                            a.acct ++ " "
 
                                         Nothing ->
                                             ""
@@ -542,6 +539,15 @@ processMastodonEvent msg model =
             case result of
                 Ok userTimeline ->
                     { model | userTimeline = userTimeline } ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        AutoSearch result ->
+            case result of
+                Ok accounts ->
+                    { model | autoAccounts = accounts }
+                        ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []

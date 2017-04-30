@@ -25,6 +25,7 @@ module Command
         , focusId
         , scrollColumnToTop
         , scrollColumnToBottom
+        , searchAccounts
         )
 
 import Dom
@@ -162,6 +163,17 @@ loadAccountFollowing client accountId =
         Just client ->
             Mastodon.Http.fetchAccountFollowing client accountId
                 |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
+
+        Nothing ->
+            Cmd.none
+
+
+searchAccounts : Maybe Client -> String -> Int -> Bool -> Cmd Msg
+searchAccounts client query limit resolve =
+    case client of
+        Just client ->
+            Mastodon.Http.searchAccounts client query limit resolve
+                |> Mastodon.Http.send (MastodonEvent << AutoSearch)
 
         Nothing ->
             Cmd.none
