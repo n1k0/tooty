@@ -15,6 +15,7 @@ import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
 import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 type alias CurrentUser =
@@ -639,21 +640,47 @@ draftView { draft, currentUser } =
                                 else
                                     "Status"
                             ]
-                        , textarea
-                            [ id "status"
-                            , class "form-control"
-                            , rows 8
-                            , placeholder <|
-                                if hasSpoiler then
-                                    "This text will be hidden by default, as you have enabled a spoiler."
-                                else
-                                    "Once upon a time..."
-                            , required True
-                            , onInputInformation <| DraftEvent << UpdateInputInformation
-                            , onClickInformation <| DraftEvent << UpdateInputInformation
-                            , property "defaultValue" (Encode.string draft.status)
-                            ]
-                            []
+                        , let
+                            dec =
+                                (Decode.map
+                                    (\code ->
+                                        if code == 38 || code == 40 then
+                                            Ok NoOp
+                                        else
+                                            Err "not handling that key"
+                                    )
+                                    keyCode
+                                )
+                                    |> Decode.andThen fromResult
+
+                            options =
+                                { preventDefault = True, stopPropagation = False }
+
+                            fromResult : Result String a -> Decode.Decoder a
+                            fromResult result =
+                                case result of
+                                    Ok val ->
+                                        Decode.succeed val
+
+                                    Err reason ->
+                                        Decode.fail reason
+                          in
+                            textarea
+                                [ id "status"
+                                , class "form-control"
+                                , rows 8
+                                , placeholder <|
+                                    if hasSpoiler then
+                                        "This text will be hidden by default, as you have enabled a spoiler."
+                                    else
+                                        "Once upon a time..."
+                                , required True
+                                , onInputInformation <| DraftEvent << UpdateInputInformation
+                                , onClickInformation <| DraftEvent << UpdateInputInformation
+                                , property "defaultValue" (Encode.string draft.status)
+                                , onWithOptions "keydown" options dec
+                                ]
+                                []
                         ]
                     , div [ class "form-group" ]
                         [ label [ for "visibility" ] [ text "Visibility" ]
@@ -923,7 +950,7 @@ viewConfig =
     let
         customizedLi keySelected mouseSelected account =
             { attributes = [ classList [ ( "autocomplete-item", True ), ( "is-selected", keySelected || mouseSelected ) ] ]
-            , children = [ text account.username ]
+            , children = [ text account.acct ]
             }
     in
         Autocomplete.viewConfig
