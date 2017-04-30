@@ -24303,7 +24303,9 @@ var _n1k0$tooty$Types$Model = function (a) {
 																return function (q) {
 																	return function (r) {
 																		return function (s) {
-																			return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, globalTimeline: f, accountTimeline: g, accountFollowers: h, accountFollowing: i, accountRelationships: j, accountRelationship: k, notifications: l, draft: m, errors: n, location: o, useGlobalTimeline: p, viewer: q, currentUser: r, currentView: s};
+																			return function (t) {
+																				return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, globalTimeline: f, accountTimeline: g, accountFollowers: h, accountFollowing: i, accountRelationships: j, accountRelationship: k, notifications: l, draft: m, errors: n, location: o, useGlobalTimeline: p, viewer: q, currentUser: r, currentView: s, notificationFilter: t};
+																			};
 																		};
 																	};
 																};
@@ -24478,6 +24480,9 @@ var _n1k0$tooty$Types$LoadAccount = function (a) {
 var _n1k0$tooty$Types$FollowAccount = function (a) {
 	return {ctor: 'FollowAccount', _0: a};
 };
+var _n1k0$tooty$Types$FilterNotifications = function (a) {
+	return {ctor: 'FilterNotifications', _0: a};
+};
 var _n1k0$tooty$Types$DraftEvent = function (a) {
 	return {ctor: 'DraftEvent', _0: a};
 };
@@ -24505,6 +24510,11 @@ var _n1k0$tooty$Types$AccountFollowersView = F2(
 	function (a, b) {
 		return {ctor: 'AccountFollowersView', _0: a, _1: b};
 	});
+var _n1k0$tooty$Types$NotificationOnlyFollows = {ctor: 'NotificationOnlyFollows'};
+var _n1k0$tooty$Types$NotificationOnlyFavourites = {ctor: 'NotificationOnlyFavourites'};
+var _n1k0$tooty$Types$NotificationOnlyBoosts = {ctor: 'NotificationOnlyBoosts'};
+var _n1k0$tooty$Types$NotificationOnlyMentions = {ctor: 'NotificationOnlyMentions'};
+var _n1k0$tooty$Types$NotificationAll = {ctor: 'NotificationAll'};
 var _n1k0$tooty$Types$ScrollBottom = {ctor: 'ScrollBottom'};
 var _n1k0$tooty$Types$ScrollTop = {ctor: 'ScrollTop'};
 
@@ -25109,35 +25119,56 @@ var _n1k0$tooty$Mastodon_Helper$extractReblog = function (status) {
 	}
 };
 
-var _n1k0$tooty$ViewHelper$toAttribute = function (_p0) {
-	var _p1 = _p0;
-	return A2(_elm_lang$html$Html_Attributes$attribute, _p1._0, _p1._1);
+var _n1k0$tooty$ViewHelper$filterNotifications = F2(
+	function (filter, notifications) {
+		var applyFilter = function (_p0) {
+			var _p1 = _p0;
+			var _p3 = _p1.type_;
+			var _p2 = filter;
+			switch (_p2.ctor) {
+				case 'NotificationAll':
+					return true;
+				case 'NotificationOnlyMentions':
+					return _elm_lang$core$Native_Utils.eq(_p3, 'mention');
+				case 'NotificationOnlyBoosts':
+					return _elm_lang$core$Native_Utils.eq(_p3, 'reblog');
+				case 'NotificationOnlyFavourites':
+					return _elm_lang$core$Native_Utils.eq(_p3, 'favourite');
+				default:
+					return _elm_lang$core$Native_Utils.eq(_p3, 'follow');
+			}
+		};
+		return _elm_lang$core$Native_Utils.eq(filter, _n1k0$tooty$Types$NotificationAll) ? notifications : A2(_elm_lang$core$List$filter, applyFilter, notifications);
+	});
+var _n1k0$tooty$ViewHelper$toAttribute = function (_p4) {
+	var _p5 = _p4;
+	return A2(_elm_lang$html$Html_Attributes$attribute, _p5._0, _p5._1);
 };
 var _n1k0$tooty$ViewHelper$getHrefLink = function (attrs) {
 	return _elm_lang$core$List$head(
 		A2(
 			_elm_lang$core$List$map,
-			function (_p2) {
-				var _p3 = _p2;
-				return _p3._1;
+			function (_p6) {
+				var _p7 = _p6;
+				return _p7._1;
 			},
 			A2(
 				_elm_lang$core$List$filter,
-				function (_p4) {
-					var _p5 = _p4;
-					return _elm_lang$core$Native_Utils.eq(_p5._0, 'href');
+				function (_p8) {
+					var _p9 = _p8;
+					return _elm_lang$core$Native_Utils.eq(_p9._0, 'href');
 				},
 				attrs)));
 };
 var _n1k0$tooty$ViewHelper$getMentionForLink = F2(
 	function (attrs, mentions) {
-		var _p6 = _n1k0$tooty$ViewHelper$getHrefLink(attrs);
-		if (_p6.ctor === 'Just') {
+		var _p10 = _n1k0$tooty$ViewHelper$getHrefLink(attrs);
+		if (_p10.ctor === 'Just') {
 			return _elm_lang$core$List$head(
 				A2(
 					_elm_lang$core$List$filter,
 					function (m) {
-						return _elm_lang$core$Native_Utils.eq(m.url, _p6._0);
+						return _elm_lang$core$Native_Utils.eq(m.url, _p10._0);
 					},
 					mentions));
 		} else {
@@ -25168,8 +25199,8 @@ var _n1k0$tooty$ViewHelper$onClickWithPreventAndStop = function (msg) {
 var _n1k0$tooty$ViewHelper$createLinkNode = F3(
 	function (attrs, children, mentions) {
 		var maybeMention = A2(_n1k0$tooty$ViewHelper$getMentionForLink, attrs, mentions);
-		var _p7 = maybeMention;
-		if (_p7.ctor === 'Just') {
+		var _p11 = maybeMention;
+		if (_p11.ctor === 'Just') {
 			return A3(
 				_elm_lang$html$Html$node,
 				'a',
@@ -25179,7 +25210,7 @@ var _n1k0$tooty$ViewHelper$createLinkNode = F3(
 					{
 						ctor: '::',
 						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-							_n1k0$tooty$Types$LoadAccount(_p7._0.id)),
+							_n1k0$tooty$Types$LoadAccount(_p11._0.id)),
 						_1: {ctor: '[]'}
 					}),
 				A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, children));
@@ -25211,20 +25242,20 @@ var _n1k0$tooty$ViewHelper$toVirtualDom = F2(
 	});
 var _n1k0$tooty$ViewHelper$toVirtualDomEach = F2(
 	function (mentions, node) {
-		var _p8 = node;
-		switch (_p8.ctor) {
+		var _p12 = node;
+		switch (_p12.ctor) {
 			case 'Element':
-				if (_p8._0 === 'a') {
-					return A3(_n1k0$tooty$ViewHelper$createLinkNode, _p8._1, _p8._2, mentions);
+				if (_p12._0 === 'a') {
+					return A3(_n1k0$tooty$ViewHelper$createLinkNode, _p12._1, _p12._2, mentions);
 				} else {
 					return A3(
 						_elm_lang$html$Html$node,
-						_p8._0,
-						A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, _p8._1),
-						A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, _p8._2));
+						_p12._0,
+						A2(_elm_lang$core$List$map, _n1k0$tooty$ViewHelper$toAttribute, _p12._1),
+						A2(_n1k0$tooty$ViewHelper$toVirtualDom, mentions, _p12._2));
 				}
 			case 'Text':
-				return _elm_lang$html$Html$text(_p8._0);
+				return _elm_lang$html$Html$text(_p12._0);
 			default:
 				return _elm_lang$html$Html$text('');
 		}
@@ -27717,81 +27748,6 @@ var _n1k0$tooty$View$notificationEntryView = F2(
 				_1: {ctor: '[]'}
 			});
 	});
-var _n1k0$tooty$View$notificationListView = F2(
-	function (currentUser, notifications) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$html$Html$a,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(''),
-								_1: {
-									ctor: '::',
-									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, 'notifications')),
-									_1: {ctor: '[]'}
-								}
-							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _n1k0$tooty$View$icon('bell'),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html$text('Notifications'),
-											_1: {ctor: '[]'}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$ul,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id('notifications'),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-										_1: {ctor: '[]'}
-									}
-								},
-								A2(
-									_elm_lang$core$List$map,
-									_n1k0$tooty$View$notificationEntryView(currentUser),
-									notifications)),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
 var _n1k0$tooty$View$draftReplyToView = function (draft) {
 	var _p38 = draft.in_reply_to;
 	if (_p38.ctor === 'Just') {
@@ -27967,6 +27923,134 @@ var _n1k0$tooty$View$justifiedButtonGroup = function (buttons) {
 			},
 			buttons));
 };
+var _n1k0$tooty$View$notificationFilterView = function (filter) {
+	var filterBtn = F3(
+		function (tooltip, iconName, event) {
+			return A2(
+				_elm_lang$html$Html$button,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class(
+						_elm_lang$core$Native_Utils.eq(filter, event) ? 'btn btn-primary' : 'btn btn-default'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$title(tooltip),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onClick(
+								_n1k0$tooty$Types$FilterNotifications(event)),
+							_1: {ctor: '[]'}
+						}
+					}
+				},
+				{
+					ctor: '::',
+					_0: _n1k0$tooty$View$icon(iconName),
+					_1: {ctor: '[]'}
+				});
+		});
+	return _n1k0$tooty$View$justifiedButtonGroup(
+		{
+			ctor: '::',
+			_0: A3(filterBtn, 'All notifications', 'asterisk', _n1k0$tooty$Types$NotificationAll),
+			_1: {
+				ctor: '::',
+				_0: A3(filterBtn, 'Mentions', 'share-alt', _n1k0$tooty$Types$NotificationOnlyMentions),
+				_1: {
+					ctor: '::',
+					_0: A3(filterBtn, 'Boosts', 'fire', _n1k0$tooty$Types$NotificationOnlyBoosts),
+					_1: {
+						ctor: '::',
+						_0: A3(filterBtn, 'Favorites', 'star', _n1k0$tooty$Types$NotificationOnlyFavourites),
+						_1: {
+							ctor: '::',
+							_0: A3(filterBtn, 'Follows', 'user', _n1k0$tooty$Types$NotificationOnlyFollows),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		});
+};
+var _n1k0$tooty$View$notificationListView = F3(
+	function (currentUser, filter, notifications) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$div,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('panel panel-default notifications-panel'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$a,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$href(''),
+								_1: {
+									ctor: '::',
+									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, 'notifications')),
+									_1: {ctor: '[]'}
+								}
+							},
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _n1k0$tooty$View$icon('bell'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text('Notifications'),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: _n1k0$tooty$View$notificationFilterView(filter),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$ul,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$id('notifications'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+											_1: {ctor: '[]'}
+										}
+									},
+									A2(
+										_elm_lang$core$List$map,
+										_n1k0$tooty$View$notificationEntryView(currentUser),
+										A2(_n1k0$tooty$ViewHelper$filterNotifications, filter, notifications))),
+								_1: {ctor: '[]'}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
 var _n1k0$tooty$View$errorView = function (error) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -28864,7 +28948,7 @@ var _n1k0$tooty$View$homepageView = function (model) {
 					_0: A5(_n1k0$tooty$View$timelineView, 'Home timeline', 'home', 'home', _p54, model.userTimeline),
 					_1: {
 						ctor: '::',
-						_0: A2(_n1k0$tooty$View$notificationListView, _p54, model.notifications),
+						_0: A3(_n1k0$tooty$View$notificationListView, _p54, model.notificationFilter, model.notifications),
 						_1: {
 							ctor: '::',
 							_0: function () {
@@ -29812,7 +29896,8 @@ var _n1k0$tooty$Model$init = F2(
 				useGlobalTimeline: false,
 				viewer: _elm_lang$core$Maybe$Nothing,
 				currentView: _n1k0$tooty$Types$LocalTimelineView,
-				currentUser: _elm_lang$core$Maybe$Nothing
+				currentUser: _elm_lang$core$Maybe$Nothing,
+				notificationFilter: _n1k0$tooty$Types$NotificationAll
 			},
 			{
 				ctor: '::',
@@ -30294,6 +30379,13 @@ var _n1k0$tooty$Model$update = F2(
 							accountFollowing: {ctor: '[]'},
 							accountFollowers: {ctor: '[]'}
 						}),
+					{ctor: '[]'});
+			case 'FilterNotifications':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{notificationFilter: _p49._0}),
 					{ctor: '[]'});
 			default:
 				if (_p49._0.ctor === 'ScrollTop') {
