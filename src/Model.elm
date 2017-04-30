@@ -273,21 +273,20 @@ updateDraft draftMsg currentUser model =
                             Nothing ->
                                 ""
                         )
-
-                    showMenu =
-                        case atPosition of
-                            Just _ ->
-                                not << List.isEmpty <| acceptableAccounts query model.autoAccounts
-
-                            Nothing ->
-                                False
                 in
                     { newModel
                         | autoAtPosition = atPosition
                         , autoQuery = query
-                        , showAutoMenu = showMenu
+                        , showAutoMenu =
+                            showAutoMenu
+                                model.autoAccounts
+                                newModel.autoAtPosition
+                                newModel.autoQuery
                     }
-                        ! [ Command.searchAccounts model.client query model.autoMaxResults False ]
+                        ! if query /= "" && atPosition /= Nothing then
+                            [ Command.searchAccounts model.client query model.autoMaxResults False ]
+                          else
+                            []
 
             SelectAccount id ->
                 let
@@ -557,7 +556,14 @@ processMastodonEvent msg model =
         AutoSearch result ->
             case result of
                 Ok accounts ->
-                    { model | showAutoMenu = (not << List.isEmpty) accounts, autoAccounts = accounts }
+                    { model
+                        | showAutoMenu =
+                            showAutoMenu
+                                accounts
+                                model.autoAtPosition
+                                model.autoQuery
+                        , autoAccounts = accounts
+                    }
                         ! []
 
                 Err error ->
@@ -566,6 +572,22 @@ processMastodonEvent msg model =
                         , errors = (errorText error) :: model.errors
                     }
                         ! []
+
+
+showAutoMenu : List Account -> Maybe Int -> String -> Bool
+showAutoMenu accounts atPosition query =
+    case ( List.isEmpty accounts, atPosition, query ) of
+        ( _, Nothing, _ ) ->
+            False
+
+        ( True, _, _ ) ->
+            False
+
+        ( _, _, "" ) ->
+            False
+
+        ( False, Just _, _ ) ->
+            True
 
 
 processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
