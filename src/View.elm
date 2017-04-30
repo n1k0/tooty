@@ -425,7 +425,7 @@ statusEntryView context className currentUser status =
     in
         li [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
             [ lazy2 statusView context status
-            , statusActionsView status currentUser
+            , lazy2 statusActionsView status currentUser
             ]
 
 
