@@ -503,10 +503,42 @@ notificationEntryView currentUser notification =
 notificationListView : CurrentUser -> List NotificationAggregate -> Html Msg
 notificationListView currentUser notifications =
     div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default" ]
+        [ div [ class "panel panel-default notifications-panel" ]
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
                 [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
+            , justifiedButtonGroup
+                [ button
+                    [ type_ "button"
+                    , class "btn btn-primary"
+                    , title "All notifications"
+                    ]
+                    [ icon "asterisk" ]
+                , button
+                    [ type_ "button"
+                    , class "btn btn-default"
+                    , title "Mentions"
+                    ]
+                    [ icon "share-alt" ]
+                , button
+                    [ type_ "button"
+                    , class "btn btn-default"
+                    , title "Boosts"
+                    ]
+                    [ icon "fire" ]
+                , button
+                    [ type_ "button"
+                    , class "btn btn-default"
+                    , title "Favorites"
+                    ]
+                    [ icon "star" ]
+                , button
+                    [ type_ "button"
+                    , class "btn btn-default"
+                    , title "Follows"
+                    ]
+                    [ icon "user" ]
+                ]
             , ul [ id "notifications", class "list-group timeline" ] <|
                 List.map (notificationEntryView currentUser) notifications
             ]
