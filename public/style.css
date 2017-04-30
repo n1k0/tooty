@@ -541,12 +541,8 @@ body {
     cursor: pointer;
 }
 
-.key-selected {
+.is-selected {
     background-color: #3366FF;
-}
-
-.mouse-selected {
-    background-color: #ececec;
 }
 
 .autocomplete-list {
