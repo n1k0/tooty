@@ -200,7 +200,8 @@ updateDraft draftMsg currentUser model =
     in
         case draftMsg of
             ClearDraft ->
-                { model | draft = defaultDraft } ! []
+                { model | draft = defaultDraft }
+                    ! [ Ports.setStatus { id = "status", status = defaultDraft.status } ]
 
             ToggleSpoiler enabled ->
                 let
