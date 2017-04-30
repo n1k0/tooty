@@ -3,6 +3,7 @@ module View exposing (view)
 import Autocomplete
 import Dict
 import Html exposing (..)
+import Html.Lazy exposing (lazy, lazy2)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
@@ -194,7 +195,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                             [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
-                    , statusView context reblog
+                    , lazy2 statusView context reblog
                     ]
 
             Nothing ->
@@ -206,7 +207,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , statusContentView context status
+                    , lazy2 statusContentView context status
                     ]
 
 
@@ -320,7 +321,7 @@ accountTimelineView currentUser statuses relationship account =
             List.map
                 (\s ->
                     li [ class "list-group-item status" ]
-                        [ statusView "account" s ]
+                        [ lazy2 statusView "account" s ]
                 )
                 statuses
 
@@ -423,13 +424,13 @@ statusEntryView context className currentUser status =
                     ""
     in
         li [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
-            [ statusView context status
+            [ lazy2 statusView context status
             , statusActionsView status currentUser
             ]
 
 
-timelineView : String -> String -> String -> CurrentUser -> List Status -> Html Msg
-timelineView label iconName context currentUser statuses =
+timelineView : ( String, String, String, CurrentUser, List Status ) -> Html Msg
+timelineView ( label, iconName, context, currentUser, statuses ) =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
@@ -466,8 +467,8 @@ notificationStatusView context currentUser status { type_, accounts } =
 
             _ ->
                 text ""
-        , statusView context status
-        , statusActionsView status currentUser
+        , lazy2 statusView context status
+        , lazy2 statusActionsView status currentUser
         ]
 
 
@@ -561,7 +562,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ statusView "draft" status ]
+                , div [ class "well" ] [ lazy2 statusView "draft" status ]
                 ]
 
         Nothing ->
@@ -778,8 +779,8 @@ optionsView model =
 sidebarView : Model -> Html Msg
 sidebarView model =
     div [ class "col-md-3 column" ]
-        [ draftView model
-        , optionsView model
+        [ lazy draftView model
+        , lazy optionsView model
         ]
 
 
@@ -791,30 +792,33 @@ homepageView model =
 
         Just currentUser ->
             div [ class "row" ]
-                [ sidebarView model
-                , timelineView
-                    "Home timeline"
-                    "home"
-                    "home"
-                    currentUser
-                    model.userTimeline
+                [ lazy sidebarView model
+                , lazy timelineView
+                    ( "Home timeline"
+                    , "home"
+                    , "home"
+                    , currentUser
+                    , model.userTimeline
+                    )
                 , notificationListView currentUser model.notificationFilter model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        timelineView
-                            "Local timeline"
-                            "th-large"
-                            "local"
-                            currentUser
-                            model.localTimeline
+                        lazy timelineView
+                            ( "Local timeline"
+                            , "th-large"
+                            , "local"
+                            , currentUser
+                            , model.localTimeline
+                            )
 
                     GlobalTimelineView ->
-                        timelineView
-                            "Global timeline"
-                            "globe"
-                            "global"
-                            currentUser
-                            model.globalTimeline
+                        lazy timelineView
+                            ( "Global timeline"
+                            , "globe"
+                            , "global"
+                            , currentUser
+                            , model.globalTimeline
+                            )
 
                     AccountView account ->
                         accountTimelineView
