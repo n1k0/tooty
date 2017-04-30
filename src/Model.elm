@@ -644,6 +644,9 @@ update msg model =
             }
                 ! []
 
+        FilterNotifications filter ->
+            { model | notificationFilter = filter } ! []
+
         ScrollColumn ScrollTop column ->
             model ! [ Command.scrollColumnToTop column ]
 

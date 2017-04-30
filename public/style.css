@@ -70,6 +70,7 @@ body {
 .notifications-panel .btn-group-justified .btn {
   border-radius: 0;
   border-bottom: 0;
+  outline: 0;
 }
 
 .notification.reblog,

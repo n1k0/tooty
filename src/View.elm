@@ -500,6 +500,30 @@ notificationEntryView currentUser notification =
         ]
 
 
+notificationFilterView : NotificationFilter -> Html Msg
+notificationFilterView filter =
+    let
+        filterBtn tooltip iconName event =
+            button
+                [ class <|
+                    if filter == event then
+                        "btn btn-primary"
+                    else
+                        "btn btn-default"
+                , title tooltip
+                , onClick <| FilterNotifications event
+                ]
+                [ icon iconName ]
+    in
+        justifiedButtonGroup
+            [ filterBtn "All notifications" "asterisk" NotificationAll
+            , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
+            , filterBtn "Boosts" "fire" NotificationOnlyBoosts
+            , filterBtn "Favorites" "star" NotificationOnlyFavourites
+            , filterBtn "Follows" "user" NotificationOnlyFollows
+            ]
+
+
 notificationListView : CurrentUser -> NotificationFilter -> List NotificationAggregate -> Html Msg
 notificationListView currentUser filter notifications =
     div [ class "col-md-3 column" ]
@@ -507,40 +531,12 @@ notificationListView currentUser filter notifications =
             [ a
                 [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
                 [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
-            , justifiedButtonGroup
-                [ button
-                    [ type_ "button"
-                    , class "btn btn-primary"
-                    , title "All notifications"
-                    ]
-                    [ icon "asterisk" ]
-                , button
-                    [ type_ "button"
-                    , class "btn btn-default"
-                    , title "Mentions"
-                    ]
-                    [ icon "share-alt" ]
-                , button
-                    [ type_ "button"
-                    , class "btn btn-default"
-                    , title "Boosts"
-                    ]
-                    [ icon "fire" ]
-                , button
-                    [ type_ "button"
-                    , class "btn btn-default"
-                    , title "Favorites"
-                    ]
-                    [ icon "star" ]
-                , button
-                    [ type_ "button"
-                    , class "btn btn-default"
-                    , title "Follows"
-                    ]
-                    [ icon "user" ]
-                ]
+            , notificationFilterView filter
             , ul [ id "notifications", class "list-group timeline" ] <|
-                List.map (notificationEntryView currentUser) notifications
+                (notifications
+                    |> filterNotifications filter
+                    |> List.map (notificationEntryView currentUser)
+                )
             ]
         ]
 

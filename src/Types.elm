@@ -62,6 +62,7 @@ type Msg
     | CloseThread
     | DeleteStatus Int
     | DraftEvent DraftMsg
+    | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
     | MastodonEvent MastodonMsg

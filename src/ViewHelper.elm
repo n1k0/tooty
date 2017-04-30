@@ -6,6 +6,7 @@ module ViewHelper
         , onClickWithPrevent
         , onClickWithPreventAndStop
         , toVirtualDom
+        , filterNotifications
         )
 
 import Html exposing (..)
@@ -14,7 +15,7 @@ import Html.Events exposing (onWithOptions)
 import HtmlParser
 import Json.Decode as Decode
 import String.Extra exposing (replace)
-import Mastodon.Model
+import Mastodon.Model exposing (..)
 import Types exposing (..)
 
 
@@ -49,7 +50,7 @@ onClickWithStop msg =
 -- Views
 
 
-formatContent : String -> List Mastodon.Model.Mention -> List (Html Msg)
+formatContent : String -> List Mention -> List (Html Msg)
 formatContent content mentions =
     content
         |> replace " ?" "&nbsp;?"
@@ -61,12 +62,12 @@ formatContent content mentions =
 
 {-| Converts nodes to virtual dom nodes.
 -}
-toVirtualDom : List Mastodon.Model.Mention -> List HtmlParser.Node -> List (Html Msg)
+toVirtualDom : List Mention -> List HtmlParser.Node -> List (Html Msg)
 toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
 
 
-createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mastodon.Model.Mention -> Html Msg
+createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mention -> Html Msg
 createLinkNode attrs children mentions =
     let
         maybeMention =
@@ -96,7 +97,7 @@ getHrefLink attrs =
         |> List.head
 
 
-getMentionForLink : List ( String, String ) -> List Mastodon.Model.Mention -> Maybe Mastodon.Model.Mention
+getMentionForLink : List ( String, String ) -> List Mention -> Maybe Mention
 getMentionForLink attrs mentions =
     case getHrefLink attrs of
         Just href ->
@@ -108,7 +109,7 @@ getMentionForLink attrs mentions =
             Nothing
 
 
-toVirtualDomEach : List Mastodon.Model.Mention -> HtmlParser.Node -> Html Msg
+toVirtualDomEach : List Mention -> HtmlParser.Node -> Html Msg
 toVirtualDomEach mentions node =
     case node of
         HtmlParser.Element "a" attrs children ->
@@ -127,3 +128,29 @@ toVirtualDomEach mentions node =
 toAttribute : ( String, String ) -> Attribute msg
 toAttribute ( name, value ) =
     attribute name value
+
+
+filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
+filterNotifications filter notifications =
+    let
+        applyFilter { type_ } =
+            case filter of
+                NotificationAll ->
+                    True
+
+                NotificationOnlyMentions ->
+                    type_ == "mention"
+
+                NotificationOnlyBoosts ->
+                    type_ == "reblog"
+
+                NotificationOnlyFavourites ->
+                    type_ == "favourite"
+
+                NotificationOnlyFollows ->
+                    type_ == "follow"
+    in
+        if filter == NotificationAll then
+            notifications
+        else
+            List.filter applyFilter notifications
