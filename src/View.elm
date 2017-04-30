@@ -32,16 +32,16 @@ visibilities =
         ]
 
 
-closeablePanelheading : String -> String -> Msg -> Html Msg
-closeablePanelheading iconName label onClose =
+closeablePanelheading : String -> String -> String -> Msg -> Html Msg
+closeablePanelheading context iconName label onClose =
     div [ class "panel-heading" ]
         [ div [ class "row" ]
-            [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ]
+            [ a
+                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
+                [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ] ]
             , div [ class "col-xs-3 text-right" ]
                 [ a
-                    [ href ""
-                    , onClickWithPreventAndStop onClose
-                    ]
+                    [ href "", onClickWithPreventAndStop onClose ]
                     [ icon "remove" ]
                 ]
             ]
@@ -284,8 +284,8 @@ accountView currentUser account relationship panelContent =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ closeablePanelheading "user" "Account" CloseAccount
-                , div [ class "timeline" ]
+                [ closeablePanelheading "account" "user" "Account" CloseAccount
+                , div [ id "account", class "timeline" ]
                     [ div
                         [ class "account-detail"
                         , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
@@ -687,7 +687,7 @@ threadView currentUser thread =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ closeablePanelheading "list" "Thread" CloseThread
+                [ closeablePanelheading "thread" "list" "Thread" CloseThread
                 , ul [ id "thread", class "list-group timeline" ] <|
                     List.map threadEntry statuses
                 ]

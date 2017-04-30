@@ -10,12 +10,12 @@ body {
   max-height: calc(100vh - 60px);
 }
 
-.panel > a {
+.panel a {
   text-decoration: none;
   color: #c8c8c8;
 }
 
-.panel > a:hover {
+.panel a:hover {
   text-decoration: none;
 }
 
@@ -80,7 +80,7 @@ body {
   font-weight: bold;
 }
 .panel-heading > .glyphicon,
-.panel-heading > .row > .heading > .glyphicon {
+.panel-heading > .row .heading > .glyphicon {
   margin-right: 8px;
 }
 
