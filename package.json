@@ -5,9 +5,9 @@
   "scripts": {
     "build": "node_modules/.bin/elm-make src/Main.elm --warn --output=build/app.js && npm run copy-assets",
     "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
-    "debug": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js --debug",
+    "debug": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js --debug",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
-    "start": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js",
+    "start": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js",
     "test": "node_modules/.bin/elm-test"
   },
   "repository": {
