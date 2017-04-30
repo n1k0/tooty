@@ -178,10 +178,6 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
     let
         accountLinkAttributes =
             [ href account.url
-
-            -- When clicking on a status, we should not let the browser
-            -- redirect to a new page. That's why we're preventing the default
-            -- behavior here
             , onClickWithPreventAndStop (LoadAccount account.id)
             ]
     in
@@ -433,7 +429,7 @@ timelineView label iconName context currentUser statuses =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn context ]
+                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
                 [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
             , ul [ id context, class "list-group timeline" ] <|
                 List.map (statusEntryView context "" currentUser) statuses
@@ -509,7 +505,7 @@ notificationListView currentUser notifications =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn "notifications" ]
+                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
                 [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
             , ul [ id "notifications", class "list-group timeline" ] <|
                 List.map (notificationEntryView currentUser) notifications
@@ -692,7 +688,7 @@ threadView currentUser thread =
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ closeablePanelheading "list" "Thread" CloseThread
-                , ul [ class "list-group timeline" ] <|
+                , ul [ id "thread", class "list-group timeline" ] <|
                     List.map threadEntry statuses
                 ]
             ]

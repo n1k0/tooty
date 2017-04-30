@@ -22,14 +22,20 @@ module Command
         , unfavouriteStatus
         , follow
         , unfollow
+        , focusId
+        , scrollColumnToTop
+        , scrollColumnToBottom
         )
 
+import Dom
+import Dom.Scroll
 import Json.Encode as Encode
 import Mastodon.Model exposing (..)
 import Mastodon.Encoder
 import Mastodon.Http
 import Navigation
 import Ports
+import Task
 import Types exposing (..)
 
 
@@ -287,3 +293,18 @@ unfollow client id =
 
         Nothing ->
             Cmd.none
+
+
+focusId : String -> Cmd Msg
+focusId id =
+    Dom.focus id |> Task.attempt (always NoOp)
+
+
+scrollColumnToTop : String -> Cmd Msg
+scrollColumnToTop column =
+    Task.attempt (always NoOp) <| Dom.Scroll.toTop column
+
+
+scrollColumnToBottom : String -> Cmd Msg
+scrollColumnToBottom column =
+    Task.attempt (always NoOp) <| Dom.Scroll.toBottom column

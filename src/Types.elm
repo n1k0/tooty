@@ -70,7 +70,7 @@ type Msg
     | ReblogStatus Int
     | Register
     | RemoveFavorite Int
-    | ScrollColumn String
+    | ScrollColumn ScrollDirection String
     | ServerChange String
     | SubmitDraft
     | UnfollowAccount Int
@@ -92,6 +92,16 @@ type alias AccountViewInfo =
     }
 
 
+type CurrentView
+    = -- Basically, what we should be displaying in the fourth column
+      AccountFollowersView Account (List Account)
+    | AccountFollowingView Account (List Account)
+    | AccountView Account
+    | GlobalTimelineView
+    | LocalTimelineView
+    | ThreadView Thread
+
+
 type alias Draft =
     { status : String
     , in_reply_to : Maybe Status
@@ -99,6 +109,11 @@ type alias Draft =
     , sensitive : Bool
     , visibility : String
     }
+
+
+type ScrollDirection
+    = ScrollTop
+    | ScrollBottom
 
 
 type alias Thread =
@@ -111,16 +126,6 @@ type alias Viewer =
     { attachments : List Attachment
     , attachment : Attachment
     }
-
-
-type CurrentView
-    = -- Basically, what we should be displaying in the fourth column
-      AccountFollowersView Account (List Account)
-    | AccountFollowingView Account (List Account)
-    | AccountView Account
-    | GlobalTimelineView
-    | LocalTimelineView
-    | ThreadView Thread
 
 
 type alias Model =

@@ -1,14 +1,11 @@
 module Model exposing (..)
 
 import Command
-import Dom
-import Dom.Scroll
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
-import Task
 import Types exposing (..)
 
 
@@ -224,7 +221,7 @@ updateDraft draftMsg currentUser draft =
                         Just status.spoiler_text
                 , visibility = status.visibility
             }
-                ! [ Dom.focus "status" |> Task.attempt (always NoOp) ]
+                ! [ Command.focusId "status" ]
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -286,7 +283,8 @@ processMastodonEvent msg model =
         ContextLoaded status result ->
             case result of
                 Ok context ->
-                    { model | currentView = ThreadView (Thread status context) } ! []
+                    { model | currentView = ThreadView (Thread status context) }
+                        ! [ Command.scrollColumnToBottom "thread" ]
 
                 Err error ->
                     { model
@@ -352,7 +350,8 @@ processMastodonEvent msg model =
                     { model | errors = (errorText error) :: model.errors } ! []
 
         StatusPosted _ ->
-            { model | draft = defaultDraft } ! []
+            { model | draft = defaultDraft }
+                ! [ Command.scrollColumnToTop "home" ]
 
         StatusDeleted result ->
             case result of
@@ -644,8 +643,11 @@ update msg model =
             }
                 ! []
 
-        ScrollColumn context ->
-            model ! [ Task.attempt (always NoOp) <| Dom.Scroll.toTop context ]
+        ScrollColumn ScrollTop column ->
+            model ! [ Command.scrollColumnToTop column ]
+
+        ScrollColumn ScrollBottom column ->
+            model ! [ Command.scrollColumnToBottom column ]
 
 
 subscriptions : Model -> Sub Msg
