@@ -4,10 +4,21 @@ body {
   overflow: hidden;
 }
 
+.column .panel {
+  min-height: calc(100vh - 20px);
+  max-height: calc(100vh - 20px);
+}
+
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 65px);
+  overflow: hidden;
+  overflow-y: scroll;
+}
+
+.notifications-panel .timeline {
+  max-height: calc(100vh - 100px);
 }
 
 .panel a {
