@@ -592,3 +592,10 @@ body {
   display: flex;
   justify-content: center;
 }
+
+.autocomplete-menu img {
+    height: 18px;
+    width: 18px;
+    margin-right: 4px;
+    border-radius: 2px;
+}

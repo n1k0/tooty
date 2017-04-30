@@ -953,7 +953,11 @@ viewConfig =
     let
         customizedLi keySelected mouseSelected account =
             { attributes = [ classList [ ( "autocomplete-item", True ), ( "is-selected", keySelected || mouseSelected ) ] ]
-            , children = [ text account.acct ]
+            , children =
+                [ img [ src account.avatar ] []
+                , strong [] [ text account.display_name ]
+                , text <| " " ++ account.acct
+                ]
             }
     in
         Autocomplete.viewConfig
