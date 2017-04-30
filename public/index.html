@@ -32,6 +32,8 @@
         var element = document.getElementById(data.id);
         if(element) {
             element.value = data.status;
+            // Reset cursor at the end
+            element.focus();
         }
     });
     </script>
