@@ -872,7 +872,9 @@ subscriptions model =
                                 ]
                            )
             in
-                Sub.batch <| List.map (Sub.map WebSocketEvent) subs
+                Sub.batch <|
+                    (List.map (Sub.map WebSocketEvent) subs)
+                        ++ [ Sub.map SetAutoState Autocomplete.subscription ]
 
         Nothing ->
             Sub.batch []
