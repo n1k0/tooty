@@ -4,7 +4,7 @@
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
     "build": "node_modules/.bin/elm-make src/Main.elm --warn --output=build/app.js && npm run copy-assets",
-    "copy-assets": "cp public/index.html build/ && cp public/style.css build/",
+    "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
     "debug": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js --debug",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
     "start": "node_modules/.bin/elm-live src/Main.elm --dir=public/ --output=public/app.js",
@@ -27,6 +27,7 @@
     "elm": "^0.18.0",
     "elm-live": "^2.7.4",
     "elm-test": "^0.18.2",
-    "gh-pages": "^0.12.0"
+    "gh-pages": "^0.12.0",
+    "rimraf": "^2.6.1"
   }
 }
