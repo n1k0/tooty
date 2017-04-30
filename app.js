@@ -24454,9 +24454,10 @@ var _n1k0$tooty$Types$SubmitDraft = {ctor: 'SubmitDraft'};
 var _n1k0$tooty$Types$ServerChange = function (a) {
 	return {ctor: 'ServerChange', _0: a};
 };
-var _n1k0$tooty$Types$ScrollColumn = function (a) {
-	return {ctor: 'ScrollColumn', _0: a};
-};
+var _n1k0$tooty$Types$ScrollColumn = F2(
+	function (a, b) {
+		return {ctor: 'ScrollColumn', _0: a, _1: b};
+	});
 var _n1k0$tooty$Types$RemoveFavorite = function (a) {
 	return {ctor: 'RemoveFavorite', _0: a};
 };
@@ -24504,7 +24505,27 @@ var _n1k0$tooty$Types$AccountFollowersView = F2(
 	function (a, b) {
 		return {ctor: 'AccountFollowersView', _0: a, _1: b};
 	});
+var _n1k0$tooty$Types$ScrollBottom = {ctor: 'ScrollBottom'};
+var _n1k0$tooty$Types$ScrollTop = {ctor: 'ScrollTop'};
 
+var _n1k0$tooty$Command$scrollColumnToBottom = function (column) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		_elm_lang$core$Basics$always(_n1k0$tooty$Types$NoOp),
+		_elm_lang$dom$Dom_Scroll$toBottom(column));
+};
+var _n1k0$tooty$Command$scrollColumnToTop = function (column) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		_elm_lang$core$Basics$always(_n1k0$tooty$Types$NoOp),
+		_elm_lang$dom$Dom_Scroll$toTop(column));
+};
+var _n1k0$tooty$Command$focusId = function (id) {
+	return A2(
+		_elm_lang$core$Task$attempt,
+		_elm_lang$core$Basics$always(_n1k0$tooty$Types$NoOp),
+		_elm_lang$dom$Dom$focus(id));
+};
 var _n1k0$tooty$Command$unfollow = F2(
 	function (client, id) {
 		var _p0 = client;
@@ -27460,7 +27481,7 @@ var _n1k0$tooty$View$timelineView = F5(
 								_1: {
 									ctor: '::',
 									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-										_n1k0$tooty$Types$ScrollColumn(context)),
+										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, context)),
 									_1: {ctor: '[]'}
 								}
 							},
@@ -27724,7 +27745,7 @@ var _n1k0$tooty$View$notificationListView = F2(
 								_1: {
 									ctor: '::',
 									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-										_n1k0$tooty$Types$ScrollColumn('notifications')),
+										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, 'notifications')),
 									_1: {ctor: '[]'}
 								}
 							},
@@ -27971,8 +27992,8 @@ var _n1k0$tooty$View$errorsListView = function (model) {
 			A2(_elm_lang$core$List$map, _n1k0$tooty$View$errorView, model.errors));
 	}
 };
-var _n1k0$tooty$View$closeablePanelheading = F3(
-	function (iconName, label, onClose) {
+var _n1k0$tooty$View$closeablePanelheading = F4(
+	function (context, iconName, label, onClose) {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -27992,20 +28013,36 @@ var _n1k0$tooty$View$closeablePanelheading = F3(
 					{
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$div,
+							_elm_lang$html$Html$a,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('col-xs-9 heading'),
-								_1: {ctor: '[]'}
+								_0: _elm_lang$html$Html_Attributes$href(''),
+								_1: {
+									ctor: '::',
+									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, context)),
+									_1: {ctor: '[]'}
+								}
 							},
 							{
 								ctor: '::',
-								_0: _n1k0$tooty$View$icon(iconName),
-								_1: {
-									ctor: '::',
-									_0: _elm_lang$html$Html$text(label),
-									_1: {ctor: '[]'}
-								}
+								_0: A2(
+									_elm_lang$html$Html$div,
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('col-xs-9 heading'),
+										_1: {ctor: '[]'}
+									},
+									{
+										ctor: '::',
+										_0: _n1k0$tooty$View$icon(iconName),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html$text(label),
+											_1: {ctor: '[]'}
+										}
+									}),
+								_1: {ctor: '[]'}
 							}),
 						_1: {
 							ctor: '::',
@@ -28066,15 +28103,19 @@ var _n1k0$tooty$View$accountView = F4(
 					},
 					{
 						ctor: '::',
-						_0: A3(_n1k0$tooty$View$closeablePanelheading, 'user', 'Account', _n1k0$tooty$Types$CloseAccount),
+						_0: A4(_n1k0$tooty$View$closeablePanelheading, 'account', 'user', 'Account', _n1k0$tooty$Types$CloseAccount),
 						_1: {
 							ctor: '::',
 							_0: A2(
 								_elm_lang$html$Html$div,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('timeline'),
-									_1: {ctor: '[]'}
+									_0: _elm_lang$html$Html_Attributes$id('account'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('timeline'),
+										_1: {ctor: '[]'}
+									}
 								},
 								{
 									ctor: '::',
@@ -28327,15 +28368,19 @@ var _n1k0$tooty$View$threadView = F2(
 					},
 					{
 						ctor: '::',
-						_0: A3(_n1k0$tooty$View$closeablePanelheading, 'list', 'Thread', _n1k0$tooty$Types$CloseThread),
+						_0: A4(_n1k0$tooty$View$closeablePanelheading, 'thread', 'list', 'Thread', _n1k0$tooty$Types$CloseThread),
 						_1: {
 							ctor: '::',
 							_0: A2(
 								_elm_lang$html$Html$ul,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-									_1: {ctor: '[]'}
+									_0: _elm_lang$html$Html_Attributes$id('thread'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
+										_1: {ctor: '[]'}
+									}
 								},
 								A2(_elm_lang$core$List$map, threadEntry, statuses)),
 							_1: {ctor: '[]'}
@@ -29138,10 +29183,7 @@ var _n1k0$tooty$Model$updateDraft = F3(
 						}),
 					{
 						ctor: '::',
-						_0: A2(
-							_elm_lang$core$Task$attempt,
-							_elm_lang$core$Basics$always(_n1k0$tooty$Types$NoOp),
-							_elm_lang$dom$Dom$focus('status')),
+						_0: _n1k0$tooty$Command$focusId('status'),
 						_1: {ctor: '[]'}
 					});
 		}
@@ -29276,7 +29318,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								currentView: _n1k0$tooty$Types$ThreadView(
 									A2(_n1k0$tooty$Types$Thread, _p8._0, _p14._0))
 							}),
-						{ctor: '[]'});
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$scrollColumnToBottom('thread'),
+							_1: {ctor: '[]'}
+						});
 				} else {
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
@@ -29469,7 +29515,11 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{draft: _n1k0$tooty$Model$defaultDraft}),
-					{ctor: '[]'});
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$Command$scrollColumnToTop('home'),
+						_1: {ctor: '[]'}
+					});
 			case 'StatusDeleted':
 				var _p22 = _p8._0;
 				if (_p22.ctor === 'Ok') {
@@ -30246,17 +30296,25 @@ var _n1k0$tooty$Model$update = F2(
 						}),
 					{ctor: '[]'});
 			default:
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(
-							_elm_lang$core$Task$attempt,
-							_elm_lang$core$Basics$always(_n1k0$tooty$Types$NoOp),
-							_elm_lang$dom$Dom_Scroll$toTop(_p49._0)),
-						_1: {ctor: '[]'}
-					});
+				if (_p49._0.ctor === 'ScrollTop') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$scrollColumnToTop(_p49._1),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$scrollColumnToBottom(_p49._1),
+							_1: {ctor: '[]'}
+						});
+				}
 		}
 	});
 
