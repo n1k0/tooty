@@ -1,5 +1,6 @@
 module Model exposing (..)
 
+import Autocomplete
 import Command
 import Navigation
 import Mastodon.Decoder
@@ -61,6 +62,10 @@ init flags location =
         , currentView = LocalTimelineView
         , currentUser = Nothing
         , notificationFilter = NotificationAll
+        , autoState = Autocomplete.empty
+        , autoAtPosition = Nothing
+        , autoQuery = ""
+        , autoCursorPosition = 0
         }
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
@@ -182,47 +187,92 @@ processFollowEvent relationship flag model =
         }
 
 
-updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
-updateDraft draftMsg currentUser draft =
-    case draftMsg of
-        ClearDraft ->
-            defaultDraft ! []
+updateDraft : DraftMsg -> Account -> Model -> ( Model, Cmd Msg )
+updateDraft draftMsg currentUser model =
+    let
+        draft =
+            model.draft
+    in
+        case draftMsg of
+            ClearDraft ->
+                { model | draft = defaultDraft } ! []
 
-        ToggleSpoiler enabled ->
-            { draft
-                | spoiler_text =
-                    if enabled then
-                        Just ""
-                    else
-                        Nothing
-            }
-                ! []
+            ToggleSpoiler enabled ->
+                let
+                    newDraft =
+                        { draft
+                            | spoiler_text =
+                                if enabled then
+                                    Just ""
+                                else
+                                    Nothing
+                        }
+                in
+                    { model | draft = newDraft } ! []
 
-        UpdateSensitive sensitive ->
-            { draft | sensitive = sensitive } ! []
+            UpdateSensitive sensitive ->
+                { model | draft = { draft | sensitive = sensitive } } ! []
 
-        UpdateSpoiler spoiler_text ->
-            { draft | spoiler_text = Just spoiler_text } ! []
+            UpdateSpoiler spoiler_text ->
+                { model | draft = { draft | spoiler_text = Just spoiler_text } } ! []
 
-        UpdateStatus status ->
-            { draft | status = status } ! []
+            UpdateVisibility visibility ->
+                { model | draft = { draft | visibility = visibility } } ! []
 
-        UpdateVisibility visibility ->
-            { draft | visibility = visibility } ! []
+            UpdateReplyTo status ->
+                { model
+                    | draft =
+                        { draft
+                            | in_reply_to = Just status
+                            , status = Mastodon.Helper.getReplyPrefix currentUser status
+                            , sensitive = Maybe.withDefault False status.sensitive
+                            , spoiler_text =
+                                if status.spoiler_text == "" then
+                                    Nothing
+                                else
+                                    Just status.spoiler_text
+                            , visibility = status.visibility
+                        }
+                }
+                    ! [ Command.focusId "status" ]
 
-        UpdateReplyTo status ->
-            { draft
-                | in_reply_to = Just status
-                , status = Mastodon.Helper.getReplyPrefix currentUser status
-                , sensitive = Maybe.withDefault False status.sensitive
-                , spoiler_text =
-                    if status.spoiler_text == "" then
-                        Nothing
-                    else
-                        Just status.spoiler_text
-                , visibility = status.visibility
-            }
-                ! [ Command.focusId "status" ]
+            UpdateInputInformation { status, selectionStart } ->
+                let
+                    newModel =
+                        { model
+                            | draft = { draft | status = status }
+                            , autoCursorPosition = selectionStart
+                        }
+
+                    stringToPos =
+                        (String.slice 0 newModel.autoCursorPosition status)
+
+                    atPosition =
+                        (case (String.right 1 stringToPos) of
+                            "@" ->
+                                Just newModel.autoCursorPosition
+
+                            " " ->
+                                Nothing
+
+                            _ ->
+                                model.autoAtPosition
+                        )
+
+                    query =
+                        (case atPosition of
+                            Just position ->
+                                String.slice position (String.length stringToPos) stringToPos
+
+                            Nothing ->
+                                ""
+                        )
+                in
+                    { newModel
+                        | autoAtPosition = atPosition
+                        , autoQuery = query
+                    }
+                        ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -588,11 +638,7 @@ update msg model =
         DraftEvent draftMsg ->
             case model.currentUser of
                 Just user ->
-                    let
-                        ( draft, commands ) =
-                            updateDraft draftMsg user model.draft
-                    in
-                        { model | draft = draft } ! [ commands ]
+                    updateDraft draftMsg user model
 
                 Nothing ->
                     model ! []

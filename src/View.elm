@@ -12,6 +12,8 @@ import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
+import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 type alias CurrentUser =
@@ -645,9 +647,10 @@ draftView { draft, currentUser } =
                                     "This text will be hidden by default, as you have enabled a spoiler."
                                 else
                                     "Once upon a time..."
-                            , onInput <| DraftEvent << UpdateStatus
                             , required True
-                            , value draft.status
+                            , onInputInformation <| DraftEvent << UpdateInputInformation
+                            , onClickInformation <| DraftEvent << UpdateInputInformation
+                            , property "defaultValue" (Encode.string draft.status)
                             ]
                             []
                         ]
@@ -917,3 +920,20 @@ view model =
             Nothing ->
                 text ""
         ]
+
+
+onClickInformation : (InputInformation -> msg) -> Attribute msg
+onClickInformation msg =
+    on "mouseup" (Decode.map msg decodePositionInformation)
+
+
+onInputInformation : (InputInformation -> msg) -> Attribute msg
+onInputInformation msg =
+    on "input" (Decode.map msg decodePositionInformation)
+
+
+decodePositionInformation : Decode.Decoder InputInformation
+decodePositionInformation =
+    Decode.map2 InputInformation
+        (Decode.at [ "target", "value" ] Decode.string)
+        (Decode.at [ "target", "selectionStart" ] Decode.int)

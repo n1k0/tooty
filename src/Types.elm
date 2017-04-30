@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Autocomplete
 import Mastodon.Model exposing (..)
 import Navigation
 
@@ -14,10 +15,10 @@ type DraftMsg
     = ClearDraft
     | UpdateSensitive Bool
     | UpdateSpoiler String
-    | UpdateStatus String
     | UpdateVisibility String
     | UpdateReplyTo Status
     | ToggleSpoiler Bool
+    | UpdateInputInformation InputInformation
 
 
 type ViewerMsg
@@ -158,4 +159,14 @@ type alias Model =
     , currentUser : Maybe Account
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
+    , autoState : Autocomplete.State
+    , autoCursorPosition : Int
+    , autoAtPosition : Maybe Int
+    , autoQuery : String
+    }
+
+
+type alias InputInformation =
+    { status : String
+    , selectionStart : Int
     }
