@@ -60,6 +60,7 @@ init flags location =
         , viewer = Nothing
         , currentView = LocalTimelineView
         , currentUser = Nothing
+        , notificationFilter = NotificationAll
         }
             ! [ Command.initCommands flags.registration flags.client authCode ]
 

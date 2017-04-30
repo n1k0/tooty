@@ -500,8 +500,8 @@ notificationEntryView currentUser notification =
         ]
 
 
-notificationListView : CurrentUser -> List NotificationAggregate -> Html Msg
-notificationListView currentUser notifications =
+notificationListView : CurrentUser -> NotificationFilter -> List NotificationAggregate -> Html Msg
+notificationListView currentUser filter notifications =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default notifications-panel" ]
             [ a
@@ -764,7 +764,7 @@ homepageView model =
                     "home"
                     currentUser
                     model.userTimeline
-                , notificationListView currentUser model.notifications
+                , notificationListView currentUser model.notificationFilter model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
                         timelineView

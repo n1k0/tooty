@@ -111,6 +111,14 @@ type alias Draft =
     }
 
 
+type NotificationFilter
+    = NotificationAll
+    | NotificationOnlyMentions
+    | NotificationOnlyBoosts
+    | NotificationOnlyFavourites
+    | NotificationOnlyFollows
+
+
 type ScrollDirection
     = ScrollTop
     | ScrollBottom
@@ -148,4 +156,5 @@ type alias Model =
     , viewer : Maybe Viewer
     , currentUser : Maybe Account
     , currentView : CurrentView
+    , notificationFilter : NotificationFilter
     }
