@@ -7,6 +7,7 @@ import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
+import Ports
 import String.Extra
 import Types exposing (..)
 
@@ -273,7 +274,7 @@ updateDraft draftMsg currentUser model =
                         )
 
                     showMenu =
-                        (not << List.isEmpty <| (acceptableAccounts query model.autoAccounts))
+                        not << List.isEmpty <| acceptableAccounts query model.autoAccounts
                 in
                     { newModel
                         | autoAtPosition = atPosition
@@ -285,18 +286,19 @@ updateDraft draftMsg currentUser model =
             SelectAccount id ->
                 let
                     account =
-                        Debug.log "[Account] " <| ((List.filter (\account -> (toString account.id) == id) model.autoAccounts) |> List.head)
+                        List.filter (\account -> toString account.id == id) model.autoAccounts
+                            |> List.head
 
                     stringToAtPos =
                         case model.autoAtPosition of
                             Just atPosition ->
-                                (String.slice 0 atPosition model.draft.status)
+                                String.slice 0 atPosition model.draft.status
 
                             _ ->
                                 ""
 
                     stringToPos =
-                        (String.slice 0 model.autoCursorPosition model.draft.status)
+                        String.slice 0 model.autoCursorPosition model.draft.status
 
                     newStatus =
                         case model.autoAtPosition of
@@ -309,7 +311,7 @@ updateDraft draftMsg currentUser model =
                                         Nothing ->
                                             ""
                                     )
-                                    (atPosition)
+                                    atPosition
                                     ((String.length model.autoQuery) + atPosition)
                                     model.draft.status
                                 )
@@ -324,7 +326,9 @@ updateDraft draftMsg currentUser model =
                         , autoState = Autocomplete.empty
                         , showAutoMenu = False
                     }
-                        ! []
+                        -- As we are using defaultValue, we need to update the textarea
+                        -- using a port.
+                        ! [ Ports.setStatus { id = "status", status = newStatus } ]
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )

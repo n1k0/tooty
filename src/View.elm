@@ -583,7 +583,7 @@ currentUserView currentUser =
 
 
 draftView : Model -> Html Msg
-draftView { draft, currentUser } =
+draftView ({ draft, currentUser, showAutoMenu } as model) =
     let
         hasSpoiler =
             draft.spoiler_text /= Nothing
@@ -591,6 +591,12 @@ draftView { draft, currentUser } =
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
                 [ text <| visibility ++ ": " ++ description ]
+
+        autoMenu =
+            if showAutoMenu then
+                viewAutocompleteMenu model
+            else
+                text ""
     in
         div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
@@ -681,6 +687,7 @@ draftView { draft, currentUser } =
                                 , onWithOptions "keydown" options dec
                                 ]
                                 []
+                        , autoMenu
                         ]
                     , div [ class "form-group" ]
                         [ label [ for "visibility" ] [ text "Visibility" ]
@@ -770,18 +777,10 @@ optionsView model =
 
 sidebarView : Model -> Html Msg
 sidebarView model =
-    let
-        autoMenu =
-            if model.showAutoMenu then
-                viewAutocompleteMenu model
-            else
-                text ""
-    in
-        div [ class "col-md-3 column" ]
-            [ draftView model
-            , autoMenu
-            , optionsView model
-            ]
+    div [ class "col-md-3 column" ]
+        [ draftView model
+        , optionsView model
+        ]
 
 
 homepageView : Model -> Html Msg
