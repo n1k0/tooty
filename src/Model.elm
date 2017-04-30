@@ -550,12 +550,8 @@ processMastodonEvent msg model =
         AutoSearch result ->
             case result of
                 Ok accounts ->
-                    let
-                        showMenu =
-                            (not << List.isEmpty <| (acceptableAccounts model.autoQuery model.autoAccounts))
-                    in
-                        { model | showAutoMenu = showMenu, autoAccounts = accounts }
-                            ! []
+                    { model | showAutoMenu = True, autoAccounts = accounts }
+                        ! []
 
                 Err error ->
                     { model
