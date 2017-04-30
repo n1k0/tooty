@@ -170,13 +170,16 @@ loadAccountFollowing client accountId =
 
 searchAccounts : Maybe Client -> String -> Int -> Bool -> Cmd Msg
 searchAccounts client query limit resolve =
-    case client of
-        Just client ->
-            Mastodon.Http.searchAccounts client query limit resolve
-                |> Mastodon.Http.send (MastodonEvent << AutoSearch)
+    if query == "" then
+        Cmd.none
+    else
+        case client of
+            Just client ->
+                Mastodon.Http.searchAccounts client query limit resolve
+                    |> Mastodon.Http.send (MastodonEvent << AutoSearch)
 
-        Nothing ->
-            Cmd.none
+            Nothing ->
+                Cmd.none
 
 
 loadRelationships : Maybe Client -> List Int -> Cmd Msg

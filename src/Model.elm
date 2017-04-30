@@ -275,7 +275,12 @@ updateDraft draftMsg currentUser model =
                         )
 
                     showMenu =
-                        not << List.isEmpty <| acceptableAccounts query model.autoAccounts
+                        case atPosition of
+                            Just _ ->
+                                not << List.isEmpty <| acceptableAccounts query model.autoAccounts
+
+                            Nothing ->
+                                False
                 in
                     { newModel
                         | autoAtPosition = atPosition
@@ -325,6 +330,7 @@ updateDraft draftMsg currentUser model =
                         , autoAtPosition = Nothing
                         , autoQuery = ""
                         , autoState = Autocomplete.empty
+                        , autoAccounts = []
                         , showAutoMenu = False
                     }
                         -- As we are using defaultValue, we need to update the textarea
@@ -551,7 +557,7 @@ processMastodonEvent msg model =
         AutoSearch result ->
             case result of
                 Ok accounts ->
-                    { model | showAutoMenu = True, autoAccounts = accounts }
+                    { model | showAutoMenu = (not << List.isEmpty) accounts, autoAccounts = accounts }
                         ! []
 
                 Err error ->
@@ -772,7 +778,12 @@ update msg model =
         SetAutoState autoMsg ->
             let
                 ( newState, maybeMsg ) =
-                    Autocomplete.update updateConfig autoMsg model.autoMaxResults model.autoState (acceptableAccounts model.autoQuery model.autoAccounts)
+                    Autocomplete.update
+                        updateConfig
+                        autoMsg
+                        model.autoMaxResults
+                        model.autoState
+                        (acceptableAccounts model.autoQuery model.autoAccounts)
 
                 newModel =
                     { model | autoState = newState }
@@ -788,9 +799,17 @@ update msg model =
             { model
                 | autoState =
                     if toTop then
-                        Autocomplete.resetToFirstItem updateConfig (acceptableAccounts model.autoQuery model.autoAccounts) model.autoMaxResults model.autoState
+                        Autocomplete.resetToFirstItem
+                            updateConfig
+                            (acceptableAccounts model.autoQuery model.autoAccounts)
+                            model.autoMaxResults
+                            model.autoState
                     else
-                        Autocomplete.resetToLastItem updateConfig (acceptableAccounts model.autoQuery model.autoAccounts) model.autoMaxResults model.autoState
+                        Autocomplete.resetToLastItem
+                            updateConfig
+                            (acceptableAccounts model.autoQuery model.autoAccounts)
+                            model.autoMaxResults
+                            model.autoState
             }
                 ! []
 
