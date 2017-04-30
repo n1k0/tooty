@@ -3,7 +3,7 @@ module View exposing (view)
 import Autocomplete
 import Dict
 import Html exposing (..)
-import Html.Lazy exposing (lazy, lazy2)
+import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
@@ -455,8 +455,8 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> CurrentUser -> Status -> NotificationAggregate -> Html Msg
-notificationStatusView context currentUser status { type_, accounts } =
+notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
+notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
@@ -498,7 +498,7 @@ notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                notificationStatusView "notification" currentUser status notification
+                lazy notificationStatusView ( "notification", currentUser, status, notification )
 
             Nothing ->
                 notificationFollowView currentUser notification
@@ -540,7 +540,7 @@ notificationListView currentUser filter notifications =
             , ul [ id "notifications", class "list-group timeline" ] <|
                 (notifications
                     |> filterNotifications filter
-                    |> List.map (notificationEntryView currentUser)
+                    |> List.map (lazy2 notificationEntryView currentUser)
                 )
             ]
         ]
@@ -800,7 +800,7 @@ homepageView model =
                     , currentUser
                     , model.userTimeline
                     )
-                , notificationListView currentUser model.notificationFilter model.notifications
+                , lazy3 notificationListView currentUser model.notificationFilter model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
                         lazy timelineView
