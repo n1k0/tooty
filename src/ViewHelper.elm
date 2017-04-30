@@ -2,6 +2,8 @@ module ViewHelper
     exposing
         ( formatContent
         , getMentionForLink
+        , onClickInformation
+        , onInputInformation
         , onClickWithStop
         , onClickWithPrevent
         , onClickWithPreventAndStop
@@ -11,7 +13,7 @@ module ViewHelper
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onWithOptions)
+import Html.Events exposing (on, onWithOptions)
 import HtmlParser
 import Json.Decode as Decode
 import String.Extra exposing (replace)
@@ -20,6 +22,23 @@ import Types exposing (..)
 
 
 -- Custom Events
+
+
+onClickInformation : (InputInformation -> msg) -> Attribute msg
+onClickInformation msg =
+    on "mouseup" (Decode.map msg decodePositionInformation)
+
+
+onInputInformation : (InputInformation -> msg) -> Attribute msg
+onInputInformation msg =
+    on "input" (Decode.map msg decodePositionInformation)
+
+
+decodePositionInformation : Decode.Decoder InputInformation
+decodePositionInformation =
+    Decode.map2 InputInformation
+        (Decode.at [ "target", "value" ] Decode.string)
+        (Decode.at [ "target", "selectionStart" ] Decode.int)
 
 
 onClickWithPreventAndStop : msg -> Attribute msg

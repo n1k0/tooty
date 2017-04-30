@@ -1,5 +1,6 @@
 module View exposing (view)
 
+import Autocomplete
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -7,13 +8,13 @@ import Html.Events exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
+import Model
 import Types exposing (..)
 import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
 import Json.Encode as Encode
-import Json.Decode as Decode
 
 
 type alias CurrentUser =
@@ -742,10 +743,18 @@ optionsView model =
 
 sidebarView : Model -> Html Msg
 sidebarView model =
-    div [ class "col-md-3 column" ]
-        [ draftView model
-        , optionsView model
-        ]
+    let
+        autoMenu =
+            if model.showAutoMenu then
+                viewAutocompleteMenu model
+            else
+                text ""
+    in
+        div [ class "col-md-3 column" ]
+            [ draftView model
+            , autoMenu
+            , optionsView model
+            ]
 
 
 homepageView : Model -> Html Msg
@@ -903,6 +912,27 @@ viewerView { attachments, attachment } =
             ]
 
 
+viewAutocompleteMenu : Model -> Html Msg
+viewAutocompleteMenu model =
+    div [ class "autocomplete-menu" ]
+        [ Html.map SetAutoState (Autocomplete.view viewConfig model.autoMaxResults model.autoState (Model.acceptableAccounts model.autoQuery model.autoAccounts)) ]
+
+
+viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
+viewConfig =
+    let
+        customizedLi keySelected mouseSelected account =
+            { attributes = [ classList [ ( "autocomplete-item", True ), ( "is-selected", keySelected || mouseSelected ) ] ]
+            , children = [ text account.username ]
+            }
+    in
+        Autocomplete.viewConfig
+            { toId = .id >> toString
+            , ul = [ class "autocomplete-list" ] -- set classes for your list
+            , li = customizedLi -- given selection states and a person, create some Html!
+            }
+
+
 view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
@@ -920,20 +950,3 @@ view model =
             Nothing ->
                 text ""
         ]
-
-
-onClickInformation : (InputInformation -> msg) -> Attribute msg
-onClickInformation msg =
-    on "mouseup" (Decode.map msg decodePositionInformation)
-
-
-onInputInformation : (InputInformation -> msg) -> Attribute msg
-onInputInformation msg =
-    on "input" (Decode.map msg decodePositionInformation)
-
-
-decodePositionInformation : Decode.Decoder InputInformation
-decodePositionInformation =
-    Decode.map2 InputInformation
-        (Decode.at [ "target", "value" ] Decode.string)
-        (Decode.at [ "target", "selectionStart" ] Decode.int)

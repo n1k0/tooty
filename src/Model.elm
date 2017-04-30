@@ -7,6 +7,7 @@ import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
+import String.Extra
 import Types exposing (..)
 
 
@@ -66,6 +67,9 @@ init flags location =
         , autoAtPosition = Nothing
         , autoQuery = ""
         , autoCursorPosition = 0
+        , autoMaxResults = 4
+        , autoAccounts = []
+        , showAutoMenu = False
         }
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
@@ -267,10 +271,61 @@ updateDraft draftMsg currentUser model =
                             Nothing ->
                                 ""
                         )
+
+                    showMenu =
+                        (not << List.isEmpty <| (acceptableAccounts query model.autoAccounts))
                 in
                     { newModel
                         | autoAtPosition = atPosition
                         , autoQuery = query
+                        , showAutoMenu = showMenu
+                    }
+                        ! []
+
+            SelectAccount id ->
+                let
+                    account =
+                        Debug.log "[Account] " <| ((List.filter (\account -> (toString account.id) == id) model.autoAccounts) |> List.head)
+
+                    stringToAtPos =
+                        case model.autoAtPosition of
+                            Just atPosition ->
+                                (String.slice 0 atPosition model.draft.status)
+
+                            _ ->
+                                ""
+
+                    stringToPos =
+                        (String.slice 0 model.autoCursorPosition model.draft.status)
+
+                    dQuery =
+                        (model.autoQuery)
+
+                    newStatus =
+                        case model.autoAtPosition of
+                            Just atPosition ->
+                                (String.Extra.replaceSlice
+                                    (case account of
+                                        Just a ->
+                                            a.username ++ " "
+
+                                        Nothing ->
+                                            ""
+                                    )
+                                    (atPosition)
+                                    ((String.length model.autoQuery) + atPosition)
+                                    model.draft.status
+                                )
+
+                            _ ->
+                                ""
+                in
+                    { model
+                        | draft = { draft | status = newStatus }
+                        , autoAtPosition = Nothing
+                        , autoQuery = ""
+                        , autoState = Autocomplete.empty
+                        , showAutoMenu = False
                     }
                         ! []
 
@@ -698,6 +753,64 @@ update msg model =
 
         ScrollColumn ScrollBottom column ->
             model ! [ Command.scrollColumnToBottom column ]
+
+        SetAutoState autoMsg ->
+            let
+                ( newState, maybeMsg ) =
+                    Autocomplete.update updateConfig autoMsg model.autoMaxResults model.autoState (acceptableAccounts model.autoQuery model.autoAccounts)
+
+                newModel =
+                    { model | autoState = newState }
+            in
+                case maybeMsg of
+                    Nothing ->
+                        newModel ! []
+
+                    Just updateMsg ->
+                        update updateMsg newModel
+
+        ResetAutocomplete toTop ->
+            { model
+                | autoState =
+                    if toTop then
+                        Autocomplete.resetToFirstItem updateConfig (acceptableAccounts model.autoQuery model.autoAccounts) model.autoMaxResults model.autoState
+                    else
+                        Autocomplete.resetToLastItem updateConfig (acceptableAccounts model.autoQuery model.autoAccounts) model.autoMaxResults model.autoState
+            }
+                ! []
+
+
+updateConfig : Autocomplete.UpdateConfig Msg Account
+updateConfig =
+    Autocomplete.updateConfig
+        { toId = .id >> toString
+        , onKeyDown =
+            \code maybeId ->
+                if code == 38 || code == 40 then
+                    Nothing
+                else if code == 13 then
+                    Maybe.map (DraftEvent << SelectAccount) maybeId
+                else
+                    Just <| ResetAutocomplete False
+        , onTooLow = Just <| ResetAutocomplete True
+        , onTooHigh = Just <| ResetAutocomplete False
+        , onMouseEnter = \_ -> Nothing
+        , onMouseLeave = \_ -> Nothing
+        , onMouseClick = \id -> Just <| (DraftEvent << SelectAccount) id
+        , separateSelections = False
+        }
+
+
+acceptableAccounts : String -> List Account -> List Account
+acceptableAccounts query accounts =
+    let
+        lowerQuery =
+            String.toLower query
+    in
+        if query == "" then
+            []
+        else
+            List.filter (String.contains lowerQuery << String.toLower << .username) accounts
 
 
 subscriptions : Model -> Sub Msg
