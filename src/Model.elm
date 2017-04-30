@@ -546,11 +546,19 @@ processMastodonEvent msg model =
         AutoSearch result ->
             case result of
                 Ok accounts ->
-                    { model | autoAccounts = accounts }
-                        ! []
+                    let
+                        showMenu =
+                            (not << List.isEmpty <| (acceptableAccounts model.autoQuery model.autoAccounts))
+                    in
+                        { model | showAutoMenu = showMenu, autoAccounts = accounts }
+                            ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model
+                        | showAutoMenu = False
+                        , errors = (errorText error) :: model.errors
+                    }
+                        ! []
 
 
 processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
