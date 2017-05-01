@@ -945,25 +945,36 @@ viewerView { attachments, attachment } =
 viewAutocompleteMenu : Model -> Html Msg
 viewAutocompleteMenu model =
     div [ class "autocomplete-menu" ]
-        [ Html.map SetAutoState (Autocomplete.view viewConfig model.autoMaxResults model.autoState (Model.acceptableAccounts model.autoQuery model.autoAccounts)) ]
+        [ Html.map SetAutoState
+            (Autocomplete.view viewConfig
+                model.autoMaxResults
+                model.autoState
+                (Model.acceptableAccounts model.autoQuery model.autoAccounts)
+            )
+        ]
 
 
 viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
 viewConfig =
     let
         customizedLi keySelected mouseSelected account =
-            { attributes = [ classList [ ( "autocomplete-item", True ), ( "is-selected", keySelected || mouseSelected ) ] ]
+            { attributes =
+                [ classList
+                    [ ( "list-group-item autocomplete-item", True )
+                    , ( "active", keySelected || mouseSelected )
+                    ]
+                ]
             , children =
                 [ img [ src account.avatar ] []
                 , strong [] [ text account.display_name ]
-                , text <| " " ++ account.acct
+                , span [] [ text <| " @" ++ account.acct ]
                 ]
             }
     in
         Autocomplete.viewConfig
             { toId = .id >> toString
-            , ul = [ class "autocomplete-list" ] -- set classes for your list
-            , li = customizedLi -- given selection states and a person, create some Html!
+            , ul = [ class "list-group autocomplete-list" ]
+            , li = customizedLi
             }
 
 
