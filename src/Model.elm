@@ -35,6 +35,13 @@ defaultDraft =
     , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
+    , autoState = Autocomplete.empty
+    , autoAtPosition = Nothing
+    , autoQuery = ""
+    , autoCursorPosition = 0
+    , autoMaxResults = 4
+    , autoAccounts = []
+    , showAutoMenu = False
     }
 
 
@@ -64,13 +71,6 @@ init flags location =
         , currentView = LocalTimelineView
         , currentUser = Nothing
         , notificationFilter = NotificationAll
-        , autoState = Autocomplete.empty
-        , autoAtPosition = Nothing
-        , autoQuery = ""
-        , autoCursorPosition = 0
-        , autoMaxResults = 4
-        , autoAccounts = []
-        , showAutoMenu = False
         }
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
@@ -244,25 +244,19 @@ updateDraft draftMsg currentUser model =
 
             UpdateInputInformation { status, selectionStart } ->
                 let
-                    newModel =
-                        { model
-                            | draft = { draft | status = status }
-                            , autoCursorPosition = selectionStart
-                        }
-
                     stringToPos =
-                        String.slice 0 newModel.autoCursorPosition status
+                        String.slice 0 selectionStart status
 
                     atPosition =
                         case (String.right 1 stringToPos) of
                             "@" ->
-                                Just newModel.autoCursorPosition
+                                Just selectionStart
 
                             " " ->
                                 Nothing
 
                             _ ->
-                                model.autoAtPosition
+                                model.draft.autoAtPosition
 
                     query =
                         case atPosition of
@@ -271,40 +265,45 @@ updateDraft draftMsg currentUser model =
 
                             Nothing ->
                                 ""
+
+                    newDraft =
+                        { draft
+                            | status = status
+                            , autoCursorPosition = selectionStart
+                            , autoAtPosition = atPosition
+                            , autoQuery = query
+                            , showAutoMenu =
+                                showAutoMenu
+                                    draft.autoAccounts
+                                    draft.autoAtPosition
+                                    draft.autoQuery
+                        }
                 in
-                    { newModel
-                        | autoAtPosition = atPosition
-                        , autoQuery = query
-                        , showAutoMenu =
-                            showAutoMenu
-                                model.autoAccounts
-                                newModel.autoAtPosition
-                                newModel.autoQuery
-                    }
+                    { model | draft = newDraft }
                         ! if query /= "" && atPosition /= Nothing then
-                            [ Command.searchAccounts model.client query model.autoMaxResults False ]
+                            [ Command.searchAccounts model.client query model.draft.autoMaxResults False ]
                           else
                             []
 
             SelectAccount id ->
                 let
                     account =
-                        List.filter (\account -> toString account.id == id) model.autoAccounts
+                        List.filter (\account -> toString account.id == id) draft.autoAccounts
                             |> List.head
 
                     stringToAtPos =
-                        case model.autoAtPosition of
+                        case draft.autoAtPosition of
                             Just atPosition ->
-                                String.slice 0 atPosition model.draft.status
+                                String.slice 0 atPosition draft.status
 
                             _ ->
                                 ""
 
                     stringToPos =
-                        String.slice 0 model.autoCursorPosition model.draft.status
+                        String.slice 0 draft.autoCursorPosition draft.status
 
                     newStatus =
-                        case model.autoAtPosition of
+                        case draft.autoAtPosition of
                             Just atPosition ->
                                 String.Extra.replaceSlice
                                     (case account of
@@ -315,23 +314,67 @@ updateDraft draftMsg currentUser model =
                                             ""
                                     )
                                     atPosition
-                                    ((String.length model.autoQuery) + atPosition)
-                                    model.draft.status
+                                    ((String.length draft.autoQuery) + atPosition)
+                                    draft.status
 
                             _ ->
                                 ""
+
+                    newDraft =
+                        { draft
+                            | status = newStatus
+                            , autoAtPosition = Nothing
+                            , autoQuery = ""
+                            , autoState = Autocomplete.empty
+                            , autoAccounts = []
+                            , showAutoMenu = False
+                        }
                 in
-                    { model
-                        | draft = { draft | status = newStatus }
-                        , autoAtPosition = Nothing
-                        , autoQuery = ""
-                        , autoState = Autocomplete.empty
-                        , autoAccounts = []
-                        , showAutoMenu = False
-                    }
+                    { model | draft = newDraft }
                         -- As we are using defaultValue, we need to update the textarea
                         -- using a port.
                         ! [ Ports.setStatus { id = "status", status = newStatus } ]
+
+            SetAutoState autoMsg ->
+                let
+                    ( newState, maybeMsg ) =
+                        Autocomplete.update
+                            updateConfig
+                            autoMsg
+                            draft.autoMaxResults
+                            draft.autoState
+                            (acceptableAccounts draft.autoQuery draft.autoAccounts)
+
+                    newModel =
+                        { model | draft = { draft | autoState = newState } }
+                in
+                    case maybeMsg of
+                        Nothing ->
+                            newModel ! []
+
+                        Just updateMsg ->
+                            update updateMsg newModel
+
+            ResetAutocomplete toTop ->
+                let
+                    newDraft =
+                        { draft
+                            | autoState =
+                                if toTop then
+                                    Autocomplete.resetToFirstItem
+                                        updateConfig
+                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        draft.autoMaxResults
+                                        draft.autoState
+                                else
+                                    Autocomplete.resetToLastItem
+                                        updateConfig
+                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        draft.autoMaxResults
+                                        draft.autoState
+                        }
+                in
+                    { model | draft = newDraft } ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -551,24 +594,31 @@ processMastodonEvent msg model =
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AutoSearch result ->
-            case result of
-                Ok accounts ->
-                    { model
-                        | showAutoMenu =
-                            showAutoMenu
-                                accounts
-                                model.autoAtPosition
-                                model.autoQuery
-                        , autoAccounts = accounts
-                    }
-                        ! []
+            let
+                draft =
+                    model.draft
+            in
+                case result of
+                    Ok accounts ->
+                        { model
+                            | draft =
+                                { draft
+                                    | showAutoMenu =
+                                        showAutoMenu
+                                            accounts
+                                            draft.autoAtPosition
+                                            draft.autoQuery
+                                    , autoAccounts = accounts
+                                }
+                        }
+                            ! []
 
-                Err error ->
-                    { model
-                        | showAutoMenu = False
-                        , errors = (errorText error) :: model.errors
-                    }
-                        ! []
+                    Err error ->
+                        { model
+                            | draft = { draft | showAutoMenu = False }
+                            , errors = (errorText error) :: model.errors
+                        }
+                            ! []
 
 
 showAutoMenu : List Account -> Maybe Int -> String -> Bool
@@ -794,44 +844,6 @@ update msg model =
         ScrollColumn ScrollBottom column ->
             model ! [ Command.scrollColumnToBottom column ]
 
-        SetAutoState autoMsg ->
-            let
-                ( newState, maybeMsg ) =
-                    Autocomplete.update
-                        updateConfig
-                        autoMsg
-                        model.autoMaxResults
-                        model.autoState
-                        (acceptableAccounts model.autoQuery model.autoAccounts)
-
-                newModel =
-                    { model | autoState = newState }
-            in
-                case maybeMsg of
-                    Nothing ->
-                        newModel ! []
-
-                    Just updateMsg ->
-                        update updateMsg newModel
-
-        ResetAutocomplete toTop ->
-            { model
-                | autoState =
-                    if toTop then
-                        Autocomplete.resetToFirstItem
-                            updateConfig
-                            (acceptableAccounts model.autoQuery model.autoAccounts)
-                            model.autoMaxResults
-                            model.autoState
-                    else
-                        Autocomplete.resetToLastItem
-                            updateConfig
-                            (acceptableAccounts model.autoQuery model.autoAccounts)
-                            model.autoMaxResults
-                            model.autoState
-            }
-                ! []
-
 
 updateConfig : Autocomplete.UpdateConfig Msg Account
 updateConfig =
@@ -844,9 +856,9 @@ updateConfig =
                 else if code == 13 then
                     Maybe.map (DraftEvent << SelectAccount) maybeId
                 else
-                    Just <| ResetAutocomplete False
-        , onTooLow = Just <| ResetAutocomplete True
-        , onTooHigh = Just <| ResetAutocomplete False
+                    Just <| (DraftEvent << ResetAutocomplete) False
+        , onTooLow = Just <| (DraftEvent << ResetAutocomplete) True
+        , onTooHigh = Just <| (DraftEvent << ResetAutocomplete) False
         , onMouseEnter = \_ -> Nothing
         , onMouseLeave = \_ -> Nothing
         , onMouseClick = \id -> Just <| (DraftEvent << SelectAccount) id
@@ -893,7 +905,7 @@ subscriptions model =
             in
                 Sub.batch <|
                     (List.map (Sub.map WebSocketEvent) subs)
-                        ++ [ Sub.map SetAutoState Autocomplete.subscription ]
+                        ++ [ Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription ]
 
         Nothing ->
             Sub.batch []

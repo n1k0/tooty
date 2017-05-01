@@ -605,7 +605,7 @@ currentUserView currentUser =
 
 
 draftView : Model -> Html Msg
-draftView ({ draft, currentUser, showAutoMenu } as model) =
+draftView ({ draft, currentUser } as model) =
     let
         hasSpoiler =
             draft.spoilerText /= Nothing
@@ -615,8 +615,8 @@ draftView ({ draft, currentUser, showAutoMenu } as model) =
                 [ text <| visibility ++ ": " ++ description ]
 
         autoMenu =
-            if showAutoMenu then
-                viewAutocompleteMenu model
+            if draft.showAutoMenu then
+                viewAutocompleteMenu model.draft
             else
                 text ""
     in
@@ -966,14 +966,14 @@ viewerView { attachments, attachment } =
             ]
 
 
-viewAutocompleteMenu : Model -> Html Msg
-viewAutocompleteMenu model =
+viewAutocompleteMenu : Draft -> Html Msg
+viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
-        [ Html.map SetAutoState
+        [ Html.map (DraftEvent << SetAutoState)
             (Autocomplete.view viewConfig
-                model.autoMaxResults
-                model.autoState
-                (Model.acceptableAccounts model.autoQuery model.autoAccounts)
+                draft.autoMaxResults
+                draft.autoState
+                (Model.acceptableAccounts draft.autoQuery draft.autoAccounts)
             )
         ]
 

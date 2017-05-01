@@ -20,6 +20,8 @@ type DraftMsg
     | SelectAccount String
     | ToggleSpoiler Bool
     | UpdateInputInformation InputInformation
+    | ResetAutocomplete Bool
+    | SetAutoState Autocomplete.Msg
 
 
 type ViewerMsg
@@ -76,7 +78,6 @@ type Msg
     | RemoveFavorite Int
     | ScrollColumn ScrollDirection String
     | ServerChange String
-    | SetAutoState Autocomplete.Msg
     | SubmitDraft
     | UnfollowAccount Int
     | UrlChange Navigation.Location
@@ -87,7 +88,6 @@ type Msg
     | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
-    | ResetAutocomplete Bool
 
 
 type alias AccountViewInfo =
@@ -114,6 +114,15 @@ type alias Draft =
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
+
+    -- Autocomplete values
+    , autoState : Autocomplete.State
+    , autoCursorPosition : Int
+    , autoAtPosition : Maybe Int
+    , autoQuery : String
+    , autoMaxResults : Int
+    , autoAccounts : List Account
+    , showAutoMenu : Bool
     }
 
 
@@ -163,13 +172,6 @@ type alias Model =
     , currentUser : Maybe Account
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
-    , autoState : Autocomplete.State
-    , autoCursorPosition : Int
-    , autoAtPosition : Maybe Int
-    , autoQuery : String
-    , autoMaxResults : Int
-    , autoAccounts : List Account
-    , showAutoMenu : Bool
     }
 
 
