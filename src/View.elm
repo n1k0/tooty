@@ -682,7 +682,9 @@ draftView ({ draft, currentUser } as model) =
                                     |> Decode.andThen fromResult
 
                             options =
-                                { preventDefault = True, stopPropagation = False }
+                                { preventDefault = draft.showAutoMenu
+                                , stopPropagation = False
+                                }
 
                             fromResult : Result String a -> Decode.Decoder a
                             fromResult result =
