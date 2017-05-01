@@ -23258,9 +23258,9 @@ var _n1k0$tooty$Mastodon_Model$Notification = F5(
 	function (a, b, c, d, e) {
 		return {id: a, type_: b, created_at: c, account: d, status: e};
 	});
-var _n1k0$tooty$Mastodon_Model$NotificationAggregate = F4(
-	function (a, b, c, d) {
-		return {type_: a, status: b, accounts: c, created_at: d};
+var _n1k0$tooty$Mastodon_Model$NotificationAggregate = F5(
+	function (a, b, c, d, e) {
+		return {id: a, type_: b, status: c, accounts: d, created_at: e};
 	});
 var _n1k0$tooty$Mastodon_Model$Relationship = F6(
 	function (a, b, c, d, e, f) {
@@ -25739,7 +25739,7 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 			var _p3 = _p2._0;
 			return {
 				ctor: '::',
-				_0: A4(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p3.type_, _p3.status, accounts, _p3.created_at),
+				_0: A5(_n1k0$tooty$Mastodon_Model$NotificationAggregate, _p3.id, _p3.type_, _p3.status, accounts, _p3.created_at),
 				_1: {ctor: '[]'}
 			};
 		} else {
@@ -25813,8 +25813,9 @@ var _n1k0$tooty$Mastodon_Helper$aggregateNotifications = function (notifications
 				})));
 };
 var _n1k0$tooty$Mastodon_Helper$notificationToAggregate = function (notification) {
-	return A4(
+	return A5(
 		_n1k0$tooty$Mastodon_Model$NotificationAggregate,
+		notification.id,
 		notification.type_,
 		notification.status,
 		{
@@ -29398,13 +29399,21 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 var _n1k0$tooty$View$attachmentListView = F2(
 	function (context, _p12) {
 		var _p13 = _p12;
+		var keyedEntry = F2(
+			function (attachments, attachment) {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Basics$toString(attachment.id),
+					_1: A4(_n1k0$tooty$View$attachmentPreview, context, _p13.sensitive, attachments, attachment)
+				};
+			});
 		var _p14 = _p13.media_attachments;
 		if (_p14.ctor === '[]') {
 			return _elm_lang$html$Html$text('');
 		} else {
 			var _p15 = _p14;
 			return A2(
-				_elm_lang$html$Html$ul,
+				_elm_lang$html$Html_Keyed$ul,
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$class('attachments'),
@@ -29412,7 +29421,7 @@ var _n1k0$tooty$View$attachmentListView = F2(
 				},
 				A2(
 					_elm_lang$core$List$map,
-					A3(_n1k0$tooty$View$attachmentPreview, context, _p13.sensitive, _p15),
+					keyedEntry(_p15),
 					_p15));
 		}
 	});
@@ -30105,6 +30114,13 @@ var _n1k0$tooty$View$statusEntryView = F4(
 var _n1k0$tooty$View$timelineView = function (_p30) {
 	var _p31 = _p30;
 	var _p32 = _p31._2;
+	var keyedEntry = function (status) {
+		return {
+			ctor: '_Tuple2',
+			_0: _elm_lang$core$Basics$toString(_elm_lang$html$Html_Attributes$id),
+			_1: A4(_n1k0$tooty$View$statusEntryView, _p32, '', _p31._3, status)
+		};
+	};
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -30158,7 +30174,7 @@ var _n1k0$tooty$View$timelineView = function (_p30) {
 					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$ul,
+							_elm_lang$html$Html_Keyed$ul,
 							{
 								ctor: '::',
 								_0: _elm_lang$html$Html_Attributes$id(_p32),
@@ -30168,10 +30184,7 @@ var _n1k0$tooty$View$timelineView = function (_p30) {
 									_1: {ctor: '[]'}
 								}
 							},
-							A2(
-								_elm_lang$core$List$map,
-								A3(_n1k0$tooty$View$statusEntryView, _p32, '', _p31._3),
-								_p31._4)),
+							A2(_elm_lang$core$List$map, keyedEntry, _p31._4)),
 						_1: {ctor: '[]'}
 					}
 				}),
@@ -30596,6 +30609,13 @@ var _n1k0$tooty$View$notificationFilterView = function (filter) {
 };
 var _n1k0$tooty$View$notificationListView = F3(
 	function (currentUser, filter, notifications) {
+		var keyedEntry = function (notification) {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Basics$toString(notification.id),
+				_1: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$notificationEntryView, currentUser, notification)
+			};
+		};
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -30652,7 +30672,7 @@ var _n1k0$tooty$View$notificationListView = F3(
 							_1: {
 								ctor: '::',
 								_0: A2(
-									_elm_lang$html$Html$ul,
+									_elm_lang$html$Html_Keyed$ul,
 									{
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$id('notifications'),
@@ -30664,7 +30684,7 @@ var _n1k0$tooty$View$notificationListView = F3(
 									},
 									A2(
 										_elm_lang$core$List$map,
-										A2(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$notificationEntryView, currentUser),
+										keyedEntry,
 										A2(_n1k0$tooty$ViewHelper$filterNotifications, filter, notifications))),
 								_1: {ctor: '[]'}
 							}
@@ -30957,76 +30977,80 @@ var _n1k0$tooty$View$accountView = F4(
 	});
 var _n1k0$tooty$View$accountTimelineView = F4(
 	function (currentUser, statuses, relationship, account) {
+		var keyedEntry = function (status) {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Basics$toString(status.id),
+				_1: A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, 'account', status),
+						_1: {ctor: '[]'}
+					})
+			};
+		};
 		return A4(
 			_n1k0$tooty$View$accountView,
 			currentUser,
 			account,
 			relationship,
 			A2(
-				_elm_lang$html$Html$ul,
+				_elm_lang$html$Html_Keyed$ul,
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$class('list-group'),
 					_1: {ctor: '[]'}
 				},
-				A2(
-					_elm_lang$core$List$map,
-					function (s) {
-						return A2(
-							_elm_lang$html$Html$li,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, 'account', s),
-								_1: {ctor: '[]'}
-							});
-					},
-					statuses)));
+				A2(_elm_lang$core$List$map, keyedEntry, statuses)));
 	});
 var _n1k0$tooty$View$accountFollowView = F5(
 	function (currentUser, accounts, relationships, relationship, account) {
+		var keyedEntry = function (account) {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Basics$toString(account.id),
+				_1: A2(
+					_elm_lang$html$Html$li,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A3(
+							_n1k0$tooty$View$followView,
+							currentUser,
+							A2(
+								_elm_community$list_extra$List_Extra$find,
+								function (r) {
+									return _elm_lang$core$Native_Utils.eq(r.id, account.id);
+								},
+								relationships),
+							account),
+						_1: {ctor: '[]'}
+					})
+			};
+		};
 		return A4(
 			_n1k0$tooty$View$accountView,
 			currentUser,
 			account,
 			relationship,
 			A2(
-				_elm_lang$html$Html$ul,
+				_elm_lang$html$Html_Keyed$ul,
 				{
 					ctor: '::',
 					_0: _elm_lang$html$Html_Attributes$class('list-group'),
 					_1: {ctor: '[]'}
 				},
-				A2(
-					_elm_lang$core$List$map,
-					function (account) {
-						return A2(
-							_elm_lang$html$Html$li,
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
-								_1: {ctor: '[]'}
-							},
-							{
-								ctor: '::',
-								_0: A3(
-									_n1k0$tooty$View$followView,
-									currentUser,
-									A2(
-										_elm_community$list_extra$List_Extra$find,
-										function (r) {
-											return _elm_lang$core$Native_Utils.eq(r.id, account.id);
-										},
-										relationships),
-									account),
-								_1: {ctor: '[]'}
-							});
-					},
-					accounts)));
+				A2(_elm_lang$core$List$map, keyedEntry, accounts)));
 	});
 var _n1k0$tooty$View$threadView = F2(
 	function (currentUser, thread) {
@@ -31037,6 +31061,13 @@ var _n1k0$tooty$View$threadView = F2(
 				_elm_lang$core$Native_Utils.eq(status, thread.status) ? 'thread-target' : '',
 				currentUser,
 				status);
+		};
+		var keyedEntry = function (status) {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Basics$toString(status.id),
+				_1: threadEntry(status)
+			};
 		};
 		var statuses = _elm_lang$core$List$concat(
 			{
@@ -31078,7 +31109,7 @@ var _n1k0$tooty$View$threadView = F2(
 						_1: {
 							ctor: '::',
 							_0: A2(
-								_elm_lang$html$Html$ul,
+								_elm_lang$html$Html_Keyed$ul,
 								{
 									ctor: '::',
 									_0: _elm_lang$html$Html_Attributes$id('thread'),
@@ -31088,7 +31119,7 @@ var _n1k0$tooty$View$threadView = F2(
 										_1: {ctor: '[]'}
 									}
 								},
-								A2(_elm_lang$core$List$map, threadEntry, statuses)),
+								A2(_elm_lang$core$List$map, keyedEntry, statuses)),
 							_1: {ctor: '[]'}
 						}
 					}),
