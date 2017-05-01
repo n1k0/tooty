@@ -7,7 +7,6 @@ import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
-import Ports
 import String.Extra
 import Types exposing (..)
 
@@ -201,7 +200,7 @@ updateDraft draftMsg currentUser model =
         case draftMsg of
             ClearDraft ->
                 { model | draft = defaultDraft }
-                    ! [ Ports.setStatus { id = "status", status = defaultDraft.status } ]
+                    ! [ Command.updateDomStatus defaultDraft.status ]
 
             ToggleSpoiler enabled ->
                 let
@@ -245,7 +244,7 @@ updateDraft draftMsg currentUser model =
                             }
                     }
                         ! [ Command.focusId "status"
-                          , Ports.setStatus { id = "status", status = newStatus }
+                          , Command.updateDomStatus newStatus
                           ]
 
             UpdateInputInformation { status, selectionStart } ->
@@ -339,7 +338,7 @@ updateDraft draftMsg currentUser model =
                     { model | draft = newDraft }
                         -- As we are using defaultValue, we need to update the textarea
                         -- using a port.
-                        ! [ Ports.setStatus { id = "status", status = newStatus } ]
+                        ! [ Command.updateDomStatus newStatus ]
 
             SetAutoState autoMsg ->
                 let
@@ -511,7 +510,7 @@ processMastodonEvent msg model =
         StatusPosted _ ->
             { model | draft = defaultDraft }
                 ! [ Command.scrollColumnToTop "home"
-                  , Ports.setStatus { id = "status", status = defaultDraft.status }
+                  , Command.updateDomStatus defaultDraft.status
                   ]
 
         StatusDeleted result ->

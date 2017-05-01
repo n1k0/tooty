@@ -15,6 +15,7 @@ module Command
         , loadThread
         , loadTimelines
         , postStatus
+        , updateDomStatus
         , deleteStatus
         , reblogStatus
         , unreblogStatus
@@ -231,6 +232,11 @@ postStatus client draft =
 
         Nothing ->
             Cmd.none
+
+
+updateDomStatus : String -> Cmd Msg
+updateDomStatus statusText =
+    Ports.setStatus { id = "status", status = statusText }
 
 
 deleteStatus : Maybe Client -> Int -> Cmd Msg
