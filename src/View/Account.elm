@@ -1,4 +1,4 @@
-module Views.Account
+module View.Account
     exposing
         ( accountFollowView
         , accountTimelineView
@@ -14,9 +14,9 @@ import List.Extra exposing (find)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import Views.Common as Common
-import Views.Status exposing (statusView)
-import ViewHelper exposing (..)
+import View.Common as Common
+import View.Status exposing (statusView)
+import View.Helper exposing (..)
 
 
 type alias CurrentUser =

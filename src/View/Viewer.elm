@@ -1,10 +1,10 @@
-module Views.Viewer exposing (viewerView)
+module View.Viewer exposing (viewerView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
 import Types exposing (..)
-import ViewHelper exposing (..)
+import View.Helper exposing (..)
 
 
 viewerView : Viewer -> Html Msg

@@ -1,4 +1,4 @@
-module Views.Status
+module View.Status
     exposing
         ( statusView
         , statusActionsView
@@ -15,8 +15,8 @@ import Html.Lazy as Lazy
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import Views.Common as Common
-import ViewHelper exposing (..)
+import View.Common as Common
+import View.Helper exposing (..)
 
 
 type alias CurrentUser =

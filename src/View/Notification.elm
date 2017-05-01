@@ -1,4 +1,4 @@
-module Views.Notification exposing (notificationListView)
+module View.Notification exposing (notificationListView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -7,9 +7,9 @@ import Html.Keyed as Keyed
 import Html.Lazy as Lazy
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import Views.Common as Common
-import ViewHelper exposing (..)
-import Views.Status exposing (statusActionsView, statusView)
+import View.Common as Common
+import View.Helper exposing (..)
+import View.Status exposing (statusActionsView, statusView)
 
 
 type alias CurrentUser =

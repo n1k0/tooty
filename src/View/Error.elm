@@ -1,4 +1,4 @@
-module Views.Error
+module View.Error
     exposing
         ( errorView
         , errorsListView

@@ -1,12 +1,12 @@
-module Views.Thread exposing (threadView)
+module View.Thread exposing (threadView)
 
-import Views.Common as Common
+import View.Common as Common
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import Views.Status exposing (statusEntryView)
+import View.Status exposing (statusEntryView)
 
 
 type alias CurrentUser =

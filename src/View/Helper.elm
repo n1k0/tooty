@@ -1,4 +1,4 @@
-module ViewHelper
+module View.Helper
     exposing
         ( formatContent
         , getMentionForLink

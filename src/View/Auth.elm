@@ -1,4 +1,4 @@
-module Views.Auth exposing (authView)
+module View.Auth exposing (authView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

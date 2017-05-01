@@ -1,22 +1,22 @@
-module View exposing (view)
+module View.App exposing (view)
 
 import Html exposing (..)
 import Html.Keyed as Keyed
-import Html.Lazy exposing (lazy, lazy2, lazy3)
+import Html.Lazy as Lazy
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import ViewHelper exposing (..)
-import Views.Account exposing (accountFollowView, accountTimelineView)
-import Views.Auth exposing (authView)
-import Views.Common as Common
-import Views.Draft exposing (draftView)
-import Views.Error exposing (errorsListView)
-import Views.Notification exposing (notificationListView)
-import Views.Status exposing (statusView, statusActionsView, statusEntryView)
-import Views.Thread exposing (threadView)
-import Views.Viewer exposing (viewerView)
+import View.Account exposing (accountFollowView, accountTimelineView)
+import View.Auth exposing (authView)
+import View.Common as Common
+import View.Draft exposing (draftView)
+import View.Error exposing (errorsListView)
+import View.Helper exposing (..)
+import View.Notification exposing (notificationListView)
+import View.Settings exposing (settingsView)
+import View.Status exposing (statusView, statusActionsView, statusEntryView)
+import View.Thread exposing (threadView)
+import View.Viewer exposing (viewerView)
 
 
 type alias CurrentUser =
@@ -44,26 +44,11 @@ timelineView ( label, iconName, context, currentUser, statuses ) =
             ]
 
 
-optionsView : Model -> Html Msg
-optionsView model =
-    div [ class "panel panel-default" ]
-        [ div [ class "panel-heading" ] [ Common.icon "cog", text "options" ]
-        , div [ class "panel-body" ]
-            [ div [ class "checkbox" ]
-                [ label []
-                    [ input [ type_ "checkbox", onCheck UseGlobalTimeline ] []
-                    , text " 4th column renders the global timeline"
-                    ]
-                ]
-            ]
-        ]
-
-
 sidebarView : Model -> Html Msg
 sidebarView model =
     div [ class "col-md-3 column" ]
-        [ lazy draftView model
-        , lazy optionsView model
+        [ Lazy.lazy draftView model
+        , Lazy.lazy settingsView model
         ]
 
 
@@ -75,18 +60,22 @@ homepageView model =
 
         Just currentUser ->
             div [ class "row" ]
-                [ lazy sidebarView model
-                , lazy timelineView
+                [ Lazy.lazy sidebarView model
+                , Lazy.lazy timelineView
                     ( "Home timeline"
                     , "home"
                     , "home"
                     , currentUser
                     , model.userTimeline
                     )
-                , lazy3 notificationListView currentUser model.notificationFilter model.notifications
+                , Lazy.lazy3
+                    notificationListView
+                    currentUser
+                    model.notificationFilter
+                    model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        lazy timelineView
+                        Lazy.lazy timelineView
                             ( "Local timeline"
                             , "th-large"
                             , "local"
@@ -95,7 +84,7 @@ homepageView model =
                             )
 
                     GlobalTimelineView ->
-                        lazy timelineView
+                        Lazy.lazy timelineView
                             ( "Global timeline"
                             , "globe"
                             , "global"

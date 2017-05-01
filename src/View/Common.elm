@@ -1,4 +1,4 @@
-module Views.Common
+module View.Common
     exposing
         ( accountAvatarLink
         , accountLink
@@ -11,7 +11,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import ViewHelper exposing (..)
+import View.Helper exposing (..)
 
 
 accountLink : Account -> Html Msg

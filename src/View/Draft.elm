@@ -1,4 +1,4 @@
-module Views.Draft exposing (draftView)
+module View.Draft exposing (draftView)
 
 import Autocomplete
 import Dict
@@ -11,9 +11,9 @@ import Json.Decode as Decode
 import Mastodon.Model exposing (..)
 import Model
 import Types exposing (..)
-import ViewHelper exposing (..)
-import Views.Common as Common
-import Views.Status exposing (statusView)
+import View.Helper exposing (..)
+import View.Common as Common
+import View.Status exposing (statusView)
 
 
 type alias CurrentUser =
