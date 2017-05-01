@@ -6,15 +6,15 @@ import Mastodon.Model exposing (..)
 accountSkro : Account
 accountSkro =
     { acct = "SkroZoC"
-    , avatar = "https://mamot.fr/system/accounts/avatars/000/001/391/original/76be3c9d1b34f59b.jpeg?1493042489"
+    , avatar = ""
     , created_at = "2017-04-24T20:25:37.398Z"
     , display_name = "Skro"
     , followers_count = 77
     , following_count = 80
-    , header = "https://mamot.fr/system/accounts/headers/000/001/391/original/9fbb4ac980f04fe1.gif?1493042489"
+    , header = ""
     , id = 1391
     , locked = False
-    , note = "N&apos;importe quoi très vite en 500 caractères. La responsabilité du triumvirat de ZoC ne peut être engagée."
+    , note = "Skro note"
     , statuses_count = 161
     , url = "https://mamot.fr/@SkroZoC"
     , username = "SkroZoC"
@@ -24,15 +24,15 @@ accountSkro =
 accountVjousse : Account
 accountVjousse =
     { acct = "vjousse"
-    , avatar = "https://mamot.fr/system/accounts/avatars/000/026/303/original/b72c0dd565e5bc1e.png?1492698808"
+    , avatar = ""
     , created_at = "2017-04-20T14:31:05.751Z"
     , display_name = "Vincent Jousse"
     , followers_count = 68
     , following_count = 31
-    , header = "https://mamot.fr/headers/original/missing.png"
+    , header = ""
     , id = 26303
     , locked = False
-    , note = "Libriste, optimiste et utopiste. On est bien tintin."
+    , note = "Vjousse note"
     , statuses_count = 88
     , url = "https://mamot.fr/@vjousse"
     , username = "vjousse"
@@ -42,15 +42,15 @@ accountVjousse =
 accountNico : Account
 accountNico =
     { acct = "n1k0"
-    , avatar = "https://mamot.fr/system/accounts/avatars/000/017/784/original/40052904e484d9c0.jpg?1492158615"
+    , avatar = ""
     , created_at = "2017-04-14T08:28:59.706Z"
     , display_name = "NiKo`"
     , followers_count = 162
     , following_count = 79
-    , header = "https://mamot.fr/system/accounts/headers/000/017/784/original/ea87200d852018a8.jpg?1492158674"
+    , header = ""
     , id = 17784
     , locked = False
-    , note = "Transforme sa procrastination en pouets, la plupart du temps en français."
+    , note = "Niko note"
     , statuses_count = 358
     , url = "https://mamot.fr/@n1k0"
     , username = "n1k0"
@@ -60,15 +60,15 @@ accountNico =
 accountPloum : Account
 accountPloum =
     { acct = "ploum"
-    , avatar = "https://mamot.fr/system/accounts/avatars/000/006/840/original/593a817d651d9253.jpg?1491814416"
+    , avatar = ""
     , created_at = "2017-04-08T09:37:34.931Z"
     , display_name = "ploum"
     , followers_count = 1129
     , following_count = 91
-    , header = "https://mamot.fr/system/accounts/headers/000/006/840/original/7e0adc1f754dafbe.jpg?1491814416"
+    , header = ""
     , id = 6840
     , locked = False
-    , note = "Futurologue, conférencier, blogueur et écrivain électronique. Du moins, je l&apos;espère. :bicyclist:"
+    , note = "Ploum note"
     , statuses_count = 601
     , url = "https://mamot.fr/@ploum"
     , username = "ploum"
@@ -78,7 +78,7 @@ accountPloum =
 statusNicoToVjousse : Status
 statusNicoToVjousse =
     { account = accountNico
-    , content = "<p><span class=\"h-card\"><a href=\"https://mamot.fr/@vjousse\" class=\"u-url mention\">@<span>vjousse</span></a></span> j&apos;ai rien touché à ce niveau là non</p>"
+    , content = "<p>@vjousse coucou</p>"
     , created_at = "2017-04-24T20:16:20.922Z"
     , favourited = Nothing
     , favourites_count = 0
@@ -108,7 +108,7 @@ statusNicoToVjousse =
 statusNicoToVjousseAgain : Status
 statusNicoToVjousseAgain =
     { account = accountNico
-    , content = "<p><span class=\"h-card\"><a href=\"https://mamot.fr/@vjousse\" class=\"u-url mention\">@<span>vjousse</span></a></span> oui j&apos;ai vu, c&apos;est super, après on est à +473 −13, à un moment tu vas te prendre la tête 😂</p>"
+    , content = "<p>@vjousse recoucou</p>"
     , created_at = "2017-04-25T07:41:23.492Z"
     , favourited = Nothing
     , favourites_count = 0
@@ -257,14 +257,4 @@ duplicateAccountNotifications =
     [ notificationSkroFollowsVjousse
     , notificationSkroFollowsVjousse
     , notificationSkroFollowsVjousse
-    ]
-
-
-notificationAggregates : List NotificationAggregate
-notificationAggregates =
-    [ { type_ = "mention"
-      , status = Nothing
-      , accounts = []
-      , created_at = ""
-      }
     ]

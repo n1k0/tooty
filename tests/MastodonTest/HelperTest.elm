@@ -38,12 +38,14 @@ all =
                         Fixtures.notifications
                             |> aggregateNotifications
                             |> Expect.equal
-                                [ { type_ = "mention"
+                                [ { id = .id Fixtures.notificationNicoMentionVjousse
+                                  , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
                                   , accounts = [ Fixtures.accountNico ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
-                                , { type_ = "follow"
+                                , { id = .id Fixtures.notificationNicoFollowsVjousse
+                                  , type_ = "follow"
                                   , status = Nothing
                                   , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
@@ -61,12 +63,14 @@ all =
                             |> aggregateNotifications
                             |> (addNotificationToAggregates Fixtures.notificationPloumFollowsVjousse)
                             |> Expect.equal
-                                [ { type_ = "mention"
+                                [ { id = .id Fixtures.notificationNicoMentionVjousse
+                                  , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
                                   , accounts = [ Fixtures.accountNico ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
-                                , { type_ = "follow"
+                                , { id = .id Fixtures.notificationNicoFollowsVjousse
+                                  , type_ = "follow"
                                   , status = Nothing
                                   , accounts = [ Fixtures.accountPloum, Fixtures.accountNico, Fixtures.accountSkro ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
@@ -78,12 +82,14 @@ all =
                             |> aggregateNotifications
                             |> (addNotificationToAggregates Fixtures.notificationNicoMentionVjousse)
                             |> Expect.equal
-                                [ { type_ = "mention"
+                                [ { id = .id Fixtures.notificationNicoMentionVjousse
+                                  , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
                                   , accounts = [ Fixtures.accountNico, Fixtures.accountNico ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
-                                , { type_ = "follow"
+                                , { id = .id Fixtures.notificationNicoFollowsVjousse
+                                  , type_ = "follow"
                                   , status = Nothing
                                   , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
@@ -95,17 +101,20 @@ all =
                             |> aggregateNotifications
                             |> (addNotificationToAggregates Fixtures.notificationNicoMentionVjousseAgain)
                             |> Expect.equal
-                                [ { type_ = "mention"
+                                [ { id = .id Fixtures.notificationNicoMentionVjousseAgain
+                                  , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousseAgain
                                   , accounts = [ Fixtures.accountNico ]
                                   , created_at = "2017-04-25T07:41:23.546Z"
                                   }
-                                , { type_ = "mention"
+                                , { id = .id Fixtures.notificationNicoMentionVjousse
+                                  , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
                                   , accounts = [ Fixtures.accountNico ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
-                                , { type_ = "follow"
+                                , { id = .id Fixtures.notificationNicoFollowsVjousse
+                                  , type_ = "follow"
                                   , status = Nothing
                                   , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
