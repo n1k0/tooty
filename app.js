@@ -12360,6 +12360,14 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _elm_lang$html$Html_Keyed$node = _elm_lang$virtual_dom$VirtualDom$keyedNode;
+var _elm_lang$html$Html_Keyed$ol = _elm_lang$html$Html_Keyed$node('ol');
+var _elm_lang$html$Html_Keyed$ul = _elm_lang$html$Html_Keyed$node('ul');
+
+var _elm_lang$html$Html_Lazy$lazy3 = _elm_lang$virtual_dom$VirtualDom$lazy3;
+var _elm_lang$html$Html_Lazy$lazy2 = _elm_lang$virtual_dom$VirtualDom$lazy2;
+var _elm_lang$html$Html_Lazy$lazy = _elm_lang$virtual_dom$VirtualDom$lazy;
+
 var _elm_lang$http$Native_Http = function() {
 
 
@@ -12720,6 +12728,175 @@ var _elm_lang$http$Http$StringPart = F2(
 		return {ctor: 'StringPart', _0: a, _1: b};
 	});
 var _elm_lang$http$Http$stringPart = _elm_lang$http$Http$StringPart;
+
+var _elm_lang$keyboard$Keyboard$onSelfMsg = F3(
+	function (router, _p0, state) {
+		var _p1 = _p0;
+		var _p2 = A2(_elm_lang$core$Dict$get, _p1.category, state);
+		if (_p2.ctor === 'Nothing') {
+			return _elm_lang$core$Task$succeed(state);
+		} else {
+			var send = function (tagger) {
+				return A2(
+					_elm_lang$core$Platform$sendToApp,
+					router,
+					tagger(_p1.keyCode));
+			};
+			return A2(
+				_elm_lang$core$Task$andThen,
+				function (_p3) {
+					return _elm_lang$core$Task$succeed(state);
+				},
+				_elm_lang$core$Task$sequence(
+					A2(_elm_lang$core$List$map, send, _p2._0.taggers)));
+		}
+	});
+var _elm_lang$keyboard$Keyboard_ops = _elm_lang$keyboard$Keyboard_ops || {};
+_elm_lang$keyboard$Keyboard_ops['&>'] = F2(
+	function (task1, task2) {
+		return A2(
+			_elm_lang$core$Task$andThen,
+			function (_p4) {
+				return task2;
+			},
+			task1);
+	});
+var _elm_lang$keyboard$Keyboard$init = _elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty);
+var _elm_lang$keyboard$Keyboard$categorizeHelpHelp = F2(
+	function (value, maybeValues) {
+		var _p5 = maybeValues;
+		if (_p5.ctor === 'Nothing') {
+			return _elm_lang$core$Maybe$Just(
+				{
+					ctor: '::',
+					_0: value,
+					_1: {ctor: '[]'}
+				});
+		} else {
+			return _elm_lang$core$Maybe$Just(
+				{ctor: '::', _0: value, _1: _p5._0});
+		}
+	});
+var _elm_lang$keyboard$Keyboard$categorizeHelp = F2(
+	function (subs, subDict) {
+		categorizeHelp:
+		while (true) {
+			var _p6 = subs;
+			if (_p6.ctor === '[]') {
+				return subDict;
+			} else {
+				var _v4 = _p6._1,
+					_v5 = A3(
+					_elm_lang$core$Dict$update,
+					_p6._0._0,
+					_elm_lang$keyboard$Keyboard$categorizeHelpHelp(_p6._0._1),
+					subDict);
+				subs = _v4;
+				subDict = _v5;
+				continue categorizeHelp;
+			}
+		}
+	});
+var _elm_lang$keyboard$Keyboard$categorize = function (subs) {
+	return A2(_elm_lang$keyboard$Keyboard$categorizeHelp, subs, _elm_lang$core$Dict$empty);
+};
+var _elm_lang$keyboard$Keyboard$keyCode = A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int);
+var _elm_lang$keyboard$Keyboard$subscription = _elm_lang$core$Native_Platform.leaf('Keyboard');
+var _elm_lang$keyboard$Keyboard$Watcher = F2(
+	function (a, b) {
+		return {taggers: a, pid: b};
+	});
+var _elm_lang$keyboard$Keyboard$Msg = F2(
+	function (a, b) {
+		return {category: a, keyCode: b};
+	});
+var _elm_lang$keyboard$Keyboard$onEffects = F3(
+	function (router, newSubs, oldState) {
+		var rightStep = F3(
+			function (category, taggers, task) {
+				return A2(
+					_elm_lang$core$Task$andThen,
+					function (state) {
+						return A2(
+							_elm_lang$core$Task$andThen,
+							function (pid) {
+								return _elm_lang$core$Task$succeed(
+									A3(
+										_elm_lang$core$Dict$insert,
+										category,
+										A2(_elm_lang$keyboard$Keyboard$Watcher, taggers, pid),
+										state));
+							},
+							_elm_lang$core$Process$spawn(
+								A3(
+									_elm_lang$dom$Dom_LowLevel$onDocument,
+									category,
+									_elm_lang$keyboard$Keyboard$keyCode,
+									function (_p7) {
+										return A2(
+											_elm_lang$core$Platform$sendToSelf,
+											router,
+											A2(_elm_lang$keyboard$Keyboard$Msg, category, _p7));
+									})));
+					},
+					task);
+			});
+		var bothStep = F4(
+			function (category, _p8, taggers, task) {
+				var _p9 = _p8;
+				return A2(
+					_elm_lang$core$Task$map,
+					A2(
+						_elm_lang$core$Dict$insert,
+						category,
+						A2(_elm_lang$keyboard$Keyboard$Watcher, taggers, _p9.pid)),
+					task);
+			});
+		var leftStep = F3(
+			function (category, _p10, task) {
+				var _p11 = _p10;
+				return A2(
+					_elm_lang$keyboard$Keyboard_ops['&>'],
+					_elm_lang$core$Process$kill(_p11.pid),
+					task);
+			});
+		return A6(
+			_elm_lang$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			oldState,
+			_elm_lang$keyboard$Keyboard$categorize(newSubs),
+			_elm_lang$core$Task$succeed(_elm_lang$core$Dict$empty));
+	});
+var _elm_lang$keyboard$Keyboard$MySub = F2(
+	function (a, b) {
+		return {ctor: 'MySub', _0: a, _1: b};
+	});
+var _elm_lang$keyboard$Keyboard$presses = function (tagger) {
+	return _elm_lang$keyboard$Keyboard$subscription(
+		A2(_elm_lang$keyboard$Keyboard$MySub, 'keypress', tagger));
+};
+var _elm_lang$keyboard$Keyboard$downs = function (tagger) {
+	return _elm_lang$keyboard$Keyboard$subscription(
+		A2(_elm_lang$keyboard$Keyboard$MySub, 'keydown', tagger));
+};
+var _elm_lang$keyboard$Keyboard$ups = function (tagger) {
+	return _elm_lang$keyboard$Keyboard$subscription(
+		A2(_elm_lang$keyboard$Keyboard$MySub, 'keyup', tagger));
+};
+var _elm_lang$keyboard$Keyboard$subMap = F2(
+	function (func, _p12) {
+		var _p13 = _p12;
+		return A2(
+			_elm_lang$keyboard$Keyboard$MySub,
+			_p13._0,
+			function (_p14) {
+				return func(
+					_p13._1(_p14));
+			});
+	});
+_elm_lang$core$Native_Platform.effectManagers['Keyboard'] = {pkg: 'elm-lang/keyboard', init: _elm_lang$keyboard$Keyboard$init, onEffects: _elm_lang$keyboard$Keyboard$onEffects, onSelfMsg: _elm_lang$keyboard$Keyboard$onSelfMsg, tag: 'sub', subMap: _elm_lang$keyboard$Keyboard$subMap};
 
 var _elm_lang$navigation$Native_Navigation = function() {
 
@@ -23534,6 +23711,31 @@ var _n1k0$tooty$Mastodon_ApiUrl$userAccount = function (server) {
 		server,
 		A2(_elm_lang$core$Basics_ops['++'], _n1k0$tooty$Mastodon_ApiUrl$accounts, 'verify_credentials'));
 };
+var _n1k0$tooty$Mastodon_ApiUrl$searchAccount = F4(
+	function (server, query, limit, resolve) {
+		return A2(
+			_elm_lang$core$Basics_ops['++'],
+			server,
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				_n1k0$tooty$Mastodon_ApiUrl$accounts,
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					'search?q=',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						query,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'&limit=',
+							A2(
+								_elm_lang$core$Basics_ops['++'],
+								_elm_lang$core$Basics$toString(limit),
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									'&resolve=',
+									resolve ? 'true' : 'false')))))));
+	});
 var _n1k0$tooty$Mastodon_ApiUrl$relationships = function (ids) {
 	var qs = A2(
 		_elm_lang$core$String$join,
@@ -24084,6 +24286,19 @@ var _n1k0$tooty$Mastodon_Http$userAccount = function (client) {
 			_lukewestby$elm_http_builder$HttpBuilder$get(
 				_n1k0$tooty$Mastodon_ApiUrl$userAccount(client.server))));
 };
+var _n1k0$tooty$Mastodon_Http$searchAccounts = F4(
+	function (client, query, limit, resolve) {
+		return A2(
+			_lukewestby$elm_http_builder$HttpBuilder$withExpect,
+			_elm_lang$http$Http$expectJson(
+				_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$accountDecoder)),
+			A3(
+				_lukewestby$elm_http_builder$HttpBuilder$withHeader,
+				'Authorization',
+				A2(_elm_lang$core$Basics_ops['++'], 'Bearer ', client.token),
+				_lukewestby$elm_http_builder$HttpBuilder$get(
+					A4(_n1k0$tooty$Mastodon_ApiUrl$searchAccount, client.server, query, limit, resolve))));
+	});
 var _n1k0$tooty$Mastodon_Http$getAccessToken = F2(
 	function (registration, authCode) {
 		return A2(
@@ -24263,6 +24478,548 @@ var _n1k0$tooty$Ports$saveClient = _elm_lang$core$Native_Platform.outgoingPort(
 	function (v) {
 		return v;
 	});
+var _n1k0$tooty$Ports$setStatus = _elm_lang$core$Native_Platform.outgoingPort(
+	'setStatus',
+	function (v) {
+		return {id: v.id, status: v.status};
+	});
+
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$sectionConfig = function (_p0) {
+	var _p1 = _p0;
+	return {toId: _p1.toId, getData: _p1.getData, ul: _p1.ul, li: _p1.li};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewWithSectionsConfig = function (_p2) {
+	var _p3 = _p2;
+	return {toId: _p3.toId, ul: _p3.ul, li: _p3.li, section: _p3.section};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewConfig = function (_p4) {
+	var _p5 = _p4;
+	return {toId: _p5.toId, ul: _p5.ul, li: _p5.li};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$getPrevious = F3(
+	function (id, selectedId, resultId) {
+		return _elm_lang$core$Native_Utils.eq(selectedId, id) ? _elm_lang$core$Maybe$Just(id) : (_elm_lang$core$Native_Utils.eq(
+			A2(_elm_lang$core$Maybe$withDefault, '', resultId),
+			id) ? _elm_lang$core$Maybe$Just(selectedId) : resultId);
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$getNextItemId = F2(
+	function (ids, selectedId) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			selectedId,
+			A3(
+				_elm_lang$core$List$foldl,
+				_thebritican$elm_autocomplete$Autocomplete_Autocomplete$getPrevious(selectedId),
+				_elm_lang$core$Maybe$Nothing,
+				ids));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$getPreviousItemId = F2(
+	function (ids, selectedId) {
+		return A2(
+			_elm_lang$core$Maybe$withDefault,
+			selectedId,
+			A3(
+				_elm_lang$core$List$foldr,
+				_thebritican$elm_autocomplete$Autocomplete_Autocomplete$getPrevious(selectedId),
+				_elm_lang$core$Maybe$Nothing,
+				ids));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$navigateWithKey = F3(
+	function (code, ids, maybeId) {
+		var _p6 = code;
+		switch (_p6) {
+			case 38:
+				return A2(
+					_elm_lang$core$Maybe$map,
+					_thebritican$elm_autocomplete$Autocomplete_Autocomplete$getPreviousItemId(ids),
+					maybeId);
+			case 40:
+				return A2(
+					_elm_lang$core$Maybe$map,
+					_thebritican$elm_autocomplete$Autocomplete_Autocomplete$getNextItemId(ids),
+					maybeId);
+			default:
+				return maybeId;
+		}
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetMouseStateWithId = F3(
+	function (separateSelections, id, state) {
+		return separateSelections ? {
+			key: state.key,
+			mouse: _elm_lang$core$Maybe$Just(id)
+		} : {
+			key: _elm_lang$core$Maybe$Just(id),
+			mouse: _elm_lang$core$Maybe$Just(id)
+		};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$updateConfig = function (_p7) {
+	var _p8 = _p7;
+	return {toId: _p8.toId, onKeyDown: _p8.onKeyDown, onTooLow: _p8.onTooLow, onTooHigh: _p8.onTooHigh, onMouseEnter: _p8.onMouseEnter, onMouseLeave: _p8.onMouseLeave, onMouseClick: _p8.onMouseClick, separateSelections: _p8.separateSelections};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$empty = {key: _elm_lang$core$Maybe$Nothing, mouse: _elm_lang$core$Maybe$Nothing};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$reset = F2(
+	function (_p10, _p9) {
+		var _p11 = _p10;
+		var _p12 = _p9;
+		return _p11.separateSelections ? {key: _elm_lang$core$Maybe$Nothing, mouse: _p12.mouse} : _thebritican$elm_autocomplete$Autocomplete_Autocomplete$empty;
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToFirst = F3(
+	function (config, data, state) {
+		var _p13 = config;
+		var toId = _p13.toId;
+		var separateSelections = _p13.separateSelections;
+		var setFirstItem = F2(
+			function (datum, newState) {
+				return _elm_lang$core$Native_Utils.update(
+					newState,
+					{
+						key: _elm_lang$core$Maybe$Just(
+							toId(datum))
+					});
+			});
+		var _p14 = _elm_lang$core$List$head(data);
+		if (_p14.ctor === 'Nothing') {
+			return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$empty;
+		} else {
+			var _p15 = _p14._0;
+			return separateSelections ? A2(
+				setFirstItem,
+				_p15,
+				A2(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$reset, config, state)) : A2(setFirstItem, _p15, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$empty);
+		}
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToFirstItem = F4(
+	function (config, data, howManyToShow, state) {
+		return A3(
+			_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToFirst,
+			config,
+			A2(_elm_lang$core$List$take, howManyToShow, data),
+			state);
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToLastItem = F4(
+	function (config, data, howManyToShow, state) {
+		var reversedData = _elm_lang$core$List$reverse(
+			A2(_elm_lang$core$List$take, howManyToShow, data));
+		return A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToFirst, config, reversedData, state);
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$State = F2(
+	function (a, b) {
+		return {key: a, mouse: b};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$UpdateConfig = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {onKeyDown: a, onTooLow: b, onTooHigh: c, onMouseEnter: d, onMouseLeave: e, onMouseClick: f, toId: g, separateSelections: h};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$HtmlDetails = F2(
+	function (a, b) {
+		return {attributes: a, children: b};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$ViewConfig = F3(
+	function (a, b, c) {
+		return {toId: a, ul: b, li: c};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$ViewWithSectionsConfig = F4(
+	function (a, b, c, d) {
+		return {toId: a, ul: b, li: c, section: d};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$SectionConfig = F4(
+	function (a, b, c, d) {
+		return {toId: a, getData: b, ul: c, li: d};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$SectionNode = F3(
+	function (a, b, c) {
+		return {nodeType: a, attributes: b, children: c};
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$NoOp = {ctor: 'NoOp'};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Attributes$map,
+		function (_p16) {
+			return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$NoOp;
+		},
+		msg);
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseClick = function (a) {
+	return {ctor: 'MouseClick', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseLeave = function (a) {
+	return {ctor: 'MouseLeave', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseEnter = function (a) {
+	return {ctor: 'MouseEnter', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewData = F3(
+	function (_p18, _p17, data) {
+		var _p19 = _p18;
+		var _p20 = _p17;
+		var id = _p19.toId(data);
+		var isSelected = function (maybeId) {
+			var _p21 = maybeId;
+			if (_p21.ctor === 'Just') {
+				return _elm_lang$core$Native_Utils.eq(_p21._0, id);
+			} else {
+				return false;
+			}
+		};
+		var listItemData = A3(
+			_p19.li,
+			isSelected(_p20.key),
+			isSelected(_p20.mouse),
+			data);
+		var customAttributes = A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, listItemData.attributes);
+		var customLiAttr = A2(
+			_elm_lang$core$List$append,
+			customAttributes,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onMouseEnter(
+					_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseEnter(id)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onMouseLeave(
+						_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseLeave(id)),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseClick(id)),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+		return A2(
+			_elm_lang$html$Html$li,
+			customLiAttr,
+			A2(
+				_elm_lang$core$List$map,
+				_elm_lang$html$Html$map(
+					function (html) {
+						return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$NoOp;
+					}),
+				listItemData.children));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewSection = F3(
+	function (config, state, section) {
+		var getKeyedItems = function (datum) {
+			return {
+				ctor: '_Tuple2',
+				_0: config.toId(datum),
+				_1: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewData, config, state, datum)
+			};
+		};
+		var viewItemList = A2(
+			_elm_lang$html$Html_Keyed$ul,
+			A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, config.ul),
+			A2(
+				_elm_lang$core$List$map,
+				getKeyedItems,
+				config.section.getData(section)));
+		var sectionNode = config.section.li(section);
+		var attributes = A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, sectionNode.attributes);
+		var customChildren = A2(
+			_elm_lang$core$List$map,
+			_elm_lang$html$Html$map(
+				function (html) {
+					return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$NoOp;
+				}),
+			sectionNode.children);
+		var children = A2(
+			_elm_lang$core$List$append,
+			customChildren,
+			{
+				ctor: '::',
+				_0: viewItemList,
+				_1: {ctor: '[]'}
+			});
+		return A2(
+			_elm_lang$html$Html$li,
+			attributes,
+			{
+				ctor: '::',
+				_0: A3(_elm_lang$html$Html$node, sectionNode.nodeType, attributes, children),
+				_1: {ctor: '[]'}
+			});
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewWithSections = F4(
+	function (config, howManyToShow, state, sections) {
+		var getKeyedItems = function (section) {
+			return {
+				ctor: '_Tuple2',
+				_0: config.section.toId(section),
+				_1: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewSection, config, state, section)
+			};
+		};
+		return A2(
+			_elm_lang$html$Html_Keyed$ul,
+			A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, config.section.ul),
+			A2(_elm_lang$core$List$map, getKeyedItems, sections));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewItem = F3(
+	function (_p23, _p22, data) {
+		var _p24 = _p23;
+		var _p25 = _p22;
+		var id = _p24.toId(data);
+		var isSelected = function (maybeId) {
+			var _p26 = maybeId;
+			if (_p26.ctor === 'Just') {
+				return _elm_lang$core$Native_Utils.eq(_p26._0, id);
+			} else {
+				return false;
+			}
+		};
+		var listItemData = A3(
+			_p24.li,
+			isSelected(_p25.key),
+			isSelected(_p25.mouse),
+			data);
+		var customAttributes = A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, listItemData.attributes);
+		var customLiAttr = A2(
+			_elm_lang$core$List$append,
+			customAttributes,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onMouseEnter(
+					_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseEnter(id)),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onMouseLeave(
+						_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseLeave(id)),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_thebritican$elm_autocomplete$Autocomplete_Autocomplete$MouseClick(id)),
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+		return A2(
+			_elm_lang$html$Html$li,
+			customLiAttr,
+			A2(
+				_elm_lang$core$List$map,
+				_elm_lang$html$Html$map(
+					function (html) {
+						return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$NoOp;
+					}),
+				listItemData.children));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewList = F4(
+	function (config, howManyToShow, state, data) {
+		var getKeyedItems = function (datum) {
+			return {
+				ctor: '_Tuple2',
+				_0: config.toId(datum),
+				_1: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewItem, config, state, datum)
+			};
+		};
+		var customUlAttr = A2(_elm_lang$core$List$map, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$mapNeverToMsg, config.ul);
+		return A2(
+			_elm_lang$html$Html_Keyed$ul,
+			customUlAttr,
+			A2(
+				_elm_lang$core$List$map,
+				getKeyedItems,
+				A2(_elm_lang$core$List$take, howManyToShow, data)));
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$view = F4(
+	function (config, howManyToShow, state, data) {
+		return A4(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewList, config, howManyToShow, state, data);
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$WentTooHigh = {ctor: 'WentTooHigh'};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$WentTooLow = {ctor: 'WentTooLow'};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$update = F5(
+	function (config, msg, howManyToShow, state, data) {
+		update:
+		while (true) {
+			var _p27 = msg;
+			switch (_p27.ctor) {
+				case 'KeyDown':
+					var _p28 = _p27._0;
+					var boundedList = A2(
+						_elm_lang$core$List$take,
+						howManyToShow,
+						A2(_elm_lang$core$List$map, config.toId, data));
+					var newKey = A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$navigateWithKey, _p28, boundedList, state.key);
+					if (_elm_lang$core$Native_Utils.eq(newKey, state.key) && _elm_lang$core$Native_Utils.eq(_p28, 38)) {
+						var _v15 = config,
+							_v16 = _thebritican$elm_autocomplete$Autocomplete_Autocomplete$WentTooHigh,
+							_v17 = howManyToShow,
+							_v18 = state,
+							_v19 = data;
+						config = _v15;
+						msg = _v16;
+						howManyToShow = _v17;
+						state = _v18;
+						data = _v19;
+						continue update;
+					} else {
+						if (_elm_lang$core$Native_Utils.eq(newKey, state.key) && _elm_lang$core$Native_Utils.eq(_p28, 40)) {
+							var _v20 = config,
+								_v21 = _thebritican$elm_autocomplete$Autocomplete_Autocomplete$WentTooLow,
+								_v22 = howManyToShow,
+								_v23 = state,
+								_v24 = data;
+							config = _v20;
+							msg = _v21;
+							howManyToShow = _v22;
+							state = _v23;
+							data = _v24;
+							continue update;
+						} else {
+							if (config.separateSelections) {
+								return {
+									ctor: '_Tuple2',
+									_0: _elm_lang$core$Native_Utils.update(
+										state,
+										{key: newKey}),
+									_1: A2(config.onKeyDown, _p28, newKey)
+								};
+							} else {
+								return {
+									ctor: '_Tuple2',
+									_0: {key: newKey, mouse: newKey},
+									_1: A2(config.onKeyDown, _p28, newKey)
+								};
+							}
+						}
+					}
+				case 'WentTooLow':
+					return {ctor: '_Tuple2', _0: state, _1: config.onTooLow};
+				case 'WentTooHigh':
+					return {ctor: '_Tuple2', _0: state, _1: config.onTooHigh};
+				case 'MouseEnter':
+					var _p29 = _p27._0;
+					return {
+						ctor: '_Tuple2',
+						_0: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetMouseStateWithId, config.separateSelections, _p29, state),
+						_1: config.onMouseEnter(_p29)
+					};
+				case 'MouseLeave':
+					var _p30 = _p27._0;
+					return {
+						ctor: '_Tuple2',
+						_0: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetMouseStateWithId, config.separateSelections, _p30, state),
+						_1: config.onMouseLeave(_p30)
+					};
+				case 'MouseClick':
+					var _p31 = _p27._0;
+					return {
+						ctor: '_Tuple2',
+						_0: A3(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetMouseStateWithId, config.separateSelections, _p31, state),
+						_1: config.onMouseClick(_p31)
+					};
+				default:
+					return {ctor: '_Tuple2', _0: state, _1: _elm_lang$core$Maybe$Nothing};
+			}
+		}
+	});
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$KeyDown = function (a) {
+	return {ctor: 'KeyDown', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete_Autocomplete$subscription = _elm_lang$keyboard$Keyboard$downs(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$KeyDown);
+
+var _thebritican$elm_autocomplete$Autocomplete$HtmlDetails = F2(
+	function (a, b) {
+		return {attributes: a, children: b};
+	});
+var _thebritican$elm_autocomplete$Autocomplete$SectionNode = F3(
+	function (a, b, c) {
+		return {nodeType: a, attributes: b, children: c};
+	});
+var _thebritican$elm_autocomplete$Autocomplete$State = function (a) {
+	return {ctor: 'State', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$empty = _thebritican$elm_autocomplete$Autocomplete$State(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$empty);
+var _thebritican$elm_autocomplete$Autocomplete$reset = F2(
+	function (_p1, _p0) {
+		var _p2 = _p1;
+		var _p3 = _p0;
+		return _thebritican$elm_autocomplete$Autocomplete$State(
+			A2(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$reset, _p2._0, _p3._0));
+	});
+var _thebritican$elm_autocomplete$Autocomplete$resetToFirstItem = F4(
+	function (_p5, data, howManyToShow, _p4) {
+		var _p6 = _p5;
+		var _p7 = _p4;
+		return _thebritican$elm_autocomplete$Autocomplete$State(
+			A4(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToFirstItem, _p6._0, data, howManyToShow, _p7._0));
+	});
+var _thebritican$elm_autocomplete$Autocomplete$resetToLastItem = F4(
+	function (_p9, data, howManyToShow, _p8) {
+		var _p10 = _p9;
+		var _p11 = _p8;
+		return _thebritican$elm_autocomplete$Autocomplete$State(
+			A4(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$resetToLastItem, _p10._0, data, howManyToShow, _p11._0));
+	});
+var _thebritican$elm_autocomplete$Autocomplete$update = F5(
+	function (_p14, _p13, howManyToShow, _p12, data) {
+		var _p15 = _p14;
+		var _p16 = _p13;
+		var _p17 = _p12;
+		var _p18 = A5(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$update, _p15._0, _p16._0, howManyToShow, _p17._0, data);
+		var newState = _p18._0;
+		var maybeMsg = _p18._1;
+		return {
+			ctor: '_Tuple2',
+			_0: _thebritican$elm_autocomplete$Autocomplete$State(newState),
+			_1: maybeMsg
+		};
+	});
+var _thebritican$elm_autocomplete$Autocomplete$Msg = function (a) {
+	return {ctor: 'Msg', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$subscription = A2(_elm_lang$core$Platform_Sub$map, _thebritican$elm_autocomplete$Autocomplete$Msg, _thebritican$elm_autocomplete$Autocomplete_Autocomplete$subscription);
+var _thebritican$elm_autocomplete$Autocomplete$view = F4(
+	function (_p20, howManyToShow, _p19, data) {
+		var _p21 = _p20;
+		var _p22 = _p19;
+		return A2(
+			_elm_lang$html$Html$map,
+			_thebritican$elm_autocomplete$Autocomplete$Msg,
+			A4(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$view, _p21._0, howManyToShow, _p22._0, data));
+	});
+var _thebritican$elm_autocomplete$Autocomplete$viewWithSections = F4(
+	function (_p24, howManyToShow, _p23, sections) {
+		var _p25 = _p24;
+		var _p26 = _p23;
+		return A2(
+			_elm_lang$html$Html$map,
+			_thebritican$elm_autocomplete$Autocomplete$Msg,
+			A4(_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewWithSections, _p25._0, howManyToShow, _p26._0, sections));
+	});
+var _thebritican$elm_autocomplete$Autocomplete$UpdateConfig = function (a) {
+	return {ctor: 'UpdateConfig', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$updateConfig = function (config) {
+	return _thebritican$elm_autocomplete$Autocomplete$UpdateConfig(
+		_thebritican$elm_autocomplete$Autocomplete_Autocomplete$updateConfig(config));
+};
+var _thebritican$elm_autocomplete$Autocomplete$ViewConfig = function (a) {
+	return {ctor: 'ViewConfig', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$viewConfig = function (config) {
+	return _thebritican$elm_autocomplete$Autocomplete$ViewConfig(
+		_thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewConfig(config));
+};
+var _thebritican$elm_autocomplete$Autocomplete$ViewWithSectionsConfig = function (a) {
+	return {ctor: 'ViewWithSectionsConfig', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$viewWithSectionsConfig = function (config) {
+	return _thebritican$elm_autocomplete$Autocomplete$ViewWithSectionsConfig(
+		function () {
+			var _p27 = config.section;
+			return _thebritican$elm_autocomplete$Autocomplete_Autocomplete$viewWithSectionsConfig(
+				_elm_lang$core$Native_Utils.update(
+					config,
+					{section: _p27._0}));
+		}());
+};
+var _thebritican$elm_autocomplete$Autocomplete$SectionConfig = function (a) {
+	return {ctor: 'SectionConfig', _0: a};
+};
+var _thebritican$elm_autocomplete$Autocomplete$sectionConfig = function (section) {
+	return _thebritican$elm_autocomplete$Autocomplete$SectionConfig(
+		_thebritican$elm_autocomplete$Autocomplete_Autocomplete$sectionConfig(section));
+};
 
 var _n1k0$tooty$Types$Flags = F2(
 	function (a, b) {
@@ -24304,7 +25061,21 @@ var _n1k0$tooty$Types$Model = function (a) {
 																	return function (r) {
 																		return function (s) {
 																			return function (t) {
-																				return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, globalTimeline: f, accountTimeline: g, accountFollowers: h, accountFollowing: i, accountRelationships: j, accountRelationship: k, notifications: l, draft: m, errors: n, location: o, useGlobalTimeline: p, viewer: q, currentUser: r, currentView: s, notificationFilter: t};
+																				return function (u) {
+																					return function (v) {
+																						return function (w) {
+																							return function (x) {
+																								return function (y) {
+																									return function (z) {
+																										return function (_1) {
+																											return {server: a, registration: b, client: c, userTimeline: d, localTimeline: e, globalTimeline: f, accountTimeline: g, accountFollowers: h, accountFollowing: i, accountRelationships: j, accountRelationship: k, notifications: l, draft: m, errors: n, location: o, useGlobalTimeline: p, viewer: q, currentUser: r, currentView: s, notificationFilter: t, autoState: u, autoCursorPosition: v, autoAtPosition: w, autoQuery: x, autoMaxResults: y, autoAccounts: z, showAutoMenu: _1};
+																										};
+																									};
+																								};
+																							};
+																						};
+																					};
+																				};
 																			};
 																		};
 																	};
@@ -24325,17 +25096,24 @@ var _n1k0$tooty$Types$Model = function (a) {
 		};
 	};
 };
+var _n1k0$tooty$Types$InputInformation = F2(
+	function (a, b) {
+		return {status: a, selectionStart: b};
+	});
+var _n1k0$tooty$Types$UpdateInputInformation = function (a) {
+	return {ctor: 'UpdateInputInformation', _0: a};
+};
 var _n1k0$tooty$Types$ToggleSpoiler = function (a) {
 	return {ctor: 'ToggleSpoiler', _0: a};
+};
+var _n1k0$tooty$Types$SelectAccount = function (a) {
+	return {ctor: 'SelectAccount', _0: a};
 };
 var _n1k0$tooty$Types$UpdateReplyTo = function (a) {
 	return {ctor: 'UpdateReplyTo', _0: a};
 };
 var _n1k0$tooty$Types$UpdateVisibility = function (a) {
 	return {ctor: 'UpdateVisibility', _0: a};
-};
-var _n1k0$tooty$Types$UpdateStatus = function (a) {
-	return {ctor: 'UpdateStatus', _0: a};
 };
 var _n1k0$tooty$Types$UpdateSpoiler = function (a) {
 	return {ctor: 'UpdateSpoiler', _0: a};
@@ -24349,6 +25127,9 @@ var _n1k0$tooty$Types$OpenViewer = F2(
 		return {ctor: 'OpenViewer', _0: a, _1: b};
 	});
 var _n1k0$tooty$Types$CloseViewer = {ctor: 'CloseViewer'};
+var _n1k0$tooty$Types$AutoSearch = function (a) {
+	return {ctor: 'AutoSearch', _0: a};
+};
 var _n1k0$tooty$Types$UserTimeline = function (a) {
 	return {ctor: 'UserTimeline', _0: a};
 };
@@ -24425,6 +25206,9 @@ var _n1k0$tooty$Types$NewWebsocketLocalMessage = function (a) {
 var _n1k0$tooty$Types$NewWebsocketGlobalMessage = function (a) {
 	return {ctor: 'NewWebsocketGlobalMessage', _0: a};
 };
+var _n1k0$tooty$Types$ResetAutocomplete = function (a) {
+	return {ctor: 'ResetAutocomplete', _0: a};
+};
 var _n1k0$tooty$Types$WebSocketEvent = function (a) {
 	return {ctor: 'WebSocketEvent', _0: a};
 };
@@ -24453,6 +25237,9 @@ var _n1k0$tooty$Types$UnfollowAccount = function (a) {
 	return {ctor: 'UnfollowAccount', _0: a};
 };
 var _n1k0$tooty$Types$SubmitDraft = {ctor: 'SubmitDraft'};
+var _n1k0$tooty$Types$SetAutoState = function (a) {
+	return {ctor: 'SetAutoState', _0: a};
+};
 var _n1k0$tooty$Types$ServerChange = function (a) {
 	return {ctor: 'ServerChange', _0: a};
 };
@@ -24686,22 +25473,26 @@ var _n1k0$tooty$Command$loadRelationships = F2(
 			return _elm_lang$core$Platform_Cmd$none;
 		}
 	});
-var _n1k0$tooty$Command$loadAccountFollowing = F2(
-	function (client, accountId) {
-		var _p20 = client;
-		if (_p20.ctor === 'Just') {
-			return A2(
-				_n1k0$tooty$Mastodon_Http$send,
-				function (_p21) {
-					return _n1k0$tooty$Types$MastodonEvent(
-						_n1k0$tooty$Types$AccountFollowing(_p21));
-				},
-				A2(_n1k0$tooty$Mastodon_Http$fetchAccountFollowing, _p20._0, accountId));
-		} else {
+var _n1k0$tooty$Command$searchAccounts = F4(
+	function (client, query, limit, resolve) {
+		if (_elm_lang$core$Native_Utils.eq(query, '')) {
 			return _elm_lang$core$Platform_Cmd$none;
+		} else {
+			var _p20 = client;
+			if (_p20.ctor === 'Just') {
+				return A2(
+					_n1k0$tooty$Mastodon_Http$send,
+					function (_p21) {
+						return _n1k0$tooty$Types$MastodonEvent(
+							_n1k0$tooty$Types$AutoSearch(_p21));
+					},
+					A4(_n1k0$tooty$Mastodon_Http$searchAccounts, _p20._0, query, limit, resolve));
+			} else {
+				return _elm_lang$core$Platform_Cmd$none;
+			}
 		}
 	});
-var _n1k0$tooty$Command$loadAccountFollowers = F2(
+var _n1k0$tooty$Command$loadAccountFollowing = F2(
 	function (client, accountId) {
 		var _p22 = client;
 		if (_p22.ctor === 'Just') {
@@ -24709,14 +25500,14 @@ var _n1k0$tooty$Command$loadAccountFollowers = F2(
 				_n1k0$tooty$Mastodon_Http$send,
 				function (_p23) {
 					return _n1k0$tooty$Types$MastodonEvent(
-						_n1k0$tooty$Types$AccountFollowers(_p23));
+						_n1k0$tooty$Types$AccountFollowing(_p23));
 				},
-				A2(_n1k0$tooty$Mastodon_Http$fetchAccountFollowers, _p22._0, accountId));
+				A2(_n1k0$tooty$Mastodon_Http$fetchAccountFollowing, _p22._0, accountId));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
 	});
-var _n1k0$tooty$Command$loadAccountTimeline = F2(
+var _n1k0$tooty$Command$loadAccountFollowers = F2(
 	function (client, accountId) {
 		var _p24 = client;
 		if (_p24.ctor === 'Just') {
@@ -24724,39 +25515,54 @@ var _n1k0$tooty$Command$loadAccountTimeline = F2(
 				_n1k0$tooty$Mastodon_Http$send,
 				function (_p25) {
 					return _n1k0$tooty$Types$MastodonEvent(
-						_n1k0$tooty$Types$AccountTimeline(_p25));
+						_n1k0$tooty$Types$AccountFollowers(_p25));
 				},
-				A2(_n1k0$tooty$Mastodon_Http$fetchAccountTimeline, _p24._0, accountId));
+				A2(_n1k0$tooty$Mastodon_Http$fetchAccountFollowers, _p24._0, accountId));
+		} else {
+			return _elm_lang$core$Platform_Cmd$none;
+		}
+	});
+var _n1k0$tooty$Command$loadAccountTimeline = F2(
+	function (client, accountId) {
+		var _p26 = client;
+		if (_p26.ctor === 'Just') {
+			return A2(
+				_n1k0$tooty$Mastodon_Http$send,
+				function (_p27) {
+					return _n1k0$tooty$Types$MastodonEvent(
+						_n1k0$tooty$Types$AccountTimeline(_p27));
+				},
+				A2(_n1k0$tooty$Mastodon_Http$fetchAccountTimeline, _p26._0, accountId));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
 	});
 var _n1k0$tooty$Command$loadAccount = F2(
 	function (client, accountId) {
-		var _p26 = client;
-		if (_p26.ctor === 'Just') {
-			var _p29 = _p26._0;
+		var _p28 = client;
+		if (_p28.ctor === 'Just') {
+			var _p31 = _p28._0;
 			return _elm_lang$core$Platform_Cmd$batch(
 				{
 					ctor: '::',
 					_0: A2(
 						_n1k0$tooty$Mastodon_Http$send,
-						function (_p27) {
+						function (_p29) {
 							return _n1k0$tooty$Types$MastodonEvent(
-								_n1k0$tooty$Types$AccountReceived(_p27));
+								_n1k0$tooty$Types$AccountReceived(_p29));
 						},
-						A2(_n1k0$tooty$Mastodon_Http$fetchAccount, _p29, accountId)),
+						A2(_n1k0$tooty$Mastodon_Http$fetchAccount, _p31, accountId)),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_n1k0$tooty$Mastodon_Http$send,
-							function (_p28) {
+							function (_p30) {
 								return _n1k0$tooty$Types$MastodonEvent(
-									_n1k0$tooty$Types$AccountRelationship(_p28));
+									_n1k0$tooty$Types$AccountRelationship(_p30));
 							},
 							A2(
 								_n1k0$tooty$Mastodon_Http$fetchRelationships,
-								_p29,
+								_p31,
 								{
 									ctor: '::',
 									_0: accountId,
@@ -24770,69 +25576,69 @@ var _n1k0$tooty$Command$loadAccount = F2(
 		}
 	});
 var _n1k0$tooty$Command$loadUserAccount = function (client) {
-	var _p30 = client;
-	if (_p30.ctor === 'Just') {
-		return A2(
-			_n1k0$tooty$Mastodon_Http$send,
-			function (_p31) {
-				return _n1k0$tooty$Types$MastodonEvent(
-					_n1k0$tooty$Types$CurrentUser(_p31));
-			},
-			_n1k0$tooty$Mastodon_Http$userAccount(_p30._0));
-	} else {
-		return _elm_lang$core$Platform_Cmd$none;
-	}
-};
-var _n1k0$tooty$Command$loadNotifications = function (client) {
 	var _p32 = client;
 	if (_p32.ctor === 'Just') {
 		return A2(
 			_n1k0$tooty$Mastodon_Http$send,
 			function (_p33) {
 				return _n1k0$tooty$Types$MastodonEvent(
-					_n1k0$tooty$Types$Notifications(_p33));
+					_n1k0$tooty$Types$CurrentUser(_p33));
 			},
-			_n1k0$tooty$Mastodon_Http$fetchNotifications(_p32._0));
+			_n1k0$tooty$Mastodon_Http$userAccount(_p32._0));
+	} else {
+		return _elm_lang$core$Platform_Cmd$none;
+	}
+};
+var _n1k0$tooty$Command$loadNotifications = function (client) {
+	var _p34 = client;
+	if (_p34.ctor === 'Just') {
+		return A2(
+			_n1k0$tooty$Mastodon_Http$send,
+			function (_p35) {
+				return _n1k0$tooty$Types$MastodonEvent(
+					_n1k0$tooty$Types$Notifications(_p35));
+			},
+			_n1k0$tooty$Mastodon_Http$fetchNotifications(_p34._0));
 	} else {
 		return _elm_lang$core$Platform_Cmd$none;
 	}
 };
 var _n1k0$tooty$Command$loadTimelines = function (client) {
-	var _p34 = client;
-	if (_p34.ctor === 'Just') {
-		var _p38 = _p34._0;
+	var _p36 = client;
+	if (_p36.ctor === 'Just') {
+		var _p40 = _p36._0;
 		return _elm_lang$core$Platform_Cmd$batch(
 			{
 				ctor: '::',
 				_0: A2(
 					_n1k0$tooty$Mastodon_Http$send,
-					function (_p35) {
+					function (_p37) {
 						return _n1k0$tooty$Types$MastodonEvent(
-							_n1k0$tooty$Types$UserTimeline(_p35));
+							_n1k0$tooty$Types$UserTimeline(_p37));
 					},
-					_n1k0$tooty$Mastodon_Http$fetchUserTimeline(_p38)),
+					_n1k0$tooty$Mastodon_Http$fetchUserTimeline(_p40)),
 				_1: {
 					ctor: '::',
 					_0: A2(
 						_n1k0$tooty$Mastodon_Http$send,
-						function (_p36) {
+						function (_p38) {
 							return _n1k0$tooty$Types$MastodonEvent(
-								_n1k0$tooty$Types$LocalTimeline(_p36));
+								_n1k0$tooty$Types$LocalTimeline(_p38));
 						},
-						_n1k0$tooty$Mastodon_Http$fetchLocalTimeline(_p38)),
+						_n1k0$tooty$Mastodon_Http$fetchLocalTimeline(_p40)),
 					_1: {
 						ctor: '::',
 						_0: A2(
 							_n1k0$tooty$Mastodon_Http$send,
-							function (_p37) {
+							function (_p39) {
 								return _n1k0$tooty$Types$MastodonEvent(
-									_n1k0$tooty$Types$GlobalTimeline(_p37));
+									_n1k0$tooty$Types$GlobalTimeline(_p39));
 							},
-							_n1k0$tooty$Mastodon_Http$fetchGlobalTimeline(_p38)),
+							_n1k0$tooty$Mastodon_Http$fetchGlobalTimeline(_p40)),
 						_1: {
 							ctor: '::',
 							_0: _n1k0$tooty$Command$loadNotifications(
-								_elm_lang$core$Maybe$Just(_p38)),
+								_elm_lang$core$Maybe$Just(_p40)),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -24856,17 +25662,17 @@ var _n1k0$tooty$Command$saveClient = function (client) {
 			0,
 			_n1k0$tooty$Mastodon_Encoder$clientEncoder(client)));
 };
-var _n1k0$tooty$Command$registerApp = function (_p39) {
-	var _p40 = _p39;
-	var _p43 = _p40.server;
-	var _p42 = _p40.location;
-	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p43) ? A2(_elm_lang$core$String$dropRight, 1, _p43) : _p43;
-	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p42.origin, _p42.pathname);
+var _n1k0$tooty$Command$registerApp = function (_p41) {
+	var _p42 = _p41;
+	var _p45 = _p42.server;
+	var _p44 = _p42.location;
+	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p45) ? A2(_elm_lang$core$String$dropRight, 1, _p45) : _p45;
+	var appUrl = A2(_elm_lang$core$Basics_ops['++'], _p44.origin, _p44.pathname);
 	return A2(
 		_n1k0$tooty$Mastodon_Http$send,
-		function (_p41) {
+		function (_p43) {
 			return _n1k0$tooty$Types$MastodonEvent(
-				_n1k0$tooty$Types$AppRegistered(_p41));
+				_n1k0$tooty$Types$AppRegistered(_p43));
 		},
 		A5(_n1k0$tooty$Mastodon_Http$register, cleanServer, 'tooty', appUrl, 'read write follow', 'https://github.com/n1k0/tooty'));
 };
@@ -24878,19 +25684,19 @@ var _n1k0$tooty$Command$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p44 = authCode;
-				if (_p44.ctor === 'Just') {
-					var _p45 = registration;
-					if (_p45.ctor === 'Just') {
+				var _p46 = authCode;
+				if (_p46.ctor === 'Just') {
+					var _p47 = registration;
+					if (_p47.ctor === 'Just') {
 						return {
 							ctor: '::',
 							_0: A2(
 								_n1k0$tooty$Mastodon_Http$send,
-								function (_p46) {
+								function (_p48) {
 									return _n1k0$tooty$Types$MastodonEvent(
-										_n1k0$tooty$Types$AccessToken(_p46));
+										_n1k0$tooty$Types$AccessToken(_p48));
 								},
-								A2(_n1k0$tooty$Mastodon_Http$getAccessToken, _p45._0, _p44._0)),
+								A2(_n1k0$tooty$Mastodon_Http$getAccessToken, _p47._0, _p46._0)),
 							_1: {ctor: '[]'}
 						};
 					} else {
@@ -25119,6 +25925,1686 @@ var _n1k0$tooty$Mastodon_Helper$extractReblog = function (status) {
 	}
 };
 
+var _n1k0$tooty$Model$subscriptions = function (model) {
+	var _p0 = model.client;
+	if (_p0.ctor === 'Just') {
+		var _p1 = _p0._0;
+		var subs = A2(
+			_elm_lang$core$Basics_ops['++'],
+			{
+				ctor: '::',
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$UserStream, _n1k0$tooty$Types$NewWebsocketUserMessage),
+				_1: {ctor: '[]'}
+			},
+			model.useGlobalTimeline ? {
+				ctor: '::',
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$GlobalPublicStream, _n1k0$tooty$Types$NewWebsocketGlobalMessage),
+				_1: {ctor: '[]'}
+			} : {
+				ctor: '::',
+				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$LocalPublicStream, _n1k0$tooty$Types$NewWebsocketLocalMessage),
+				_1: {ctor: '[]'}
+			});
+		return _elm_lang$core$Platform_Sub$batch(
+			A2(
+				_elm_lang$core$Basics_ops['++'],
+				A2(
+					_elm_lang$core$List$map,
+					_elm_lang$core$Platform_Sub$map(_n1k0$tooty$Types$WebSocketEvent),
+					subs),
+				{
+					ctor: '::',
+					_0: A2(_elm_lang$core$Platform_Sub$map, _n1k0$tooty$Types$SetAutoState, _thebritican$elm_autocomplete$Autocomplete$subscription),
+					_1: {ctor: '[]'}
+				}));
+	} else {
+		return _elm_lang$core$Platform_Sub$batch(
+			{ctor: '[]'});
+	}
+};
+var _n1k0$tooty$Model$acceptableAccounts = F2(
+	function (query, accounts) {
+		var lowerQuery = _elm_lang$core$String$toLower(query);
+		return _elm_lang$core$Native_Utils.eq(query, '') ? {ctor: '[]'} : A2(
+			_elm_lang$core$List$filter,
+			function (_p2) {
+				return A2(
+					_elm_lang$core$String$contains,
+					lowerQuery,
+					_elm_lang$core$String$toLower(
+						function (_) {
+							return _.username;
+						}(_p2)));
+			},
+			accounts);
+	});
+var _n1k0$tooty$Model$updateConfig = _thebritican$elm_autocomplete$Autocomplete$updateConfig(
+	{
+		toId: function (_p3) {
+			return _elm_lang$core$Basics$toString(
+				function (_) {
+					return _.id;
+				}(_p3));
+		},
+		onKeyDown: F2(
+			function (code, maybeId) {
+				return (_elm_lang$core$Native_Utils.eq(code, 38) || _elm_lang$core$Native_Utils.eq(code, 40)) ? _elm_lang$core$Maybe$Nothing : (_elm_lang$core$Native_Utils.eq(code, 13) ? A2(
+					_elm_lang$core$Maybe$map,
+					function (_p4) {
+						return _n1k0$tooty$Types$DraftEvent(
+							_n1k0$tooty$Types$SelectAccount(_p4));
+					},
+					maybeId) : _elm_lang$core$Maybe$Just(
+					_n1k0$tooty$Types$ResetAutocomplete(false)));
+			}),
+		onTooLow: _elm_lang$core$Maybe$Just(
+			_n1k0$tooty$Types$ResetAutocomplete(true)),
+		onTooHigh: _elm_lang$core$Maybe$Just(
+			_n1k0$tooty$Types$ResetAutocomplete(false)),
+		onMouseEnter: function (_p5) {
+			return _elm_lang$core$Maybe$Nothing;
+		},
+		onMouseLeave: function (_p6) {
+			return _elm_lang$core$Maybe$Nothing;
+		},
+		onMouseClick: function (id) {
+			return _elm_lang$core$Maybe$Just(
+				function (_p7) {
+					return _n1k0$tooty$Types$DraftEvent(
+						_n1k0$tooty$Types$SelectAccount(_p7));
+				}(id));
+		},
+		separateSelections: false
+	});
+var _n1k0$tooty$Model$showAutoMenu = F3(
+	function (accounts, atPosition, query) {
+		var _p8 = {
+			ctor: '_Tuple3',
+			_0: _elm_lang$core$List$isEmpty(accounts),
+			_1: atPosition,
+			_2: query
+		};
+		if (_p8._1.ctor === 'Nothing') {
+			return false;
+		} else {
+			if (_p8._0 === true) {
+				return false;
+			} else {
+				if (_p8._2 === '') {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		}
+	});
+var _n1k0$tooty$Model$updateViewer = F2(
+	function (viewerMsg, viewer) {
+		var _p9 = viewerMsg;
+		if (_p9.ctor === 'CloseViewer') {
+			return A2(
+				_elm_lang$core$Platform_Cmd_ops['!'],
+				_elm_lang$core$Maybe$Nothing,
+				{ctor: '[]'});
+		} else {
+			return A2(
+				_elm_lang$core$Platform_Cmd_ops['!'],
+				_elm_lang$core$Maybe$Just(
+					A2(_n1k0$tooty$Types$Viewer, _p9._0, _p9._1)),
+				{ctor: '[]'});
+		}
+	});
+var _n1k0$tooty$Model$processFollowEvent = F3(
+	function (relationship, flag, model) {
+		var accountRelationship = function () {
+			var _p10 = model.accountRelationship;
+			if (_p10.ctor === 'Just') {
+				return _elm_lang$core$Native_Utils.eq(_p10._0.id, relationship.id) ? _elm_lang$core$Maybe$Just(
+					_elm_lang$core$Native_Utils.update(
+						relationship,
+						{following: flag})) : model.accountRelationship;
+			} else {
+				return _elm_lang$core$Maybe$Nothing;
+			}
+		}();
+		var updateRelationship = function (r) {
+			return _elm_lang$core$Native_Utils.eq(r.id, relationship.id) ? _elm_lang$core$Native_Utils.update(
+				r,
+				{following: flag}) : r;
+		};
+		var accountRelationships = A2(_elm_lang$core$List$map, updateRelationship, model.accountRelationships);
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{accountRelationships: accountRelationships, accountRelationship: accountRelationship});
+	});
+var _n1k0$tooty$Model$deleteStatusFromTimeline = F2(
+	function (statusId, timeline) {
+		return A2(
+			_elm_lang$core$List$filter,
+			function (s) {
+				return (!_elm_lang$core$Native_Utils.eq(s.id, statusId)) && (!_elm_lang$core$Native_Utils.eq(
+					_n1k0$tooty$Mastodon_Helper$extractReblog(s).id,
+					statusId));
+			},
+			timeline);
+	});
+var _n1k0$tooty$Model$updateTimelinesWithBoolFlag = F4(
+	function (statusId, flag, statusUpdater, model) {
+		var update = F2(
+			function (flag, status) {
+				return _elm_lang$core$Native_Utils.eq(
+					_n1k0$tooty$Mastodon_Helper$extractReblog(status).id,
+					statusId) ? statusUpdater(status) : status;
+			});
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{
+				userTimeline: A2(
+					_elm_lang$core$List$map,
+					update(flag),
+					model.userTimeline),
+				localTimeline: A2(
+					_elm_lang$core$List$map,
+					update(flag),
+					model.localTimeline),
+				globalTimeline: A2(
+					_elm_lang$core$List$map,
+					update(flag),
+					model.globalTimeline)
+			});
+	});
+var _n1k0$tooty$Model$processFavourite = F3(
+	function (statusId, flag, model) {
+		return A4(
+			_n1k0$tooty$Model$updateTimelinesWithBoolFlag,
+			statusId,
+			flag,
+			function (s) {
+				return _elm_lang$core$Native_Utils.update(
+					s,
+					{
+						favourited: _elm_lang$core$Maybe$Just(flag)
+					});
+			},
+			model);
+	});
+var _n1k0$tooty$Model$processReblog = F3(
+	function (statusId, flag, model) {
+		return A4(
+			_n1k0$tooty$Model$updateTimelinesWithBoolFlag,
+			statusId,
+			flag,
+			function (s) {
+				return _elm_lang$core$Native_Utils.update(
+					s,
+					{
+						reblogged: _elm_lang$core$Maybe$Just(flag)
+					});
+			},
+			model);
+	});
+var _n1k0$tooty$Model$toStatusRequestBody = function (draft) {
+	return {
+		status: draft.status,
+		in_reply_to_id: function () {
+			var _p11 = draft.in_reply_to;
+			if (_p11.ctor === 'Just') {
+				return _elm_lang$core$Maybe$Just(_p11._0.id);
+			} else {
+				return _elm_lang$core$Maybe$Nothing;
+			}
+		}(),
+		spoiler_text: draft.spoiler_text,
+		sensitive: draft.sensitive,
+		visibility: draft.visibility
+	};
+};
+var _n1k0$tooty$Model$errorText = function (error) {
+	var _p12 = error;
+	switch (_p12.ctor) {
+		case 'MastodonError':
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'HTTP ',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(_p12._0),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						' ',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_p12._1,
+							A2(_elm_lang$core$Basics_ops['++'], ': ', _p12._2)))));
+		case 'ServerError':
+			return A2(
+				_elm_lang$core$Basics_ops['++'],
+				'HTTP ',
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					_elm_lang$core$Basics$toString(_p12._0),
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						' ',
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							_p12._1,
+							A2(_elm_lang$core$Basics_ops['++'], ': ', _p12._2)))));
+		case 'TimeoutError':
+			return 'Request timed out.';
+		default:
+			return 'Unreachable host.';
+	}
+};
+var _n1k0$tooty$Model$preferredTimeline = function (model) {
+	return model.useGlobalTimeline ? _n1k0$tooty$Types$GlobalTimelineView : _n1k0$tooty$Types$LocalTimelineView;
+};
+var _n1k0$tooty$Model$defaultDraft = {status: '', in_reply_to: _elm_lang$core$Maybe$Nothing, spoiler_text: _elm_lang$core$Maybe$Nothing, sensitive: false, visibility: 'public'};
+var _n1k0$tooty$Model$updateDraft = F3(
+	function (draftMsg, currentUser, model) {
+		var draft = model.draft;
+		var _p13 = draftMsg;
+		switch (_p13.ctor) {
+			case 'ClearDraft':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{draft: _n1k0$tooty$Model$defaultDraft}),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$Ports$setStatus(
+							{id: 'status', status: _n1k0$tooty$Model$defaultDraft.status}),
+						_1: {ctor: '[]'}
+					});
+			case 'ToggleSpoiler':
+				var newDraft = _elm_lang$core$Native_Utils.update(
+					draft,
+					{
+						spoiler_text: _p13._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
+					});
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{draft: newDraft}),
+					{ctor: '[]'});
+			case 'UpdateSensitive':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							draft: _elm_lang$core$Native_Utils.update(
+								draft,
+								{sensitive: _p13._0})
+						}),
+					{ctor: '[]'});
+			case 'UpdateSpoiler':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							draft: _elm_lang$core$Native_Utils.update(
+								draft,
+								{
+									spoiler_text: _elm_lang$core$Maybe$Just(_p13._0)
+								})
+						}),
+					{ctor: '[]'});
+			case 'UpdateVisibility':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							draft: _elm_lang$core$Native_Utils.update(
+								draft,
+								{visibility: _p13._0})
+						}),
+					{ctor: '[]'});
+			case 'UpdateReplyTo':
+				var _p14 = _p13._0;
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							draft: _elm_lang$core$Native_Utils.update(
+								draft,
+								{
+									in_reply_to: _elm_lang$core$Maybe$Just(_p14),
+									status: A2(_n1k0$tooty$Mastodon_Helper$getReplyPrefix, currentUser, _p14),
+									sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p14.sensitive),
+									spoiler_text: _elm_lang$core$Native_Utils.eq(_p14.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p14.spoiler_text),
+									visibility: _p14.visibility
+								})
+						}),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$Command$focusId('status'),
+						_1: {ctor: '[]'}
+					});
+			case 'UpdateInputInformation':
+				var _p17 = _p13._0.status;
+				var newModel = _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						draft: _elm_lang$core$Native_Utils.update(
+							draft,
+							{status: _p17}),
+						autoCursorPosition: _p13._0.selectionStart
+					});
+				var stringToPos = A3(_elm_lang$core$String$slice, 0, newModel.autoCursorPosition, _p17);
+				var atPosition = function () {
+					var _p15 = A2(_elm_lang$core$String$right, 1, stringToPos);
+					switch (_p15) {
+						case '@':
+							return _elm_lang$core$Maybe$Just(newModel.autoCursorPosition);
+						case ' ':
+							return _elm_lang$core$Maybe$Nothing;
+						default:
+							return model.autoAtPosition;
+					}
+				}();
+				var query = function () {
+					var _p16 = atPosition;
+					if (_p16.ctor === 'Just') {
+						return A3(
+							_elm_lang$core$String$slice,
+							_p16._0,
+							_elm_lang$core$String$length(stringToPos),
+							stringToPos);
+					} else {
+						return '';
+					}
+				}();
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						newModel,
+						{
+							autoAtPosition: atPosition,
+							autoQuery: query,
+							showAutoMenu: A3(_n1k0$tooty$Model$showAutoMenu, model.autoAccounts, newModel.autoAtPosition, newModel.autoQuery)
+						}),
+					((!_elm_lang$core$Native_Utils.eq(query, '')) && (!_elm_lang$core$Native_Utils.eq(atPosition, _elm_lang$core$Maybe$Nothing))) ? {
+						ctor: '::',
+						_0: A4(_n1k0$tooty$Command$searchAccounts, model.client, query, model.autoMaxResults, false),
+						_1: {ctor: '[]'}
+					} : {ctor: '[]'});
+			default:
+				var stringToPos = A3(_elm_lang$core$String$slice, 0, model.autoCursorPosition, model.draft.status);
+				var stringToAtPos = function () {
+					var _p18 = model.autoAtPosition;
+					if (_p18.ctor === 'Just') {
+						return A3(_elm_lang$core$String$slice, 0, _p18._0, model.draft.status);
+					} else {
+						return '';
+					}
+				}();
+				var account = _elm_lang$core$List$head(
+					A2(
+						_elm_lang$core$List$filter,
+						function (account) {
+							return _elm_lang$core$Native_Utils.eq(
+								_elm_lang$core$Basics$toString(account.id),
+								_p13._0);
+						},
+						model.autoAccounts));
+				var newStatus = function () {
+					var _p19 = model.autoAtPosition;
+					if (_p19.ctor === 'Just') {
+						var _p21 = _p19._0;
+						return A4(
+							_elm_community$string_extra$String_Extra$replaceSlice,
+							function () {
+								var _p20 = account;
+								if (_p20.ctor === 'Just') {
+									return A2(_elm_lang$core$Basics_ops['++'], _p20._0.acct, ' ');
+								} else {
+									return '';
+								}
+							}(),
+							_p21,
+							_elm_lang$core$String$length(model.autoQuery) + _p21,
+							model.draft.status);
+					} else {
+						return '';
+					}
+				}();
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{
+							draft: _elm_lang$core$Native_Utils.update(
+								draft,
+								{status: newStatus}),
+							autoAtPosition: _elm_lang$core$Maybe$Nothing,
+							autoQuery: '',
+							autoState: _thebritican$elm_autocomplete$Autocomplete$empty,
+							autoAccounts: {ctor: '[]'},
+							showAutoMenu: false
+						}),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$Ports$setStatus(
+							{id: 'status', status: newStatus}),
+						_1: {ctor: '[]'}
+					});
+		}
+	});
+var _n1k0$tooty$Model$processMastodonEvent = F2(
+	function (msg, model) {
+		var _p22 = msg;
+		switch (_p22.ctor) {
+			case 'AccessToken':
+				var _p23 = _p22._0;
+				if (_p23.ctor === 'Ok') {
+					var client = A2(_n1k0$tooty$Mastodon_Model$Client, _p23._0.server, _p23._0.accessToken);
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								client: _elm_lang$core$Maybe$Just(client)
+							}),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadTimelines(
+								_elm_lang$core$Maybe$Just(client)),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
+								_1: {
+									ctor: '::',
+									_0: _n1k0$tooty$Command$saveClient(client),
+									_1: {ctor: '[]'}
+								}
+							}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p23._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountFollowed':
+				var _p24 = _p22._0;
+				if (_p24.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFollowEvent, _p24._0, true, model),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p24._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountUnfollowed':
+				var _p25 = _p22._0;
+				if (_p25.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFollowEvent, _p25._0, false, model),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p25._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AppRegistered':
+				var _p26 = _p22._0;
+				if (_p26.ctor === 'Ok') {
+					var _p27 = _p26._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								registration: _elm_lang$core$Maybe$Just(_p27)
+							}),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$saveRegistration(_p27),
+							_1: {
+								ctor: '::',
+								_0: _n1k0$tooty$Command$navigateToAuthUrl(_p27),
+								_1: {ctor: '[]'}
+							}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p26._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'ContextLoaded':
+				var _p28 = _p22._1;
+				if (_p28.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Types$ThreadView(
+									A2(_n1k0$tooty$Types$Thread, _p22._0, _p28._0))
+							}),
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$scrollColumnToBottom('thread'),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Model$preferredTimeline(model),
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p28._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'CurrentUser':
+				var _p29 = _p22._0;
+				if (_p29.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentUser: _elm_lang$core$Maybe$Just(_p29._0)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p29._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'FavoriteAdded':
+				var _p30 = _p22._0;
+				if (_p30.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p30._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'FavoriteRemoved':
+				var _p31 = _p22._0;
+				if (_p31.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p31._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'LocalTimeline':
+				var _p32 = _p22._0;
+				if (_p32.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{localTimeline: _p32._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p32._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'Notifications':
+				var _p33 = _p22._0;
+				if (_p33.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								notifications: _n1k0$tooty$Mastodon_Helper$aggregateNotifications(_p33._0)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p33._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'GlobalTimeline':
+				var _p34 = _p22._0;
+				if (_p34.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{globalTimeline: _p34._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p34._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'Reblogged':
+				var _p35 = _p22._0;
+				if (_p35.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p35._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'StatusPosted':
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{draft: _n1k0$tooty$Model$defaultDraft}),
+					{
+						ctor: '::',
+						_0: _n1k0$tooty$Command$scrollColumnToTop('home'),
+						_1: {ctor: '[]'}
+					});
+			case 'StatusDeleted':
+				var _p36 = _p22._0;
+				if (_p36.ctor === 'Ok') {
+					var _p37 = _p36._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p37, model.userTimeline),
+								localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p37, model.localTimeline),
+								globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p37, model.globalTimeline)
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p36._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'Unreblogged':
+				var _p38 = _p22._0;
+				if (_p38.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$loadNotifications(model.client),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p38._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountReceived':
+				var _p39 = _p22._0;
+				if (_p39.ctor === 'Ok') {
+					var _p40 = _p39._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Types$AccountView(_p40)
+							}),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$loadAccountTimeline, model.client, _p40.id),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Model$preferredTimeline(model),
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p39._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountTimeline':
+				var _p41 = _p22._0;
+				if (_p41.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{accountTimeline: _p41._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p41._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountFollowers':
+				var _p42 = _p22._0;
+				if (_p42.ctor === 'Ok') {
+					var _p43 = _p42._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{accountFollowers: _p43}),
+						{
+							ctor: '::',
+							_0: A2(
+								_n1k0$tooty$Command$loadRelationships,
+								model.client,
+								A2(
+									_elm_lang$core$List$map,
+									function (_) {
+										return _.id;
+									},
+									_p43)),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p42._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountFollowing':
+				var _p44 = _p22._0;
+				if (_p44.ctor === 'Ok') {
+					var _p45 = _p44._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{accountFollowing: _p45}),
+						{
+							ctor: '::',
+							_0: A2(
+								_n1k0$tooty$Command$loadRelationships,
+								model.client,
+								A2(
+									_elm_lang$core$List$map,
+									function (_) {
+										return _.id;
+									},
+									_p45)),
+							_1: {ctor: '[]'}
+						});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p44._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountRelationship':
+				var _p46 = _p22._0;
+				if (_p46.ctor === 'Ok') {
+					if ((_p46._0.ctor === '::') && (_p46._0._1.ctor === '[]')) {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									accountRelationship: _elm_lang$core$Maybe$Just(_p46._0._0)
+								}),
+							{ctor: '[]'});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					}
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p46._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'AccountRelationships':
+				var _p47 = _p22._0;
+				if (_p47.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{accountRelationships: _p47._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p47._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			case 'UserTimeline':
+				var _p48 = _p22._0;
+				if (_p48.ctor === 'Ok') {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{userTimeline: _p48._0}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p48._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+			default:
+				var _p49 = _p22._0;
+				if (_p49.ctor === 'Ok') {
+					var _p50 = _p49._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								showAutoMenu: A3(_n1k0$tooty$Model$showAutoMenu, _p50, model.autoAtPosition, model.autoQuery),
+								autoAccounts: _p50
+							}),
+						{ctor: '[]'});
+				} else {
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								showAutoMenu: false,
+								errors: {
+									ctor: '::',
+									_0: _n1k0$tooty$Model$errorText(_p49._0),
+									_1: model.errors
+								}
+							}),
+						{ctor: '[]'});
+				}
+		}
+	});
+var _n1k0$tooty$Model$extractAuthCode = function (_p51) {
+	var _p52 = _p51;
+	var _p53 = A2(_elm_lang$core$String$split, '?code=', _p52.search);
+	if (((_p53.ctor === '::') && (_p53._1.ctor === '::')) && (_p53._1._1.ctor === '[]')) {
+		return _elm_lang$core$Maybe$Just(_p53._1._0);
+	} else {
+		return _elm_lang$core$Maybe$Nothing;
+	}
+};
+var _n1k0$tooty$Model$init = F2(
+	function (flags, location) {
+		var authCode = _n1k0$tooty$Model$extractAuthCode(location);
+		return A2(
+			_elm_lang$core$Platform_Cmd_ops['!'],
+			{
+				server: '',
+				registration: flags.registration,
+				client: flags.client,
+				userTimeline: {ctor: '[]'},
+				localTimeline: {ctor: '[]'},
+				globalTimeline: {ctor: '[]'},
+				accountTimeline: {ctor: '[]'},
+				accountFollowers: {ctor: '[]'},
+				accountFollowing: {ctor: '[]'},
+				accountRelationships: {ctor: '[]'},
+				accountRelationship: _elm_lang$core$Maybe$Nothing,
+				notifications: {ctor: '[]'},
+				draft: _n1k0$tooty$Model$defaultDraft,
+				errors: {ctor: '[]'},
+				location: location,
+				useGlobalTimeline: false,
+				viewer: _elm_lang$core$Maybe$Nothing,
+				currentView: _n1k0$tooty$Types$LocalTimelineView,
+				currentUser: _elm_lang$core$Maybe$Nothing,
+				notificationFilter: _n1k0$tooty$Types$NotificationAll,
+				autoState: _thebritican$elm_autocomplete$Autocomplete$empty,
+				autoAtPosition: _elm_lang$core$Maybe$Nothing,
+				autoQuery: '',
+				autoCursorPosition: 0,
+				autoMaxResults: 4,
+				autoAccounts: {ctor: '[]'},
+				showAutoMenu: false
+			},
+			{
+				ctor: '::',
+				_0: A3(_n1k0$tooty$Command$initCommands, flags.registration, flags.client, authCode),
+				_1: {ctor: '[]'}
+			});
+	});
+var _n1k0$tooty$Model$maxBuffer = 100;
+var _n1k0$tooty$Model$truncate = function (entries) {
+	return A2(_elm_lang$core$List$take, _n1k0$tooty$Model$maxBuffer, entries);
+};
+var _n1k0$tooty$Model$processWebSocketMsg = F2(
+	function (msg, model) {
+		var _p54 = msg;
+		switch (_p54.ctor) {
+			case 'NewWebsocketUserMessage':
+				var _p55 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p54._0);
+				switch (_p55.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p55._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p56 = _p55._0;
+						if (_p56.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p56._0, _1: model.userTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p56._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p57 = _p55._0;
+						if (_p57.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p57._0, model.userTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p57._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						var _p58 = _p55._0;
+						if (_p58.ctor === 'Ok') {
+							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p58._0, model.notifications);
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										notifications: _n1k0$tooty$Model$truncate(notifications)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p58._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+				}
+			case 'NewWebsocketLocalMessage':
+				var _p59 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p54._0);
+				switch (_p59.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p59._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p60 = _p59._0;
+						if (_p60.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										localTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p60._0, _1: model.localTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p60._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p61 = _p59._0;
+						if (_p61.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p61._0, model.localTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p61._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+				}
+			default:
+				var _p62 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p54._0);
+				switch (_p62.ctor) {
+					case 'ErrorEvent':
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							_elm_lang$core$Native_Utils.update(
+								model,
+								{
+									errors: {ctor: '::', _0: _p62._0, _1: model.errors}
+								}),
+							{ctor: '[]'});
+					case 'StatusUpdateEvent':
+						var _p63 = _p62._0;
+						if (_p63.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										globalTimeline: _n1k0$tooty$Model$truncate(
+											{ctor: '::', _0: _p63._0, _1: model.globalTimeline})
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p63._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					case 'StatusDeleteEvent':
+						var _p64 = _p62._0;
+						if (_p64.ctor === 'Ok') {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p64._0, model.globalTimeline)
+									}),
+								{ctor: '[]'});
+						} else {
+							return A2(
+								_elm_lang$core$Platform_Cmd_ops['!'],
+								_elm_lang$core$Native_Utils.update(
+									model,
+									{
+										errors: {ctor: '::', _0: _p64._0, _1: model.errors}
+									}),
+								{ctor: '[]'});
+						}
+					default:
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+				}
+		}
+	});
+var _n1k0$tooty$Model$update = F2(
+	function (msg, model) {
+		update:
+		while (true) {
+			var _p65 = msg;
+			switch (_p65.ctor) {
+				case 'NoOp':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
+				case 'MastodonEvent':
+					var _p66 = A2(_n1k0$tooty$Model$processMastodonEvent, _p65._0, model);
+					var newModel = _p66._0;
+					var commands = _p66._1;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						newModel,
+						{
+							ctor: '::',
+							_0: commands,
+							_1: {ctor: '[]'}
+						});
+				case 'WebSocketEvent':
+					var _p67 = A2(_n1k0$tooty$Model$processWebSocketMsg, _p65._0, model);
+					var newModel = _p67._0;
+					var commands = _p67._1;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						newModel,
+						{
+							ctor: '::',
+							_0: commands,
+							_1: {ctor: '[]'}
+						});
+				case 'ServerChange':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{server: _p65._0}),
+						{ctor: '[]'});
+				case 'UrlChange':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{ctor: '[]'});
+				case 'Register':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: _n1k0$tooty$Command$registerApp(model),
+							_1: {ctor: '[]'}
+						});
+				case 'OpenThread':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$loadThread, model.client, _p65._0),
+							_1: {ctor: '[]'}
+						});
+				case 'CloseThread':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Model$preferredTimeline(model)
+							}),
+						{ctor: '[]'});
+				case 'FollowAccount':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$follow, model.client, _p65._0),
+							_1: {ctor: '[]'}
+						});
+				case 'UnfollowAccount':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$unfollow, model.client, _p65._0),
+							_1: {ctor: '[]'}
+						});
+				case 'DeleteStatus':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$deleteStatus, model.client, _p65._0),
+							_1: {ctor: '[]'}
+						});
+				case 'ReblogStatus':
+					var _p68 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processReblog, _p68, true, model),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$reblogStatus, model.client, _p68),
+							_1: {ctor: '[]'}
+						});
+				case 'UnreblogStatus':
+					var _p69 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processReblog, _p69, false, model),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$unreblogStatus, model.client, _p69),
+							_1: {ctor: '[]'}
+						});
+				case 'AddFavorite':
+					var _p70 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFavourite, _p70, true, model),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$favouriteStatus, model.client, _p70),
+							_1: {ctor: '[]'}
+						});
+				case 'RemoveFavorite':
+					var _p71 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						A3(_n1k0$tooty$Model$processFavourite, _p71, false, model),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$unfavouriteStatus, model.client, _p71),
+							_1: {ctor: '[]'}
+						});
+				case 'DraftEvent':
+					var _p72 = model.currentUser;
+					if (_p72.ctor === 'Just') {
+						return A3(_n1k0$tooty$Model$updateDraft, _p65._0, _p72._0, model);
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{ctor: '[]'});
+					}
+				case 'ViewerEvent':
+					var _p73 = A2(_n1k0$tooty$Model$updateViewer, _p65._0, model.viewer);
+					var viewer = _p73._0;
+					var commands = _p73._1;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{viewer: viewer}),
+						{
+							ctor: '::',
+							_0: commands,
+							_1: {ctor: '[]'}
+						});
+				case 'SubmitDraft':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						model,
+						{
+							ctor: '::',
+							_0: A2(
+								_n1k0$tooty$Command$postStatus,
+								model.client,
+								_n1k0$tooty$Model$toStatusRequestBody(model.draft)),
+							_1: {ctor: '[]'}
+						});
+				case 'LoadAccount':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								accountTimeline: {ctor: '[]'},
+								accountFollowers: {ctor: '[]'},
+								accountFollowing: {ctor: '[]'},
+								accountRelationships: {ctor: '[]'},
+								accountRelationship: _elm_lang$core$Maybe$Nothing
+							}),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$loadAccount, model.client, _p65._0),
+							_1: {ctor: '[]'}
+						});
+				case 'ViewAccountFollowers':
+					var _p74 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: A2(_n1k0$tooty$Types$AccountFollowersView, _p74, model.accountFollowers)
+							}),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$loadAccountFollowers, model.client, _p74.id),
+							_1: {ctor: '[]'}
+						});
+				case 'ViewAccountFollowing':
+					var _p75 = _p65._0;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: A2(_n1k0$tooty$Types$AccountFollowingView, _p75, model.accountFollowing)
+							}),
+						{
+							ctor: '::',
+							_0: A2(_n1k0$tooty$Command$loadAccountFollowing, model.client, _p75.id),
+							_1: {ctor: '[]'}
+						});
+				case 'ViewAccountStatuses':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Types$AccountView(_p65._0)
+							}),
+						{ctor: '[]'});
+				case 'UseGlobalTimeline':
+					var newModel = _elm_lang$core$Native_Utils.update(
+						model,
+						{useGlobalTimeline: _p65._0});
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Model$preferredTimeline(newModel)
+							}),
+						{ctor: '[]'});
+				case 'CloseAccount':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								currentView: _n1k0$tooty$Model$preferredTimeline(model),
+								accountTimeline: {ctor: '[]'},
+								accountFollowing: {ctor: '[]'},
+								accountFollowers: {ctor: '[]'}
+							}),
+						{ctor: '[]'});
+				case 'FilterNotifications':
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{notificationFilter: _p65._0}),
+						{ctor: '[]'});
+				case 'ScrollColumn':
+					if (_p65._0.ctor === 'ScrollTop') {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{
+								ctor: '::',
+								_0: _n1k0$tooty$Command$scrollColumnToTop(_p65._1),
+								_1: {ctor: '[]'}
+							});
+					} else {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							model,
+							{
+								ctor: '::',
+								_0: _n1k0$tooty$Command$scrollColumnToBottom(_p65._1),
+								_1: {ctor: '[]'}
+							});
+					}
+				case 'SetAutoState':
+					var _p76 = A5(
+						_thebritican$elm_autocomplete$Autocomplete$update,
+						_n1k0$tooty$Model$updateConfig,
+						_p65._0,
+						model.autoMaxResults,
+						model.autoState,
+						A2(_n1k0$tooty$Model$acceptableAccounts, model.autoQuery, model.autoAccounts));
+					var newState = _p76._0;
+					var maybeMsg = _p76._1;
+					var newModel = _elm_lang$core$Native_Utils.update(
+						model,
+						{autoState: newState});
+					var _p77 = maybeMsg;
+					if (_p77.ctor === 'Nothing') {
+						return A2(
+							_elm_lang$core$Platform_Cmd_ops['!'],
+							newModel,
+							{ctor: '[]'});
+					} else {
+						var _v51 = _p77._0,
+							_v52 = newModel;
+						msg = _v51;
+						model = _v52;
+						continue update;
+					}
+				default:
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Native_Utils.update(
+							model,
+							{
+								autoState: _p65._0 ? A4(
+									_thebritican$elm_autocomplete$Autocomplete$resetToFirstItem,
+									_n1k0$tooty$Model$updateConfig,
+									A2(_n1k0$tooty$Model$acceptableAccounts, model.autoQuery, model.autoAccounts),
+									model.autoMaxResults,
+									model.autoState) : A4(
+									_thebritican$elm_autocomplete$Autocomplete$resetToLastItem,
+									_n1k0$tooty$Model$updateConfig,
+									A2(_n1k0$tooty$Model$acceptableAccounts, model.autoQuery, model.autoAccounts),
+									model.autoMaxResults,
+									model.autoState)
+							}),
+						{ctor: '[]'});
+			}
+		}
+	});
+
 var _n1k0$tooty$ViewHelper$filterNotifications = F2(
 	function (filter, notifications) {
 		var applyFilter = function (_p0) {
@@ -25276,6 +27762,45 @@ var _n1k0$tooty$ViewHelper$formatContent = F2(
 						'&nbsp;!',
 						A3(_elm_community$string_extra$String_Extra$replace, ' ?', '&nbsp;?', content)))));
 	});
+var _n1k0$tooty$ViewHelper$decodePositionInformation = A3(
+	_elm_lang$core$Json_Decode$map2,
+	_n1k0$tooty$Types$InputInformation,
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'target',
+			_1: {
+				ctor: '::',
+				_0: 'value',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$string),
+	A2(
+		_elm_lang$core$Json_Decode$at,
+		{
+			ctor: '::',
+			_0: 'target',
+			_1: {
+				ctor: '::',
+				_0: 'selectionStart',
+				_1: {ctor: '[]'}
+			}
+		},
+		_elm_lang$core$Json_Decode$int));
+var _n1k0$tooty$ViewHelper$onInputInformation = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'input',
+		A2(_elm_lang$core$Json_Decode$map, msg, _n1k0$tooty$ViewHelper$decodePositionInformation));
+};
+var _n1k0$tooty$ViewHelper$onClickInformation = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseup',
+		A2(_elm_lang$core$Json_Decode$map, msg, _n1k0$tooty$ViewHelper$decodePositionInformation));
+};
 
 var _rluiten$elm_date_extra$Date_Extra_Config$Config = F2(
 	function (a, b) {
@@ -26267,14 +28792,107 @@ var _rluiten$elm_date_extra$Date_Extra_Format$utcIsoString = function (date) {
 };
 var _rluiten$elm_date_extra$Date_Extra_Format$isoFormat = '%Y-%m-%dT%H:%M:%S';
 
-var _n1k0$tooty$View$viewerView = function (_p0) {
-	var _p1 = _p0;
-	var _p6 = _p1.attachments;
-	var _p5 = _p1.attachment;
+var _n1k0$tooty$View$viewConfig = function () {
+	var customizedLi = F3(
+		function (keySelected, mouseSelected, account) {
+			return {
+				attributes: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$classList(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'list-group-item autocomplete-item', _1: true},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'active', _1: keySelected || mouseSelected},
+								_1: {ctor: '[]'}
+							}
+						}),
+					_1: {ctor: '[]'}
+				},
+				children: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$img,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$src(account.avatar),
+							_1: {ctor: '[]'}
+						},
+						{ctor: '[]'}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$strong,
+							{ctor: '[]'},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(account.display_name),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(
+										A2(_elm_lang$core$Basics_ops['++'], ' @', account.acct)),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			};
+		});
+	return _thebritican$elm_autocomplete$Autocomplete$viewConfig(
+		{
+			toId: function (_p0) {
+				return _elm_lang$core$Basics$toString(
+					function (_) {
+						return _.id;
+					}(_p0));
+			},
+			ul: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('list-group autocomplete-list'),
+				_1: {ctor: '[]'}
+			},
+			li: customizedLi
+		});
+}();
+var _n1k0$tooty$View$viewAutocompleteMenu = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('autocomplete-menu'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$map,
+				_n1k0$tooty$Types$SetAutoState,
+				A4(
+					_thebritican$elm_autocomplete$Autocomplete$view,
+					_n1k0$tooty$View$viewConfig,
+					model.autoMaxResults,
+					model.autoState,
+					A2(_n1k0$tooty$Model$acceptableAccounts, model.autoQuery, model.autoAccounts))),
+			_1: {ctor: '[]'}
+		});
+};
+var _n1k0$tooty$View$viewerView = function (_p1) {
+	var _p2 = _p1;
+	var _p7 = _p2.attachments;
+	var _p6 = _p2.attachment;
 	var navLink = F3(
 		function (label, className, target) {
-			var _p2 = target;
-			if (_p2.ctor === 'Nothing') {
+			var _p3 = target;
+			if (_p3.ctor === 'Nothing') {
 				return _elm_lang$html$Html$text('');
 			} else {
 				return A2(
@@ -26289,7 +28907,7 @@ var _n1k0$tooty$View$viewerView = function (_p0) {
 								ctor: '::',
 								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
 									_n1k0$tooty$Types$ViewerEvent(
-										A2(_n1k0$tooty$Types$OpenViewer, _p6, _p2._0))),
+										A2(_n1k0$tooty$Types$OpenViewer, _p7, _p3._0))),
 								_1: {ctor: '[]'}
 							}
 						}
@@ -26304,14 +28922,14 @@ var _n1k0$tooty$View$viewerView = function (_p0) {
 	var index = A2(
 		_elm_lang$core$Maybe$withDefault,
 		-1,
-		A2(_elm_community$list_extra$List_Extra$elemIndex, _p5, _p6));
-	var _p3 = {
+		A2(_elm_community$list_extra$List_Extra$elemIndex, _p6, _p7));
+	var _p4 = {
 		ctor: '_Tuple2',
-		_0: A2(_elm_community$list_extra$List_Extra$getAt, index - 1, _p6),
-		_1: A2(_elm_community$list_extra$List_Extra$getAt, index + 1, _p6)
+		_0: A2(_elm_community$list_extra$List_Extra$getAt, index - 1, _p7),
+		_1: A2(_elm_community$list_extra$List_Extra$getAt, index + 1, _p7)
 	};
-	var prev = _p3._0;
-	var next = _p3._1;
+	var prev = _p4._0;
+	var next = _p4._1;
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -26348,8 +28966,8 @@ var _n1k0$tooty$View$viewerView = function (_p0) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p4 = _p5.type_;
-						if (_p4 === 'image') {
+						var _p5 = _p6.type_;
+						if (_p5 === 'image') {
 							return A2(
 								_elm_lang$html$Html$img,
 								{
@@ -26357,7 +28975,7 @@ var _n1k0$tooty$View$viewerView = function (_p0) {
 									_0: _elm_lang$html$Html_Attributes$class('viewer-content'),
 									_1: {
 										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$src(_p5.url),
+										_0: _elm_lang$html$Html_Attributes$src(_p6.url),
 										_1: {ctor: '[]'}
 									}
 								},
@@ -26388,7 +29006,7 @@ var _n1k0$tooty$View$viewerView = function (_p0) {
 										_elm_lang$html$Html$source,
 										{
 											ctor: '::',
-											_0: _elm_lang$html$Html_Attributes$src(_p5.url),
+											_0: _elm_lang$html$Html_Attributes$src(_p6.url),
 											_1: {ctor: '[]'}
 										},
 										{ctor: '[]'}),
@@ -26660,9 +29278,9 @@ var _n1k0$tooty$View$accountCounterLink = F4(
 			});
 	});
 var _n1k0$tooty$View$attachmentPreview = F4(
-	function (context, sensitive, attachments, _p7) {
-		var _p8 = _p7;
-		var _p10 = _p8;
+	function (context, sensitive, attachments, _p8) {
+		var _p9 = _p8;
+		var _p11 = _p9;
 		var media = A2(
 			_elm_lang$html$Html$a,
 			{
@@ -26670,12 +29288,12 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 				_0: _elm_lang$html$Html_Attributes$class('attachment-image'),
 				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$href(_p8.url),
+					_0: _elm_lang$html$Html_Attributes$href(_p9.url),
 					_1: {
 						ctor: '::',
 						_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
 							_n1k0$tooty$Types$ViewerEvent(
-								A2(_n1k0$tooty$Types$OpenViewer, attachments, _p10))),
+								A2(_n1k0$tooty$Types$OpenViewer, attachments, _p11))),
 						_1: {
 							ctor: '::',
 							_0: _elm_lang$html$Html_Attributes$style(
@@ -26687,7 +29305,7 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 										_1: A2(
 											_elm_lang$core$Basics_ops['++'],
 											'url(',
-											A2(_elm_lang$core$Basics_ops['++'], _p8.preview_url, ') center center / cover no-repeat'))
+											A2(_elm_lang$core$Basics_ops['++'], _p9.preview_url, ') center center / cover no-repeat'))
 									},
 									_1: {ctor: '[]'}
 								}),
@@ -26702,12 +29320,12 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 			'att',
 			A2(
 				_elm_lang$core$Basics_ops['++'],
-				_elm_lang$core$Basics$toString(_p10.id),
+				_elm_lang$core$Basics$toString(_p11.id),
 				context));
 		var nsfw = function () {
-			var _p9 = sensitive;
-			if (_p9.ctor === 'Just') {
-				return _p9._0;
+			var _p10 = sensitive;
+			if (_p10.ctor === 'Just') {
+				return _p10._0;
 			} else {
 				return false;
 			}
@@ -26778,13 +29396,13 @@ var _n1k0$tooty$View$attachmentPreview = F4(
 			});
 	});
 var _n1k0$tooty$View$attachmentListView = F2(
-	function (context, _p11) {
-		var _p12 = _p11;
-		var _p13 = _p12.media_attachments;
-		if (_p13.ctor === '[]') {
+	function (context, _p12) {
+		var _p13 = _p12;
+		var _p14 = _p13.media_attachments;
+		if (_p14.ctor === '[]') {
 			return _elm_lang$html$Html$text('');
 		} else {
-			var _p14 = _p13;
+			var _p15 = _p14;
 			return A2(
 				_elm_lang$html$Html$ul,
 				{
@@ -26794,14 +29412,14 @@ var _n1k0$tooty$View$attachmentListView = F2(
 				},
 				A2(
 					_elm_lang$core$List$map,
-					A3(_n1k0$tooty$View$attachmentPreview, context, _p12.sensitive, _p14),
-					_p14));
+					A3(_n1k0$tooty$View$attachmentPreview, context, _p13.sensitive, _p15),
+					_p15));
 		}
 	});
 var _n1k0$tooty$View$statusContentView = F2(
 	function (context, status) {
-		var _p15 = status.spoiler_text;
-		if (_p15 === '') {
+		var _p16 = status.spoiler_text;
+		if (_p16 === '') {
 			return A2(
 				_elm_lang$html$Html$div,
 				{
@@ -26971,9 +29589,9 @@ var _n1k0$tooty$View$accountLink = function (account) {
 		});
 };
 var _n1k0$tooty$View$currentUserView = function (currentUser) {
-	var _p16 = currentUser;
-	if (_p16.ctor === 'Just') {
-		var _p17 = _p16._0;
+	var _p17 = currentUser;
+	if (_p17.ctor === 'Just') {
+		var _p18 = _p17._0;
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -26983,7 +29601,7 @@ var _n1k0$tooty$View$currentUserView = function (currentUser) {
 			},
 			{
 				ctor: '::',
-				_0: _n1k0$tooty$View$accountAvatarLink(_p17),
+				_0: _n1k0$tooty$View$accountAvatarLink(_p18),
 				_1: {
 					ctor: '::',
 					_0: A2(
@@ -26995,7 +29613,7 @@ var _n1k0$tooty$View$currentUserView = function (currentUser) {
 						},
 						{
 							ctor: '::',
-							_0: _n1k0$tooty$View$accountLink(_p17),
+							_0: _n1k0$tooty$View$accountLink(_p18),
 							_1: {ctor: '[]'}
 						}),
 					_1: {
@@ -27009,7 +29627,7 @@ var _n1k0$tooty$View$currentUserView = function (currentUser) {
 							},
 							A2(
 								_n1k0$tooty$ViewHelper$formatContent,
-								_p17.note,
+								_p18.note,
 								{ctor: '[]'})),
 						_1: {ctor: '[]'}
 					}
@@ -27031,21 +29649,21 @@ var _n1k0$tooty$View$icon = function (name) {
 		{ctor: '[]'});
 };
 var _n1k0$tooty$View$statusView = F2(
-	function (context, _p18) {
-		var _p19 = _p18;
-		var _p21 = _p19.account;
+	function (context, _p19) {
+		var _p20 = _p19;
+		var _p22 = _p20.account;
 		var accountLinkAttributes = {
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$href(_p21.url),
+			_0: _elm_lang$html$Html_Attributes$href(_p22.url),
 			_1: {
 				ctor: '::',
 				_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-					_n1k0$tooty$Types$LoadAccount(_p21.id)),
+					_n1k0$tooty$Types$LoadAccount(_p22.id)),
 				_1: {ctor: '[]'}
 			}
 		};
-		var _p20 = _p19.reblog;
-		if (_p20.ctor === 'Just') {
+		var _p21 = _p20.reblog;
+		if (_p21.ctor === 'Just') {
 			return A2(
 				_elm_lang$html$Html$div,
 				{
@@ -27080,7 +29698,7 @@ var _n1k0$tooty$View$statusView = F2(
 									{
 										ctor: '::',
 										_0: _elm_lang$html$Html$text(
-											A2(_elm_lang$core$Basics_ops['++'], ' @', _p21.username)),
+											A2(_elm_lang$core$Basics_ops['++'], ' @', _p22.username)),
 										_1: {ctor: '[]'}
 									}),
 								_1: {
@@ -27092,7 +29710,7 @@ var _n1k0$tooty$View$statusView = F2(
 						}),
 					_1: {
 						ctor: '::',
-						_0: A2(_n1k0$tooty$View$statusView, context, _p20._0._0),
+						_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, context, _p21._0._0),
 						_1: {ctor: '[]'}
 					}
 				});
@@ -27106,7 +29724,7 @@ var _n1k0$tooty$View$statusView = F2(
 				},
 				{
 					ctor: '::',
-					_0: _n1k0$tooty$View$accountAvatarLink(_p21),
+					_0: _n1k0$tooty$View$accountAvatarLink(_p22),
 					_1: {
 						ctor: '::',
 						_0: A2(
@@ -27123,7 +29741,7 @@ var _n1k0$tooty$View$statusView = F2(
 									accountLinkAttributes,
 									{
 										ctor: '::',
-										_0: _elm_lang$html$Html$text(_p21.display_name),
+										_0: _elm_lang$html$Html$text(_p22.display_name),
 										_1: {
 											ctor: '::',
 											_0: A2(
@@ -27136,7 +29754,7 @@ var _n1k0$tooty$View$statusView = F2(
 												{
 													ctor: '::',
 													_0: _elm_lang$html$Html$text(
-														A2(_elm_lang$core$Basics_ops['++'], ' @', _p21.username)),
+														A2(_elm_lang$core$Basics_ops['++'], ' @', _p22.username)),
 													_1: {ctor: '[]'}
 												}),
 											_1: {ctor: '[]'}
@@ -27146,7 +29764,7 @@ var _n1k0$tooty$View$statusView = F2(
 							}),
 						_1: {
 							ctor: '::',
-							_0: A2(_n1k0$tooty$View$statusContentView, context, _p19),
+							_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusContentView, context, _p20),
 							_1: {ctor: '[]'}
 						}
 					}
@@ -27158,12 +29776,12 @@ var _n1k0$tooty$View$followButton = F3(
 		if (A2(_n1k0$tooty$Mastodon_Helper$sameAccount, account, currentUser)) {
 			return _elm_lang$html$Html$text('');
 		} else {
-			var _p22 = function () {
-				var _p23 = relationship;
-				if (_p23.ctor === 'Nothing') {
+			var _p23 = function () {
+				var _p24 = relationship;
+				if (_p24.ctor === 'Nothing') {
 					return {ctor: '_Tuple4', _0: _n1k0$tooty$Types$NoOp, _1: 'btn btn-default btn-disabled', _2: 'question-sign', _3: 'Unknown relationship'};
 				} else {
-					return _p23._0.following ? {
+					return _p24._0.following ? {
 						ctor: '_Tuple4',
 						_0: _n1k0$tooty$Types$UnfollowAccount(account.id),
 						_1: 'btn btn-default btn-primary',
@@ -27178,10 +29796,10 @@ var _n1k0$tooty$View$followButton = F3(
 					};
 				}
 			}();
-			var followEvent = _p22._0;
-			var btnClasses = _p22._1;
-			var iconName = _p22._2;
-			var tooltip = _p22._3;
+			var followEvent = _p23._0;
+			var btnClasses = _p23._1;
+			var iconName = _p23._2;
+			var tooltip = _p23._3;
 			return A2(
 				_elm_lang$html$Html$button,
 				{
@@ -27284,9 +29902,9 @@ var _n1k0$tooty$View$statusActionsView = F2(
 			A3(_rluiten$elm_date_extra$Date_Extra_Format$format, _rluiten$elm_date_extra$Date_Extra_Config_Config_en_au$config, '%m/%d/%Y %H:%M', statusDate));
 		var baseBtnClasses = 'btn btn-sm btn-default';
 		var sourceStatus = _n1k0$tooty$Mastodon_Helper$extractReblog(status);
-		var _p24 = function () {
-			var _p25 = status.reblogged;
-			if ((_p25.ctor === 'Just') && (_p25._0 === true)) {
+		var _p25 = function () {
+			var _p26 = status.reblogged;
+			if ((_p26.ctor === 'Just') && (_p26._0 === true)) {
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' reblogged'),
@@ -27300,11 +29918,11 @@ var _n1k0$tooty$View$statusActionsView = F2(
 				};
 			}
 		}();
-		var reblogClasses = _p24._0;
-		var reblogEvent = _p24._1;
-		var _p26 = function () {
-			var _p27 = status.favourited;
-			if ((_p27.ctor === 'Just') && (_p27._0 === true)) {
+		var reblogClasses = _p25._0;
+		var reblogEvent = _p25._1;
+		var _p27 = function () {
+			var _p28 = status.favourited;
+			if ((_p28.ctor === 'Just') && (_p28._0 === true)) {
 				return {
 					ctor: '_Tuple2',
 					_0: A2(_elm_lang$core$Basics_ops['++'], baseBtnClasses, ' favourited'),
@@ -27318,8 +29936,8 @@ var _n1k0$tooty$View$statusActionsView = F2(
 				};
 			}
 		}();
-		var favClasses = _p26._0;
-		var favEvent = _p26._1;
+		var favClasses = _p27._0;
+		var favEvent = _p27._1;
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -27453,8 +30071,8 @@ var _n1k0$tooty$View$statusActionsView = F2(
 var _n1k0$tooty$View$statusEntryView = F4(
 	function (context, className, currentUser, status) {
 		var nsfwClass = function () {
-			var _p28 = status.sensitive;
-			if ((_p28.ctor === 'Just') && (_p28._0 === true)) {
+			var _p29 = status.sensitive;
+			if ((_p29.ctor === 'Just') && (_p29._0 === true)) {
 				return 'nsfw';
 			} else {
 				return '';
@@ -27476,89 +30094,90 @@ var _n1k0$tooty$View$statusEntryView = F4(
 			},
 			{
 				ctor: '::',
-				_0: A2(_n1k0$tooty$View$statusView, context, status),
+				_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, context, status),
 				_1: {
 					ctor: '::',
-					_0: A2(_n1k0$tooty$View$statusActionsView, status, currentUser),
+					_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusActionsView, status, currentUser),
 					_1: {ctor: '[]'}
 				}
 			});
 	});
-var _n1k0$tooty$View$timelineView = F5(
-	function (label, iconName, context, currentUser, statuses) {
-		return A2(
-			_elm_lang$html$Html$div,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
-						_1: {ctor: '[]'}
-					},
-					{
+var _n1k0$tooty$View$timelineView = function (_p30) {
+	var _p31 = _p30;
+	var _p32 = _p31._2;
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('col-md-3 column'),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('panel panel-default'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$a,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$href(''),
+							_1: {
+								ctor: '::',
+								_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
+									A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, _p32)),
+								_1: {ctor: '[]'}
+							}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$div,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _n1k0$tooty$View$icon(_p31._1),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html$text(_p31._0),
+										_1: {ctor: '[]'}
+									}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
 						ctor: '::',
 						_0: A2(
-							_elm_lang$html$Html$a,
+							_elm_lang$html$Html$ul,
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html_Attributes$href(''),
+								_0: _elm_lang$html$Html_Attributes$id(_p32),
 								_1: {
 									ctor: '::',
-									_0: _n1k0$tooty$ViewHelper$onClickWithPreventAndStop(
-										A2(_n1k0$tooty$Types$ScrollColumn, _n1k0$tooty$Types$ScrollTop, context)),
+									_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
 									_1: {ctor: '[]'}
 								}
 							},
-							{
-								ctor: '::',
-								_0: A2(
-									_elm_lang$html$Html$div,
-									{
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('panel-heading'),
-										_1: {ctor: '[]'}
-									},
-									{
-										ctor: '::',
-										_0: _n1k0$tooty$View$icon(iconName),
-										_1: {
-											ctor: '::',
-											_0: _elm_lang$html$Html$text(label),
-											_1: {ctor: '[]'}
-										}
-									}),
-								_1: {ctor: '[]'}
-							}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$ul,
-								{
-									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$id(context),
-									_1: {
-										ctor: '::',
-										_0: _elm_lang$html$Html_Attributes$class('list-group timeline'),
-										_1: {ctor: '[]'}
-									}
-								},
-								A2(
-									_elm_lang$core$List$map,
-									A3(_n1k0$tooty$View$statusEntryView, context, '', currentUser),
-									statuses)),
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			});
-	});
+							A2(
+								_elm_lang$core$List$map,
+								A3(_n1k0$tooty$View$statusEntryView, _p32, '', _p31._3),
+								_p31._4)),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
 var _n1k0$tooty$View$notificationHeading = F3(
 	function (accounts, str, iconType) {
 		return A2(
@@ -27613,47 +30232,47 @@ var _n1k0$tooty$View$notificationHeading = F3(
 				}
 			});
 	});
-var _n1k0$tooty$View$notificationStatusView = F4(
-	function (context, currentUser, status, _p29) {
-		var _p30 = _p29;
-		var _p33 = _p30.type_;
-		var _p32 = _p30.accounts;
-		return A2(
-			_elm_lang$html$Html$div,
-			{
+var _n1k0$tooty$View$notificationStatusView = function (_p33) {
+	var _p34 = _p33;
+	var _p38 = _p34._3.type_;
+	var _p37 = _p34._2;
+	var _p36 = _p34._3.accounts;
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'notification ', _p38)),
+			_1: {ctor: '[]'}
+		},
+		{
+			ctor: '::',
+			_0: function () {
+				var _p35 = _p38;
+				switch (_p35) {
+					case 'reblog':
+						return A3(_n1k0$tooty$View$notificationHeading, _p36, 'boosted your toot', 'fire');
+					case 'favourite':
+						return A3(_n1k0$tooty$View$notificationHeading, _p36, 'favourited your toot', 'star');
+					default:
+						return _elm_lang$html$Html$text('');
+				}
+			}(),
+			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class(
-					A2(_elm_lang$core$Basics_ops['++'], 'notification ', _p33)),
-				_1: {ctor: '[]'}
-			},
-			{
-				ctor: '::',
-				_0: function () {
-					var _p31 = _p33;
-					switch (_p31) {
-						case 'reblog':
-							return A3(_n1k0$tooty$View$notificationHeading, _p32, 'boosted your toot', 'fire');
-						case 'favourite':
-							return A3(_n1k0$tooty$View$notificationHeading, _p32, 'favourited your toot', 'star');
-						default:
-							return _elm_lang$html$Html$text('');
-					}
-				}(),
+				_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, _p34._0, _p37),
 				_1: {
 					ctor: '::',
-					_0: A2(_n1k0$tooty$View$statusView, context, status),
-					_1: {
-						ctor: '::',
-						_0: A2(_n1k0$tooty$View$statusActionsView, status, currentUser),
-						_1: {ctor: '[]'}
-					}
+					_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusActionsView, _p37, _p34._1),
+					_1: {ctor: '[]'}
 				}
-			});
-	});
+			}
+		});
+};
 var _n1k0$tooty$View$notificationFollowView = F2(
-	function (currentUser, _p34) {
-		var _p35 = _p34;
-		var _p36 = _p35.accounts;
+	function (currentUser, _p39) {
+		var _p40 = _p39;
+		var _p41 = _p40.accounts;
 		var profileView = function (account) {
 			return A2(
 				_elm_lang$html$Html$div,
@@ -27711,7 +30330,7 @@ var _n1k0$tooty$View$notificationFollowView = F2(
 			},
 			{
 				ctor: '::',
-				_0: A3(_n1k0$tooty$View$notificationHeading, _p36, 'started following you', 'user'),
+				_0: A3(_n1k0$tooty$View$notificationHeading, _p41, 'started following you', 'user'),
 				_1: {
 					ctor: '::',
 					_0: A2(
@@ -27721,7 +30340,7 @@ var _n1k0$tooty$View$notificationFollowView = F2(
 							_0: _elm_lang$html$Html_Attributes$class(''),
 							_1: {ctor: '[]'}
 						},
-						A2(_elm_lang$core$List$map, profileView, _p36)),
+						A2(_elm_lang$core$List$map, profileView, _p41)),
 					_1: {ctor: '[]'}
 				}
 			});
@@ -27738,9 +30357,12 @@ var _n1k0$tooty$View$notificationEntryView = F2(
 			{
 				ctor: '::',
 				_0: function () {
-					var _p37 = notification.status;
-					if (_p37.ctor === 'Just') {
-						return A4(_n1k0$tooty$View$notificationStatusView, 'notification', currentUser, _p37._0, notification);
+					var _p42 = notification.status;
+					if (_p42.ctor === 'Just') {
+						return A2(
+							_elm_lang$html$Html_Lazy$lazy,
+							_n1k0$tooty$View$notificationStatusView,
+							{ctor: '_Tuple4', _0: 'notification', _1: currentUser, _2: _p42._0, _3: notification});
 					} else {
 						return A2(_n1k0$tooty$View$notificationFollowView, currentUser, notification);
 					}
@@ -27749,8 +30371,8 @@ var _n1k0$tooty$View$notificationEntryView = F2(
 			});
 	});
 var _n1k0$tooty$View$draftReplyToView = function (draft) {
-	var _p38 = draft.in_reply_to;
-	if (_p38.ctor === 'Just') {
+	var _p43 = draft.in_reply_to;
+	if (_p43.ctor === 'Just') {
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -27810,7 +30432,7 @@ var _n1k0$tooty$View$draftReplyToView = function (draft) {
 						},
 						{
 							ctor: '::',
-							_0: A2(_n1k0$tooty$View$statusView, 'draft', _p38._0),
+							_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, 'draft', _p43._0),
 							_1: {ctor: '[]'}
 						}),
 					_1: {ctor: '[]'}
@@ -28042,7 +30664,7 @@ var _n1k0$tooty$View$notificationListView = F3(
 									},
 									A2(
 										_elm_lang$core$List$map,
-										_n1k0$tooty$View$notificationEntryView(currentUser),
+										A2(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$notificationEntryView, currentUser),
 										A2(_n1k0$tooty$ViewHelper$filterNotifications, filter, notifications))),
 								_1: {ctor: '[]'}
 							}
@@ -28066,8 +30688,8 @@ var _n1k0$tooty$View$errorView = function (error) {
 		});
 };
 var _n1k0$tooty$View$errorsListView = function (model) {
-	var _p39 = model.errors;
-	if (_p39.ctor === '[]') {
+	var _p44 = model.errors;
+	if (_p44.ctor === '[]') {
 		return _elm_lang$html$Html$text('');
 	} else {
 		return A2(
@@ -28165,10 +30787,10 @@ var _n1k0$tooty$View$closeablePanelheading = F4(
 	});
 var _n1k0$tooty$View$accountView = F4(
 	function (currentUser, account, relationship, panelContent) {
-		var _p40 = account;
-		var statuses_count = _p40.statuses_count;
-		var following_count = _p40.following_count;
-		var followers_count = _p40.followers_count;
+		var _p45 = account;
+		var statuses_count = _p45.statuses_count;
+		var following_count = _p45.following_count;
+		var followers_count = _p45.followers_count;
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -28359,7 +30981,7 @@ var _n1k0$tooty$View$accountTimelineView = F4(
 							},
 							{
 								ctor: '::',
-								_0: A2(_n1k0$tooty$View$statusView, 'account', s),
+								_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View$statusView, 'account', s),
 								_1: {ctor: '[]'}
 							});
 					},
@@ -28491,17 +31113,18 @@ var _n1k0$tooty$View$visibilities = _elm_lang$core$Dict$fromList(
 			}
 		}
 	});
-var _n1k0$tooty$View$draftView = function (_p41) {
-	var _p42 = _p41;
-	var _p51 = _p42.draft;
-	var visibilityOptionView = function (_p43) {
-		var _p44 = _p43;
-		var _p45 = _p44._0;
+var _n1k0$tooty$View$draftView = function (_p46) {
+	var _p47 = _p46;
+	var _p58 = _p47.draft;
+	var autoMenu = _p47.showAutoMenu ? _n1k0$tooty$View$viewAutocompleteMenu(_p47) : _elm_lang$html$Html$text('');
+	var visibilityOptionView = function (_p48) {
+		var _p49 = _p48;
+		var _p50 = _p49._0;
 		return A2(
 			_elm_lang$html$Html$option,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$value(_p45),
+				_0: _elm_lang$html$Html_Attributes$value(_p50),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -28509,12 +31132,12 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 				_0: _elm_lang$html$Html$text(
 					A2(
 						_elm_lang$core$Basics_ops['++'],
-						_p45,
-						A2(_elm_lang$core$Basics_ops['++'], ': ', _p44._1))),
+						_p50,
+						A2(_elm_lang$core$Basics_ops['++'], ': ', _p49._1))),
 				_1: {ctor: '[]'}
 			});
 	};
-	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p51.spoiler_text, _elm_lang$core$Maybe$Nothing);
+	var hasSpoiler = !_elm_lang$core$Native_Utils.eq(_p58.spoiler_text, _elm_lang$core$Maybe$Nothing);
 	return A2(
 		_elm_lang$html$Html$div,
 		{
@@ -28537,7 +31160,7 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 					_1: {
 						ctor: '::',
 						_0: _elm_lang$html$Html$text(
-							(!_elm_lang$core$Native_Utils.eq(_p51.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
+							(!_elm_lang$core$Native_Utils.eq(_p58.in_reply_to, _elm_lang$core$Maybe$Nothing)) ? 'Post a reply' : 'Post a message'),
 						_1: {ctor: '[]'}
 					}
 				}),
@@ -28552,10 +31175,10 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 					},
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$View$currentUserView(_p42.currentUser),
+						_0: _n1k0$tooty$View$currentUserView(_p47.currentUser),
 						_1: {
 							ctor: '::',
-							_0: _n1k0$tooty$View$draftReplyToView(_p51),
+							_0: _n1k0$tooty$View$draftReplyToView(_p58),
 							_1: {
 								ctor: '::',
 								_0: A2(
@@ -28593,9 +31216,9 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 																_1: {
 																	ctor: '::',
 																	_0: _elm_lang$html$Html_Events$onCheck(
-																		function (_p46) {
+																		function (_p51) {
 																			return _n1k0$tooty$Types$DraftEvent(
-																				_n1k0$tooty$Types$ToggleSpoiler(_p46));
+																				_n1k0$tooty$Types$ToggleSpoiler(_p51));
 																		}),
 																	_1: {
 																		ctor: '::',
@@ -28655,9 +31278,9 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p47) {
+																					function (_p52) {
 																						return _n1k0$tooty$Types$DraftEvent(
-																							_n1k0$tooty$Types$UpdateSpoiler(_p47));
+																							_n1k0$tooty$Types$UpdateSpoiler(_p52));
 																					}),
 																				_1: {
 																					ctor: '::',
@@ -28665,7 +31288,7 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 																					_1: {
 																						ctor: '::',
 																						_0: _elm_lang$html$Html_Attributes$value(
-																							A2(_elm_lang$core$Maybe$withDefault, '', _p51.spoiler_text)),
+																							A2(_elm_lang$core$Maybe$withDefault, '', _p58.spoiler_text)),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -28704,44 +31327,83 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 															}),
 														_1: {
 															ctor: '::',
-															_0: A2(
-																_elm_lang$html$Html$textarea,
-																{
-																	ctor: '::',
-																	_0: _elm_lang$html$Html_Attributes$id('status'),
-																	_1: {
+															_0: function () {
+																var fromResult = function (result) {
+																	var _p53 = result;
+																	if (_p53.ctor === 'Ok') {
+																		return _elm_lang$core$Json_Decode$succeed(_p53._0);
+																	} else {
+																		return _elm_lang$core$Json_Decode$fail(_p53._0);
+																	}
+																};
+																var options = {preventDefault: true, stopPropagation: false};
+																var dec = A2(
+																	_elm_lang$core$Json_Decode$andThen,
+																	fromResult,
+																	A2(
+																		_elm_lang$core$Json_Decode$map,
+																		function (code) {
+																			return (_elm_lang$core$Native_Utils.eq(code, 38) || _elm_lang$core$Native_Utils.eq(code, 40)) ? _elm_lang$core$Result$Ok(_n1k0$tooty$Types$NoOp) : _elm_lang$core$Result$Err('not handling that key');
+																		},
+																		_elm_lang$html$Html_Events$keyCode));
+																return A2(
+																	_elm_lang$html$Html$textarea,
+																	{
 																		ctor: '::',
-																		_0: _elm_lang$html$Html_Attributes$class('form-control'),
+																		_0: _elm_lang$html$Html_Attributes$id('status'),
 																		_1: {
 																			ctor: '::',
-																			_0: _elm_lang$html$Html_Attributes$rows(8),
+																			_0: _elm_lang$html$Html_Attributes$class('form-control'),
 																			_1: {
 																				ctor: '::',
-																				_0: _elm_lang$html$Html_Attributes$placeholder(
-																					hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
+																				_0: _elm_lang$html$Html_Attributes$rows(8),
 																				_1: {
 																					ctor: '::',
-																					_0: _elm_lang$html$Html_Events$onInput(
-																						function (_p48) {
-																							return _n1k0$tooty$Types$DraftEvent(
-																								_n1k0$tooty$Types$UpdateStatus(_p48));
-																						}),
+																					_0: _elm_lang$html$Html_Attributes$placeholder(
+																						hasSpoiler ? 'This text will be hidden by default, as you have enabled a spoiler.' : 'Once upon a time...'),
 																					_1: {
 																						ctor: '::',
 																						_0: _elm_lang$html$Html_Attributes$required(true),
 																						_1: {
 																							ctor: '::',
-																							_0: _elm_lang$html$Html_Attributes$value(_p51.status),
-																							_1: {ctor: '[]'}
+																							_0: _n1k0$tooty$ViewHelper$onInputInformation(
+																								function (_p54) {
+																									return _n1k0$tooty$Types$DraftEvent(
+																										_n1k0$tooty$Types$UpdateInputInformation(_p54));
+																								}),
+																							_1: {
+																								ctor: '::',
+																								_0: _n1k0$tooty$ViewHelper$onClickInformation(
+																									function (_p55) {
+																										return _n1k0$tooty$Types$DraftEvent(
+																											_n1k0$tooty$Types$UpdateInputInformation(_p55));
+																									}),
+																								_1: {
+																									ctor: '::',
+																									_0: A2(
+																										_elm_lang$html$Html_Attributes$property,
+																										'defaultValue',
+																										_elm_lang$core$Json_Encode$string(_p58.status)),
+																									_1: {
+																										ctor: '::',
+																										_0: A3(_elm_lang$html$Html_Events$onWithOptions, 'keydown', options, dec),
+																										_1: {ctor: '[]'}
+																									}
+																								}
+																							}
 																						}
 																					}
 																				}
 																			}
 																		}
-																	}
-																},
-																{ctor: '[]'}),
-															_1: {ctor: '[]'}
+																	},
+																	{ctor: '[]'});
+															}(),
+															_1: {
+																ctor: '::',
+																_0: autoMenu,
+																_1: {ctor: '[]'}
+															}
 														}
 													}),
 												_1: {
@@ -28780,16 +31442,16 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 																			_1: {
 																				ctor: '::',
 																				_0: _elm_lang$html$Html_Events$onInput(
-																					function (_p49) {
+																					function (_p56) {
 																						return _n1k0$tooty$Types$DraftEvent(
-																							_n1k0$tooty$Types$UpdateVisibility(_p49));
+																							_n1k0$tooty$Types$UpdateVisibility(_p56));
 																					}),
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Attributes$required(true),
 																					_1: {
 																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$value(_p51.visibility),
+																						_0: _elm_lang$html$Html_Attributes$value(_p58.visibility),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -28827,13 +31489,13 @@ var _n1k0$tooty$View$draftView = function (_p41) {
 																				_1: {
 																					ctor: '::',
 																					_0: _elm_lang$html$Html_Events$onCheck(
-																						function (_p50) {
+																						function (_p57) {
 																							return _n1k0$tooty$Types$DraftEvent(
-																								_n1k0$tooty$Types$UpdateSensitive(_p50));
+																								_n1k0$tooty$Types$UpdateSensitive(_p57));
 																						}),
 																					_1: {
 																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$checked(_p51.sensitive),
+																						_0: _elm_lang$html$Html_Attributes$checked(_p58.sensitive),
 																						_1: {ctor: '[]'}
 																					}
 																				}
@@ -28919,20 +31581,20 @@ var _n1k0$tooty$View$sidebarView = function (model) {
 		},
 		{
 			ctor: '::',
-			_0: _n1k0$tooty$View$draftView(model),
+			_0: A2(_elm_lang$html$Html_Lazy$lazy, _n1k0$tooty$View$draftView, model),
 			_1: {
 				ctor: '::',
-				_0: _n1k0$tooty$View$optionsView(model),
+				_0: A2(_elm_lang$html$Html_Lazy$lazy, _n1k0$tooty$View$optionsView, model),
 				_1: {ctor: '[]'}
 			}
 		});
 };
 var _n1k0$tooty$View$homepageView = function (model) {
-	var _p52 = model.currentUser;
-	if (_p52.ctor === 'Nothing') {
+	var _p59 = model.currentUser;
+	if (_p59.ctor === 'Nothing') {
 		return _elm_lang$html$Html$text('');
 	} else {
-		var _p54 = _p52._0;
+		var _p61 = _p59._0;
 		return A2(
 			_elm_lang$html$Html$div,
 			{
@@ -28942,30 +31604,39 @@ var _n1k0$tooty$View$homepageView = function (model) {
 			},
 			{
 				ctor: '::',
-				_0: _n1k0$tooty$View$sidebarView(model),
+				_0: A2(_elm_lang$html$Html_Lazy$lazy, _n1k0$tooty$View$sidebarView, model),
 				_1: {
 					ctor: '::',
-					_0: A5(_n1k0$tooty$View$timelineView, 'Home timeline', 'home', 'home', _p54, model.userTimeline),
+					_0: A2(
+						_elm_lang$html$Html_Lazy$lazy,
+						_n1k0$tooty$View$timelineView,
+						{ctor: '_Tuple5', _0: 'Home timeline', _1: 'home', _2: 'home', _3: _p61, _4: model.userTimeline}),
 					_1: {
 						ctor: '::',
-						_0: A3(_n1k0$tooty$View$notificationListView, _p54, model.notificationFilter, model.notifications),
+						_0: A4(_elm_lang$html$Html_Lazy$lazy3, _n1k0$tooty$View$notificationListView, _p61, model.notificationFilter, model.notifications),
 						_1: {
 							ctor: '::',
 							_0: function () {
-								var _p53 = model.currentView;
-								switch (_p53.ctor) {
+								var _p60 = model.currentView;
+								switch (_p60.ctor) {
 									case 'LocalTimelineView':
-										return A5(_n1k0$tooty$View$timelineView, 'Local timeline', 'th-large', 'local', _p54, model.localTimeline);
+										return A2(
+											_elm_lang$html$Html_Lazy$lazy,
+											_n1k0$tooty$View$timelineView,
+											{ctor: '_Tuple5', _0: 'Local timeline', _1: 'th-large', _2: 'local', _3: _p61, _4: model.localTimeline});
 									case 'GlobalTimelineView':
-										return A5(_n1k0$tooty$View$timelineView, 'Global timeline', 'globe', 'global', _p54, model.globalTimeline);
+										return A2(
+											_elm_lang$html$Html_Lazy$lazy,
+											_n1k0$tooty$View$timelineView,
+											{ctor: '_Tuple5', _0: 'Global timeline', _1: 'globe', _2: 'global', _3: _p61, _4: model.globalTimeline});
 									case 'AccountView':
-										return A4(_n1k0$tooty$View$accountTimelineView, _p54, model.accountTimeline, model.accountRelationship, _p53._0);
+										return A4(_n1k0$tooty$View$accountTimelineView, _p61, model.accountTimeline, model.accountRelationship, _p60._0);
 									case 'AccountFollowersView':
-										return A5(_n1k0$tooty$View$accountFollowView, _p54, model.accountFollowers, model.accountRelationships, model.accountRelationship, _p53._0);
+										return A5(_n1k0$tooty$View$accountFollowView, _p61, model.accountFollowers, model.accountRelationships, model.accountRelationship, _p60._0);
 									case 'AccountFollowingView':
-										return A5(_n1k0$tooty$View$accountFollowView, _p54, model.accountFollowing, model.accountRelationships, model.accountRelationship, _p53._0);
+										return A5(_n1k0$tooty$View$accountFollowView, _p61, model.accountFollowing, model.accountRelationships, model.accountRelationship, _p60._0);
 									default:
-										return A2(_n1k0$tooty$View$threadView, _p54, _p53._0);
+										return A2(_n1k0$tooty$View$threadView, _p61, _p60._0);
 								}
 							}(),
 							_1: {ctor: '[]'}
@@ -28989,8 +31660,8 @@ var _n1k0$tooty$View$view = function (model) {
 			_1: {
 				ctor: '::',
 				_0: function () {
-					var _p55 = model.client;
-					if (_p55.ctor === 'Just') {
+					var _p62 = model.client;
+					if (_p62.ctor === 'Just') {
 						return _n1k0$tooty$View$homepageView(model);
 					} else {
 						return _n1k0$tooty$View$authView(model);
@@ -28999,9 +31670,9 @@ var _n1k0$tooty$View$view = function (model) {
 				_1: {
 					ctor: '::',
 					_0: function () {
-						var _p56 = model.viewer;
-						if (_p56.ctor === 'Just') {
-							return _n1k0$tooty$View$viewerView(_p56._0);
+						var _p63 = model.viewer;
+						if (_p63.ctor === 'Just') {
+							return _n1k0$tooty$View$viewerView(_p63._0);
 						} else {
 							return _elm_lang$html$Html$text('');
 						}
@@ -29011,1404 +31682,6 @@ var _n1k0$tooty$View$view = function (model) {
 			}
 		});
 };
-
-var _n1k0$tooty$Model$subscriptions = function (model) {
-	var _p0 = model.client;
-	if (_p0.ctor === 'Just') {
-		var _p1 = _p0._0;
-		var subs = A2(
-			_elm_lang$core$Basics_ops['++'],
-			{
-				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$UserStream, _n1k0$tooty$Types$NewWebsocketUserMessage),
-				_1: {ctor: '[]'}
-			},
-			model.useGlobalTimeline ? {
-				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$GlobalPublicStream, _n1k0$tooty$Types$NewWebsocketGlobalMessage),
-				_1: {ctor: '[]'}
-			} : {
-				ctor: '::',
-				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p1, _n1k0$tooty$Mastodon_WebSocket$LocalPublicStream, _n1k0$tooty$Types$NewWebsocketLocalMessage),
-				_1: {ctor: '[]'}
-			});
-		return _elm_lang$core$Platform_Sub$batch(
-			A2(
-				_elm_lang$core$List$map,
-				_elm_lang$core$Platform_Sub$map(_n1k0$tooty$Types$WebSocketEvent),
-				subs));
-	} else {
-		return _elm_lang$core$Platform_Sub$batch(
-			{ctor: '[]'});
-	}
-};
-var _n1k0$tooty$Model$updateViewer = F2(
-	function (viewerMsg, viewer) {
-		var _p2 = viewerMsg;
-		if (_p2.ctor === 'CloseViewer') {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Maybe$Nothing,
-				{ctor: '[]'});
-		} else {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Maybe$Just(
-					A2(_n1k0$tooty$Types$Viewer, _p2._0, _p2._1)),
-				{ctor: '[]'});
-		}
-	});
-var _n1k0$tooty$Model$processFollowEvent = F3(
-	function (relationship, flag, model) {
-		var accountRelationship = function () {
-			var _p3 = model.accountRelationship;
-			if (_p3.ctor === 'Just') {
-				return _elm_lang$core$Native_Utils.eq(_p3._0.id, relationship.id) ? _elm_lang$core$Maybe$Just(
-					_elm_lang$core$Native_Utils.update(
-						relationship,
-						{following: flag})) : model.accountRelationship;
-			} else {
-				return _elm_lang$core$Maybe$Nothing;
-			}
-		}();
-		var updateRelationship = function (r) {
-			return _elm_lang$core$Native_Utils.eq(r.id, relationship.id) ? _elm_lang$core$Native_Utils.update(
-				r,
-				{following: flag}) : r;
-		};
-		var accountRelationships = A2(_elm_lang$core$List$map, updateRelationship, model.accountRelationships);
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{accountRelationships: accountRelationships, accountRelationship: accountRelationship});
-	});
-var _n1k0$tooty$Model$deleteStatusFromTimeline = F2(
-	function (statusId, timeline) {
-		return A2(
-			_elm_lang$core$List$filter,
-			function (s) {
-				return (!_elm_lang$core$Native_Utils.eq(s.id, statusId)) && (!_elm_lang$core$Native_Utils.eq(
-					_n1k0$tooty$Mastodon_Helper$extractReblog(s).id,
-					statusId));
-			},
-			timeline);
-	});
-var _n1k0$tooty$Model$updateTimelinesWithBoolFlag = F4(
-	function (statusId, flag, statusUpdater, model) {
-		var update = F2(
-			function (flag, status) {
-				return _elm_lang$core$Native_Utils.eq(
-					_n1k0$tooty$Mastodon_Helper$extractReblog(status).id,
-					statusId) ? statusUpdater(status) : status;
-			});
-		return _elm_lang$core$Native_Utils.update(
-			model,
-			{
-				userTimeline: A2(
-					_elm_lang$core$List$map,
-					update(flag),
-					model.userTimeline),
-				localTimeline: A2(
-					_elm_lang$core$List$map,
-					update(flag),
-					model.localTimeline),
-				globalTimeline: A2(
-					_elm_lang$core$List$map,
-					update(flag),
-					model.globalTimeline)
-			});
-	});
-var _n1k0$tooty$Model$processFavourite = F3(
-	function (statusId, flag, model) {
-		return A4(
-			_n1k0$tooty$Model$updateTimelinesWithBoolFlag,
-			statusId,
-			flag,
-			function (s) {
-				return _elm_lang$core$Native_Utils.update(
-					s,
-					{
-						favourited: _elm_lang$core$Maybe$Just(flag)
-					});
-			},
-			model);
-	});
-var _n1k0$tooty$Model$processReblog = F3(
-	function (statusId, flag, model) {
-		return A4(
-			_n1k0$tooty$Model$updateTimelinesWithBoolFlag,
-			statusId,
-			flag,
-			function (s) {
-				return _elm_lang$core$Native_Utils.update(
-					s,
-					{
-						reblogged: _elm_lang$core$Maybe$Just(flag)
-					});
-			},
-			model);
-	});
-var _n1k0$tooty$Model$toStatusRequestBody = function (draft) {
-	return {
-		status: draft.status,
-		in_reply_to_id: function () {
-			var _p4 = draft.in_reply_to;
-			if (_p4.ctor === 'Just') {
-				return _elm_lang$core$Maybe$Just(_p4._0.id);
-			} else {
-				return _elm_lang$core$Maybe$Nothing;
-			}
-		}(),
-		spoiler_text: draft.spoiler_text,
-		sensitive: draft.sensitive,
-		visibility: draft.visibility
-	};
-};
-var _n1k0$tooty$Model$errorText = function (error) {
-	var _p5 = error;
-	switch (_p5.ctor) {
-		case 'MastodonError':
-			return A2(
-				_elm_lang$core$Basics_ops['++'],
-				'HTTP ',
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p5._0),
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						' ',
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_p5._1,
-							A2(_elm_lang$core$Basics_ops['++'], ': ', _p5._2)))));
-		case 'ServerError':
-			return A2(
-				_elm_lang$core$Basics_ops['++'],
-				'HTTP ',
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					_elm_lang$core$Basics$toString(_p5._0),
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						' ',
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							_p5._1,
-							A2(_elm_lang$core$Basics_ops['++'], ': ', _p5._2)))));
-		case 'TimeoutError':
-			return 'Request timed out.';
-		default:
-			return 'Unreachable host.';
-	}
-};
-var _n1k0$tooty$Model$preferredTimeline = function (model) {
-	return model.useGlobalTimeline ? _n1k0$tooty$Types$GlobalTimelineView : _n1k0$tooty$Types$LocalTimelineView;
-};
-var _n1k0$tooty$Model$defaultDraft = {status: '', in_reply_to: _elm_lang$core$Maybe$Nothing, spoiler_text: _elm_lang$core$Maybe$Nothing, sensitive: false, visibility: 'public'};
-var _n1k0$tooty$Model$updateDraft = F3(
-	function (draftMsg, currentUser, draft) {
-		var _p6 = draftMsg;
-		switch (_p6.ctor) {
-			case 'ClearDraft':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_n1k0$tooty$Model$defaultDraft,
-					{ctor: '[]'});
-			case 'ToggleSpoiler':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{
-							spoiler_text: _p6._0 ? _elm_lang$core$Maybe$Just('') : _elm_lang$core$Maybe$Nothing
-						}),
-					{ctor: '[]'});
-			case 'UpdateSensitive':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{sensitive: _p6._0}),
-					{ctor: '[]'});
-			case 'UpdateSpoiler':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{
-							spoiler_text: _elm_lang$core$Maybe$Just(_p6._0)
-						}),
-					{ctor: '[]'});
-			case 'UpdateStatus':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{status: _p6._0}),
-					{ctor: '[]'});
-			case 'UpdateVisibility':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{visibility: _p6._0}),
-					{ctor: '[]'});
-			default:
-				var _p7 = _p6._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						draft,
-						{
-							in_reply_to: _elm_lang$core$Maybe$Just(_p7),
-							status: A2(_n1k0$tooty$Mastodon_Helper$getReplyPrefix, currentUser, _p7),
-							sensitive: A2(_elm_lang$core$Maybe$withDefault, false, _p7.sensitive),
-							spoiler_text: _elm_lang$core$Native_Utils.eq(_p7.spoiler_text, '') ? _elm_lang$core$Maybe$Nothing : _elm_lang$core$Maybe$Just(_p7.spoiler_text),
-							visibility: _p7.visibility
-						}),
-					{
-						ctor: '::',
-						_0: _n1k0$tooty$Command$focusId('status'),
-						_1: {ctor: '[]'}
-					});
-		}
-	});
-var _n1k0$tooty$Model$processMastodonEvent = F2(
-	function (msg, model) {
-		var _p8 = msg;
-		switch (_p8.ctor) {
-			case 'AccessToken':
-				var _p9 = _p8._0;
-				if (_p9.ctor === 'Ok') {
-					var client = A2(_n1k0$tooty$Mastodon_Model$Client, _p9._0.server, _p9._0.accessToken);
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								client: _elm_lang$core$Maybe$Just(client)
-							}),
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$loadTimelines(
-								_elm_lang$core$Maybe$Just(client)),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
-								_1: {
-									ctor: '::',
-									_0: _n1k0$tooty$Command$saveClient(client),
-									_1: {ctor: '[]'}
-								}
-							}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p9._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountFollowed':
-				var _p10 = _p8._0;
-				if (_p10.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFollowEvent, _p10._0, true, model),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p10._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountUnfollowed':
-				var _p11 = _p8._0;
-				if (_p11.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						A3(_n1k0$tooty$Model$processFollowEvent, _p11._0, false, model),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p11._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AppRegistered':
-				var _p12 = _p8._0;
-				if (_p12.ctor === 'Ok') {
-					var _p13 = _p12._0;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								registration: _elm_lang$core$Maybe$Just(_p13)
-							}),
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$saveRegistration(_p13),
-							_1: {
-								ctor: '::',
-								_0: _n1k0$tooty$Command$navigateToAuthUrl(_p13),
-								_1: {ctor: '[]'}
-							}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p12._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'ContextLoaded':
-				var _p14 = _p8._1;
-				if (_p14.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentView: _n1k0$tooty$Types$ThreadView(
-									A2(_n1k0$tooty$Types$Thread, _p8._0, _p14._0))
-							}),
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$scrollColumnToBottom('thread'),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentView: _n1k0$tooty$Model$preferredTimeline(model),
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p14._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'CurrentUser':
-				var _p15 = _p8._0;
-				if (_p15.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentUser: _elm_lang$core$Maybe$Just(_p15._0)
-							}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p15._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'FavoriteAdded':
-				var _p16 = _p8._0;
-				if (_p16.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p16._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'FavoriteRemoved':
-				var _p17 = _p8._0;
-				if (_p17.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p17._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'LocalTimeline':
-				var _p18 = _p8._0;
-				if (_p18.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{localTimeline: _p18._0}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p18._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'Notifications':
-				var _p19 = _p8._0;
-				if (_p19.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								notifications: _n1k0$tooty$Mastodon_Helper$aggregateNotifications(_p19._0)
-							}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p19._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'GlobalTimeline':
-				var _p20 = _p8._0;
-				if (_p20.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{globalTimeline: _p20._0}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p20._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'Reblogged':
-				var _p21 = _p8._0;
-				if (_p21.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p21._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'StatusPosted':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{draft: _n1k0$tooty$Model$defaultDraft}),
-					{
-						ctor: '::',
-						_0: _n1k0$tooty$Command$scrollColumnToTop('home'),
-						_1: {ctor: '[]'}
-					});
-			case 'StatusDeleted':
-				var _p22 = _p8._0;
-				if (_p22.ctor === 'Ok') {
-					var _p23 = _p22._0;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p23, model.userTimeline),
-								localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p23, model.localTimeline),
-								globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p23, model.globalTimeline)
-							}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p22._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'Unreblogged':
-				var _p24 = _p8._0;
-				if (_p24.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$loadNotifications(model.client),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p24._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountReceived':
-				var _p25 = _p8._0;
-				if (_p25.ctor === 'Ok') {
-					var _p26 = _p25._0;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentView: _n1k0$tooty$Types$AccountView(_p26)
-							}),
-						{
-							ctor: '::',
-							_0: A2(_n1k0$tooty$Command$loadAccountTimeline, model.client, _p26.id),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								currentView: _n1k0$tooty$Model$preferredTimeline(model),
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p25._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountTimeline':
-				var _p27 = _p8._0;
-				if (_p27.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{accountTimeline: _p27._0}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p27._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountFollowers':
-				var _p28 = _p8._0;
-				if (_p28.ctor === 'Ok') {
-					var _p29 = _p28._0;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{accountFollowers: _p29}),
-						{
-							ctor: '::',
-							_0: A2(
-								_n1k0$tooty$Command$loadRelationships,
-								model.client,
-								A2(
-									_elm_lang$core$List$map,
-									function (_) {
-										return _.id;
-									},
-									_p29)),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p28._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountFollowing':
-				var _p30 = _p8._0;
-				if (_p30.ctor === 'Ok') {
-					var _p31 = _p30._0;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{accountFollowing: _p31}),
-						{
-							ctor: '::',
-							_0: A2(
-								_n1k0$tooty$Command$loadRelationships,
-								model.client,
-								A2(
-									_elm_lang$core$List$map,
-									function (_) {
-										return _.id;
-									},
-									_p31)),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p30._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountRelationship':
-				var _p32 = _p8._0;
-				if (_p32.ctor === 'Ok') {
-					if ((_p32._0.ctor === '::') && (_p32._0._1.ctor === '[]')) {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									accountRelationship: _elm_lang$core$Maybe$Just(_p32._0._0)
-								}),
-							{ctor: '[]'});
-					} else {
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-					}
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p32._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			case 'AccountRelationships':
-				var _p33 = _p8._0;
-				if (_p33.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{accountRelationships: _p33._0}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p33._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-			default:
-				var _p34 = _p8._0;
-				if (_p34.ctor === 'Ok') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{userTimeline: _p34._0}),
-						{ctor: '[]'});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{
-								errors: {
-									ctor: '::',
-									_0: _n1k0$tooty$Model$errorText(_p34._0),
-									_1: model.errors
-								}
-							}),
-						{ctor: '[]'});
-				}
-		}
-	});
-var _n1k0$tooty$Model$extractAuthCode = function (_p35) {
-	var _p36 = _p35;
-	var _p37 = A2(_elm_lang$core$String$split, '?code=', _p36.search);
-	if (((_p37.ctor === '::') && (_p37._1.ctor === '::')) && (_p37._1._1.ctor === '[]')) {
-		return _elm_lang$core$Maybe$Just(_p37._1._0);
-	} else {
-		return _elm_lang$core$Maybe$Nothing;
-	}
-};
-var _n1k0$tooty$Model$init = F2(
-	function (flags, location) {
-		var authCode = _n1k0$tooty$Model$extractAuthCode(location);
-		return A2(
-			_elm_lang$core$Platform_Cmd_ops['!'],
-			{
-				server: '',
-				registration: flags.registration,
-				client: flags.client,
-				userTimeline: {ctor: '[]'},
-				localTimeline: {ctor: '[]'},
-				globalTimeline: {ctor: '[]'},
-				accountTimeline: {ctor: '[]'},
-				accountFollowers: {ctor: '[]'},
-				accountFollowing: {ctor: '[]'},
-				accountRelationships: {ctor: '[]'},
-				accountRelationship: _elm_lang$core$Maybe$Nothing,
-				notifications: {ctor: '[]'},
-				draft: _n1k0$tooty$Model$defaultDraft,
-				errors: {ctor: '[]'},
-				location: location,
-				useGlobalTimeline: false,
-				viewer: _elm_lang$core$Maybe$Nothing,
-				currentView: _n1k0$tooty$Types$LocalTimelineView,
-				currentUser: _elm_lang$core$Maybe$Nothing,
-				notificationFilter: _n1k0$tooty$Types$NotificationAll
-			},
-			{
-				ctor: '::',
-				_0: A3(_n1k0$tooty$Command$initCommands, flags.registration, flags.client, authCode),
-				_1: {ctor: '[]'}
-			});
-	});
-var _n1k0$tooty$Model$maxBuffer = 100;
-var _n1k0$tooty$Model$truncate = function (entries) {
-	return A2(_elm_lang$core$List$take, _n1k0$tooty$Model$maxBuffer, entries);
-};
-var _n1k0$tooty$Model$processWebSocketMsg = F2(
-	function (msg, model) {
-		var _p38 = msg;
-		switch (_p38.ctor) {
-			case 'NewWebsocketUserMessage':
-				var _p39 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p38._0);
-				switch (_p39.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p39._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p40 = _p39._0;
-						if (_p40.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										userTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p40._0, _1: model.userTimeline})
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p40._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p41 = _p39._0;
-						if (_p41.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										userTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p41._0, model.userTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p41._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						var _p42 = _p39._0;
-						if (_p42.ctor === 'Ok') {
-							var notifications = A2(_n1k0$tooty$Mastodon_Helper$addNotificationToAggregates, _p42._0, model.notifications);
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										notifications: _n1k0$tooty$Model$truncate(notifications)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p42._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-				}
-			case 'NewWebsocketLocalMessage':
-				var _p43 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p38._0);
-				switch (_p43.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p43._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p44 = _p43._0;
-						if (_p44.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										localTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p44._0, _1: model.localTimeline})
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p44._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p45 = _p43._0;
-						if (_p45.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										localTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p45._0, model.localTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p45._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-				}
-			default:
-				var _p46 = _n1k0$tooty$Mastodon_Decoder$decodeWebSocketMessage(_p38._0);
-				switch (_p46.ctor) {
-					case 'ErrorEvent':
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							_elm_lang$core$Native_Utils.update(
-								model,
-								{
-									errors: {ctor: '::', _0: _p46._0, _1: model.errors}
-								}),
-							{ctor: '[]'});
-					case 'StatusUpdateEvent':
-						var _p47 = _p46._0;
-						if (_p47.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: _n1k0$tooty$Model$truncate(
-											{ctor: '::', _0: _p47._0, _1: model.globalTimeline})
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p47._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					case 'StatusDeleteEvent':
-						var _p48 = _p46._0;
-						if (_p48.ctor === 'Ok') {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										globalTimeline: A2(_n1k0$tooty$Model$deleteStatusFromTimeline, _p48._0, model.globalTimeline)
-									}),
-								{ctor: '[]'});
-						} else {
-							return A2(
-								_elm_lang$core$Platform_Cmd_ops['!'],
-								_elm_lang$core$Native_Utils.update(
-									model,
-									{
-										errors: {ctor: '::', _0: _p48._0, _1: model.errors}
-									}),
-								{ctor: '[]'});
-						}
-					default:
-						return A2(
-							_elm_lang$core$Platform_Cmd_ops['!'],
-							model,
-							{ctor: '[]'});
-				}
-		}
-	});
-var _n1k0$tooty$Model$update = F2(
-	function (msg, model) {
-		var _p49 = msg;
-		switch (_p49.ctor) {
-			case 'NoOp':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{ctor: '[]'});
-			case 'MastodonEvent':
-				var _p50 = A2(_n1k0$tooty$Model$processMastodonEvent, _p49._0, model);
-				var newModel = _p50._0;
-				var commands = _p50._1;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					newModel,
-					{
-						ctor: '::',
-						_0: commands,
-						_1: {ctor: '[]'}
-					});
-			case 'WebSocketEvent':
-				var _p51 = A2(_n1k0$tooty$Model$processWebSocketMsg, _p49._0, model);
-				var newModel = _p51._0;
-				var commands = _p51._1;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					newModel,
-					{
-						ctor: '::',
-						_0: commands,
-						_1: {ctor: '[]'}
-					});
-			case 'ServerChange':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{server: _p49._0}),
-					{ctor: '[]'});
-			case 'UrlChange':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{ctor: '[]'});
-			case 'Register':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: _n1k0$tooty$Command$registerApp(model),
-						_1: {ctor: '[]'}
-					});
-			case 'OpenThread':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadThread, model.client, _p49._0),
-						_1: {ctor: '[]'}
-					});
-			case 'CloseThread':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: _n1k0$tooty$Model$preferredTimeline(model)
-						}),
-					{ctor: '[]'});
-			case 'FollowAccount':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$follow, model.client, _p49._0),
-						_1: {ctor: '[]'}
-					});
-			case 'UnfollowAccount':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$unfollow, model.client, _p49._0),
-						_1: {ctor: '[]'}
-					});
-			case 'DeleteStatus':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$deleteStatus, model.client, _p49._0),
-						_1: {ctor: '[]'}
-					});
-			case 'ReblogStatus':
-				var _p52 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					A3(_n1k0$tooty$Model$processReblog, _p52, true, model),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$reblogStatus, model.client, _p52),
-						_1: {ctor: '[]'}
-					});
-			case 'UnreblogStatus':
-				var _p53 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					A3(_n1k0$tooty$Model$processReblog, _p53, false, model),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$unreblogStatus, model.client, _p53),
-						_1: {ctor: '[]'}
-					});
-			case 'AddFavorite':
-				var _p54 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					A3(_n1k0$tooty$Model$processFavourite, _p54, true, model),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$favouriteStatus, model.client, _p54),
-						_1: {ctor: '[]'}
-					});
-			case 'RemoveFavorite':
-				var _p55 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					A3(_n1k0$tooty$Model$processFavourite, _p55, false, model),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$unfavouriteStatus, model.client, _p55),
-						_1: {ctor: '[]'}
-					});
-			case 'DraftEvent':
-				var _p56 = model.currentUser;
-				if (_p56.ctor === 'Just') {
-					var _p57 = A3(_n1k0$tooty$Model$updateDraft, _p49._0, _p56._0, model.draft);
-					var draft = _p57._0;
-					var commands = _p57._1;
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						_elm_lang$core$Native_Utils.update(
-							model,
-							{draft: draft}),
-						{
-							ctor: '::',
-							_0: commands,
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{ctor: '[]'});
-				}
-			case 'ViewerEvent':
-				var _p58 = A2(_n1k0$tooty$Model$updateViewer, _p49._0, model.viewer);
-				var viewer = _p58._0;
-				var commands = _p58._1;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{viewer: viewer}),
-					{
-						ctor: '::',
-						_0: commands,
-						_1: {ctor: '[]'}
-					});
-			case 'SubmitDraft':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					model,
-					{
-						ctor: '::',
-						_0: A2(
-							_n1k0$tooty$Command$postStatus,
-							model.client,
-							_n1k0$tooty$Model$toStatusRequestBody(model.draft)),
-						_1: {ctor: '[]'}
-					});
-			case 'LoadAccount':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							accountTimeline: {ctor: '[]'},
-							accountFollowers: {ctor: '[]'},
-							accountFollowing: {ctor: '[]'},
-							accountRelationships: {ctor: '[]'},
-							accountRelationship: _elm_lang$core$Maybe$Nothing
-						}),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadAccount, model.client, _p49._0),
-						_1: {ctor: '[]'}
-					});
-			case 'ViewAccountFollowers':
-				var _p59 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: A2(_n1k0$tooty$Types$AccountFollowersView, _p59, model.accountFollowers)
-						}),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadAccountFollowers, model.client, _p59.id),
-						_1: {ctor: '[]'}
-					});
-			case 'ViewAccountFollowing':
-				var _p60 = _p49._0;
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: A2(_n1k0$tooty$Types$AccountFollowingView, _p60, model.accountFollowing)
-						}),
-					{
-						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadAccountFollowing, model.client, _p60.id),
-						_1: {ctor: '[]'}
-					});
-			case 'ViewAccountStatuses':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: _n1k0$tooty$Types$AccountView(_p49._0)
-						}),
-					{ctor: '[]'});
-			case 'UseGlobalTimeline':
-				var newModel = _elm_lang$core$Native_Utils.update(
-					model,
-					{useGlobalTimeline: _p49._0});
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: _n1k0$tooty$Model$preferredTimeline(newModel)
-						}),
-					{ctor: '[]'});
-			case 'CloseAccount':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{
-							currentView: _n1k0$tooty$Model$preferredTimeline(model),
-							accountTimeline: {ctor: '[]'},
-							accountFollowing: {ctor: '[]'},
-							accountFollowers: {ctor: '[]'}
-						}),
-					{ctor: '[]'});
-			case 'FilterNotifications':
-				return A2(
-					_elm_lang$core$Platform_Cmd_ops['!'],
-					_elm_lang$core$Native_Utils.update(
-						model,
-						{notificationFilter: _p49._0}),
-					{ctor: '[]'});
-			default:
-				if (_p49._0.ctor === 'ScrollTop') {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$scrollColumnToTop(_p49._1),
-							_1: {ctor: '[]'}
-						});
-				} else {
-					return A2(
-						_elm_lang$core$Platform_Cmd_ops['!'],
-						model,
-						{
-							ctor: '::',
-							_0: _n1k0$tooty$Command$scrollColumnToBottom(_p49._1),
-							_1: {ctor: '[]'}
-						});
-				}
-		}
-	});
 
 var _n1k0$tooty$Main$main = A2(
 	_elm_lang$navigation$Navigation$programWithFlags,

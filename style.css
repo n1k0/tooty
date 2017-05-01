@@ -520,3 +520,59 @@ body {
 ::-webkit-scrollbar-corner {
     background: transparent;
 }
+
+/* Autocomplete */
+
+.autocomplete-menu {
+    position: relative;
+    margin-top: -10px;
+    min-width: 120px;
+}
+
+.autocomplete-list {
+    list-style: none;
+    padding: 0;
+    margin: auto;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.autocomplete-item {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-content: stretch;
+    align-items: flex-start;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.autocomplete-item:first-child {
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.autocomplete-item > img {
+    flex: 1 1 auto;
+    height: 18px;
+    width: 18px;
+    margin-right: 10px;
+    border-radius: 2px;
+}
+
+.autocomplete-item > strong {
+  flex: 100 1 auto;
+  align-self: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.autocomplete-item > span {
+  flex: 100 1 auto;
+  text-align: right;
+  align-self: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

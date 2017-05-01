@@ -27,6 +27,14 @@
     app.ports.saveRegistration.subscribe(json => {
       localStorage.setItem("tooty.registration", json);
     });
+    app.ports.setStatus.subscribe(function(data) {
+      var element = document.getElementById(data.id);
+      if (element) {
+        element.value = data.status;
+        // Reset cursor at the end
+        element.focus();
+      }
+    });
     </script>
   </body>
 </html>
