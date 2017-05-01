@@ -8,6 +8,7 @@ import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import String.Extra
+import Task
 import Types exposing (..)
 
 
@@ -618,7 +619,9 @@ processMastodonEvent msg model =
                                     , autoAccounts = accounts
                                 }
                         }
-                            ! []
+                            -- Force selection of the first item after each
+                            -- Successfull request
+                            ! [ Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True)) ]
 
                     Err error ->
                         { model
