@@ -25,6 +25,8 @@ module Mastodon.ApiUrl
         , searchAccount
         )
 
+import Mastodon.Encoder exposing (encodeUrl)
+
 
 type alias Server =
     String
@@ -72,29 +74,22 @@ userAccount server =
 
 searchAccount : Server -> String -> Int -> Bool -> String
 searchAccount server query limit resolve =
-    server
-        ++ accounts
-        ++ "search?q="
-        ++ query
-        ++ "&limit="
-        ++ (toString limit)
-        ++ "&resolve="
-        ++ (if resolve then
+    encodeUrl (server ++ accounts ++ "search")
+        [ ( "q", query )
+        , ( "limit", toString limit )
+        , ( "resolve"
+          , if resolve then
                 "true"
             else
                 "false"
-           )
+          )
+        ]
 
 
 relationships : List Int -> String
 relationships ids =
-    let
-        qs =
-            ids
-                |> List.map (\id -> "id[]=" ++ (toString id))
-                |> String.join "&"
-    in
-        accounts ++ "relationships?" ++ qs
+    encodeUrl (accounts ++ "relationships") <|
+        (List.map (\id -> ( "id[]", toString id )) ids)
 
 
 followers : Int -> String
