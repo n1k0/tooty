@@ -89,7 +89,7 @@ searchAccount server query limit resolve =
 relationships : List Int -> String
 relationships ids =
     encodeUrl (accounts ++ "relationships") <|
-        (List.map (\id -> ( "id[]", toString id )) ids)
+        List.map (\id -> ( "id[]", toString id )) ids
 
 
 followers : Int -> String
