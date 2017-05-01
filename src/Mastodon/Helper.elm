@@ -52,6 +52,7 @@ toMention { id, url, username, acct } =
 notificationToAggregate : Notification -> NotificationAggregate
 notificationToAggregate notification =
     NotificationAggregate
+        notification.id
         notification.type_
         notification.status
         [ notification.account ]
@@ -142,6 +143,7 @@ aggregateNotifications notifications =
                 case statusGroup of
                     notification :: _ ->
                         [ NotificationAggregate
+                            notification.id
                             notification.type_
                             notification.status
                             accounts

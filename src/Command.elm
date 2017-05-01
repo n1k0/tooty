@@ -15,6 +15,7 @@ module Command
         , loadThread
         , loadTimelines
         , postStatus
+        , updateDomStatus
         , deleteStatus
         , reblogStatus
         , unreblogStatus
@@ -25,6 +26,7 @@ module Command
         , focusId
         , scrollColumnToTop
         , scrollColumnToBottom
+        , searchAccounts
         )
 
 import Dom
@@ -167,6 +169,20 @@ loadAccountFollowing client accountId =
             Cmd.none
 
 
+searchAccounts : Maybe Client -> String -> Int -> Bool -> Cmd Msg
+searchAccounts client query limit resolve =
+    if query == "" then
+        Cmd.none
+    else
+        case client of
+            Just client ->
+                Mastodon.Http.searchAccounts client query limit resolve
+                    |> Mastodon.Http.send (MastodonEvent << AutoSearch)
+
+            Nothing ->
+                Cmd.none
+
+
 loadRelationships : Maybe Client -> List Int -> Cmd Msg
 loadRelationships client accountIds =
     case client of
@@ -216,6 +232,11 @@ postStatus client draft =
 
         Nothing ->
             Cmd.none
+
+
+updateDomStatus : String -> Cmd Msg
+updateDomStatus statusText =
+    Ports.setStatus { id = "status", status = statusText }
 
 
 deleteStatus : Maybe Client -> Int -> Cmd Msg

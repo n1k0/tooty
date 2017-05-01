@@ -24,6 +24,7 @@ module Mastodon.Http
         , deleteStatus
         , userAccount
         , send
+        , searchAccounts
         )
 
 import Http
@@ -152,6 +153,13 @@ fetchAccountFollowers client accountId =
 fetchAccountFollowing : Client -> Int -> Request (List Account)
 fetchAccountFollowing client accountId =
     fetch client (ApiUrl.following accountId) <| Decode.list accountDecoder
+
+
+searchAccounts : Client -> String -> Int -> Bool -> Request (List Account)
+searchAccounts client query limit resolve =
+    HttpBuilder.get (ApiUrl.searchAccount client.server query limit resolve)
+        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+        |> HttpBuilder.withExpect (Http.expectJson (Decode.list accountDecoder))
 
 
 userAccount : Client -> Request Account

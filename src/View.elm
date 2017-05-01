@@ -1,17 +1,23 @@
 module View exposing (view)
 
+import Autocomplete
 import Dict
 import Html exposing (..)
+import Html.Keyed as Keyed
+import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
+import Model
 import Types exposing (..)
 import ViewHelper exposing (..)
 import Date
 import Date.Extra.Config.Config_en_au as DateEn
 import Date.Extra.Format as DateFormat
+import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 type alias CurrentUser =
@@ -138,13 +144,19 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
 
 attachmentListView : String -> Status -> Html Msg
 attachmentListView context { media_attachments, sensitive } =
-    case media_attachments of
-        [] ->
-            text ""
+    let
+        keyedEntry attachments attachment =
+            ( toString attachment.id
+            , attachmentPreview context sensitive attachments attachment
+            )
+    in
+        case media_attachments of
+            [] ->
+                text ""
 
-        attachments ->
-            ul [ class "attachments" ] <|
-                List.map (attachmentPreview context sensitive attachments) attachments
+            attachments ->
+                Keyed.ul [ class "attachments" ] <|
+                    List.map (keyedEntry attachments) attachments
 
 
 statusContentView : String -> Status -> Html Msg
@@ -190,7 +202,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                             [ text <| " @" ++ account.username ]
                         , text " boosted"
                         ]
-                    , statusView context reblog
+                    , lazy2 statusView context reblog
                     ]
 
             Nothing ->
@@ -202,7 +214,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                             , span [ class "acct" ] [ text <| " @" ++ account.username ]
                             ]
                         ]
-                    , statusContentView context status
+                    , lazy2 statusContentView context status
                     ]
 
 
@@ -311,14 +323,16 @@ accountView currentUser account relationship panelContent =
 
 accountTimelineView : CurrentUser -> List Status -> CurrentUserRelation -> Account -> Html Msg
 accountTimelineView currentUser statuses relationship account =
-    accountView currentUser account relationship <|
-        ul [ class "list-group" ] <|
-            List.map
-                (\s ->
-                    li [ class "list-group-item status" ]
-                        [ statusView "account" s ]
-                )
-                statuses
+    let
+        keyedEntry status =
+            ( toString status.id
+            , li [ class "list-group-item status" ]
+                [ lazy2 statusView "account" status ]
+            )
+    in
+        accountView currentUser account relationship <|
+            Keyed.ul [ class "list-group" ] <|
+                List.map keyedEntry statuses
 
 
 accountFollowView :
@@ -329,18 +343,20 @@ accountFollowView :
     -> Account
     -> Html Msg
 accountFollowView currentUser accounts relationships relationship account =
-    accountView currentUser account relationship <|
-        ul [ class "list-group" ] <|
-            List.map
-                (\account ->
-                    li [ class "list-group-item status" ]
-                        [ followView
-                            currentUser
-                            (find (\r -> r.id == account.id) relationships)
-                            account
-                        ]
-                )
-                accounts
+    let
+        keyedEntry account =
+            ( toString account.id
+            , li [ class "list-group-item status" ]
+                [ followView
+                    currentUser
+                    (find (\r -> r.id == account.id) relationships)
+                    account
+                ]
+            )
+    in
+        accountView currentUser account relationship <|
+            Keyed.ul [ class "list-group" ] <|
+                List.map keyedEntry accounts
 
 
 statusActionsView : Status -> CurrentUser -> Html Msg
@@ -419,22 +435,26 @@ statusEntryView context className currentUser status =
                     ""
     in
         li [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
-            [ statusView context status
-            , statusActionsView status currentUser
+            [ lazy2 statusView context status
+            , lazy2 statusActionsView status currentUser
             ]
 
 
-timelineView : String -> String -> String -> CurrentUser -> List Status -> Html Msg
-timelineView label iconName context currentUser statuses =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default" ]
-            [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
-                [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
-            , ul [ id context, class "list-group timeline" ] <|
-                List.map (statusEntryView context "" currentUser) statuses
+timelineView : ( String, String, String, CurrentUser, List Status ) -> Html Msg
+timelineView ( label, iconName, context, currentUser, statuses ) =
+    let
+        keyedEntry status =
+            ( toString id, statusEntryView context "" currentUser status )
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default" ]
+                [ a
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
+                    [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
+                , Keyed.ul [ id context, class "list-group timeline" ] <|
+                    List.map keyedEntry statuses
+                ]
             ]
-        ]
 
 
 notificationHeading : List Account -> String -> String -> Html Msg
@@ -450,8 +470,8 @@ notificationHeading accounts str iconType =
         ]
 
 
-notificationStatusView : String -> CurrentUser -> Status -> NotificationAggregate -> Html Msg
-notificationStatusView context currentUser status { type_, accounts } =
+notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
+notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
     div [ class <| "notification " ++ type_ ]
         [ case type_ of
             "reblog" ->
@@ -462,8 +482,8 @@ notificationStatusView context currentUser status { type_, accounts } =
 
             _ ->
                 text ""
-        , statusView context status
-        , statusActionsView status currentUser
+        , lazy2 statusView context status
+        , lazy2 statusActionsView status currentUser
         ]
 
 
@@ -493,7 +513,7 @@ notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                notificationStatusView "notification" currentUser status notification
+                lazy notificationStatusView ( "notification", currentUser, status, notification )
 
             Nothing ->
                 notificationFollowView currentUser notification
@@ -526,24 +546,30 @@ notificationFilterView filter =
 
 notificationListView : CurrentUser -> NotificationFilter -> List NotificationAggregate -> Html Msg
 notificationListView currentUser filter notifications =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default notifications-panel" ]
-            [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
-                [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
-            , notificationFilterView filter
-            , ul [ id "notifications", class "list-group timeline" ] <|
-                (notifications
-                    |> filterNotifications filter
-                    |> List.map (notificationEntryView currentUser)
-                )
+    let
+        keyedEntry notification =
+            ( toString notification.id
+            , lazy2 notificationEntryView currentUser notification
+            )
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default notifications-panel" ]
+                [ a
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
+                    [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
+                , notificationFilterView filter
+                , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
+                    (notifications
+                        |> filterNotifications filter
+                        |> List.map keyedEntry
+                    )
+                ]
             ]
-        ]
 
 
 draftReplyToView : Draft -> Html Msg
 draftReplyToView draft =
-    case draft.in_reply_to of
+    case draft.inReplyTo of
         Just status ->
             div [ class "in-reply-to" ]
                 [ p []
@@ -557,7 +583,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ statusView "draft" status ]
+                , div [ class "well" ] [ lazy2 statusView "draft" status ]
                 ]
 
         Nothing ->
@@ -579,20 +605,26 @@ currentUserView currentUser =
 
 
 draftView : Model -> Html Msg
-draftView { draft, currentUser } =
+draftView ({ draft, currentUser } as model) =
     let
         hasSpoiler =
-            draft.spoiler_text /= Nothing
+            draft.spoilerText /= Nothing
 
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
                 [ text <| visibility ++ ": " ++ description ]
+
+        autoMenu =
+            if draft.showAutoMenu then
+                viewAutocompleteMenu model.draft
+            else
+                text ""
     in
         div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
                 [ icon "envelope"
                 , text <|
-                    if draft.in_reply_to /= Nothing then
+                    if draft.inReplyTo /= Nothing then
                         "Post a reply"
                     else
                         "Post a message"
@@ -622,7 +654,7 @@ draftView { draft, currentUser } =
                                 , placeholder "This text will always be visible."
                                 , onInput <| DraftEvent << UpdateSpoiler
                                 , required True
-                                , value <| Maybe.withDefault "" draft.spoiler_text
+                                , value <| Maybe.withDefault "" draft.spoilerText
                                 ]
                                 []
                             ]
@@ -636,20 +668,50 @@ draftView { draft, currentUser } =
                                 else
                                     "Status"
                             ]
-                        , textarea
-                            [ id "status"
-                            , class "form-control"
-                            , rows 8
-                            , placeholder <|
-                                if hasSpoiler then
-                                    "This text will be hidden by default, as you have enabled a spoiler."
-                                else
-                                    "Once upon a time..."
-                            , onInput <| DraftEvent << UpdateStatus
-                            , required True
-                            , value draft.status
-                            ]
-                            []
+                        , let
+                            dec =
+                                (Decode.map
+                                    (\code ->
+                                        if code == 38 || code == 40 then
+                                            Ok NoOp
+                                        else
+                                            Err "not handling that key"
+                                    )
+                                    keyCode
+                                )
+                                    |> Decode.andThen fromResult
+
+                            options =
+                                { preventDefault = draft.showAutoMenu
+                                , stopPropagation = False
+                                }
+
+                            fromResult : Result String a -> Decode.Decoder a
+                            fromResult result =
+                                case result of
+                                    Ok val ->
+                                        Decode.succeed val
+
+                                    Err reason ->
+                                        Decode.fail reason
+                          in
+                            textarea
+                                [ id "status"
+                                , class "form-control"
+                                , rows 8
+                                , placeholder <|
+                                    if hasSpoiler then
+                                        "This text will be hidden by default, as you have enabled a spoiler."
+                                    else
+                                        "Once upon a time..."
+                                , required True
+                                , onInputInformation <| DraftEvent << UpdateInputInformation
+                                , onClickInformation <| DraftEvent << UpdateInputInformation
+                                , property "defaultValue" (Encode.string draft.status)
+                                , onWithOptions "keydown" options dec
+                                ]
+                                []
+                        , autoMenu
                         ]
                     , div [ class "form-group" ]
                         [ label [ for "visibility" ] [ text "Visibility" ]
@@ -712,12 +774,15 @@ threadView currentUser thread =
                 )
                 currentUser
                 status
+
+        keyedEntry status =
+            ( toString status.id, threadEntry status )
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ closeablePanelheading "thread" "list" "Thread" CloseThread
-                , ul [ id "thread", class "list-group timeline" ] <|
-                    List.map threadEntry statuses
+                , Keyed.ul [ id "thread", class "list-group timeline" ] <|
+                    List.map keyedEntry statuses
                 ]
             ]
 
@@ -740,8 +805,8 @@ optionsView model =
 sidebarView : Model -> Html Msg
 sidebarView model =
     div [ class "col-md-3 column" ]
-        [ draftView model
-        , optionsView model
+        [ lazy draftView model
+        , lazy optionsView model
         ]
 
 
@@ -753,30 +818,33 @@ homepageView model =
 
         Just currentUser ->
             div [ class "row" ]
-                [ sidebarView model
-                , timelineView
-                    "Home timeline"
-                    "home"
-                    "home"
-                    currentUser
-                    model.userTimeline
-                , notificationListView currentUser model.notificationFilter model.notifications
+                [ lazy sidebarView model
+                , lazy timelineView
+                    ( "Home timeline"
+                    , "home"
+                    , "home"
+                    , currentUser
+                    , model.userTimeline
+                    )
+                , lazy3 notificationListView currentUser model.notificationFilter model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        timelineView
-                            "Local timeline"
-                            "th-large"
-                            "local"
-                            currentUser
-                            model.localTimeline
+                        lazy timelineView
+                            ( "Local timeline"
+                            , "th-large"
+                            , "local"
+                            , currentUser
+                            , model.localTimeline
+                            )
 
                     GlobalTimelineView ->
-                        timelineView
-                            "Global timeline"
-                            "globe"
-                            "global"
-                            currentUser
-                            model.globalTimeline
+                        lazy timelineView
+                            ( "Global timeline"
+                            , "globe"
+                            , "global"
+                            , currentUser
+                            , model.globalTimeline
+                            )
 
                     AccountView account ->
                         accountTimelineView
@@ -898,6 +966,48 @@ viewerView { attachments, attachment } =
                         [ source [ src attachment.url ] [] ]
             , navLink "❯" "next" next
             ]
+
+
+viewAutocompleteMenu : Draft -> Html Msg
+viewAutocompleteMenu draft =
+    div [ class "autocomplete-menu" ]
+        [ Html.map (DraftEvent << SetAutoState)
+            (Autocomplete.view viewConfig
+                draft.autoMaxResults
+                draft.autoState
+                (Model.acceptableAccounts draft.autoQuery draft.autoAccounts)
+            )
+        ]
+
+
+viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
+viewConfig =
+    let
+        customizedLi keySelected mouseSelected account =
+            { attributes =
+                [ classList
+                    [ ( "list-group-item autocomplete-item", True )
+                    , ( "active", keySelected || mouseSelected )
+                    ]
+                ]
+            , children =
+                [ img [ src account.avatar ] []
+                , strong []
+                    [ text <|
+                        if account.display_name /= "" then
+                            account.display_name
+                        else
+                            account.acct
+                    ]
+                , span [] [ text <| " @" ++ account.acct ]
+                ]
+            }
+    in
+        Autocomplete.viewConfig
+            { toId = .id >> toString
+            , ul = [ class "list-group autocomplete-list" ]
+            , li = customizedLi
+            }
 
 
 view : Model -> Html Msg

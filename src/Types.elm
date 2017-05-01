@@ -1,5 +1,6 @@
 module Types exposing (..)
 
+import Autocomplete
 import Mastodon.Model exposing (..)
 import Navigation
 
@@ -14,10 +15,13 @@ type DraftMsg
     = ClearDraft
     | UpdateSensitive Bool
     | UpdateSpoiler String
-    | UpdateStatus String
     | UpdateVisibility String
     | UpdateReplyTo Status
+    | SelectAccount String
     | ToggleSpoiler Bool
+    | UpdateInputInformation InputInformation
+    | ResetAutocomplete Bool
+    | SetAutoState Autocomplete.Msg
 
 
 type ViewerMsg
@@ -48,6 +52,7 @@ type MastodonMsg
     | StatusPosted (Result Error Status)
     | Unreblogged (Result Error Status)
     | UserTimeline (Result Error (List Status))
+    | AutoSearch (Result Error (List Account))
 
 
 type WebSocketMsg
@@ -105,10 +110,19 @@ type CurrentView
 
 type alias Draft =
     { status : String
-    , in_reply_to : Maybe Status
-    , spoiler_text : Maybe String
+    , inReplyTo : Maybe Status
+    , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
+
+    -- Autocomplete values
+    , autoState : Autocomplete.State
+    , autoCursorPosition : Int
+    , autoAtPosition : Maybe Int
+    , autoQuery : String
+    , autoMaxResults : Int
+    , autoAccounts : List Account
+    , showAutoMenu : Bool
     }
 
 
@@ -158,4 +172,10 @@ type alias Model =
     , currentUser : Maybe Account
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
+    }
+
+
+type alias InputInformation =
+    { status : String
+    , selectionStart : Int
     }

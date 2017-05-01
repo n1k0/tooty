@@ -1,11 +1,14 @@
 module Model exposing (..)
 
+import Autocomplete
 import Command
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
+import String.Extra
+import Task
 import Types exposing (..)
 
 
@@ -28,10 +31,17 @@ extractAuthCode { search } =
 defaultDraft : Draft
 defaultDraft =
     { status = ""
-    , in_reply_to = Nothing
-    , spoiler_text = Nothing
+    , inReplyTo = Nothing
+    , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
+    , autoState = Autocomplete.empty
+    , autoAtPosition = Nothing
+    , autoQuery = ""
+    , autoCursorPosition = 0
+    , autoMaxResults = 4
+    , autoAccounts = []
+    , showAutoMenu = False
     }
 
 
@@ -98,13 +108,13 @@ toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
     , in_reply_to_id =
-        case draft.in_reply_to of
+        case draft.inReplyTo of
             Just status ->
                 Just status.id
 
             Nothing ->
                 Nothing
-    , spoiler_text = draft.spoiler_text
+    , spoiler_text = draft.spoilerText
     , sensitive = draft.sensitive
     , visibility = draft.visibility
     }
@@ -182,47 +192,195 @@ processFollowEvent relationship flag model =
         }
 
 
-updateDraft : DraftMsg -> Account -> Draft -> ( Draft, Cmd Msg )
-updateDraft draftMsg currentUser draft =
-    case draftMsg of
-        ClearDraft ->
-            defaultDraft ! []
+updateDraft : DraftMsg -> Account -> Model -> ( Model, Cmd Msg )
+updateDraft draftMsg currentUser model =
+    let
+        draft =
+            model.draft
+    in
+        case draftMsg of
+            ClearDraft ->
+                { model | draft = defaultDraft }
+                    ! [ Command.updateDomStatus defaultDraft.status ]
 
-        ToggleSpoiler enabled ->
-            { draft
-                | spoiler_text =
-                    if enabled then
-                        Just ""
-                    else
-                        Nothing
-            }
-                ! []
+            ToggleSpoiler enabled ->
+                let
+                    newDraft =
+                        { draft
+                            | spoilerText =
+                                if enabled then
+                                    Just ""
+                                else
+                                    Nothing
+                        }
+                in
+                    { model | draft = newDraft } ! []
 
-        UpdateSensitive sensitive ->
-            { draft | sensitive = sensitive } ! []
+            UpdateSensitive sensitive ->
+                { model | draft = { draft | sensitive = sensitive } } ! []
 
-        UpdateSpoiler spoiler_text ->
-            { draft | spoiler_text = Just spoiler_text } ! []
+            UpdateSpoiler spoilerText ->
+                { model | draft = { draft | spoilerText = Just spoilerText } } ! []
 
-        UpdateStatus status ->
-            { draft | status = status } ! []
+            UpdateVisibility visibility ->
+                { model | draft = { draft | visibility = visibility } } ! []
 
-        UpdateVisibility visibility ->
-            { draft | visibility = visibility } ! []
+            UpdateReplyTo status ->
+                let
+                    newStatus =
+                        Mastodon.Helper.getReplyPrefix currentUser status
+                in
+                    { model
+                        | draft =
+                            { draft
+                                | inReplyTo = Just status
+                                , status = newStatus
+                                , sensitive = Maybe.withDefault False status.sensitive
+                                , spoilerText =
+                                    if status.spoiler_text == "" then
+                                        Nothing
+                                    else
+                                        Just status.spoiler_text
+                                , visibility = status.visibility
+                            }
+                    }
+                        ! [ Command.focusId "status"
+                          , Command.updateDomStatus newStatus
+                          ]
 
-        UpdateReplyTo status ->
-            { draft
-                | in_reply_to = Just status
-                , status = Mastodon.Helper.getReplyPrefix currentUser status
-                , sensitive = Maybe.withDefault False status.sensitive
-                , spoiler_text =
-                    if status.spoiler_text == "" then
-                        Nothing
-                    else
-                        Just status.spoiler_text
-                , visibility = status.visibility
-            }
-                ! [ Command.focusId "status" ]
+            UpdateInputInformation { status, selectionStart } ->
+                let
+                    stringToPos =
+                        String.slice 0 selectionStart status
+
+                    atPosition =
+                        case (String.right 1 stringToPos) of
+                            "@" ->
+                                Just selectionStart
+
+                            " " ->
+                                Nothing
+
+                            _ ->
+                                model.draft.autoAtPosition
+
+                    query =
+                        case atPosition of
+                            Just position ->
+                                String.slice position (String.length stringToPos) stringToPos
+
+                            Nothing ->
+                                ""
+
+                    newDraft =
+                        { draft
+                            | status = status
+                            , autoCursorPosition = selectionStart
+                            , autoAtPosition = atPosition
+                            , autoQuery = query
+                            , showAutoMenu =
+                                showAutoMenu
+                                    draft.autoAccounts
+                                    draft.autoAtPosition
+                                    draft.autoQuery
+                        }
+                in
+                    { model | draft = newDraft }
+                        ! if query /= "" && atPosition /= Nothing then
+                            [ Command.searchAccounts model.client query model.draft.autoMaxResults False ]
+                          else
+                            []
+
+            SelectAccount id ->
+                let
+                    account =
+                        List.filter (\account -> toString account.id == id) draft.autoAccounts
+                            |> List.head
+
+                    stringToAtPos =
+                        case draft.autoAtPosition of
+                            Just atPosition ->
+                                String.slice 0 atPosition draft.status
+
+                            _ ->
+                                ""
+
+                    stringToPos =
+                        String.slice 0 draft.autoCursorPosition draft.status
+
+                    newStatus =
+                        case draft.autoAtPosition of
+                            Just atPosition ->
+                                String.Extra.replaceSlice
+                                    (case account of
+                                        Just a ->
+                                            a.acct ++ " "
+
+                                        Nothing ->
+                                            ""
+                                    )
+                                    atPosition
+                                    ((String.length draft.autoQuery) + atPosition)
+                                    draft.status
+
+                            _ ->
+                                ""
+
+                    newDraft =
+                        { draft
+                            | status = newStatus
+                            , autoAtPosition = Nothing
+                            , autoQuery = ""
+                            , autoState = Autocomplete.empty
+                            , autoAccounts = []
+                            , showAutoMenu = False
+                        }
+                in
+                    { model | draft = newDraft }
+                        -- As we are using defaultValue, we need to update the textarea
+                        -- using a port.
+                        ! [ Command.updateDomStatus newStatus ]
+
+            SetAutoState autoMsg ->
+                let
+                    ( newState, maybeMsg ) =
+                        Autocomplete.update
+                            updateAutocompleteConfig
+                            autoMsg
+                            draft.autoMaxResults
+                            draft.autoState
+                            (acceptableAccounts draft.autoQuery draft.autoAccounts)
+
+                    newModel =
+                        { model | draft = { draft | autoState = newState } }
+                in
+                    case maybeMsg of
+                        Nothing ->
+                            newModel ! []
+
+                        Just updateMsg ->
+                            update updateMsg newModel
+
+            ResetAutocomplete toTop ->
+                let
+                    newDraft =
+                        { draft
+                            | autoState =
+                                if toTop then
+                                    Autocomplete.resetToFirstItem
+                                        updateAutocompleteConfig
+                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        draft.autoMaxResults
+                                        draft.autoState
+                                else
+                                    Autocomplete.resetToLastItem
+                                        updateAutocompleteConfig
+                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        draft.autoMaxResults
+                                        draft.autoState
+                        }
+                in
+                    { model | draft = newDraft } ! []
 
 
 updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
@@ -352,7 +510,9 @@ processMastodonEvent msg model =
 
         StatusPosted _ ->
             { model | draft = defaultDraft }
-                ! [ Command.scrollColumnToTop "home" ]
+                ! [ Command.scrollColumnToTop "home"
+                  , Command.updateDomStatus defaultDraft.status
+                  ]
 
         StatusDeleted result ->
             case result of
@@ -440,6 +600,51 @@ processMastodonEvent msg model =
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
+
+        AutoSearch result ->
+            let
+                draft =
+                    model.draft
+            in
+                case result of
+                    Ok accounts ->
+                        { model
+                            | draft =
+                                { draft
+                                    | showAutoMenu =
+                                        showAutoMenu
+                                            accounts
+                                            draft.autoAtPosition
+                                            draft.autoQuery
+                                    , autoAccounts = accounts
+                                }
+                        }
+                            -- Force selection of the first item after each
+                            -- Successfull request
+                            ! [ Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True)) ]
+
+                    Err error ->
+                        { model
+                            | draft = { draft | showAutoMenu = False }
+                            , errors = (errorText error) :: model.errors
+                        }
+                            ! []
+
+
+showAutoMenu : List Account -> Maybe Int -> String -> Bool
+showAutoMenu accounts atPosition query =
+    case ( List.isEmpty accounts, atPosition, query ) of
+        ( _, Nothing, _ ) ->
+            False
+
+        ( True, _, _ ) ->
+            False
+
+        ( _, _, "" ) ->
+            False
+
+        ( False, Just _, _ ) ->
+            True
 
 
 processWebSocketMsg : WebSocketMsg -> Model -> ( Model, Cmd Msg )
@@ -588,11 +793,7 @@ update msg model =
         DraftEvent draftMsg ->
             case model.currentUser of
                 Just user ->
-                    let
-                        ( draft, commands ) =
-                            updateDraft draftMsg user model.draft
-                    in
-                        { model | draft = draft } ! [ commands ]
+                    updateDraft draftMsg user model
 
                 Nothing ->
                     model ! []
@@ -654,6 +855,39 @@ update msg model =
             model ! [ Command.scrollColumnToBottom column ]
 
 
+updateAutocompleteConfig : Autocomplete.UpdateConfig Msg Account
+updateAutocompleteConfig =
+    Autocomplete.updateConfig
+        { toId = .id >> toString
+        , onKeyDown =
+            \code maybeId ->
+                if code == 38 || code == 40 then
+                    Nothing
+                else if code == 13 then
+                    Maybe.map (DraftEvent << SelectAccount) maybeId
+                else
+                    Just <| (DraftEvent << ResetAutocomplete) False
+        , onTooLow = Just <| (DraftEvent << ResetAutocomplete) True
+        , onTooHigh = Just <| (DraftEvent << ResetAutocomplete) False
+        , onMouseEnter = \_ -> Nothing
+        , onMouseLeave = \_ -> Nothing
+        , onMouseClick = \id -> Just <| (DraftEvent << SelectAccount) id
+        , separateSelections = False
+        }
+
+
+acceptableAccounts : String -> List Account -> List Account
+acceptableAccounts query accounts =
+    let
+        lowerQuery =
+            String.toLower query
+    in
+        if query == "" then
+            []
+        else
+            List.filter (String.contains lowerQuery << String.toLower << .username) accounts
+
+
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.client of
@@ -679,7 +913,9 @@ subscriptions model =
                                 ]
                            )
             in
-                Sub.batch <| List.map (Sub.map WebSocketEvent) subs
+                Sub.batch <|
+                    (List.map (Sub.map WebSocketEvent) subs)
+                        ++ [ Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription ]
 
         Nothing ->
             Sub.batch []
