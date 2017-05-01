@@ -226,21 +226,27 @@ updateDraft draftMsg currentUser model =
                 { model | draft = { draft | visibility = visibility } } ! []
 
             UpdateReplyTo status ->
-                { model
-                    | draft =
-                        { draft
-                            | inReplyTo = Just status
-                            , status = Mastodon.Helper.getReplyPrefix currentUser status
-                            , sensitive = Maybe.withDefault False status.sensitive
-                            , spoilerText =
-                                if status.spoiler_text == "" then
-                                    Nothing
-                                else
-                                    Just status.spoiler_text
-                            , visibility = status.visibility
-                        }
-                }
-                    ! [ Command.focusId "status" ]
+                let
+                    newStatus =
+                        Mastodon.Helper.getReplyPrefix currentUser status
+                in
+                    { model
+                        | draft =
+                            { draft
+                                | inReplyTo = Just status
+                                , status = newStatus
+                                , sensitive = Maybe.withDefault False status.sensitive
+                                , spoilerText =
+                                    if status.spoiler_text == "" then
+                                        Nothing
+                                    else
+                                        Just status.spoiler_text
+                                , visibility = status.visibility
+                            }
+                    }
+                        ! [ Command.focusId "status"
+                          , Ports.setStatus { id = "status", status = newStatus }
+                          ]
 
             UpdateInputInformation { status, selectionStart } ->
                 let
