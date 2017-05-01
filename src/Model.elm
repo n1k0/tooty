@@ -510,7 +510,9 @@ processMastodonEvent msg model =
 
         StatusPosted _ ->
             { model | draft = defaultDraft }
-                ! [ Command.scrollColumnToTop "home" ]
+                ! [ Command.scrollColumnToTop "home"
+                  , Ports.setStatus { id = "status", status = defaultDraft.status }
+                  ]
 
         StatusDeleted result ->
             case result of
