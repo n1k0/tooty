@@ -251,10 +251,10 @@ updateDraft draftMsg currentUser model =
                         }
 
                     stringToPos =
-                        (String.slice 0 newModel.autoCursorPosition status)
+                        String.slice 0 newModel.autoCursorPosition status
 
                     atPosition =
-                        (case (String.right 1 stringToPos) of
+                        case (String.right 1 stringToPos) of
                             "@" ->
                                 Just newModel.autoCursorPosition
 
@@ -263,16 +263,14 @@ updateDraft draftMsg currentUser model =
 
                             _ ->
                                 model.autoAtPosition
-                        )
 
                     query =
-                        (case atPosition of
+                        case atPosition of
                             Just position ->
                                 String.slice position (String.length stringToPos) stringToPos
 
                             Nothing ->
                                 ""
-                        )
                 in
                     { newModel
                         | autoAtPosition = atPosition
@@ -308,7 +306,7 @@ updateDraft draftMsg currentUser model =
                     newStatus =
                         case model.autoAtPosition of
                             Just atPosition ->
-                                (String.Extra.replaceSlice
+                                String.Extra.replaceSlice
                                     (case account of
                                         Just a ->
                                             a.acct ++ " "
@@ -319,7 +317,6 @@ updateDraft draftMsg currentUser model =
                                     atPosition
                                     ((String.length model.autoQuery) + atPosition)
                                     model.draft.status
-                                )
 
                             _ ->
                                 ""
