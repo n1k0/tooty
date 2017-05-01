@@ -3,6 +3,7 @@ module View exposing (view)
 import Autocomplete
 import Dict
 import Html exposing (..)
+import Html.Keyed as Keyed
 import Html.Lazy exposing (lazy, lazy2, lazy3)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -143,13 +144,19 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
 
 attachmentListView : String -> Status -> Html Msg
 attachmentListView context { media_attachments, sensitive } =
-    case media_attachments of
-        [] ->
-            text ""
+    let
+        keyedEntry attachments attachment =
+            ( toString attachment.id
+            , attachmentPreview context sensitive attachments attachment
+            )
+    in
+        case media_attachments of
+            [] ->
+                text ""
 
-        attachments ->
-            ul [ class "attachments" ] <|
-                List.map (attachmentPreview context sensitive attachments) attachments
+            attachments ->
+                Keyed.ul [ class "attachments" ] <|
+                    List.map (keyedEntry attachments) attachments
 
 
 statusContentView : String -> Status -> Html Msg
@@ -316,14 +323,16 @@ accountView currentUser account relationship panelContent =
 
 accountTimelineView : CurrentUser -> List Status -> CurrentUserRelation -> Account -> Html Msg
 accountTimelineView currentUser statuses relationship account =
-    accountView currentUser account relationship <|
-        ul [ class "list-group" ] <|
-            List.map
-                (\s ->
-                    li [ class "list-group-item status" ]
-                        [ lazy2 statusView "account" s ]
-                )
-                statuses
+    let
+        keyedEntry status =
+            ( toString status.id
+            , li [ class "list-group-item status" ]
+                [ lazy2 statusView "account" status ]
+            )
+    in
+        accountView currentUser account relationship <|
+            Keyed.ul [ class "list-group" ] <|
+                List.map keyedEntry statuses
 
 
 accountFollowView :
@@ -334,18 +343,20 @@ accountFollowView :
     -> Account
     -> Html Msg
 accountFollowView currentUser accounts relationships relationship account =
-    accountView currentUser account relationship <|
-        ul [ class "list-group" ] <|
-            List.map
-                (\account ->
-                    li [ class "list-group-item status" ]
-                        [ followView
-                            currentUser
-                            (find (\r -> r.id == account.id) relationships)
-                            account
-                        ]
-                )
-                accounts
+    let
+        keyedEntry account =
+            ( toString account.id
+            , li [ class "list-group-item status" ]
+                [ followView
+                    currentUser
+                    (find (\r -> r.id == account.id) relationships)
+                    account
+                ]
+            )
+    in
+        accountView currentUser account relationship <|
+            Keyed.ul [ class "list-group" ] <|
+                List.map keyedEntry accounts
 
 
 statusActionsView : Status -> CurrentUser -> Html Msg
@@ -431,15 +442,19 @@ statusEntryView context className currentUser status =
 
 timelineView : ( String, String, String, CurrentUser, List Status ) -> Html Msg
 timelineView ( label, iconName, context, currentUser, statuses ) =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default" ]
-            [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
-                [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
-            , ul [ id context, class "list-group timeline" ] <|
-                List.map (statusEntryView context "" currentUser) statuses
+    let
+        keyedEntry status =
+            ( toString id, statusEntryView context "" currentUser status )
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default" ]
+                [ a
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
+                    [ div [ class "panel-heading" ] [ icon iconName, text label ] ]
+                , Keyed.ul [ id context, class "list-group timeline" ] <|
+                    List.map keyedEntry statuses
+                ]
             ]
-        ]
 
 
 notificationHeading : List Account -> String -> String -> Html Msg
@@ -531,19 +546,25 @@ notificationFilterView filter =
 
 notificationListView : CurrentUser -> NotificationFilter -> List NotificationAggregate -> Html Msg
 notificationListView currentUser filter notifications =
-    div [ class "col-md-3 column" ]
-        [ div [ class "panel panel-default notifications-panel" ]
-            [ a
-                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
-                [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
-            , notificationFilterView filter
-            , ul [ id "notifications", class "list-group timeline" ] <|
-                (notifications
-                    |> filterNotifications filter
-                    |> List.map (lazy2 notificationEntryView currentUser)
-                )
+    let
+        keyedEntry notification =
+            ( toString notification.id
+            , lazy2 notificationEntryView currentUser notification
+            )
+    in
+        div [ class "col-md-3 column" ]
+            [ div [ class "panel panel-default notifications-panel" ]
+                [ a
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
+                    [ div [ class "panel-heading" ] [ icon "bell", text "Notifications" ] ]
+                , notificationFilterView filter
+                , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
+                    (notifications
+                        |> filterNotifications filter
+                        |> List.map keyedEntry
+                    )
+                ]
             ]
-        ]
 
 
 draftReplyToView : Draft -> Html Msg
@@ -751,12 +772,15 @@ threadView currentUser thread =
                 )
                 currentUser
                 status
+
+        keyedEntry status =
+            ( toString status.id, threadEntry status )
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ closeablePanelheading "thread" "list" "Thread" CloseThread
-                , ul [ id "thread", class "list-group timeline" ] <|
-                    List.map threadEntry statuses
+                , Keyed.ul [ id "thread", class "list-group timeline" ] <|
+                    List.map keyedEntry statuses
                 ]
             ]
 

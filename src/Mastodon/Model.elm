@@ -138,7 +138,8 @@ type alias Notification =
 
 
 type alias NotificationAggregate =
-    { type_ : String
+    { id : Int
+    , type_ : String
     , status : Maybe Status
     , accounts : List Account
     , created_at : String
