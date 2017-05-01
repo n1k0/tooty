@@ -23714,45 +23714,47 @@ var _n1k0$tooty$Mastodon_ApiUrl$userAccount = function (server) {
 var _n1k0$tooty$Mastodon_ApiUrl$searchAccount = F4(
 	function (server, query, limit, resolve) {
 		return A2(
-			_elm_lang$core$Basics_ops['++'],
-			server,
+			_n1k0$tooty$Mastodon_Encoder$encodeUrl,
 			A2(
 				_elm_lang$core$Basics_ops['++'],
-				_n1k0$tooty$Mastodon_ApiUrl$accounts,
-				A2(
-					_elm_lang$core$Basics_ops['++'],
-					'search?q=',
-					A2(
-						_elm_lang$core$Basics_ops['++'],
-						query,
-						A2(
-							_elm_lang$core$Basics_ops['++'],
-							'&limit=',
-							A2(
-								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(limit),
-								A2(
-									_elm_lang$core$Basics_ops['++'],
-									'&resolve=',
-									resolve ? 'true' : 'false')))))));
+				server,
+				A2(_elm_lang$core$Basics_ops['++'], _n1k0$tooty$Mastodon_ApiUrl$accounts, 'search')),
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'q', _1: query},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'limit',
+						_1: _elm_lang$core$Basics$toString(limit)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'resolve',
+							_1: resolve ? 'true' : 'false'
+						},
+						_1: {ctor: '[]'}
+					}
+				}
+			});
 	});
 var _n1k0$tooty$Mastodon_ApiUrl$relationships = function (ids) {
-	var qs = A2(
-		_elm_lang$core$String$join,
-		'&',
+	return A2(
+		_n1k0$tooty$Mastodon_Encoder$encodeUrl,
+		A2(_elm_lang$core$Basics_ops['++'], _n1k0$tooty$Mastodon_ApiUrl$accounts, 'relationships'),
 		A2(
 			_elm_lang$core$List$map,
 			function (id) {
-				return A2(
-					_elm_lang$core$Basics_ops['++'],
-					'id[]=',
-					_elm_lang$core$Basics$toString(id));
+				return {
+					ctor: '_Tuple2',
+					_0: 'id[]',
+					_1: _elm_lang$core$Basics$toString(id)
+				};
 			},
 			ids));
-	return A2(
-		_elm_lang$core$Basics_ops['++'],
-		_n1k0$tooty$Mastodon_ApiUrl$accounts,
-		A2(_elm_lang$core$Basics_ops['++'], 'relationships?', qs));
 };
 var _n1k0$tooty$Mastodon_ApiUrl$oauthToken = function (server) {
 	return A2(_elm_lang$core$Basics_ops['++'], server, '/oauth/token');
@@ -28828,7 +28830,8 @@ var _n1k0$tooty$View$viewConfig = function () {
 							{ctor: '[]'},
 							{
 								ctor: '::',
-								_0: _elm_lang$html$Html$text(account.display_name),
+								_0: _elm_lang$html$Html$text(
+									(!_elm_lang$core$Native_Utils.eq(account.display_name, '')) ? account.display_name : account.acct),
 								_1: {ctor: '[]'}
 							}),
 						_1: {
