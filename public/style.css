@@ -545,6 +545,21 @@ body {
     align-items: flex-start;
     padding: 8px;
     cursor: pointer;
+    background: #fff;
+    color: #777;
+    border-color: #bbb;
+    border-left-color: #272b30;
+    border-right-color: #272b30;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active,
+.autocomplete-item.active:hover {
+  background: #ddd;
+  color: #777;
+  border-color: #bbb;
+  border-left-color: #272b30;
+  border-right-color: #272b30;
 }
 
 .autocomplete-item:first-child {
@@ -554,8 +569,8 @@ body {
 
 .autocomplete-item > img {
     flex: 1 1 auto;
-    height: 18px;
-    width: 18px;
+    height: 20px;
+    width: 20px;
     margin-right: 10px;
     border-radius: 2px;
 }

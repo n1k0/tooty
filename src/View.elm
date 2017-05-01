@@ -990,7 +990,13 @@ viewConfig =
                 ]
             , children =
                 [ img [ src account.avatar ] []
-                , strong [] [ text account.display_name ]
+                , strong []
+                    [ text <|
+                        if account.display_name /= "" then
+                            account.display_name
+                        else
+                            account.acct
+                    ]
                 , span [] [ text <| " @" ++ account.acct ]
                 ]
             }
