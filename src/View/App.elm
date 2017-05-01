@@ -11,7 +11,7 @@ import View.Auth exposing (authView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
-import View.Helper exposing (..)
+import View.Events exposing (..)
 import View.Notification exposing (notificationListView)
 import View.Settings exposing (settingsView)
 import View.Status exposing (statusView, statusActionsView, statusEntryView)

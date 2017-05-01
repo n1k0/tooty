@@ -8,12 +8,39 @@ import Html.Lazy as Lazy
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Helper exposing (..)
+import View.Events exposing (..)
+import View.Formatter exposing (formatContent)
 import View.Status exposing (statusActionsView, statusView)
 
 
 type alias CurrentUser =
     Account
+
+
+filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
+filterNotifications filter notifications =
+    let
+        applyFilter { type_ } =
+            case filter of
+                NotificationAll ->
+                    True
+
+                NotificationOnlyMentions ->
+                    type_ == "mention"
+
+                NotificationOnlyBoosts ->
+                    type_ == "reblog"
+
+                NotificationOnlyFavourites ->
+                    type_ == "favourite"
+
+                NotificationOnlyFollows ->
+                    type_ == "follow"
+    in
+        if filter == NotificationAll then
+            notifications
+        else
+            List.filter applyFilter notifications
 
 
 notificationHeading : List Account -> String -> String -> Html Msg

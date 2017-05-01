@@ -11,8 +11,9 @@ import Json.Decode as Decode
 import Mastodon.Model exposing (..)
 import Model
 import Types exposing (..)
-import View.Helper exposing (..)
 import View.Common as Common
+import View.Events exposing (..)
+import View.Formatter exposing (formatContent)
 import View.Status exposing (statusView)
 
 

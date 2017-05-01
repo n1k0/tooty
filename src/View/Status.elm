@@ -16,7 +16,8 @@ import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Helper exposing (..)
+import View.Events exposing (..)
+import View.Formatter exposing (formatContent)
 
 
 type alias CurrentUser =

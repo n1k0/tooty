@@ -11,7 +11,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import View.Helper exposing (..)
+import View.Events exposing (..)
+import View.Formatter exposing (formatContent)
 
 
 accountLink : Account -> Html Msg

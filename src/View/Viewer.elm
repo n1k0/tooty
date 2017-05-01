@@ -4,7 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import List.Extra exposing (find, elemIndex, getAt)
 import Types exposing (..)
-import View.Helper exposing (..)
+import View.Events exposing (..)
 
 
 viewerView : Viewer -> Html Msg
