@@ -110,8 +110,8 @@ type CurrentView
 
 type alias Draft =
     { status : String
-    , in_reply_to : Maybe Status
-    , spoiler_text : Maybe String
+    , inReplyTo : Maybe Status
+    , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
     }

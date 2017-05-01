@@ -31,8 +31,8 @@ extractAuthCode { search } =
 defaultDraft : Draft
 defaultDraft =
     { status = ""
-    , in_reply_to = Nothing
-    , spoiler_text = Nothing
+    , inReplyTo = Nothing
+    , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
     }
@@ -108,13 +108,13 @@ toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
     , in_reply_to_id =
-        case draft.in_reply_to of
+        case draft.inReplyTo of
             Just status ->
                 Just status.id
 
             Nothing ->
                 Nothing
-    , spoiler_text = draft.spoiler_text
+    , spoiler_text = draft.spoilerText
     , sensitive = draft.sensitive
     , visibility = draft.visibility
     }
@@ -207,7 +207,7 @@ updateDraft draftMsg currentUser model =
                 let
                     newDraft =
                         { draft
-                            | spoiler_text =
+                            | spoilerText =
                                 if enabled then
                                     Just ""
                                 else
@@ -219,8 +219,8 @@ updateDraft draftMsg currentUser model =
             UpdateSensitive sensitive ->
                 { model | draft = { draft | sensitive = sensitive } } ! []
 
-            UpdateSpoiler spoiler_text ->
-                { model | draft = { draft | spoiler_text = Just spoiler_text } } ! []
+            UpdateSpoiler spoilerText ->
+                { model | draft = { draft | spoilerText = Just spoilerText } } ! []
 
             UpdateVisibility visibility ->
                 { model | draft = { draft | visibility = visibility } } ! []
@@ -229,10 +229,10 @@ updateDraft draftMsg currentUser model =
                 { model
                     | draft =
                         { draft
-                            | in_reply_to = Just status
+                            | inReplyTo = Just status
                             , status = Mastodon.Helper.getReplyPrefix currentUser status
                             , sensitive = Maybe.withDefault False status.sensitive
-                            , spoiler_text =
+                            , spoilerText =
                                 if status.spoiler_text == "" then
                                     Nothing
                                 else

@@ -569,7 +569,7 @@ notificationListView currentUser filter notifications =
 
 draftReplyToView : Draft -> Html Msg
 draftReplyToView draft =
-    case draft.in_reply_to of
+    case draft.inReplyTo of
         Just status ->
             div [ class "in-reply-to" ]
                 [ p []
@@ -608,7 +608,7 @@ draftView : Model -> Html Msg
 draftView ({ draft, currentUser, showAutoMenu } as model) =
     let
         hasSpoiler =
-            draft.spoiler_text /= Nothing
+            draft.spoilerText /= Nothing
 
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
@@ -624,7 +624,7 @@ draftView ({ draft, currentUser, showAutoMenu } as model) =
             [ div [ class "panel-heading" ]
                 [ icon "envelope"
                 , text <|
-                    if draft.in_reply_to /= Nothing then
+                    if draft.inReplyTo /= Nothing then
                         "Post a reply"
                     else
                         "Post a message"
@@ -654,7 +654,7 @@ draftView ({ draft, currentUser, showAutoMenu } as model) =
                                 , placeholder "This text will always be visible."
                                 , onInput <| DraftEvent << UpdateSpoiler
                                 , required True
-                                , value <| Maybe.withDefault "" draft.spoiler_text
+                                , value <| Maybe.withDefault "" draft.spoilerText
                                 ]
                                 []
                             ]
