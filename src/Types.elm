@@ -114,6 +114,7 @@ type alias Draft =
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
+    , statusLength : Int
 
     -- Autocomplete values
     , autoState : Autocomplete.State

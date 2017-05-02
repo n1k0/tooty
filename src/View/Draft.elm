@@ -113,9 +113,6 @@ draftReplyToView draft =
 draftView : Model -> Html Msg
 draftView ({ draft, currentUser } as model) =
     let
-        hasSpoiler =
-            draft.spoilerText /= Nothing
-
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
                 [ text <| visibility ++ ": " ++ description ]
@@ -125,6 +122,17 @@ draftView ({ draft, currentUser } as model) =
                 viewAutocompleteMenu model.draft
             else
                 text ""
+
+        ( hasSpoiler, charCount ) =
+            case draft.spoilerText of
+                Just spoilerText ->
+                    ( True, (String.length spoilerText) + draft.statusLength )
+
+                Nothing ->
+                    ( False, draft.statusLength )
+
+        limitExceeded =
+            charCount > 500
     in
         div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
@@ -251,8 +259,18 @@ draftView ({ draft, currentUser } as model) =
                             ]
                             [ text "Clear" ]
                         , button
+                            [ type_ "button"
+                            , class <|
+                                if limitExceeded then
+                                    "btn btn-danger active"
+                                else
+                                    "btn btn-default active"
+                            ]
+                            [ text <| toString charCount ]
+                        , button
                             [ type_ "submit"
                             , class "btn btn-primary"
+                            , disabled limitExceeded
                             ]
                             [ text "Toot!" ]
                         ]

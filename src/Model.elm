@@ -35,6 +35,7 @@ defaultDraft =
     , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
+    , statusLength = 0
     , autoState = Autocomplete.empty
     , autoAtPosition = Nothing
     , autoQuery = ""
@@ -275,6 +276,7 @@ updateDraft draftMsg currentUser model =
                     newDraft =
                         { draft
                             | status = status
+                            , statusLength = String.length status
                             , autoCursorPosition = selectionStart
                             , autoAtPosition = atPosition
                             , autoQuery = query
