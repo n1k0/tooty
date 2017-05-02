@@ -164,7 +164,11 @@ statusContentView context status =
                     "spoiler" ++ (toString status.id) ++ context
             in
                 div [ class "status-text spoiled" ]
-                    [ div [ class "spoiler" ] [ text status.spoiler_text ]
+                    [ div
+                        [ class "spoiler"
+                        , onClickWithStop <| OpenThread status
+                        ]
+                        [ text status.spoiler_text ]
                     , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
                     , label [ for statusId ] [ text "Reveal content" ]
                     , div [ class "spoiled-content" ]
