@@ -1,7 +1,7 @@
-module Main exposing (..)
+module Main exposing (main)
 
 import Navigation
-import View exposing (view)
+import View.App exposing (view)
 import Model exposing (..)
 import Types exposing (..)
 

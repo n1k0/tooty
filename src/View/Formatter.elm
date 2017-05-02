@@ -1,71 +1,15 @@
-module ViewHelper
-    exposing
-        ( formatContent
-        , getMentionForLink
-        , onClickInformation
-        , onInputInformation
-        , onClickWithStop
-        , onClickWithPrevent
-        , onClickWithPreventAndStop
-        , toVirtualDom
-        , filterNotifications
-        )
+module View.Formatter exposing (formatContent)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (on, onWithOptions)
 import HtmlParser
-import Json.Decode as Decode
 import String.Extra exposing (replace)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
+import View.Events exposing (..)
 
 
 -- Custom Events
-
-
-onClickInformation : (InputInformation -> msg) -> Attribute msg
-onClickInformation msg =
-    on "mouseup" (Decode.map msg decodePositionInformation)
-
-
-onInputInformation : (InputInformation -> msg) -> Attribute msg
-onInputInformation msg =
-    on "input" (Decode.map msg decodePositionInformation)
-
-
-decodePositionInformation : Decode.Decoder InputInformation
-decodePositionInformation =
-    Decode.map2 InputInformation
-        (Decode.at [ "target", "value" ] Decode.string)
-        (Decode.at [ "target", "selectionStart" ] Decode.int)
-
-
-onClickWithPreventAndStop : msg -> Attribute msg
-onClickWithPreventAndStop msg =
-    onWithOptions
-        "click"
-        { preventDefault = True, stopPropagation = True }
-        (Decode.succeed msg)
-
-
-onClickWithPrevent : msg -> Attribute msg
-onClickWithPrevent msg =
-    onWithOptions
-        "click"
-        { preventDefault = True, stopPropagation = False }
-        (Decode.succeed msg)
-
-
-onClickWithStop : msg -> Attribute msg
-onClickWithStop msg =
-    onWithOptions
-        "click"
-        { preventDefault = False, stopPropagation = True }
-        (Decode.succeed msg)
-
-
-
 -- Views
 
 
@@ -147,29 +91,3 @@ toVirtualDomEach mentions node =
 toAttribute : ( String, String ) -> Attribute msg
 toAttribute ( name, value ) =
     attribute name value
-
-
-filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
-filterNotifications filter notifications =
-    let
-        applyFilter { type_ } =
-            case filter of
-                NotificationAll ->
-                    True
-
-                NotificationOnlyMentions ->
-                    type_ == "mention"
-
-                NotificationOnlyBoosts ->
-                    type_ == "reblog"
-
-                NotificationOnlyFavourites ->
-                    type_ == "favourite"
-
-                NotificationOnlyFollows ->
-                    type_ == "follow"
-    in
-        if filter == NotificationAll then
-            notifications
-        else
-            List.filter applyFilter notifications
