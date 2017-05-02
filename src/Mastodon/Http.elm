@@ -140,20 +140,19 @@ fetchUserTimeline client =
 
 fetchRelationships : Client -> List Int -> Request (List Relationship)
 fetchRelationships client ids =
-    -- TODO: use withQueryParams
-    fetch client GET (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
+    fetch client GET ApiUrl.relationships (Decode.list relationshipDecoder)
+        |> Build.withQueryParams (List.map (\id -> ( "id[]", toString id )) ids)
 
 
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
-    -- TODO: use withQueryParams
-    fetch client GET (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
+    fetch client GET ApiUrl.publicTimeline (Decode.list statusDecoder)
+        |> Build.withQueryParams [ ( "local", "true" ) ]
 
 
 fetchGlobalTimeline : Client -> Request (List Status)
 fetchGlobalTimeline client =
-    -- TODO: use withQueryParams
-    fetch client GET (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
+    fetch client GET ApiUrl.publicTimeline <| Decode.list statusDecoder
 
 
 fetchAccountTimeline : Client -> Int -> Request (List Status)

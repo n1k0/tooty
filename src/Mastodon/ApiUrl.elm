@@ -25,8 +25,6 @@ module Mastodon.ApiUrl
         , searchAccount
         )
 
-import Mastodon.Encoder exposing (encodeUrl)
-
 
 type alias Server =
     String
@@ -77,10 +75,9 @@ searchAccount =
     accounts ++ "search"
 
 
-relationships : List Int -> String
-relationships ids =
-    encodeUrl (accounts ++ "relationships") <|
-        List.map (\id -> ( "id[]", toString id )) ids
+relationships : String
+relationships =
+    accounts ++ "relationships"
 
 
 followers : Int -> String
@@ -98,18 +95,9 @@ homeTimeline =
     "/api/v1/timelines/home"
 
 
-publicTimeline : Maybe String -> String
-publicTimeline local =
-    let
-        isLocal =
-            case local of
-                Just local ->
-                    "?local=true"
-
-                Nothing ->
-                    ""
-    in
-        "/api/v1/timelines/public" ++ isLocal
+publicTimeline : String
+publicTimeline =
+    "/api/v1/timelines/public"
 
 
 accountTimeline : Int -> String
