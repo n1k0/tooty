@@ -132,6 +132,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     in
         { model
             | userTimeline = List.map (update flag) model.userTimeline
+            , accountTimeline = List.map (update flag) model.accountTimeline
             , localTimeline = List.map (update flag) model.localTimeline
             , globalTimeline = List.map (update flag) model.globalTimeline
         }
@@ -140,13 +141,41 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
     -- TODO: update notifications too
-    updateTimelinesWithBoolFlag statusId flag (\s -> { s | favourited = Just flag }) model
+    updateTimelinesWithBoolFlag statusId
+        flag
+        (\s ->
+            { s
+                | favourited = Just flag
+                , favourites_count =
+                    if flag then
+                        s.favourites_count + 1
+                    else if s.favourites_count > 0 then
+                        s.favourites_count - 1
+                    else
+                        0
+            }
+        )
+        model
 
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
     -- TODO: update notifications too
-    updateTimelinesWithBoolFlag statusId flag (\s -> { s | reblogged = Just flag }) model
+    updateTimelinesWithBoolFlag statusId
+        flag
+        (\s ->
+            { s
+                | reblogged = Just flag
+                , reblogs_count =
+                    if flag then
+                        s.reblogs_count + 1
+                    else if s.reblogs_count > 0 then
+                        s.reblogs_count - 1
+                    else
+                        0
+            }
+        )
+        model
 
 
 deleteStatusFromTimeline : Int -> List Status -> List Status
@@ -159,6 +188,42 @@ deleteStatusFromTimeline statusId timeline =
                     && (Mastodon.Helper.extractReblog s).id
                     /= statusId
             )
+
+
+deleteStatusFromAllTimelines : Int -> Model -> Model
+deleteStatusFromAllTimelines id model =
+    -- TODO: delete from thread timeline & notifications
+    { model
+        | userTimeline = deleteStatusFromTimeline id model.userTimeline
+        , localTimeline = deleteStatusFromTimeline id model.localTimeline
+        , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
+        , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
+        , currentView = deleteStatusFromThread id model
+    }
+
+
+deleteStatusFromThread : Int -> Model -> CurrentView
+deleteStatusFromThread id model =
+    case model.currentView of
+        ThreadView thread ->
+            if thread.status.id == id then
+                -- the current thread status as been deleted, close it
+                preferredTimeline model
+            else
+                let
+                    update statuses =
+                        List.filter (\s -> s.id /= id) statuses
+                in
+                    ThreadView
+                        { thread
+                            | context =
+                                { ancestors = update thread.context.ancestors
+                                , descendants = update thread.context.descendants
+                                }
+                        }
+
+        currentView ->
+            currentView
 
 
 {-| Update viewed account relationships as well as the relationship with the
@@ -519,12 +584,7 @@ processMastodonEvent msg model =
         StatusDeleted result ->
             case result of
                 Ok id ->
-                    { model
-                        | userTimeline = deleteStatusFromTimeline id model.userTimeline
-                        , localTimeline = deleteStatusFromTimeline id model.localTimeline
-                        , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
-                    }
-                        ! []
+                    deleteStatusFromAllTimelines id model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -668,7 +728,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
                         Ok id ->
-                            { model | userTimeline = deleteStatusFromTimeline id model.userTimeline } ! []
+                            deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -703,7 +763,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
                         Ok id ->
-                            { model | localTimeline = deleteStatusFromTimeline id model.localTimeline } ! []
+                            deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -727,7 +787,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
                         Ok id ->
-                            { model | globalTimeline = deleteStatusFromTimeline id model.globalTimeline } ! []
+                            deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
