@@ -28,7 +28,7 @@ module Mastodon.Http
         )
 
 import Http
-import HttpBuilder
+import HttpBuilder as Build
 import Json.Decode as Decode
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
@@ -37,7 +37,7 @@ import Mastodon.Model exposing (..)
 
 
 type alias Request a =
-    HttpBuilder.RequestBuilder a
+    Build.RequestBuilder a
 
 
 extractMastodonError : Int -> String -> String -> Error
@@ -80,30 +80,37 @@ type Method
     | DELETE
 
 
-fetch : Method -> Client -> String -> Decode.Decoder a -> Request a
-fetch method client endpoint decoder =
+fetch : Client -> Method -> String -> Decode.Decoder a -> Request a
+fetch client method endpoint decoder =
     let
         request =
             case method of
                 GET ->
-                    HttpBuilder.get
+                    Build.get
 
                 POST ->
-                    HttpBuilder.post
+                    Build.post
 
                 DELETE ->
-                    HttpBuilder.delete
+                    Build.delete
     in
         request (client.server ++ endpoint)
-            |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-            |> HttpBuilder.withExpect (Http.expectJson decoder)
+            |> Build.withHeader "Authorization" ("Bearer " ++ client.token)
+            |> Build.withExpect (Http.expectJson decoder)
 
 
 register : String -> String -> String -> String -> String -> Request AppRegistration
-register server client_name redirect_uri scope website =
-    HttpBuilder.post (server ++ ApiUrl.apps)
-        |> HttpBuilder.withExpect (Http.expectJson (appRegistrationDecoder server scope))
-        |> HttpBuilder.withJsonBody (appRegistrationEncoder client_name redirect_uri scope website)
+register server clientName redirectUri scope website =
+    Build.post (server ++ ApiUrl.apps)
+        |> Build.withExpect (Http.expectJson (appRegistrationDecoder server scope))
+        |> Build.withJsonBody (appRegistrationEncoder clientName redirectUri scope website)
+
+
+getAccessToken : AppRegistration -> String -> Request AccessTokenResult
+getAccessToken registration authCode =
+    Build.post (registration.server ++ ApiUrl.oauthToken)
+        |> Build.withExpect (Http.expectJson (accessTokenDecoder registration))
+        |> Build.withJsonBody (authorizationCodeEncoder registration authCode)
 
 
 getAuthorizationUrl : AppRegistration -> String
@@ -116,72 +123,63 @@ getAuthorizationUrl registration =
         ]
 
 
-getAccessToken : AppRegistration -> String -> Request AccessTokenResult
-getAccessToken registration authCode =
-    HttpBuilder.post (registration.server ++ ApiUrl.oauthToken)
-        |> HttpBuilder.withExpect (Http.expectJson (accessTokenDecoder registration))
-        |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
-
-
 send : (Result Error a -> msg) -> Request a -> Cmd msg
 send tagger builder =
-    builder |> HttpBuilder.send (toResponse >> tagger)
+    Build.send (toResponse >> tagger) builder
 
 
 fetchAccount : Client -> Int -> Request Account
 fetchAccount client accountId =
-    fetch GET client (ApiUrl.account accountId) accountDecoder
+    fetch client GET (ApiUrl.account accountId) accountDecoder
 
 
 fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
-    fetch GET client ApiUrl.homeTimeline <| Decode.list statusDecoder
+    fetch client GET ApiUrl.homeTimeline <| Decode.list statusDecoder
 
 
 fetchRelationships : Client -> List Int -> Request (List Relationship)
 fetchRelationships client ids =
     -- TODO: use withQueryParams
-    fetch GET client (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
+    fetch client GET (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
 
 
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
     -- TODO: use withQueryParams
-    fetch GET client (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
+    fetch client GET (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
 
 
 fetchGlobalTimeline : Client -> Request (List Status)
 fetchGlobalTimeline client =
     -- TODO: use withQueryParams
-    fetch GET client (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
+    fetch client GET (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
 
 
 fetchAccountTimeline : Client -> Int -> Request (List Status)
 fetchAccountTimeline client id =
-    fetch GET client (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
+    fetch client GET (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
 
 
 fetchNotifications : Client -> Request (List Notification)
 fetchNotifications client =
-    fetch GET client (ApiUrl.notifications) <| Decode.list notificationDecoder
+    fetch client GET (ApiUrl.notifications) <| Decode.list notificationDecoder
 
 
 fetchAccountFollowers : Client -> Int -> Request (List Account)
 fetchAccountFollowers client accountId =
-    fetch GET client (ApiUrl.followers accountId) <| Decode.list accountDecoder
+    fetch client GET (ApiUrl.followers accountId) <| Decode.list accountDecoder
 
 
 fetchAccountFollowing : Client -> Int -> Request (List Account)
 fetchAccountFollowing client accountId =
-    fetch GET client (ApiUrl.following accountId) <| Decode.list accountDecoder
+    fetch client GET (ApiUrl.following accountId) <| Decode.list accountDecoder
 
 
 searchAccounts : Client -> String -> Int -> Bool -> Request (List Account)
 searchAccounts client query limit resolve =
-    HttpBuilder.get (client.server ++ ApiUrl.searchAccount)
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson (Decode.list accountDecoder))
-        |> HttpBuilder.withQueryParams
+    fetch client GET ApiUrl.searchAccount (Decode.list accountDecoder)
+        |> Build.withQueryParams
             [ ( "q", query )
             , ( "limit", toString limit )
             , ( "resolve"
@@ -195,70 +193,50 @@ searchAccounts client query limit resolve =
 
 userAccount : Client -> Request Account
 userAccount client =
-    HttpBuilder.get (client.server ++ ApiUrl.userAccount)
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
+    fetch client GET ApiUrl.userAccount accountDecoder
 
 
 postStatus : Client -> StatusRequestBody -> Request Status
 postStatus client statusRequestBody =
-    HttpBuilder.post (client.server ++ ApiUrl.statuses)
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
-        |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
+    fetch client POST ApiUrl.statuses statusDecoder
+        |> Build.withJsonBody (statusRequestBodyEncoder statusRequestBody)
 
 
 deleteStatus : Client -> Int -> Request Int
 deleteStatus client id =
-    HttpBuilder.delete (client.server ++ (ApiUrl.status id))
-        |> HttpBuilder.withExpect (Http.expectJson <| Decode.succeed id)
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+    fetch client DELETE (ApiUrl.status id) <| Decode.succeed id
 
 
 context : Client -> Int -> Request Context
 context client id =
-    HttpBuilder.get (client.server ++ (ApiUrl.context id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson contextDecoder)
+    fetch client GET (ApiUrl.context id) contextDecoder
 
 
 reblog : Client -> Int -> Request Status
 reblog client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.reblog id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+    fetch client POST (ApiUrl.reblog id) statusDecoder
 
 
 unreblog : Client -> Int -> Request Status
 unreblog client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.unreblog id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+    fetch client POST (ApiUrl.unreblog id) statusDecoder
 
 
 favourite : Client -> Int -> Request Status
 favourite client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.favourite id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+    fetch client POST (ApiUrl.favourite id) statusDecoder
 
 
 unfavourite : Client -> Int -> Request Status
 unfavourite client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.unfavourite id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
+    fetch client POST (ApiUrl.unfavourite id) statusDecoder
 
 
 follow : Client -> Int -> Request Relationship
 follow client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.follow id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
+    fetch client POST (ApiUrl.follow id) relationshipDecoder
 
 
 unfollow : Client -> Int -> Request Relationship
 unfollow client id =
-    HttpBuilder.post (client.server ++ (ApiUrl.unfollow id))
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
+    fetch client POST (ApiUrl.unfollow id) relationshipDecoder
