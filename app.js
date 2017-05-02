@@ -27661,7 +27661,12 @@ var _n1k0$tooty$View_Status$statusContentView = F2(
 						{
 							ctor: '::',
 							_0: _elm_lang$html$Html_Attributes$class('spoiler'),
-							_1: {ctor: '[]'}
+							_1: {
+								ctor: '::',
+								_0: _n1k0$tooty$View_Events$onClickWithStop(
+									_n1k0$tooty$Types$OpenThread(status)),
+								_1: {ctor: '[]'}
+							}
 						},
 						{
 							ctor: '::',
