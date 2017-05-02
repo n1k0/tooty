@@ -26,13 +26,14 @@ module Mastodon.ApiUrl
         )
 
 
-type alias Server =
-    String
+apiPrefix : String
+apiPrefix =
+    "/api/v1/"
 
 
 apps : String
 apps =
-    "/api/v1/apps"
+    apiPrefix ++ "/apps"
 
 
 oauthAuthorize : String
@@ -47,7 +48,7 @@ oauthToken =
 
 accounts : String
 accounts =
-    "/api/v1/accounts/"
+    apiPrefix ++ "/accounts/"
 
 
 account : Int -> String
@@ -92,12 +93,12 @@ following id =
 
 homeTimeline : String
 homeTimeline =
-    "/api/v1/timelines/home"
+    apiPrefix ++ "/timelines/home"
 
 
 publicTimeline : String
 publicTimeline =
-    "/api/v1/timelines/public"
+    apiPrefix ++ "/timelines/public"
 
 
 accountTimeline : Int -> String
@@ -107,12 +108,12 @@ accountTimeline id =
 
 notifications : String
 notifications =
-    "/api/v1/notifications"
+    apiPrefix ++ "/notifications"
 
 
 statuses : String
 statuses =
-    "/api/v1/statuses"
+    apiPrefix ++ "/statuses"
 
 
 context : Int -> String
@@ -147,4 +148,4 @@ unfavourite id =
 
 streaming : String
 streaming =
-    "/api/v1/streaming/"
+    apiPrefix ++ "/streaming/"
