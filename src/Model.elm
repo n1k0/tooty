@@ -221,8 +221,7 @@ updateDraft draftMsg currentUser model =
                 { model | draft = { draft | sensitive = sensitive } } ! []
 
             UpdateSpoiler spoilerText ->
-                { model | draft = { draft | spoilerText = Just spoilerText } }
-                    ! []
+                { model | draft = { draft | spoilerText = Just spoilerText } } ! []
 
             UpdateVisibility visibility ->
                 { model | draft = { draft | visibility = visibility } } ! []
