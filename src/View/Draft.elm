@@ -113,9 +113,6 @@ draftReplyToView draft =
 draftView : Model -> Html Msg
 draftView ({ draft, currentUser } as model) =
     let
-        hasSpoiler =
-            draft.spoilerText /= Nothing
-
         visibilityOptionView ( visibility, description ) =
             option [ value visibility ]
                 [ text <| visibility ++ ": " ++ description ]
@@ -125,6 +122,14 @@ draftView ({ draft, currentUser } as model) =
                 viewAutocompleteMenu model.draft
             else
                 text ""
+
+        ( hasSpoiler, charCount ) =
+            case draft.spoilerText of
+                Just spoilerText ->
+                    ( True, (String.length spoilerText) + draft.statusLength )
+
+                Nothing ->
+                    ( False, draft.statusLength )
     in
         div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ]
@@ -215,7 +220,6 @@ draftView ({ draft, currentUser } as model) =
                                 , onClickInformation <| DraftEvent << UpdateInputInformation
                                 , property "defaultValue" (Encode.string draft.status)
                                 , onWithOptions "keydown" options dec
-                                , onInput <| DraftEvent << UpdateStatusLength << String.length
                                 ]
                                 []
                         , autoMenu
@@ -255,7 +259,7 @@ draftView ({ draft, currentUser } as model) =
                             [ type_ "button"
                             , class "btn btn-default active"
                             ]
-                            [ text <| toString draft.length ]
+                            [ text <| toString charCount ]
                         , button
                             [ type_ "submit"
                             , class "btn btn-primary"

@@ -36,7 +36,6 @@ defaultDraft =
     , sensitive = False
     , visibility = "public"
     , statusLength = 0
-    , length = 0
     , autoState = Autocomplete.empty
     , autoAtPosition = Nothing
     , autoQuery = ""
@@ -222,13 +221,7 @@ updateDraft draftMsg currentUser model =
                 { model | draft = { draft | sensitive = sensitive } } ! []
 
             UpdateSpoiler spoilerText ->
-                { model
-                    | draft =
-                        { draft
-                            | spoilerText = Just spoilerText
-                            , length = draft.statusLength + (String.length spoilerText)
-                        }
-                }
+                { model | draft = { draft | spoilerText = Just spoilerText } }
                     ! []
 
             UpdateVisibility visibility ->
@@ -257,24 +250,6 @@ updateDraft draftMsg currentUser model =
                           , Command.updateDomStatus newStatus
                           ]
 
-            UpdateStatusLength statusLength ->
-                let
-                    spoilerLength =
-                        case draft.spoilerText of
-                            Nothing ->
-                                0
-
-                            Just text ->
-                                text |> String.length
-
-                    newDraft =
-                        { draft
-                            | length = spoilerLength + statusLength
-                            , statusLength = statusLength
-                        }
-                in
-                    { model | draft = newDraft } ! []
-
             UpdateInputInformation { status, selectionStart } ->
                 let
                     stringToPos =
@@ -302,6 +277,7 @@ updateDraft draftMsg currentUser model =
                     newDraft =
                         { draft
                             | status = status
+                            , statusLength = String.length status
                             , autoCursorPosition = selectionStart
                             , autoAtPosition = atPosition
                             , autoQuery = query

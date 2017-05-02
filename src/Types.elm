@@ -15,7 +15,6 @@ type DraftMsg
     = ClearDraft
     | UpdateSensitive Bool
     | UpdateSpoiler String
-    | UpdateStatusLength Int
     | UpdateVisibility String
     | UpdateReplyTo Status
     | SelectAccount String
@@ -116,7 +115,6 @@ type alias Draft =
     , sensitive : Bool
     , visibility : String
     , statusLength : Int
-    , length : Int
 
     -- Autocomplete values
     , autoState : Autocomplete.State
