@@ -215,6 +215,7 @@ draftView ({ draft, currentUser } as model) =
                                 , onClickInformation <| DraftEvent << UpdateInputInformation
                                 , property "defaultValue" (Encode.string draft.status)
                                 , onWithOptions "keydown" options dec
+                                , onInput <| DraftEvent << UpdateStatusLength << String.length
                                 ]
                                 []
                         , autoMenu
@@ -250,6 +251,11 @@ draftView ({ draft, currentUser } as model) =
                             , onClick (DraftEvent ClearDraft)
                             ]
                             [ text "Clear" ]
+                        , button
+                            [ type_ "button"
+                            , class "btn btn-default active"
+                            ]
+                            [ text <| toString draft.length ]
                         , button
                             [ type_ "submit"
                             , class "btn btn-primary"

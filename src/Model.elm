@@ -35,6 +35,8 @@ defaultDraft =
     , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
+    , statusLength = 0
+    , length = 0
     , autoState = Autocomplete.empty
     , autoAtPosition = Nothing
     , autoQuery = ""
@@ -220,7 +222,14 @@ updateDraft draftMsg currentUser model =
                 { model | draft = { draft | sensitive = sensitive } } ! []
 
             UpdateSpoiler spoilerText ->
-                { model | draft = { draft | spoilerText = Just spoilerText } } ! []
+                { model
+                    | draft =
+                        { draft
+                            | spoilerText = Just spoilerText
+                            , length = draft.statusLength + (String.length spoilerText)
+                        }
+                }
+                    ! []
 
             UpdateVisibility visibility ->
                 { model | draft = { draft | visibility = visibility } } ! []
@@ -247,6 +256,24 @@ updateDraft draftMsg currentUser model =
                         ! [ Command.focusId "status"
                           , Command.updateDomStatus newStatus
                           ]
+
+            UpdateStatusLength statusLength ->
+                let
+                    spoilerLength =
+                        case draft.spoilerText of
+                            Nothing ->
+                                0
+
+                            Just text ->
+                                text |> String.length
+
+                    newDraft =
+                        { draft
+                            | length = spoilerLength + statusLength
+                            , statusLength = statusLength
+                        }
+                in
+                    { model | draft = newDraft } ! []
 
             UpdateInputInformation { status, selectionStart } ->
                 let
