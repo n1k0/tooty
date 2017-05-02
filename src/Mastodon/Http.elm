@@ -74,23 +74,41 @@ toResponse result =
     Result.mapError extractError result
 
 
-fetch : Client -> String -> Decode.Decoder a -> Request a
-fetch client endpoint decoder =
-    HttpBuilder.get (client.server ++ endpoint)
-        |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
-        |> HttpBuilder.withExpect (Http.expectJson decoder)
+type Method
+    = GET
+    | POST
+    | DELETE
+
+
+fetch : Method -> Client -> String -> Decode.Decoder a -> Request a
+fetch method client endpoint decoder =
+    let
+        request =
+            case method of
+                GET ->
+                    HttpBuilder.get
+
+                POST ->
+                    HttpBuilder.post
+
+                DELETE ->
+                    HttpBuilder.delete
+    in
+        request (client.server ++ endpoint)
+            |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
+            |> HttpBuilder.withExpect (Http.expectJson decoder)
 
 
 register : String -> String -> String -> String -> String -> Request AppRegistration
 register server client_name redirect_uri scope website =
-    HttpBuilder.post (ApiUrl.apps server)
+    HttpBuilder.post (server ++ ApiUrl.apps)
         |> HttpBuilder.withExpect (Http.expectJson (appRegistrationDecoder server scope))
         |> HttpBuilder.withJsonBody (appRegistrationEncoder client_name redirect_uri scope website)
 
 
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
-    encodeUrl (ApiUrl.oauthAuthorize registration.server)
+    encodeUrl (registration.server ++ ApiUrl.oauthAuthorize)
         [ ( "response_type", "code" )
         , ( "client_id", registration.client_id )
         , ( "scope", registration.scope )
@@ -100,7 +118,7 @@ getAuthorizationUrl registration =
 
 getAccessToken : AppRegistration -> String -> Request AccessTokenResult
 getAccessToken registration authCode =
-    HttpBuilder.post (ApiUrl.oauthToken registration.server)
+    HttpBuilder.post (registration.server ++ ApiUrl.oauthToken)
         |> HttpBuilder.withExpect (Http.expectJson (accessTokenDecoder registration))
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
 
@@ -112,66 +130,79 @@ send tagger builder =
 
 fetchAccount : Client -> Int -> Request Account
 fetchAccount client accountId =
-    fetch client (ApiUrl.account accountId) accountDecoder
+    fetch GET client (ApiUrl.account accountId) accountDecoder
 
 
 fetchUserTimeline : Client -> Request (List Status)
 fetchUserTimeline client =
-    fetch client ApiUrl.homeTimeline <| Decode.list statusDecoder
+    fetch GET client ApiUrl.homeTimeline <| Decode.list statusDecoder
 
 
 fetchRelationships : Client -> List Int -> Request (List Relationship)
 fetchRelationships client ids =
-    fetch client (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
+    -- TODO: use withQueryParams
+    fetch GET client (ApiUrl.relationships ids) <| Decode.list relationshipDecoder
 
 
 fetchLocalTimeline : Client -> Request (List Status)
 fetchLocalTimeline client =
-    fetch client (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
+    -- TODO: use withQueryParams
+    fetch GET client (ApiUrl.publicTimeline (Just "public")) <| Decode.list statusDecoder
 
 
 fetchGlobalTimeline : Client -> Request (List Status)
 fetchGlobalTimeline client =
-    fetch client (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
+    -- TODO: use withQueryParams
+    fetch GET client (ApiUrl.publicTimeline (Nothing)) <| Decode.list statusDecoder
 
 
 fetchAccountTimeline : Client -> Int -> Request (List Status)
 fetchAccountTimeline client id =
-    fetch client (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
+    fetch GET client (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
 
 
 fetchNotifications : Client -> Request (List Notification)
 fetchNotifications client =
-    fetch client (ApiUrl.notifications) <| Decode.list notificationDecoder
+    fetch GET client (ApiUrl.notifications) <| Decode.list notificationDecoder
 
 
 fetchAccountFollowers : Client -> Int -> Request (List Account)
 fetchAccountFollowers client accountId =
-    fetch client (ApiUrl.followers accountId) <| Decode.list accountDecoder
+    fetch GET client (ApiUrl.followers accountId) <| Decode.list accountDecoder
 
 
 fetchAccountFollowing : Client -> Int -> Request (List Account)
 fetchAccountFollowing client accountId =
-    fetch client (ApiUrl.following accountId) <| Decode.list accountDecoder
+    fetch GET client (ApiUrl.following accountId) <| Decode.list accountDecoder
 
 
 searchAccounts : Client -> String -> Int -> Bool -> Request (List Account)
 searchAccounts client query limit resolve =
-    HttpBuilder.get (ApiUrl.searchAccount client.server query limit resolve)
+    HttpBuilder.get (client.server ++ ApiUrl.searchAccount)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson (Decode.list accountDecoder))
+        |> HttpBuilder.withQueryParams
+            [ ( "q", query )
+            , ( "limit", toString limit )
+            , ( "resolve"
+              , if resolve then
+                    "true"
+                else
+                    "false"
+              )
+            ]
 
 
 userAccount : Client -> Request Account
 userAccount client =
-    HttpBuilder.get (ApiUrl.userAccount client.server)
+    HttpBuilder.get (client.server ++ ApiUrl.userAccount)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson accountDecoder)
 
 
 postStatus : Client -> StatusRequestBody -> Request Status
 postStatus client statusRequestBody =
-    HttpBuilder.post (ApiUrl.statuses client.server)
+    HttpBuilder.post (client.server ++ ApiUrl.statuses)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
         |> HttpBuilder.withJsonBody (statusRequestBodyEncoder statusRequestBody)
@@ -179,55 +210,55 @@ postStatus client statusRequestBody =
 
 deleteStatus : Client -> Int -> Request Int
 deleteStatus client id =
-    HttpBuilder.delete (ApiUrl.status client.server id)
+    HttpBuilder.delete (client.server ++ (ApiUrl.status id))
         |> HttpBuilder.withExpect (Http.expectJson <| Decode.succeed id)
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
 
 
 context : Client -> Int -> Request Context
 context client id =
-    HttpBuilder.get (ApiUrl.context client.server id)
+    HttpBuilder.get (client.server ++ (ApiUrl.context id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson contextDecoder)
 
 
 reblog : Client -> Int -> Request Status
 reblog client id =
-    HttpBuilder.post (ApiUrl.reblog client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.reblog id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 unreblog : Client -> Int -> Request Status
 unreblog client id =
-    HttpBuilder.post (ApiUrl.unreblog client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.unreblog id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 favourite : Client -> Int -> Request Status
 favourite client id =
-    HttpBuilder.post (ApiUrl.favourite client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.favourite id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 unfavourite : Client -> Int -> Request Status
 unfavourite client id =
-    HttpBuilder.post (ApiUrl.unfavourite client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.unfavourite id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson statusDecoder)
 
 
 follow : Client -> Int -> Request Relationship
 follow client id =
-    HttpBuilder.post (ApiUrl.follow client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.follow id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)
 
 
 unfollow : Client -> Int -> Request Relationship
 unfollow client id =
-    HttpBuilder.post (ApiUrl.unfollow client.server id)
+    HttpBuilder.post (client.server ++ (ApiUrl.unfollow id))
         |> HttpBuilder.withHeader "Authorization" ("Bearer " ++ client.token)
         |> HttpBuilder.withExpect (Http.expectJson relationshipDecoder)

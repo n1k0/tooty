@@ -54,7 +54,7 @@ subscribeToWebSockets client streamType message =
 
         url =
             encodeUrl
-                (ApiUrl.streaming (replaceSlice "wss" 0 5 client.server))
+                (replaceSlice "wss" 0 5 <| client.server ++ ApiUrl.streaming)
                 [ ( "access_token", client.token )
                 , ( "stream", type_ )
                 ]

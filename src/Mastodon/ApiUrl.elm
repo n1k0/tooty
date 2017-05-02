@@ -32,19 +32,19 @@ type alias Server =
     String
 
 
-apps : Server -> String
-apps server =
-    server ++ "/api/v1/apps"
+apps : String
+apps =
+    "/api/v1/apps"
 
 
-oauthAuthorize : Server -> String
-oauthAuthorize server =
-    server ++ "/oauth/authorize"
+oauthAuthorize : String
+oauthAuthorize =
+    "/oauth/authorize"
 
 
-oauthToken : Server -> String
-oauthToken server =
-    server ++ "/oauth/token"
+oauthToken : String
+oauthToken =
+    "/oauth/token"
 
 
 accounts : String
@@ -57,33 +57,24 @@ account id =
     accounts ++ (toString id)
 
 
-follow : Server -> Int -> String
-follow server id =
-    server ++ accounts ++ (toString id) ++ "/follow"
+follow : Int -> String
+follow id =
+    accounts ++ (toString id) ++ "/follow"
 
 
-unfollow : Server -> Int -> String
-unfollow server id =
-    server ++ accounts ++ (toString id) ++ "/unfollow"
+unfollow : Int -> String
+unfollow id =
+    accounts ++ (toString id) ++ "/unfollow"
 
 
-userAccount : Server -> String
-userAccount server =
-    server ++ accounts ++ "verify_credentials"
+userAccount : String
+userAccount =
+    accounts ++ "verify_credentials"
 
 
-searchAccount : Server -> String -> Int -> Bool -> String
-searchAccount server query limit resolve =
-    encodeUrl (server ++ accounts ++ "search")
-        [ ( "q", query )
-        , ( "limit", toString limit )
-        , ( "resolve"
-          , if resolve then
-                "true"
-            else
-                "false"
-          )
-        ]
+searchAccount : String
+searchAccount =
+    accounts ++ "search"
 
 
 relationships : List Int -> String
@@ -131,41 +122,41 @@ notifications =
     "/api/v1/notifications"
 
 
-statuses : Server -> String
-statuses server =
-    server ++ "/api/v1/statuses"
+statuses : String
+statuses =
+    "/api/v1/statuses"
 
 
-context : Server -> Int -> String
-context server id =
-    statuses server ++ "/" ++ (toString id) ++ "/context"
+context : Int -> String
+context id =
+    statuses ++ "/" ++ (toString id) ++ "/context"
 
 
-reblog : Server -> Int -> String
-reblog server id =
-    statuses server ++ "/" ++ (toString id) ++ "/reblog"
+reblog : Int -> String
+reblog id =
+    statuses ++ "/" ++ (toString id) ++ "/reblog"
 
 
-status : Server -> Int -> String
-status server id =
-    statuses server ++ "/" ++ (toString id)
+status : Int -> String
+status id =
+    statuses ++ "/" ++ (toString id)
 
 
-unreblog : Server -> Int -> String
-unreblog server id =
-    statuses server ++ "/" ++ (toString id) ++ "/unreblog"
+unreblog : Int -> String
+unreblog id =
+    statuses ++ "/" ++ (toString id) ++ "/unreblog"
 
 
-favourite : Server -> Int -> String
-favourite server id =
-    statuses server ++ "/" ++ (toString id) ++ "/favourite"
+favourite : Int -> String
+favourite id =
+    statuses ++ "/" ++ (toString id) ++ "/favourite"
 
 
-unfavourite : Server -> Int -> String
-unfavourite server id =
-    statuses server ++ "/" ++ (toString id) ++ "/unfavourite"
+unfavourite : Int -> String
+unfavourite id =
+    statuses ++ "/" ++ (toString id) ++ "/unfavourite"
 
 
-streaming : Server -> String
-streaming server =
-    server ++ "/api/v1/streaming/"
+streaming : String
+streaming =
+    "/api/v1/streaming/"
