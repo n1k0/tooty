@@ -113,7 +113,7 @@ notificationFilterView filter =
             button
                 [ class <|
                     if filter == event then
-                        "btn btn-primary"
+                        "btn btn-primary active"
                     else
                         "btn btn-default"
                 , title tooltip
