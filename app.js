@@ -25948,32 +25948,34 @@ var _n1k0$tooty$View_Events$onClickInformation = function (msg) {
 		A2(_elm_lang$core$Json_Decode$map, msg, _n1k0$tooty$View_Events$decodePositionInformation));
 };
 
-var _n1k0$tooty$View_Common$justifiedButtonGroup = function (buttons) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('btn-group btn-group-justified'),
-			_1: {ctor: '[]'}
-		},
-		A2(
-			_elm_lang$core$List$map,
-			function (b) {
-				return A2(
-					_elm_lang$html$Html$div,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('btn-group'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: b,
-						_1: {ctor: '[]'}
-					});
+var _n1k0$tooty$View_Common$justifiedButtonGroup = F2(
+	function (cls, buttons) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class(
+					A2(_elm_lang$core$Basics_ops['++'], 'btn-group btn-group-justified ', cls)),
+				_1: {ctor: '[]'}
 			},
-			buttons));
-};
+			A2(
+				_elm_lang$core$List$map,
+				function (b) {
+					return A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('btn-group'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: b,
+							_1: {ctor: '[]'}
+						});
+				},
+				buttons));
+	});
 var _n1k0$tooty$View_Common$icon = function (name) {
 	return A2(
 		_elm_lang$html$Html$i,
@@ -30461,7 +30463,9 @@ var _n1k0$tooty$View_Draft$visibilitySelector = function (_p5) {
 	var btnClass = function (v) {
 		return _elm_lang$core$Native_Utils.eq(v, _p6.visibility) ? 'btn btn-sm btn-primary active' : 'btn btn-sm btn-default';
 	};
-	return _n1k0$tooty$View_Common$justifiedButtonGroup(
+	return A2(
+		_n1k0$tooty$View_Common$justifiedButtonGroup,
+		'draft-visibilities',
 		A2(
 			_elm_lang$core$List$map,
 			function (_p7) {
@@ -30841,7 +30845,9 @@ var _n1k0$tooty$View_Draft$draftView = function (_p10) {
 															}),
 														_1: {
 															ctor: '::',
-															_0: _n1k0$tooty$View_Common$justifiedButtonGroup(
+															_0: A2(
+																_n1k0$tooty$View_Common$justifiedButtonGroup,
+																'draft-actions',
 																{
 																	ctor: '::',
 																	_0: A2(
@@ -30975,7 +30981,9 @@ var _n1k0$tooty$View_Notification$notificationFilterView = function (filter) {
 					_1: {ctor: '[]'}
 				});
 		});
-	return _n1k0$tooty$View_Common$justifiedButtonGroup(
+	return A2(
+		_n1k0$tooty$View_Common$justifiedButtonGroup,
+		'notification-filters',
 		{
 			ctor: '::',
 			_0: A3(filterBtn, 'All notifications', 'asterisk', _n1k0$tooty$Types$NotificationAll),
