@@ -263,13 +263,12 @@ draftView ({ draft, currentUser } as model) =
                             , onClick (DraftEvent ClearDraft)
                             ]
                             [ text "Clear" ]
-                        , button
-                            [ type_ "button"
-                            , class <|
+                        , div
+                            [ class <|
                                 if limitExceeded then
-                                    "btn btn-danger active"
+                                    "btn btn-danger charcount active"
                                 else
-                                    "btn btn-default active"
+                                    "btn btn-default charcount active"
                             ]
                             [ text <| toString charCount ]
                         , button
