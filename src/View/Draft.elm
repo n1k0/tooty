@@ -273,7 +273,7 @@ draftView ({ draft, currentUser } as model) =
                             [ text <| toString charCount ]
                         , button
                             [ type_ "submit"
-                            , class "btn btn-primary"
+                            , class "btn btn-warning"
                             , disabled limitExceeded
                             ]
                             [ text "Toot!" ]
