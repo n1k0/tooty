@@ -217,7 +217,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
 
             Nothing ->
                 div [ class "status" ]
-                    [ Common.accountAvatarLink account
+                    [ Common.accountAvatarLink False account
                     , div [ class "username" ]
                         [ a accountLinkAttributes
                             [ text account.display_name

@@ -1,8 +1,6 @@
 module View.Common
     exposing
-        ( accountAvatarExternalLink
-        , accountAvatarLink
-        , accountExternalLink
+        ( accountAvatarLink
         , accountLink
         , closeablePanelheading
         , icon
@@ -16,42 +14,43 @@ import Types exposing (..)
 import View.Events exposing (..)
 
 
-accountExternalLink : Account -> Html Msg
-accountExternalLink account =
-    a
-        [ href account.url
-        , target "_blank"
-        ]
-        [ text <| "@" ++ account.username ]
+accountLink : Bool -> Account -> Html Msg
+accountLink external account =
+    let
+        accountHref =
+            if external then
+                target "_blank"
+            else
+                onClickWithPreventAndStop (LoadAccount account.id)
+    in
+        a
+            [ href account.url
+            , accountHref
+            ]
+            [ text <| "@" ++ account.username ]
 
 
-accountLink : Account -> Html Msg
-accountLink account =
-    a
-        [ href account.url
-        , onClickWithPreventAndStop (LoadAccount account.id)
-        ]
-        [ text <| "@" ++ account.username ]
+accountAvatarLink : Bool -> Account -> Html Msg
+accountAvatarLink external account =
+    let
+        accountHref =
+            if external then
+                target "_blank"
+            else
+                onClickWithPreventAndStop (LoadAccount account.id)
 
-
-accountAvatarExternalLink : Account -> Html Msg
-accountAvatarExternalLink account =
-    a
-        [ href account.url
-        , target "_blank"
-        , title <| "@" ++ account.username
-        ]
-        [ img [ src account.avatar ] [] ]
-
-
-accountAvatarLink : Account -> Html Msg
-accountAvatarLink account =
-    a
-        [ href account.url
-        , onClickWithPreventAndStop (LoadAccount account.id)
-        , title <| "@" ++ account.username
-        ]
-        [ img [ class "avatar", src account.avatar ] [] ]
+        avatarClass =
+            if external then
+                ""
+            else
+                "avatar"
+    in
+        a
+            [ href account.url
+            , accountHref
+            , title <| "@" ++ account.username
+            ]
+            [ img [ class avatarClass, src account.avatar ] [] ]
 
 
 closeablePanelheading : String -> String -> String -> Msg -> Html Msg

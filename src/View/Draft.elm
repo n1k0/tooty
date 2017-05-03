@@ -78,8 +78,8 @@ currentUserView currentUser =
     case currentUser of
         Just currentUser ->
             div [ class "current-user" ]
-                [ Common.accountAvatarLink currentUser
-                , div [ class "username" ] [ Common.accountLink currentUser ]
+                [ Common.accountAvatarLink False currentUser
+                , div [ class "username" ] [ Common.accountLink False currentUser ]
                 , p [ class "status-text" ] <| formatContent currentUser.note []
                 ]
 
