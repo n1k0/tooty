@@ -28,7 +28,7 @@ module Mastodon.ApiUrl
 
 apiPrefix : String
 apiPrefix =
-    "/api/v1/"
+    "/api/v1"
 
 
 apps : String
