@@ -312,6 +312,10 @@ body {
   clear: both;
 }
 
+.charcount {
+  cursor: default;
+}
+
 .in-reply-to .well {
   padding: 10px;
 }
