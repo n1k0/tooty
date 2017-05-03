@@ -910,7 +910,7 @@ update msg model =
                 newModel =
                     { model | useGlobalTimeline = flag }
             in
-                { model | currentView = preferredTimeline newModel } ! []
+                { newModel | currentView = preferredTimeline newModel } ! []
 
         CloseAccount ->
             { model
