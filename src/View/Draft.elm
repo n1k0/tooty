@@ -134,9 +134,6 @@ visibilitySelector { visibility } =
 draftView : Model -> Html Msg
 draftView ({ draft, currentUser } as model) =
     let
-        -- visibilityOptionView ( visibility, description ) =
-        -- option [ value visibility ]
-        -- [ text <| visibility ++ ": " ++ description ]
         autoMenu =
             if draft.showAutoMenu then
                 viewAutocompleteMenu model.draft
