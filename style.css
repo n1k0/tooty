@@ -316,6 +316,11 @@ body {
   cursor: default;
 }
 
+.btn-group-justified .btn-group:nth-child(2) {
+  width: .5%;
+  min-width: 30px;
+}
+
 .in-reply-to .well {
   padding: 10px;
 }
