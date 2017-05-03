@@ -32430,15 +32430,15 @@ var _n1k0$tooty$Model$subscriptions = function (model) {
 				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p2, _n1k0$tooty$Mastodon_WebSocket$UserStream, _n1k0$tooty$Types$NewWebsocketUserMessage),
 				_1: {ctor: '[]'}
 			},
-			model.useGlobalTimeline ? {
+			_elm_lang$core$Native_Utils.eq(model.currentView, _n1k0$tooty$Types$GlobalTimelineView) ? {
 				ctor: '::',
 				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p2, _n1k0$tooty$Mastodon_WebSocket$GlobalPublicStream, _n1k0$tooty$Types$NewWebsocketGlobalMessage),
 				_1: {ctor: '[]'}
-			} : {
+			} : (_elm_lang$core$Native_Utils.eq(model.currentView, _n1k0$tooty$Types$LocalTimelineView) ? {
 				ctor: '::',
 				_0: A3(_n1k0$tooty$Mastodon_WebSocket$subscribeToWebSockets, _p2, _n1k0$tooty$Mastodon_WebSocket$LocalPublicStream, _n1k0$tooty$Types$NewWebsocketLocalMessage),
 				_1: {ctor: '[]'}
-			});
+			} : {ctor: '[]'}));
 		return _elm_lang$core$Platform_Sub$batch(
 			A2(
 				_elm_lang$core$Basics_ops['++'],
