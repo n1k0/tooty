@@ -9,7 +9,7 @@ import View.Common as Common
 
 settingsView : Model -> Html Msg
 settingsView model =
-    div [ class "panel panel-default" ]
+    div [ class "panel panel-default options" ]
         [ div [ class "panel-heading" ] [ Common.icon "cog", text "options" ]
         , div [ class "panel-body" ]
             [ div [ class "checkbox" ]
