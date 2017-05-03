@@ -30896,7 +30896,7 @@ var _n1k0$tooty$View_Draft$draftView = function (_p10) {
 																					_0: _elm_lang$html$Html_Attributes$type_('submit'),
 																					_1: {
 																						ctor: '::',
-																						_0: _elm_lang$html$Html_Attributes$class('btn btn-primary'),
+																						_0: _elm_lang$html$Html_Attributes$class('btn btn-warning'),
 																						_1: {
 																							ctor: '::',
 																							_0: _elm_lang$html$Html_Attributes$disabled(limitExceeded),
