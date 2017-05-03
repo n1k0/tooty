@@ -16,9 +16,9 @@ import View.Events exposing (..)
 formatContent : String -> List Mention -> List (Html Msg)
 formatContent content mentions =
     content
-        |> replace " ?" "&nbsp;?"
-        |> replace " !" "&nbsp;!"
-        |> replace " :" "&nbsp;:"
+        |> replace " ?" "&#160;?"
+        |> replace " !" "&#160;!"
+        |> replace " :" "&#160;:"
         |> HtmlParser.parse
         |> toVirtualDom mentions
 
