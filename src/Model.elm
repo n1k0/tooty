@@ -975,18 +975,20 @@ subscriptions model =
                         Mastodon.WebSocket.UserStream
                         NewWebsocketUserMessage
                     ]
-                        ++ (if model.useGlobalTimeline then
+                        ++ (if model.currentView == GlobalTimelineView then
                                 [ Mastodon.WebSocket.subscribeToWebSockets
                                     client
                                     Mastodon.WebSocket.GlobalPublicStream
                                     NewWebsocketGlobalMessage
                                 ]
-                            else
+                            else if model.currentView == LocalTimelineView then
                                 [ Mastodon.WebSocket.subscribeToWebSockets
                                     client
                                     Mastodon.WebSocket.LocalPublicStream
                                     NewWebsocketLocalMessage
                                 ]
+                            else
+                                []
                            )
             in
                 Sub.batch <|
