@@ -124,17 +124,30 @@ toStatusRequestBody draft =
 updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
-        update flag status =
+        update status =
             if (Mastodon.Helper.extractReblog status).id == statusId then
                 statusUpdater status
             else
                 status
     in
         { model
-            | userTimeline = List.map (update flag) model.userTimeline
-            , accountTimeline = List.map (update flag) model.accountTimeline
-            , localTimeline = List.map (update flag) model.localTimeline
-            , globalTimeline = List.map (update flag) model.globalTimeline
+            | userTimeline = List.map update model.userTimeline
+            , accountTimeline = List.map update model.accountTimeline
+            , localTimeline = List.map update model.localTimeline
+            , globalTimeline = List.map update model.globalTimeline
+            , currentView =
+                case model.currentView of
+                    ThreadView thread ->
+                        ThreadView
+                            { status = update thread.status
+                            , context =
+                                { ancestors = List.map update thread.context.ancestors
+                                , descendants = List.map update thread.context.descendants
+                                }
+                            }
+
+                    currentView ->
+                        currentView
         }
 
 
