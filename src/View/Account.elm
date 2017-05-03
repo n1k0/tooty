@@ -152,7 +152,9 @@ accountView currentUser account relationship panelContent =
                         ]
                         [ div [ class "opacity-layer" ]
                             [ followButton currentUser relationship account
-                            , img [ src account.avatar ] []
+                            , a
+                                [ href account.url ]
+                                [ img [ src account.avatar ] [] ]
                             , span [ class "account-display-name" ] [ text account.display_name ]
                             , span [ class "account-username" ] [ text ("@" ++ account.username) ]
                             , span [ class "account-note" ] (formatContent account.note [])
