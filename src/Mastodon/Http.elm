@@ -43,6 +43,12 @@ type Method
     | DELETE
 
 
+type alias Links =
+    { prev : Maybe String
+    , next : Maybe String
+    }
+
+
 type alias Request a =
     Build.RequestBuilder a
 
@@ -81,35 +87,56 @@ toResponse result =
     Result.mapError extractError result
 
 
-decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
-decodeResponse decoder response =
-    -- TODO: extract status, headers, body. parse body. expose new type.
+extractLinks : Dict.Dict String String -> Links
+extractLinks headers =
+    -- <https://...&max_id=123456>; rel="next", <https://...&since_id=123456>; rel="prev"
     let
-        headerContent =
-            case (Dict.get "link" response.headers) of
-                Nothing ->
+        truncate =
+            -- removes first and last characters of a string
+            (String.dropLeft 1) >> (String.dropRight 1)
+
+        parseDef parts =
+            case parts of
+                [ url, "rel=\"next\"" ] ->
+                    [ ( "next", truncate url ) ]
+
+                [ url, "rel=\"prev\"" ] ->
+                    [ ( "prev", truncate url ) ]
+
+                _ ->
                     []
 
-                Just content ->
-                    -- <https://...&max_id=123456>; rel="next", <https://...&since_id=123456>; rel="prev"
-                    let
-                        parts =
-                            content
-                                |> String.split ","
-                                |> List.map (String.split ";")
-                                |> List.concat
-                                |> List.map String.trim
-                                |> List.map ((String.dropLeft 1) >> (String.dropRight 1))
-                    in
-                        case parts of
-                            [ next, _, prev, _ ] ->
-                                [ next, prev ]
+        parseLink link =
+            link
+                |> String.split ";"
+                |> List.map String.trim
+                |> parseDef
 
-                            _ ->
-                                []
+        parseLinks content =
+            content
+                |> String.split ","
+                |> List.map String.trim
+                |> List.map parseLink
+                |> List.concat
+                |> Dict.fromList
+    in
+        case (Dict.get "link" headers) of
+            Nothing ->
+                Links Nothing Nothing
 
+            Just content ->
+                let
+                    links =
+                        parseLinks content
+                in
+                    Links (Dict.get "prev" links) (Dict.get "next" links)
+
+
+decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
+decodeResponse decoder response =
+    let
         _ =
-            Debug.log "headers" headerContent
+            Debug.log "headers" <| extractLinks response.headers
     in
         Decode.decodeString decoder response.body
 
