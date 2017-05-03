@@ -472,8 +472,9 @@ processMastodonEvent msg model =
                     in
                         { model | client = Just client }
                             ! [ Command.loadTimelines <| Just client
-                              , Navigation.modifyUrl model.location.pathname
                               , Command.saveClient client
+                              , Navigation.modifyUrl model.location.pathname
+                              , Navigation.reload
                               ]
 
                 Err error ->
