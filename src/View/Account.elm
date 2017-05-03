@@ -77,7 +77,7 @@ followButton currentUser relationship account =
 followView : CurrentUser -> Maybe Relationship -> Account -> Html Msg
 followView currentUser relationship account =
     div [ class "follow-entry" ]
-        [ Common.accountAvatarLink account
+        [ Common.accountAvatarLink False account
         , div [ class "userinfo" ]
             [ strong []
                 [ a
@@ -152,9 +152,9 @@ accountView currentUser account relationship panelContent =
                         ]
                         [ div [ class "opacity-layer" ]
                             [ followButton currentUser relationship account
-                            , img [ src account.avatar ] []
+                            , Common.accountAvatarLink True account
                             , span [ class "account-display-name" ] [ text account.display_name ]
-                            , span [ class "account-username" ] [ text ("@" ++ account.username) ]
+                            , span [ class "account-username" ] [ Common.accountLink True account ]
                             , span [ class "account-note" ] (formatContent account.note [])
                             ]
                         ]

@@ -14,23 +14,43 @@ import Types exposing (..)
 import View.Events exposing (..)
 
 
-accountLink : Account -> Html Msg
-accountLink account =
-    a
-        [ href account.url
-        , onClickWithPreventAndStop (LoadAccount account.id)
-        ]
-        [ text <| "@" ++ account.username ]
+accountLink : Bool -> Account -> Html Msg
+accountLink external account =
+    let
+        accountHref =
+            if external then
+                target "_blank"
+            else
+                onClickWithPreventAndStop (LoadAccount account.id)
+    in
+        a
+            [ href account.url
+            , accountHref
+            ]
+            [ text <| "@" ++ account.username ]
 
 
-accountAvatarLink : Account -> Html Msg
-accountAvatarLink account =
-    a
-        [ href account.url
-        , onClickWithPreventAndStop (LoadAccount account.id)
-        , title <| "@" ++ account.username
-        ]
-        [ img [ class "avatar", src account.avatar ] [] ]
+accountAvatarLink : Bool -> Account -> Html Msg
+accountAvatarLink external account =
+    let
+        accountHref =
+            if external then
+                target "_blank"
+            else
+                onClickWithPreventAndStop (LoadAccount account.id)
+
+        avatarClass =
+            if external then
+                ""
+            else
+                "avatar"
+    in
+        a
+            [ href account.url
+            , accountHref
+            , title <| "@" ++ account.username
+            ]
+            [ img [ class avatarClass, src account.avatar ] [] ]
 
 
 closeablePanelheading : String -> String -> String -> Msg -> Html Msg

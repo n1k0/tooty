@@ -46,11 +46,11 @@ filterNotifications filter notifications =
 notificationHeading : List Account -> String -> String -> Html Msg
 notificationHeading accounts str iconType =
     div [ class "status-info" ]
-        [ div [ class "avatars" ] <| List.map Common.accountAvatarLink accounts
+        [ div [ class "avatars" ] <| List.map (Common.accountAvatarLink False) accounts
         , p [ class "status-info-text" ] <|
             List.intersperse (text " ")
                 [ Common.icon iconType
-                , span [] <| List.intersperse (text ", ") (List.map Common.accountLink accounts)
+                , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) accounts)
                 , text str
                 ]
         ]
@@ -78,8 +78,8 @@ notificationFollowView currentUser { accounts } =
     let
         profileView account =
             div [ class "status follow-profile" ]
-                [ Common.accountAvatarLink account
-                , div [ class "username" ] [ Common.accountLink account ]
+                [ Common.accountAvatarLink False account
+                , div [ class "username" ] [ Common.accountLink False account ]
                 , p
                     [ class "status-text"
                     , onClick <| LoadAccount account.id
