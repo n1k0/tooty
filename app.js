@@ -23562,7 +23562,7 @@ var _n1k0$tooty$Mastodon_Encoder$statusRequestBodyEncoder = function (statusData
 
 var _n1k0$tooty$Mastodon_ApiUrl$oauthToken = '/oauth/token';
 var _n1k0$tooty$Mastodon_ApiUrl$oauthAuthorize = '/oauth/authorize';
-var _n1k0$tooty$Mastodon_ApiUrl$apiPrefix = '/api/v1/';
+var _n1k0$tooty$Mastodon_ApiUrl$apiPrefix = '/api/v1';
 var _n1k0$tooty$Mastodon_ApiUrl$apps = A2(_elm_lang$core$Basics_ops['++'], _n1k0$tooty$Mastodon_ApiUrl$apiPrefix, '/apps');
 var _n1k0$tooty$Mastodon_ApiUrl$accounts = A2(_elm_lang$core$Basics_ops['++'], _n1k0$tooty$Mastodon_ApiUrl$apiPrefix, '/accounts/');
 var _n1k0$tooty$Mastodon_ApiUrl$account = function (id) {
@@ -28834,11 +28834,15 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 								_elm_lang$core$Maybe$Just(client)),
 							_1: {
 								ctor: '::',
-								_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
+								_0: _n1k0$tooty$Command$saveClient(client),
 								_1: {
 									ctor: '::',
-									_0: _n1k0$tooty$Command$saveClient(client),
-									_1: {ctor: '[]'}
+									_0: _elm_lang$navigation$Navigation$modifyUrl(model.location.pathname),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$navigation$Navigation$reload,
+										_1: {ctor: '[]'}
+									}
 								}
 							}
 						});
