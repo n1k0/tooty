@@ -1,7 +1,6 @@
 module View.Draft exposing (draftView)
 
 import Autocomplete
-import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -21,14 +20,13 @@ type alias CurrentUser =
     Account
 
 
-visibilities : Dict.Dict String String
+visibilities : List ( String, String, String )
 visibilities =
-    Dict.fromList
-        [ ( "public", "post to public timelines" )
-        , ( "unlisted", "do not show in public timelines" )
-        , ( "private", "post to followers only" )
-        , ( "direct", "post to mentioned users only" )
-        ]
+    [ ( "unlisted", "do not show in public timelines", "eye-close" )
+    , ( "private", "post to followers only", "user" )
+    , ( "direct", "post to mentioned users only", "lock" )
+    , ( "public", "post to public timelines", "globe" )
+    ]
 
 
 viewAutocompleteMenu : Draft -> Html Msg
@@ -110,13 +108,35 @@ draftReplyToView draft =
             text ""
 
 
+visibilitySelector : Draft -> Html Msg
+visibilitySelector { visibility } =
+    let
+        btnClass v =
+            if v == visibility then
+                "btn btn-sm btn-primary active"
+            else
+                "btn btn-sm btn-default"
+    in
+        visibilities
+            |> List.map
+                (\( v, t, i ) ->
+                    a
+                        [ href ""
+                        , class <| btnClass v
+                        , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility v)
+                        , title t
+                        ]
+                        [ Common.icon i, text " ", text v ]
+                )
+            |> Common.justifiedButtonGroup
+
+
 draftView : Model -> Html Msg
 draftView ({ draft, currentUser } as model) =
     let
-        visibilityOptionView ( visibility, description ) =
-            option [ value visibility ]
-                [ text <| visibility ++ ": " ++ description ]
-
+        -- visibilityOptionView ( visibility, description ) =
+        -- option [ value visibility ]
+        -- [ text <| visibility ++ ": " ++ description ]
         autoMenu =
             if draft.showAutoMenu then
                 viewAutocompleteMenu model.draft
@@ -227,19 +247,7 @@ draftView ({ draft, currentUser } as model) =
                                 []
                         , autoMenu
                         ]
-                    , div [ class "form-group" ]
-                        [ label [ for "visibility" ] [ text "Visibility" ]
-                        , select
-                            [ id "visibility"
-                            , class "form-control"
-                            , onInput <| DraftEvent << UpdateVisibility
-                            , required True
-                            , value draft.visibility
-                            ]
-                          <|
-                            List.map visibilityOptionView <|
-                                Dict.toList visibilities
-                        ]
+                    , visibilitySelector draft
                     , div [ class "form-group checkbox" ]
                         [ label []
                             [ input
