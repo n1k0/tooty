@@ -128,7 +128,7 @@ visibilitySelector { visibility } =
                         ]
                         [ Common.icon i, text " ", text v ]
                 )
-            |> Common.justifiedButtonGroup
+            |> Common.justifiedButtonGroup "draft-visibilities"
 
 
 draftView : Model -> Html Msg
@@ -256,7 +256,7 @@ draftView ({ draft, currentUser } as model) =
                             , text " This post is NSFW"
                             ]
                         ]
-                    , Common.justifiedButtonGroup
+                    , Common.justifiedButtonGroup "draft-actions"
                         [ button
                             [ type_ "button"
                             , class "btn btn-default"

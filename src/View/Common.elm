@@ -74,7 +74,7 @@ icon name =
     i [ class <| "glyphicon glyphicon-" ++ name ] []
 
 
-justifiedButtonGroup : List (Html Msg) -> Html Msg
-justifiedButtonGroup buttons =
-    div [ class "btn-group btn-group-justified" ] <|
+justifiedButtonGroup : String -> List (Html Msg) -> Html Msg
+justifiedButtonGroup cls buttons =
+    div [ class <| "btn-group btn-group-justified " ++ cls ] <|
         List.map (\b -> div [ class "btn-group" ] [ b ]) buttons

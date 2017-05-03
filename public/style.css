@@ -316,7 +316,7 @@ body {
   cursor: default;
 }
 
-.btn-group-justified .btn-group:nth-child(2) {
+.draft-actions .btn-group:nth-child(2) {
   width: .5%;
   min-width: 30px;
 }

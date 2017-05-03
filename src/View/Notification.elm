@@ -121,7 +121,7 @@ notificationFilterView filter =
                 ]
                 [ Common.icon iconName ]
     in
-        Common.justifiedButtonGroup
+        Common.justifiedButtonGroup "notification-filters"
             [ filterBtn "All notifications" "asterisk" NotificationAll
             , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
             , filterBtn "Boosts" "fire" NotificationOnlyBoosts
