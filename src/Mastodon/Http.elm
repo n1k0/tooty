@@ -27,6 +27,7 @@ module Mastodon.Http
         , searchAccounts
         )
 
+import Dict
 import Http
 import HttpBuilder as Build
 import Json.Decode as Decode
@@ -80,6 +81,39 @@ toResponse result =
     Result.mapError extractError result
 
 
+decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
+decodeResponse decoder response =
+    -- TODO: extract status, headers, body. parse body. expose new type.
+    let
+        headerContent =
+            case (Dict.get "link" response.headers) of
+                Nothing ->
+                    []
+
+                Just content ->
+                    -- <https://...&max_id=123456>; rel="next", <https://...&since_id=123456>; rel="prev"
+                    let
+                        parts =
+                            content
+                                |> String.split ","
+                                |> List.map (String.split ";")
+                                |> List.concat
+                                |> List.map String.trim
+                                |> List.map ((String.dropLeft 1) >> (String.dropRight 1))
+                    in
+                        case parts of
+                            [ next, _, prev, _ ] ->
+                                [ next, prev ]
+
+                            _ ->
+                                []
+
+        _ =
+            Debug.log "headers" headerContent
+    in
+        Decode.decodeString decoder response.body
+
+
 request : String -> Method -> String -> Decode.Decoder a -> Request a
 request server method endpoint decoder =
     let
@@ -95,7 +129,7 @@ request server method endpoint decoder =
                     Build.delete
     in
         httpMethod (server ++ endpoint)
-            |> Build.withExpect (Http.expectJson decoder)
+            |> Build.withExpect (Http.expectStringResponse (decodeResponse decoder))
 
 
 authRequest : Client -> Method -> String -> Decode.Decoder a -> Request a
