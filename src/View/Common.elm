@@ -1,6 +1,8 @@
 module View.Common
     exposing
-        ( accountAvatarLink
+        ( accountAvatarExternalLink
+        , accountAvatarLink
+        , accountExternalLink
         , accountLink
         , closeablePanelheading
         , icon
@@ -14,6 +16,15 @@ import Types exposing (..)
 import View.Events exposing (..)
 
 
+accountExternalLink : Account -> Html Msg
+accountExternalLink account =
+    a
+        [ href account.url
+        , target "_blank"
+        ]
+        [ text <| "@" ++ account.username ]
+
+
 accountLink : Account -> Html Msg
 accountLink account =
     a
@@ -21,6 +32,16 @@ accountLink account =
         , onClickWithPreventAndStop (LoadAccount account.id)
         ]
         [ text <| "@" ++ account.username ]
+
+
+accountAvatarExternalLink : Account -> Html Msg
+accountAvatarExternalLink account =
+    a
+        [ href account.url
+        , target "_blank"
+        , title <| "@" ++ account.username
+        ]
+        [ img [ src account.avatar ] [] ]
 
 
 accountAvatarLink : Account -> Html Msg
