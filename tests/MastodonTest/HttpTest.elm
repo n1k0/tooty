@@ -40,5 +40,13 @@ all =
                     in
                         extractLinks headers
                             |> Expect.equal { prev = Nothing, next = Just "nextLinkUrl" }
+            , test "should only extract prev and next links" <|
+                \() ->
+                    let
+                        headers =
+                            Dict.fromList [ ( "link", "<nextLinkUrl>; rel=\"next\", <blurp>; rel=\"blop\"" ) ]
+                    in
+                        extractLinks headers
+                            |> Expect.equal { prev = Nothing, next = Just "nextLinkUrl" }
             ]
         ]
