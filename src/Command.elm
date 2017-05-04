@@ -66,7 +66,7 @@ initCommands registration client authCode =
 getAccessToken : AppRegistration -> String -> Cmd Msg
 getAccessToken registration authCode =
     HttpBuilder.get ApiUrl.notifications
-        |> withDecoder (accessTokenDecoder registration)
+        |> withBodyDecoder (accessTokenDecoder registration)
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
         |> send (MastodonEvent << AccessToken)
 
@@ -98,8 +98,9 @@ registerApp { server, location } =
             "https://github.com/n1k0/tooty"
     in
         HttpBuilder.post ApiUrl.apps
-            |> withDecoder (appRegistrationDecoder server scope)
-            |> HttpBuilder.withJsonBody (appRegistrationEncoder clientName redirectUri scope website)
+            |> withBodyDecoder (appRegistrationDecoder server scope)
+            |> HttpBuilder.withJsonBody
+                (appRegistrationEncoder clientName redirectUri scope website)
             |> send (MastodonEvent << AppRegistered)
 
 
@@ -124,7 +125,7 @@ loadNotifications client =
         Just client ->
             HttpBuilder.get ApiUrl.notifications
                 |> withClient client
-                |> withDecoder (Decode.list notificationDecoder)
+                |> withBodyDecoder (Decode.list notificationDecoder)
                 |> send (MastodonEvent << Notifications)
 
         Nothing ->
@@ -137,7 +138,7 @@ loadUserAccount client =
         Just client ->
             HttpBuilder.get ApiUrl.userAccount
                 |> withClient client
-                |> withDecoder accountDecoder
+                |> withBodyDecoder accountDecoder
                 |> send (MastodonEvent << CurrentUser)
 
         Nothing ->
@@ -151,7 +152,7 @@ loadAccount client accountId =
             Cmd.batch
                 [ HttpBuilder.get (ApiUrl.account accountId)
                     |> withClient client
-                    |> withDecoder accountDecoder
+                    |> withBodyDecoder accountDecoder
                     |> send (MastodonEvent << AccountReceived)
                 , requestRelationships client [ accountId ]
                     |> send (MastodonEvent << AccountRelationship)
@@ -167,7 +168,7 @@ loadAccountTimeline client accountId =
         Just client ->
             HttpBuilder.get (ApiUrl.accountTimeline accountId)
                 |> withClient client
-                |> withDecoder (Decode.list statusDecoder)
+                |> withBodyDecoder (Decode.list statusDecoder)
                 |> send (MastodonEvent << AccountTimeline)
 
         Nothing ->
@@ -180,7 +181,7 @@ loadAccountFollowers client accountId =
         Just client ->
             HttpBuilder.get (ApiUrl.followers accountId)
                 |> withClient client
-                |> withDecoder (Decode.list accountDecoder)
+                |> withBodyDecoder (Decode.list accountDecoder)
                 |> send (MastodonEvent << AccountFollowers)
 
         Nothing ->
@@ -193,7 +194,7 @@ loadAccountFollowing client accountId =
         Just client ->
             HttpBuilder.get (ApiUrl.following accountId)
                 |> withClient client
-                |> withDecoder (Decode.list accountDecoder)
+                |> withBodyDecoder (Decode.list accountDecoder)
                 |> send (MastodonEvent << AccountFollowing)
 
         Nothing ->
@@ -221,7 +222,7 @@ searchAccounts client query limit resolve =
                 in
                     HttpBuilder.get ApiUrl.searchAccount
                         |> withClient client
-                        |> withDecoder (Decode.list accountDecoder)
+                        |> withBodyDecoder (Decode.list accountDecoder)
                         |> HttpBuilder.withQueryParams qs
                         |> send (MastodonEvent << AutoSearch)
 
@@ -233,8 +234,9 @@ requestRelationships : Client -> List Int -> Request (List Relationship)
 requestRelationships client ids =
     HttpBuilder.get ApiUrl.relationships
         |> withClient client
-        |> withDecoder (Decode.list relationshipDecoder)
-        |> HttpBuilder.withQueryParams (List.map (\id -> ( "id[]", toString id )) ids)
+        |> withBodyDecoder (Decode.list relationshipDecoder)
+        |> HttpBuilder.withQueryParams
+            (List.map (\id -> ( "id[]", toString id )) ids)
 
 
 loadRelationships : Maybe Client -> List Int -> Cmd Msg
@@ -254,7 +256,7 @@ loadThread client status =
         Just client ->
             HttpBuilder.get (ApiUrl.context status.id)
                 |> withClient client
-                |> withDecoder contextDecoder
+                |> withBodyDecoder contextDecoder
                 |> send (MastodonEvent << (ContextLoaded status))
 
         Nothing ->
@@ -267,7 +269,7 @@ loadUserTimeline client url =
         Just client ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
                 |> withClient client
-                |> withDecoder (Decode.list statusDecoder)
+                |> withBodyDecoder (Decode.list statusDecoder)
                 |> send (MastodonEvent << UserTimeline (url /= Nothing))
 
         Nothing ->
@@ -280,7 +282,7 @@ loadLocalTimeline client url =
         Just client ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                 |> withClient client
-                |> withDecoder (Decode.list statusDecoder)
+                |> withBodyDecoder (Decode.list statusDecoder)
                 |> HttpBuilder.withQueryParams [ ( "local", "true" ) ]
                 |> send (MastodonEvent << LocalTimeline (url /= Nothing))
 
@@ -294,7 +296,7 @@ loadGlobalTimeline client url =
         Just client ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                 |> withClient client
-                |> withDecoder (Decode.list statusDecoder)
+                |> withBodyDecoder (Decode.list statusDecoder)
                 |> send (MastodonEvent << GlobalTimeline (url /= Nothing))
 
         Nothing ->
@@ -318,7 +320,7 @@ postStatus client draft =
             HttpBuilder.post ApiUrl.statuses
                 |> withClient client
                 |> HttpBuilder.withJsonBody (statusRequestBodyEncoder draft)
-                |> withDecoder statusDecoder
+                |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << StatusPosted)
 
         Nothing ->
@@ -336,7 +338,7 @@ deleteStatus client id =
         Just client ->
             HttpBuilder.delete (ApiUrl.status id)
                 |> withClient client
-                |> withDecoder (Decode.succeed id)
+                |> withBodyDecoder (Decode.succeed id)
                 |> send (MastodonEvent << StatusDeleted)
 
         Nothing ->
@@ -349,7 +351,7 @@ reblogStatus client statusId =
         Just client ->
             HttpBuilder.post (ApiUrl.reblog statusId)
                 |> withClient client
-                |> withDecoder statusDecoder
+                |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << Reblogged)
 
         Nothing ->
@@ -362,7 +364,7 @@ unreblogStatus client statusId =
         Just client ->
             HttpBuilder.post (ApiUrl.unreblog statusId)
                 |> withClient client
-                |> withDecoder statusDecoder
+                |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << Unreblogged)
 
         Nothing ->
@@ -375,7 +377,7 @@ favouriteStatus client statusId =
         Just client ->
             HttpBuilder.post (ApiUrl.favourite statusId)
                 |> withClient client
-                |> withDecoder statusDecoder
+                |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << FavoriteAdded)
 
         Nothing ->
@@ -388,7 +390,7 @@ unfavouriteStatus client statusId =
         Just client ->
             HttpBuilder.post (ApiUrl.unfavourite statusId)
                 |> withClient client
-                |> withDecoder statusDecoder
+                |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << FavoriteRemoved)
 
         Nothing ->
@@ -401,7 +403,7 @@ follow client id =
         Just client ->
             HttpBuilder.post (ApiUrl.follow id)
                 |> withClient client
-                |> withDecoder relationshipDecoder
+                |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountFollowed)
 
         Nothing ->
@@ -414,7 +416,7 @@ unfollow client id =
         Just client ->
             HttpBuilder.post (ApiUrl.unfollow id)
                 |> withClient client
-                |> withDecoder relationshipDecoder
+                |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountUnfollowed)
 
         Nothing ->

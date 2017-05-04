@@ -8,7 +8,7 @@ module Mastodon.Http
         , getAuthorizationUrl
         , send
         , withClient
-        , withDecoder
+        , withBodyDecoder
         )
 
 import Dict
@@ -175,7 +175,7 @@ withClient { server, token } builder =
             |> Build.withHeader "Authorization" ("Bearer " ++ token)
 
 
-withDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
-withDecoder decoder builder =
+withBodyDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
+withBodyDecoder decoder builder =
     builder
         |> Build.withExpect (Http.expectStringResponse (decodeResponse decoder))
