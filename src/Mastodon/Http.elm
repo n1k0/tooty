@@ -93,11 +93,7 @@ extractError error =
 
 toResponse : Result Http.Error a -> Result Error a
 toResponse result =
-    let
-        _ =
-            Debug.log "toResponse result" result
-    in
-        Result.mapError extractError result
+    Result.mapError extractError result
 
 
 extractLinks : Dict.Dict String String -> Links
