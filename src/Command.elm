@@ -11,6 +11,7 @@ module Command
         , loadAccountTimeline
         , loadAccountFollowers
         , loadAccountFollowing
+        , loadUserTimeline
         , loadRelationships
         , loadThread
         , loadTimelines
@@ -210,13 +211,29 @@ loadThread client status =
             Cmd.none
 
 
+loadUserTimeline : Maybe Client -> Maybe String -> Cmd Msg
+loadUserTimeline client maybeUrl =
+    case client of
+        Just client ->
+            case maybeUrl of
+                Just url ->
+                    Mastodon.Http.fetchStatusList client Mastodon.Http.GET url
+                        |> Mastodon.Http.send (MastodonEvent << UserTimelineAppend)
+
+                Nothing ->
+                    Mastodon.Http.fetchUserTimeline client Nothing
+                        |> Mastodon.Http.send (MastodonEvent << UserTimeline)
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Client -> Cmd Msg
 loadTimelines client =
     case client of
         Just client ->
             Cmd.batch
-                [ Mastodon.Http.fetchUserTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << UserTimeline)
+                [ loadUserTimeline (Just client) Nothing
                 , Mastodon.Http.fetchLocalTimeline client
                     |> Mastodon.Http.send (MastodonEvent << LocalTimeline)
                 , Mastodon.Http.fetchGlobalTimeline client

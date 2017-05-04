@@ -1,7 +1,7 @@
 module Types exposing (..)
 
 import Autocomplete
-import Mastodon.Http exposing (Response)
+import Mastodon.Http exposing (Response, Links)
 import Mastodon.Model exposing (..)
 import Navigation
 
@@ -45,6 +45,7 @@ type MastodonMsg
     | AccountTimeline (MastodonResult (List Status))
     | AccountUnfollowed (MastodonResult Relationship)
     | AppRegistered (MastodonResult AppRegistration)
+    | AutoSearch (MastodonResult (List Account))
     | ContextLoaded Status (MastodonResult Context)
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
@@ -57,7 +58,7 @@ type MastodonMsg
     | StatusPosted (MastodonResult Status)
     | Unreblogged (MastodonResult Status)
     | UserTimeline (MastodonResult (List Status))
-    | AutoSearch (MastodonResult (List Account))
+    | UserTimelineAppend (MastodonResult (List Status))
 
 
 type WebSocketMsg
@@ -75,6 +76,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
+    | LoadNext String
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -162,6 +164,7 @@ type alias Model =
     , registration : Maybe AppRegistration
     , client : Maybe Client
     , userTimeline : List Status
+    , userTimelineLinks : Links
     , localTimeline : List Status
     , globalTimeline : List Status
     , accountTimeline : List Status

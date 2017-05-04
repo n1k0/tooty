@@ -5,6 +5,7 @@ import Command
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
+import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import String.Extra
@@ -56,6 +57,7 @@ init flags location =
         , registration = flags.registration
         , client = flags.client
         , userTimeline = []
+        , userTimelineLinks = Links Nothing Nothing
         , localTimeline = []
         , globalTimeline = []
         , accountTimeline = []
@@ -680,9 +682,24 @@ processMastodonEvent msg model =
 
         UserTimeline result ->
             case result of
-                Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | userTimeline = decoded } ! []
+                Ok { decoded, links } ->
+                    { model
+                        | userTimeline = decoded
+                        , userTimelineLinks = links
+                    }
+                        ! []
+
+                Err error ->
+                    { model | errors = (errorText error) :: model.errors } ! []
+
+        UserTimelineAppend result ->
+            case result of
+                Ok { decoded, links } ->
+                    { model
+                        | userTimeline = List.concat [ model.userTimeline, decoded ]
+                        , userTimelineLinks = links
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -903,6 +920,14 @@ update msg model =
                 , accountRelationship = Nothing
             }
                 ! [ Command.loadAccount model.client accountId ]
+
+        LoadNext context ->
+            case context of
+                "home" ->
+                    model ! [ Command.loadUserTimeline model.client model.userTimelineLinks.next ]
+
+                _ ->
+                    model ! []
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }

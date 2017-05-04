@@ -32,6 +32,9 @@ timelineView ( label, iconName, context, currentUser, statuses ) =
     let
         keyedEntry status =
             ( toString id, statusEntryView context "" currentUser status )
+
+        entries =
+            List.map keyedEntry statuses
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
@@ -39,9 +42,53 @@ timelineView ( label, iconName, context, currentUser, statuses ) =
                     [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
                     [ div [ class "panel-heading" ] [ Common.icon iconName, text label ] ]
                 , Keyed.ul [ id context, class "list-group timeline" ] <|
-                    List.map keyedEntry statuses
+                    (entries
+                        ++ [ ( "load-more"
+                             , li [ class "list-group-item load-more text-center" ]
+                                [ a
+                                    [ href ""
+                                    , onClickWithPreventAndStop <| LoadNext context
+                                    ]
+                                    [ text "Load more" ]
+                                ]
+                             )
+                           ]
+                    )
                 ]
             ]
+
+
+userTimelineView : CurrentUser -> List Status -> Html Msg
+userTimelineView currentUser statuses =
+    timelineView
+        ( "Home timeline"
+        , "home"
+        , "home"
+        , currentUser
+        , statuses
+        )
+
+
+localTimelineView : CurrentUser -> List Status -> Html Msg
+localTimelineView currentUser statuses =
+    timelineView
+        ( "Local timeline"
+        , "th-large"
+        , "local"
+        , currentUser
+        , statuses
+        )
+
+
+globalTimelineView : CurrentUser -> List Status -> Html Msg
+globalTimelineView currentUser statuses =
+    timelineView
+        ( "Global timeline"
+        , "globe"
+        , "global"
+        , currentUser
+        , statuses
+        )
 
 
 sidebarView : Model -> Html Msg
@@ -61,13 +108,7 @@ homepageView model =
         Just currentUser ->
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
-                , Lazy.lazy timelineView
-                    ( "Home timeline"
-                    , "home"
-                    , "home"
-                    , currentUser
-                    , model.userTimeline
-                    )
+                , Lazy.lazy2 userTimelineView currentUser model.userTimeline
                 , Lazy.lazy3
                     notificationListView
                     currentUser
@@ -75,22 +116,10 @@ homepageView model =
                     model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        Lazy.lazy timelineView
-                            ( "Local timeline"
-                            , "th-large"
-                            , "local"
-                            , currentUser
-                            , model.localTimeline
-                            )
+                        Lazy.lazy2 localTimelineView currentUser model.localTimeline
 
                     GlobalTimelineView ->
-                        Lazy.lazy timelineView
-                            ( "Global timeline"
-                            , "globe"
-                            , "global"
-                            , currentUser
-                            , model.globalTimeline
-                            )
+                        Lazy.lazy2 globalTimelineView currentUser model.globalTimeline
 
                     AccountView account ->
                         accountTimelineView
