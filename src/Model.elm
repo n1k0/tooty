@@ -559,11 +559,18 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        LocalTimeline result ->
+        LocalTimeline append result ->
             case result of
                 Ok { decoded, links } ->
                     -- TODO: store next link
-                    { model | localTimeline = decoded } ! []
+                    { model
+                        | localTimeline =
+                            if append then
+                                List.concat [ model.localTimeline, decoded ]
+                            else
+                                decoded
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -577,11 +584,18 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        GlobalTimeline result ->
+        GlobalTimeline append result ->
             case result of
                 Ok { decoded } ->
                     -- TODO: store next link
-                    { model | globalTimeline = decoded } ! []
+                    { model
+                        | globalTimeline =
+                            if append then
+                                List.concat [ model.globalTimeline, decoded ]
+                            else
+                                decoded
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -680,23 +694,15 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        UserTimeline result ->
+        UserTimeline append result ->
             case result of
                 Ok { decoded, links } ->
                     { model
-                        | userTimeline = decoded
-                        , userTimelineLinks = links
-                    }
-                        ! []
-
-                Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
-
-        UserTimelineAppend result ->
-            case result of
-                Ok { decoded, links } ->
-                    { model
-                        | userTimeline = List.concat [ model.userTimeline, decoded ]
+                        | userTimeline =
+                            if append then
+                                List.concat [ model.userTimeline, decoded ]
+                            else
+                                decoded
                         , userTimelineLinks = links
                     }
                         ! []

@@ -50,15 +50,14 @@ type MastodonMsg
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
-    | GlobalTimeline (MastodonResult (List Status))
-    | LocalTimeline (MastodonResult (List Status))
+    | GlobalTimeline Bool (MastodonResult (List Status))
+    | LocalTimeline Bool (MastodonResult (List Status))
     | Notifications (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
     | Unreblogged (MastodonResult Status)
-    | UserTimeline (MastodonResult (List Status))
-    | UserTimelineAppend (MastodonResult (List Status))
+    | UserTimeline Bool (MastodonResult (List Status))
 
 
 type WebSocketMsg

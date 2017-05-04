@@ -34,7 +34,10 @@ module Command
 import Dom
 import Dom.Scroll
 import Json.Encode as Encode
+import Json.Decode as Decode
+import HttpBuilder
 import Mastodon.ApiUrl
+import Mastodon.Decoder
 import Mastodon.Encoder
 import Mastodon.Http
 import Mastodon.Model exposing (..)
@@ -62,7 +65,9 @@ initCommands registration client authCode =
 
 getAccessToken : AppRegistration -> String -> Cmd Msg
 getAccessToken registration authCode =
-    Mastodon.Http.getAccessToken registration authCode
+    HttpBuilder.get Mastodon.ApiUrl.notifications
+        |> Mastodon.Http.withDecoder (Mastodon.Decoder.accessTokenDecoder registration)
+        |> HttpBuilder.withJsonBody (Mastodon.Encoder.authorizationCodeEncoder registration authCode)
         |> Mastodon.Http.send (MastodonEvent << AccessToken)
 
 
@@ -74,7 +79,7 @@ navigateToAuthUrl registration =
 registerApp : Model -> Cmd Msg
 registerApp { server, location } =
     let
-        appUrl =
+        redirectUri =
             location.origin ++ location.pathname
 
         cleanServer =
@@ -82,13 +87,19 @@ registerApp { server, location } =
                 String.dropRight 1 server
             else
                 server
-    in
-        Mastodon.Http.register
-            cleanServer
+
+        clientName =
             "tooty"
-            appUrl
+
+        scope =
             "read write follow"
+
+        website =
             "https://github.com/n1k0/tooty"
+    in
+        HttpBuilder.post Mastodon.ApiUrl.apps
+            |> Mastodon.Http.withDecoder (Mastodon.Decoder.appRegistrationDecoder server scope)
+            |> HttpBuilder.withJsonBody (Mastodon.Encoder.appRegistrationEncoder clientName redirectUri scope website)
             |> Mastodon.Http.send (MastodonEvent << AppRegistered)
 
 
@@ -108,9 +119,12 @@ saveRegistration registration =
 
 loadNotifications : Maybe Client -> Cmd Msg
 loadNotifications client =
+    -- TODO: handle link (see loadUserTimeline)
     case client of
         Just client ->
-            Mastodon.Http.fetchNotifications client
+            HttpBuilder.get Mastodon.ApiUrl.notifications
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.notificationDecoder)
                 |> Mastodon.Http.send (MastodonEvent << Notifications)
 
         Nothing ->
@@ -121,7 +135,9 @@ loadUserAccount : Maybe Client -> Cmd Msg
 loadUserAccount client =
     case client of
         Just client ->
-            Mastodon.Http.userAccount client
+            HttpBuilder.get Mastodon.ApiUrl.userAccount
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.accountDecoder
                 |> Mastodon.Http.send (MastodonEvent << CurrentUser)
 
         Nothing ->
@@ -133,9 +149,11 @@ loadAccount client accountId =
     case client of
         Just client ->
             Cmd.batch
-                [ Mastodon.Http.fetchAccount client accountId
+                [ HttpBuilder.get (Mastodon.ApiUrl.account accountId)
+                    |> Mastodon.Http.withClient client
+                    |> Mastodon.Http.withDecoder Mastodon.Decoder.accountDecoder
                     |> Mastodon.Http.send (MastodonEvent << AccountReceived)
-                , Mastodon.Http.fetchRelationships client [ accountId ]
+                , requestRelationships client [ accountId ]
                     |> Mastodon.Http.send (MastodonEvent << AccountRelationship)
                 ]
 
@@ -147,7 +165,9 @@ loadAccountTimeline : Maybe Client -> Int -> Cmd Msg
 loadAccountTimeline client accountId =
     case client of
         Just client ->
-            Mastodon.Http.fetchAccountTimeline client accountId
+            HttpBuilder.get (Mastodon.ApiUrl.accountTimeline accountId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.statusDecoder)
                 |> Mastodon.Http.send (MastodonEvent << AccountTimeline)
 
         Nothing ->
@@ -158,7 +178,9 @@ loadAccountFollowers : Maybe Client -> Int -> Cmd Msg
 loadAccountFollowers client accountId =
     case client of
         Just client ->
-            Mastodon.Http.fetchAccountFollowers client accountId
+            HttpBuilder.get (Mastodon.ApiUrl.followers accountId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.accountDecoder)
                 |> Mastodon.Http.send (MastodonEvent << AccountFollowers)
 
         Nothing ->
@@ -169,7 +191,9 @@ loadAccountFollowing : Maybe Client -> Int -> Cmd Msg
 loadAccountFollowing client accountId =
     case client of
         Just client ->
-            Mastodon.Http.fetchAccountFollowing client accountId
+            HttpBuilder.get (Mastodon.ApiUrl.following accountId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.accountDecoder)
                 |> Mastodon.Http.send (MastodonEvent << AccountFollowing)
 
         Nothing ->
@@ -183,18 +207,41 @@ searchAccounts client query limit resolve =
     else
         case client of
             Just client ->
-                Mastodon.Http.searchAccounts client query limit resolve
-                    |> Mastodon.Http.send (MastodonEvent << AutoSearch)
+                let
+                    qs =
+                        [ ( "q", query )
+                        , ( "limit", toString limit )
+                        , ( "resolve"
+                          , if resolve then
+                                "true"
+                            else
+                                "false"
+                          )
+                        ]
+                in
+                    HttpBuilder.get Mastodon.ApiUrl.searchAccount
+                        |> Mastodon.Http.withClient client
+                        |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.accountDecoder)
+                        |> HttpBuilder.withQueryParams qs
+                        |> Mastodon.Http.send (MastodonEvent << AutoSearch)
 
             Nothing ->
                 Cmd.none
 
 
+requestRelationships : Client -> List Int -> Mastodon.Http.Request (List Relationship)
+requestRelationships client ids =
+    HttpBuilder.get Mastodon.ApiUrl.relationships
+        |> Mastodon.Http.withClient client
+        |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.relationshipDecoder)
+        |> HttpBuilder.withQueryParams (List.map (\id -> ( "id[]", toString id )) ids)
+
+
 loadRelationships : Maybe Client -> List Int -> Cmd Msg
-loadRelationships client accountIds =
+loadRelationships client ids =
     case client of
         Just client ->
-            Mastodon.Http.fetchRelationships client accountIds
+            requestRelationships client ids
                 |> Mastodon.Http.send (MastodonEvent << AccountRelationships)
 
         Nothing ->
@@ -205,7 +252,9 @@ loadThread : Maybe Client -> Status -> Cmd Msg
 loadThread client status =
     case client of
         Just client ->
-            Mastodon.Http.context client status.id
+            HttpBuilder.get (Mastodon.ApiUrl.context status.id)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.contextDecoder
                 |> Mastodon.Http.send (MastodonEvent << (ContextLoaded status))
 
         Nothing ->
@@ -216,9 +265,37 @@ loadUserTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadUserTimeline client url =
     case client of
         Just client ->
-            Mastodon.Http.GET (Maybe.withDefault (client.server ++ Mastodon.ApiUrl.homeTimeline) url)
-                |> Mastodon.Http.fetchStatusList client
-                |> Mastodon.Http.send (MastodonEvent << UserTimeline)
+            HttpBuilder.get (Maybe.withDefault Mastodon.ApiUrl.homeTimeline url)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.statusDecoder)
+                |> Mastodon.Http.send (MastodonEvent << UserTimeline (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
+loadLocalTimeline : Maybe Client -> Maybe String -> Cmd Msg
+loadLocalTimeline client url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault Mastodon.ApiUrl.publicTimeline url)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.statusDecoder)
+                |> HttpBuilder.withQueryParams [ ( "local", "true" ) ]
+                |> Mastodon.Http.send (MastodonEvent << LocalTimeline (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
+loadGlobalTimeline : Maybe Client -> Maybe String -> Cmd Msg
+loadGlobalTimeline client url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault Mastodon.ApiUrl.publicTimeline url)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.list Mastodon.Decoder.statusDecoder)
+                |> Mastodon.Http.send (MastodonEvent << GlobalTimeline (url /= Nothing))
 
         Nothing ->
             Cmd.none
@@ -226,26 +303,22 @@ loadUserTimeline client url =
 
 loadTimelines : Maybe Client -> Cmd Msg
 loadTimelines client =
-    case client of
-        Just client ->
-            Cmd.batch
-                [ loadUserTimeline (Just client) Nothing
-                , Mastodon.Http.fetchLocalTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << LocalTimeline)
-                , Mastodon.Http.fetchGlobalTimeline client
-                    |> Mastodon.Http.send (MastodonEvent << GlobalTimeline)
-                , loadNotifications <| Just client
-                ]
-
-        Nothing ->
-            Cmd.none
+    Cmd.batch
+        [ loadUserTimeline client Nothing
+        , loadLocalTimeline client Nothing
+        , loadGlobalTimeline client Nothing
+        , loadNotifications client
+        ]
 
 
 postStatus : Maybe Client -> StatusRequestBody -> Cmd Msg
 postStatus client draft =
     case client of
         Just client ->
-            Mastodon.Http.postStatus client draft
+            HttpBuilder.post Mastodon.ApiUrl.statuses
+                |> Mastodon.Http.withClient client
+                |> HttpBuilder.withJsonBody (Mastodon.Encoder.statusRequestBodyEncoder draft)
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.statusDecoder
                 |> Mastodon.Http.send (MastodonEvent << StatusPosted)
 
         Nothing ->
@@ -261,7 +334,9 @@ deleteStatus : Maybe Client -> Int -> Cmd Msg
 deleteStatus client id =
     case client of
         Just client ->
-            Mastodon.Http.deleteStatus client id
+            HttpBuilder.delete (Mastodon.ApiUrl.status id)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder (Decode.succeed id)
                 |> Mastodon.Http.send (MastodonEvent << StatusDeleted)
 
         Nothing ->
@@ -272,7 +347,9 @@ reblogStatus : Maybe Client -> Int -> Cmd Msg
 reblogStatus client statusId =
     case client of
         Just client ->
-            Mastodon.Http.reblog client statusId
+            HttpBuilder.post (Mastodon.ApiUrl.reblog statusId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.statusDecoder
                 |> Mastodon.Http.send (MastodonEvent << Reblogged)
 
         Nothing ->
@@ -283,7 +360,9 @@ unreblogStatus : Maybe Client -> Int -> Cmd Msg
 unreblogStatus client statusId =
     case client of
         Just client ->
-            Mastodon.Http.unreblog client statusId
+            HttpBuilder.post (Mastodon.ApiUrl.unreblog statusId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.statusDecoder
                 |> Mastodon.Http.send (MastodonEvent << Unreblogged)
 
         Nothing ->
@@ -294,7 +373,9 @@ favouriteStatus : Maybe Client -> Int -> Cmd Msg
 favouriteStatus client statusId =
     case client of
         Just client ->
-            Mastodon.Http.favourite client statusId
+            HttpBuilder.post (Mastodon.ApiUrl.favourite statusId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.statusDecoder
                 |> Mastodon.Http.send (MastodonEvent << FavoriteAdded)
 
         Nothing ->
@@ -305,7 +386,9 @@ unfavouriteStatus : Maybe Client -> Int -> Cmd Msg
 unfavouriteStatus client statusId =
     case client of
         Just client ->
-            Mastodon.Http.unfavourite client statusId
+            HttpBuilder.post (Mastodon.ApiUrl.unfavourite statusId)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.statusDecoder
                 |> Mastodon.Http.send (MastodonEvent << FavoriteRemoved)
 
         Nothing ->
@@ -316,7 +399,9 @@ follow : Maybe Client -> Int -> Cmd Msg
 follow client id =
     case client of
         Just client ->
-            Mastodon.Http.follow client id
+            HttpBuilder.post (Mastodon.ApiUrl.follow id)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.relationshipDecoder
                 |> Mastodon.Http.send (MastodonEvent << AccountFollowed)
 
         Nothing ->
@@ -327,7 +412,9 @@ unfollow : Maybe Client -> Int -> Cmd Msg
 unfollow client id =
     case client of
         Just client ->
-            Mastodon.Http.unfollow client id
+            HttpBuilder.post (Mastodon.ApiUrl.unfollow id)
+                |> Mastodon.Http.withClient client
+                |> Mastodon.Http.withDecoder Mastodon.Decoder.relationshipDecoder
                 |> Mastodon.Http.send (MastodonEvent << AccountUnfollowed)
 
         Nothing ->
