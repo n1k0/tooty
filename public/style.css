@@ -9,6 +9,10 @@ body {
   max-height: calc(100vh - 20px);
 }
 
+.column .panel.draft, .column .panel.options {
+  min-height: 0;
+}
+
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;

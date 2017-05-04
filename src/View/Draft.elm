@@ -151,7 +151,7 @@ draftView ({ draft, currentUser } as model) =
         limitExceeded =
             charCount > 500
     in
-        div [ class "panel panel-default" ]
+        div [ class "panel panel-default draft" ]
             [ div [ class "panel-heading" ]
                 [ Common.icon "envelope"
                 , text <|
@@ -273,7 +273,7 @@ draftView ({ draft, currentUser } as model) =
                             [ text <| toString charCount ]
                         , button
                             [ type_ "submit"
-                            , class "btn btn-primary"
+                            , class "btn btn-warning"
                             , disabled limitExceeded
                             ]
                             [ text "Toot!" ]

@@ -524,7 +524,7 @@ processMastodonEvent msg model =
             case result of
                 Ok context ->
                     { model | currentView = ThreadView (Thread status context) }
-                        ! [ Command.scrollColumnToBottom "thread" ]
+                        ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->
                     { model
@@ -910,7 +910,7 @@ update msg model =
                 newModel =
                     { model | useGlobalTimeline = flag }
             in
-                { model | currentView = preferredTimeline newModel } ! []
+                { newModel | currentView = preferredTimeline newModel } ! []
 
         CloseAccount ->
             { model
@@ -975,18 +975,20 @@ subscriptions model =
                         Mastodon.WebSocket.UserStream
                         NewWebsocketUserMessage
                     ]
-                        ++ (if model.useGlobalTimeline then
+                        ++ (if model.currentView == GlobalTimelineView then
                                 [ Mastodon.WebSocket.subscribeToWebSockets
                                     client
                                     Mastodon.WebSocket.GlobalPublicStream
                                     NewWebsocketGlobalMessage
                                 ]
-                            else
+                            else if model.currentView == LocalTimelineView then
                                 [ Mastodon.WebSocket.subscribeToWebSockets
                                     client
                                     Mastodon.WebSocket.LocalPublicStream
                                     NewWebsocketLocalMessage
                                 ]
+                            else
+                                []
                            )
             in
                 Sub.batch <|
