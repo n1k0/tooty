@@ -1,6 +1,8 @@
 module Mastodon.Http
     exposing
         ( Request
+        , Links
+        , extractLinks
         , context
         , reblog
         , unreblog
@@ -53,6 +55,12 @@ type alias Request a =
     Build.RequestBuilder a
 
 
+type alias Response a =
+    { decoded : a
+    , links : Links
+    }
+
+
 extractMastodonError : Int -> String -> String -> Error
 extractMastodonError statusCode statusMsg body =
     case Decode.decodeString mastodonErrorDecoder body of
@@ -89,19 +97,19 @@ toResponse result =
 
 extractLinks : Dict.Dict String String -> Links
 extractLinks headers =
+    -- The link header content is this form:
     -- <https://...&max_id=123456>; rel="next", <https://...&since_id=123456>; rel="prev"
     let
-        truncate =
-            -- removes first and last characters of a string
+        crop =
             (String.dropLeft 1) >> (String.dropRight 1)
 
         parseDef parts =
             case parts of
                 [ url, "rel=\"next\"" ] ->
-                    [ ( "next", truncate url ) ]
+                    [ ( "next", crop url ) ]
 
                 [ url, "rel=\"prev\"" ] ->
-                    [ ( "prev", truncate url ) ]
+                    [ ( "prev", crop url ) ]
 
                 _ ->
                     []
@@ -122,14 +130,16 @@ extractLinks headers =
     in
         case (Dict.get "link" headers) of
             Nothing ->
-                Links Nothing Nothing
+                { prev = Nothing, next = Nothing }
 
             Just content ->
                 let
                     links =
                         parseLinks content
                 in
-                    Links (Dict.get "prev" links) (Dict.get "next" links)
+                    { prev = (Dict.get "prev" links)
+                    , next = (Dict.get "next" links)
+                    }
 
 
 decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
