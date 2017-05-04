@@ -478,10 +478,10 @@ processMastodonEvent msg model =
     case msg of
         AccessToken result ->
             case result of
-                Ok { server, accessToken } ->
+                Ok { decoded } ->
                     let
                         client =
-                            Client server accessToken
+                            Client decoded.server decoded.accessToken
                     in
                         { model | client = Just client }
                             ! [ Command.loadTimelines <| Just client
@@ -495,26 +495,26 @@ processMastodonEvent msg model =
 
         AccountFollowed result ->
             case result of
-                Ok relationship ->
-                    processFollowEvent relationship True model ! []
+                Ok { decoded } ->
+                    processFollowEvent decoded True model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountUnfollowed result ->
             case result of
-                Ok relationship ->
-                    processFollowEvent relationship False model ! []
+                Ok { decoded } ->
+                    processFollowEvent decoded False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AppRegistered result ->
             case result of
-                Ok registration ->
-                    { model | registration = Just registration }
-                        ! [ Command.saveRegistration registration
-                          , Command.navigateToAuthUrl registration
+                Ok { decoded } ->
+                    { model | registration = Just decoded }
+                        ! [ Command.saveRegistration decoded
+                          , Command.navigateToAuthUrl decoded
                           ]
 
                 Err error ->
@@ -522,8 +522,8 @@ processMastodonEvent msg model =
 
         ContextLoaded status result ->
             case result of
-                Ok context ->
-                    { model | currentView = ThreadView (Thread status context) }
+                Ok { decoded } ->
+                    { model | currentView = ThreadView (Thread status decoded) }
                         ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->
@@ -535,15 +535,15 @@ processMastodonEvent msg model =
 
         CurrentUser result ->
             case result of
-                Ok currentUser ->
-                    { model | currentUser = Just currentUser } ! []
+                Ok { decoded } ->
+                    { model | currentUser = Just decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         FavoriteAdded result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -551,7 +551,7 @@ processMastodonEvent msg model =
 
         FavoriteRemoved result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -559,31 +559,34 @@ processMastodonEvent msg model =
 
         LocalTimeline result ->
             case result of
-                Ok localTimeline ->
-                    { model | localTimeline = localTimeline } ! []
+                Ok { decoded, links } ->
+                    -- TODO: store next link
+                    { model | localTimeline = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Notifications result ->
             case result of
-                Ok notifications ->
-                    { model | notifications = Mastodon.Helper.aggregateNotifications notifications } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | notifications = Mastodon.Helper.aggregateNotifications decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         GlobalTimeline result ->
             case result of
-                Ok globalTimeline ->
-                    { model | globalTimeline = globalTimeline } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | globalTimeline = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Reblogged result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -597,15 +600,15 @@ processMastodonEvent msg model =
 
         StatusDeleted result ->
             case result of
-                Ok id ->
-                    deleteStatusFromAllTimelines id model ! []
+                Ok { decoded } ->
+                    deleteStatusFromAllTimelines decoded model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Unreblogged result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -613,9 +616,9 @@ processMastodonEvent msg model =
 
         AccountReceived result ->
             case result of
-                Ok account ->
-                    { model | currentView = AccountView account }
-                        ! [ Command.loadAccountTimeline model.client account.id ]
+                Ok { decoded } ->
+                    { model | currentView = AccountView decoded }
+                        ! [ Command.loadAccountTimeline model.client decoded.id ]
 
                 Err error ->
                     { model
@@ -626,53 +629,59 @@ processMastodonEvent msg model =
 
         AccountTimeline result ->
             case result of
-                Ok statuses ->
-                    { model | accountTimeline = statuses } ! []
+                Ok { decoded } ->
+                    { model | accountTimeline = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowers result ->
             case result of
-                Ok followers ->
-                    { model | accountFollowers = followers }
-                        ! [ Command.loadRelationships model.client <| List.map .id followers ]
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountFollowers = decoded }
+                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowing result ->
             case result of
-                Ok following ->
-                    { model | accountFollowing = following }
-                        ! [ Command.loadRelationships model.client <| List.map .id following ]
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountFollowing = decoded }
+                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountRelationship result ->
             case result of
-                Ok [ relationship ] ->
-                    { model | accountRelationship = Just relationship } ! []
+                Ok { decoded } ->
+                    case decoded of
+                        [ relationship ] ->
+                            { model | accountRelationship = Just relationship } ! []
 
-                Ok _ ->
-                    model ! []
+                        _ ->
+                            model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountRelationships result ->
             case result of
-                Ok relationships ->
-                    { model | accountRelationships = relationships } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountRelationships = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         UserTimeline result ->
             case result of
-                Ok userTimeline ->
-                    { model | userTimeline = userTimeline } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | userTimeline = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -683,16 +692,16 @@ processMastodonEvent msg model =
                     model.draft
             in
                 case result of
-                    Ok accounts ->
+                    Ok { decoded } ->
                         { model
                             | draft =
                                 { draft
                                     | showAutoMenu =
                                         showAutoMenu
-                                            accounts
+                                            decoded
                                             draft.autoAtPosition
                                             draft.autoQuery
-                                    , autoAccounts = accounts
+                                    , autoAccounts = decoded
                                 }
                         }
                             -- Force selection of the first item after each

@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Autocomplete
+import Mastodon.Http exposing (Response)
 import Mastodon.Model exposing (..)
 import Navigation
 
@@ -29,30 +30,34 @@ type ViewerMsg
     | OpenViewer (List Attachment) Attachment
 
 
+type alias MastodonResult a =
+    Result Error (Response a)
+
+
 type MastodonMsg
-    = AccessToken (Result Error AccessTokenResult)
-    | AccountFollowed (Result Error Relationship)
-    | AccountFollowers (Result Error (List Account))
-    | AccountFollowing (Result Error (List Account))
-    | AccountReceived (Result Error Account)
-    | AccountRelationship (Result Error (List Relationship))
-    | AccountRelationships (Result Error (List Relationship))
-    | AccountTimeline (Result Error (List Status))
-    | AccountUnfollowed (Result Error Relationship)
-    | AppRegistered (Result Error AppRegistration)
-    | ContextLoaded Status (Result Error Context)
-    | CurrentUser (Result Error Account)
-    | FavoriteAdded (Result Error Status)
-    | FavoriteRemoved (Result Error Status)
-    | GlobalTimeline (Result Error (List Status))
-    | LocalTimeline (Result Error (List Status))
-    | Notifications (Result Error (List Notification))
-    | Reblogged (Result Error Status)
-    | StatusDeleted (Result Error Int)
-    | StatusPosted (Result Error Status)
-    | Unreblogged (Result Error Status)
-    | UserTimeline (Result Error (List Status))
-    | AutoSearch (Result Error (List Account))
+    = AccessToken (MastodonResult AccessTokenResult)
+    | AccountFollowed (MastodonResult Relationship)
+    | AccountFollowers (MastodonResult (List Account))
+    | AccountFollowing (MastodonResult (List Account))
+    | AccountReceived (MastodonResult Account)
+    | AccountRelationship (MastodonResult (List Relationship))
+    | AccountRelationships (MastodonResult (List Relationship))
+    | AccountTimeline (MastodonResult (List Status))
+    | AccountUnfollowed (MastodonResult Relationship)
+    | AppRegistered (MastodonResult AppRegistration)
+    | ContextLoaded Status (MastodonResult Context)
+    | CurrentUser (MastodonResult Account)
+    | FavoriteAdded (MastodonResult Status)
+    | FavoriteRemoved (MastodonResult Status)
+    | GlobalTimeline (MastodonResult (List Status))
+    | LocalTimeline (MastodonResult (List Status))
+    | Notifications (MastodonResult (List Notification))
+    | Reblogged (MastodonResult Status)
+    | StatusDeleted (MastodonResult Int)
+    | StatusPosted (MastodonResult Status)
+    | Unreblogged (MastodonResult Status)
+    | UserTimeline (MastodonResult (List Status))
+    | AutoSearch (MastodonResult (List Account))
 
 
 type WebSocketMsg

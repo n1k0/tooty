@@ -49,15 +49,19 @@ initCommands registration client authCode =
             Just authCode ->
                 case registration of
                     Just registration ->
-                        [ Mastodon.Http.getAccessToken registration authCode
-                            |> Mastodon.Http.send (MastodonEvent << AccessToken)
-                        ]
+                        [ getAccessToken registration authCode ]
 
                     Nothing ->
                         []
 
             Nothing ->
                 [ loadUserAccount client, loadTimelines client ]
+
+
+getAccessToken : AppRegistration -> String -> Cmd Msg
+getAccessToken registration authCode =
+    Mastodon.Http.getAccessToken registration authCode
+        |> Mastodon.Http.send (MastodonEvent << AccessToken)
 
 
 navigateToAuthUrl : AppRegistration -> Cmd Msg
