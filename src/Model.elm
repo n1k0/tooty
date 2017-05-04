@@ -630,6 +630,7 @@ processMastodonEvent msg model =
         AccountTimeline result ->
             case result of
                 Ok { decoded } ->
+                    -- TODO: store next link
                     { model | accountTimeline = decoded } ! []
 
                 Err error ->
