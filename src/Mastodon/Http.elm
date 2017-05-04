@@ -1,6 +1,7 @@
 module Mastodon.Http
     exposing
         ( Request
+        , Response
         , Links
         , extractLinks
         , context
@@ -146,16 +147,24 @@ extractLinks headers =
                     }
 
 
-decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
+decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String (Response a)
 decodeResponse decoder response =
-    -- let
-    --     _ =
-    --         Debug.log "headers" <| extractLinks response.headers
-    -- in
-    Decode.decodeString decoder response.body
+    let
+        decoded =
+            Decode.decodeString decoder response.body
+
+        links =
+            extractLinks response.headers
+    in
+        case decoded of
+            Ok decoded ->
+                Ok <| Response decoded links
+
+            Err error ->
+                Err error
 
 
-request : String -> Method -> String -> Decode.Decoder a -> Request a
+request : String -> Method -> String -> Decode.Decoder a -> Request (Response a)
 request server method endpoint decoder =
     let
         httpMethod =
@@ -173,19 +182,19 @@ request server method endpoint decoder =
             |> Build.withExpect (Http.expectStringResponse (decodeResponse decoder))
 
 
-authRequest : Client -> Method -> String -> Decode.Decoder a -> Request a
+authRequest : Client -> Method -> String -> Decode.Decoder a -> Request (Response a)
 authRequest client method endpoint decoder =
     request client.server method endpoint decoder
         |> Build.withHeader "Authorization" ("Bearer " ++ client.token)
 
 
-register : String -> String -> String -> String -> String -> Request AppRegistration
+register : String -> String -> String -> String -> String -> Request (Response AppRegistration)
 register server clientName redirectUri scope website =
     request server POST ApiUrl.apps (appRegistrationDecoder server scope)
         |> Build.withJsonBody (appRegistrationEncoder clientName redirectUri scope website)
 
 
-getAccessToken : AppRegistration -> String -> Request AccessTokenResult
+getAccessToken : AppRegistration -> String -> Request (Response AccessTokenResult)
 getAccessToken registration authCode =
     request registration.server POST ApiUrl.oauthToken (accessTokenDecoder registration)
         |> Build.withJsonBody (authorizationCodeEncoder registration authCode)
@@ -206,54 +215,54 @@ send tagger request =
     Build.send (toResponse >> tagger) request
 
 
-fetchAccount : Client -> Int -> Request Account
+fetchAccount : Client -> Int -> Request (Response Account)
 fetchAccount client accountId =
     authRequest client GET (ApiUrl.account accountId) accountDecoder
 
 
-fetchUserTimeline : Client -> Request (List Status)
+fetchUserTimeline : Client -> Request (Response (List Status))
 fetchUserTimeline client =
     authRequest client GET ApiUrl.homeTimeline <| Decode.list statusDecoder
 
 
-fetchRelationships : Client -> List Int -> Request (List Relationship)
+fetchRelationships : Client -> List Int -> Request (Response (List Relationship))
 fetchRelationships client ids =
     authRequest client GET ApiUrl.relationships (Decode.list relationshipDecoder)
         |> Build.withQueryParams (List.map (\id -> ( "id[]", toString id )) ids)
 
 
-fetchLocalTimeline : Client -> Request (List Status)
+fetchLocalTimeline : Client -> Request (Response (List Status))
 fetchLocalTimeline client =
     authRequest client GET ApiUrl.publicTimeline (Decode.list statusDecoder)
         |> Build.withQueryParams [ ( "local", "true" ) ]
 
 
-fetchGlobalTimeline : Client -> Request (List Status)
+fetchGlobalTimeline : Client -> Request (Response (List Status))
 fetchGlobalTimeline client =
     authRequest client GET ApiUrl.publicTimeline <| Decode.list statusDecoder
 
 
-fetchAccountTimeline : Client -> Int -> Request (List Status)
+fetchAccountTimeline : Client -> Int -> Request (Response (List Status))
 fetchAccountTimeline client id =
     authRequest client GET (ApiUrl.accountTimeline id) <| Decode.list statusDecoder
 
 
-fetchNotifications : Client -> Request (List Notification)
+fetchNotifications : Client -> Request (Response (List Notification))
 fetchNotifications client =
     authRequest client GET (ApiUrl.notifications) <| Decode.list notificationDecoder
 
 
-fetchAccountFollowers : Client -> Int -> Request (List Account)
+fetchAccountFollowers : Client -> Int -> Request (Response (List Account))
 fetchAccountFollowers client accountId =
     authRequest client GET (ApiUrl.followers accountId) <| Decode.list accountDecoder
 
 
-fetchAccountFollowing : Client -> Int -> Request (List Account)
+fetchAccountFollowing : Client -> Int -> Request (Response (List Account))
 fetchAccountFollowing client accountId =
     authRequest client GET (ApiUrl.following accountId) <| Decode.list accountDecoder
 
 
-searchAccounts : Client -> String -> Int -> Bool -> Request (List Account)
+searchAccounts : Client -> String -> Int -> Bool -> Request (Response (List Account))
 searchAccounts client query limit resolve =
     authRequest client GET ApiUrl.searchAccount (Decode.list accountDecoder)
         |> Build.withQueryParams
@@ -268,52 +277,52 @@ searchAccounts client query limit resolve =
             ]
 
 
-userAccount : Client -> Request Account
+userAccount : Client -> Request (Response Account)
 userAccount client =
     authRequest client GET ApiUrl.userAccount accountDecoder
 
 
-postStatus : Client -> StatusRequestBody -> Request Status
+postStatus : Client -> StatusRequestBody -> Request (Response Status)
 postStatus client statusRequestBody =
     authRequest client POST ApiUrl.statuses statusDecoder
         |> Build.withJsonBody (statusRequestBodyEncoder statusRequestBody)
 
 
-deleteStatus : Client -> Int -> Request Int
+deleteStatus : Client -> Int -> Request (Response Int)
 deleteStatus client id =
     authRequest client DELETE (ApiUrl.status id) <| Decode.succeed id
 
 
-context : Client -> Int -> Request Context
+context : Client -> Int -> Request (Response Context)
 context client id =
     authRequest client GET (ApiUrl.context id) contextDecoder
 
 
-reblog : Client -> Int -> Request Status
+reblog : Client -> Int -> Request (Response Status)
 reblog client id =
     authRequest client POST (ApiUrl.reblog id) statusDecoder
 
 
-unreblog : Client -> Int -> Request Status
+unreblog : Client -> Int -> Request (Response Status)
 unreblog client id =
     authRequest client POST (ApiUrl.unreblog id) statusDecoder
 
 
-favourite : Client -> Int -> Request Status
+favourite : Client -> Int -> Request (Response Status)
 favourite client id =
     authRequest client POST (ApiUrl.favourite id) statusDecoder
 
 
-unfavourite : Client -> Int -> Request Status
+unfavourite : Client -> Int -> Request (Response Status)
 unfavourite client id =
     authRequest client POST (ApiUrl.unfavourite id) statusDecoder
 
 
-follow : Client -> Int -> Request Relationship
+follow : Client -> Int -> Request (Response Relationship)
 follow client id =
     authRequest client POST (ApiUrl.follow id) relationshipDecoder
 
 
-unfollow : Client -> Int -> Request Relationship
+unfollow : Client -> Int -> Request (Response Relationship)
 unfollow client id =
     authRequest client POST (ApiUrl.unfollow id) relationshipDecoder
