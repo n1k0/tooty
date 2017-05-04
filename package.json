@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
-    "build": "node_modules/.bin/elm-make src/Main.elm --warn --output=build/app.js && npm run copy-assets",
+    "build": "npm run copy-assets && node_modules/.bin/elm-make src/Main.elm --output=build/app.js",
     "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
     "debug": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js --debug",
     "deploy": "npm run build && node_modules/.bin/gh-pages --dist build/",
