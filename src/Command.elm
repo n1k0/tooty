@@ -34,9 +34,10 @@ module Command
 import Dom
 import Dom.Scroll
 import Json.Encode as Encode
-import Mastodon.Model exposing (..)
+import Mastodon.ApiUrl
 import Mastodon.Encoder
 import Mastodon.Http
+import Mastodon.Model exposing (..)
 import Navigation
 import Ports
 import Task
@@ -212,17 +213,12 @@ loadThread client status =
 
 
 loadUserTimeline : Maybe Client -> Maybe String -> Cmd Msg
-loadUserTimeline client maybeUrl =
+loadUserTimeline client url =
     case client of
         Just client ->
-            case maybeUrl of
-                Just url ->
-                    Mastodon.Http.fetchStatusList client Mastodon.Http.GET url
-                        |> Mastodon.Http.send (MastodonEvent << UserTimelineAppend)
-
-                Nothing ->
-                    Mastodon.Http.fetchUserTimeline client Nothing
-                        |> Mastodon.Http.send (MastodonEvent << UserTimeline)
+            Mastodon.Http.GET (Maybe.withDefault (client.server ++ Mastodon.ApiUrl.homeTimeline) url)
+                |> Mastodon.Http.fetchStatusList client
+                |> Mastodon.Http.send (MastodonEvent << UserTimeline)
 
         Nothing ->
             Cmd.none
