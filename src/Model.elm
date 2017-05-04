@@ -524,7 +524,7 @@ processMastodonEvent msg model =
             case result of
                 Ok context ->
                     { model | currentView = ThreadView (Thread status context) }
-                        ! [ Command.scrollColumnToBottom "thread" ]
+                        ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->
                     { model

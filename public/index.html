@@ -17,16 +17,20 @@
   <body>
     <script src="app.js"></script>
     <script>
+
     const app = Elm.Main.fullscreen({
       client: JSON.parse(localStorage.getItem("tooty.client")),
       registration: JSON.parse(localStorage.getItem("tooty.registration"))
     });
+
     app.ports.saveClient.subscribe(json => {
       localStorage.setItem("tooty.client", json);
     });
+
     app.ports.saveRegistration.subscribe(json => {
       localStorage.setItem("tooty.registration", json);
     });
+
     app.ports.setStatus.subscribe(function(data) {
       var element = document.getElementById(data.id);
       if (element) {
@@ -35,6 +39,16 @@
         element.focus();
       }
     });
+
+    app.ports.scrollIntoView.subscribe(function(id) {
+      requestAnimationFrame(function() {
+        var element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView(true);
+        }
+      });
+    });
+
     </script>
   </body>
 </html>
