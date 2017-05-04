@@ -7,7 +7,6 @@ import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
-import Ports
 import String.Extra
 import Task
 import Types exposing (..)
@@ -525,7 +524,7 @@ processMastodonEvent msg model =
             case result of
                 Ok context ->
                     { model | currentView = ThreadView (Thread status context) }
-                        ! [ Ports.scrollIntoView <| "thread-status-" ++ (toString status.id) ]
+                        ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->
                     { model

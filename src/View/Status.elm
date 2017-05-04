@@ -189,14 +189,14 @@ statusEntryView context className currentUser status =
                 _ ->
                     ""
 
-        liOptions =
+        liAttributes =
             [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
                 ++ if context == "thread" then
                     [ id <| "thread-status-" ++ (toString status.id) ]
                    else
                     []
     in
-        li liOptions
+        li liAttributes
             [ Lazy.lazy2 statusView context status
             , Lazy.lazy2 statusActionsView status currentUser
             ]

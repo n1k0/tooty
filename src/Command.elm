@@ -26,6 +26,7 @@ module Command
         , focusId
         , scrollColumnToTop
         , scrollColumnToBottom
+        , scrollToThreadStatus
         , searchAccounts
         )
 
@@ -329,3 +330,8 @@ scrollColumnToTop column =
 scrollColumnToBottom : String -> Cmd Msg
 scrollColumnToBottom column =
     Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
+
+
+scrollToThreadStatus : String -> Cmd Msg
+scrollToThreadStatus cssId =
+    Ports.scrollIntoView <| "thread-status-" ++ cssId

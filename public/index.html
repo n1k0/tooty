@@ -41,12 +41,12 @@
     });
 
     app.ports.scrollIntoView.subscribe(function(id) {
-        requestAnimationFrame(function() {
-            var element = document.getElementById(id);
-            if (element) {
-                element.scrollIntoView(true);
-            }
-        });
+      requestAnimationFrame(function() {
+        var element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView(true);
+        }
+      });
     });
 
     </script>
