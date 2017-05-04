@@ -92,7 +92,11 @@ extractError error =
 
 toResponse : Result Http.Error a -> Result Error a
 toResponse result =
-    Result.mapError extractError result
+    let
+        _ =
+            Debug.log "toResponse result" result
+    in
+        Result.mapError extractError result
 
 
 extractLinks : Dict.Dict String String -> Links
@@ -144,11 +148,11 @@ extractLinks headers =
 
 decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String a
 decodeResponse decoder response =
-    let
-        _ =
-            Debug.log "headers" <| extractLinks response.headers
-    in
-        Decode.decodeString decoder response.body
+    -- let
+    --     _ =
+    --         Debug.log "headers" <| extractLinks response.headers
+    -- in
+    Decode.decodeString decoder response.body
 
 
 request : String -> Method -> String -> Decode.Decoder a -> Request a
@@ -198,8 +202,8 @@ getAuthorizationUrl registration =
 
 
 send : (Result Error a -> msg) -> Request a -> Cmd msg
-send tagger builder =
-    Build.send (toResponse >> tagger) builder
+send tagger request =
+    Build.send (toResponse >> tagger) request
 
 
 fetchAccount : Client -> Int -> Request Account
