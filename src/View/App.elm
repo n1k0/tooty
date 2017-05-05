@@ -27,67 +27,53 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
-timelineView : ( String, String, String, CurrentUser, List Status ) -> Html Msg
-timelineView ( label, iconName, context, currentUser, statuses ) =
+timelineView : ( String, String, CurrentUser, Timeline ) -> Html Msg
+timelineView ( label, iconName, currentUser, timeline ) =
     let
         keyedEntry status =
-            ( toString id, statusEntryView context "" currentUser status )
+            ( toString id, statusEntryView timeline.id "" currentUser status )
 
         entries =
-            List.map keyedEntry statuses
+            List.map keyedEntry timeline.statuses
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ a
-                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop timeline.id ]
                     [ div [ class "panel-heading" ] [ Common.icon iconName, text label ] ]
-                , Keyed.ul [ id context, class "list-group timeline" ] <|
-                    (entries
-                        ++ [ ( "load-more"
-                             , li [ class "list-group-item load-more text-center" ]
-                                [ a
-                                    [ href ""
-                                    , onClickWithPreventAndStop <| LoadNext context
-                                    ]
-                                    [ text "Load more" ]
-                                ]
-                             )
-                           ]
-                    )
+                , Keyed.ul [ id timeline.id, class "list-group timeline" ] <|
+                    (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
                 ]
             ]
 
 
-userTimelineView : CurrentUser -> List Status -> Html Msg
-userTimelineView currentUser statuses =
+userTimelineView : CurrentUser -> Timeline -> Html Msg
+userTimelineView currentUser timeline =
     timelineView
         ( "Home timeline"
         , "home"
-        , "home"
         , currentUser
-        , statuses
+        , timeline
         )
 
 
-localTimelineView : CurrentUser -> List Status -> Html Msg
-localTimelineView currentUser statuses =
+localTimelineView : CurrentUser -> Timeline -> Html Msg
+localTimelineView currentUser timeline =
     timelineView
         ( "Local timeline"
         , "th-large"
-        , "local"
         , currentUser
-        , statuses
+        , timeline
         )
 
 
-globalTimelineView : CurrentUser -> List Status -> Html Msg
-globalTimelineView currentUser statuses =
+globalTimelineView : CurrentUser -> Timeline -> Html Msg
+globalTimelineView currentUser timeline =
     timelineView
         ( "Global timeline"
         , "globe"
-        , "global"
         , currentUser
-        , statuses
+        , timeline
         )
 
 

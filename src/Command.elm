@@ -12,6 +12,8 @@ module Command
         , loadAccountFollowers
         , loadAccountFollowing
         , loadUserTimeline
+        , loadLocalTimeline
+        , loadGlobalTimeline
         , loadRelationships
         , loadThread
         , loadTimelines
@@ -162,14 +164,14 @@ loadAccount client accountId =
             Cmd.none
 
 
-loadAccountTimeline : Maybe Client -> Int -> Cmd Msg
-loadAccountTimeline client accountId =
+loadAccountTimeline : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountTimeline client accountId url =
     case client of
         Just client ->
-            HttpBuilder.get (ApiUrl.accountTimeline accountId)
+            HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
-                |> send (MastodonEvent << AccountTimeline)
+                |> send (MastodonEvent << AccountTimeline (url /= Nothing))
 
         Nothing ->
             Cmd.none

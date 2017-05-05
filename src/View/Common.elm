@@ -5,6 +5,7 @@ module View.Common
         , closeablePanelheading
         , icon
         , justifiedButtonGroup
+        , loadMoreBtn
         )
 
 import Html exposing (..)
@@ -78,3 +79,14 @@ justifiedButtonGroup : String -> List (Html Msg) -> Html Msg
 justifiedButtonGroup cls buttons =
     div [ class <| "btn-group btn-group-justified " ++ cls ] <|
         List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
+
+
+loadMoreBtn : Timeline -> Html Msg
+loadMoreBtn timeline =
+    li [ class "list-group-item load-more text-center" ]
+        [ a
+            [ href ""
+            , onClickWithPreventAndStop <| LoadNext timeline
+            ]
+            [ text "Load more" ]
+        ]

@@ -42,7 +42,7 @@ type MastodonMsg
     | AccountReceived (MastodonResult Account)
     | AccountRelationship (MastodonResult (List Relationship))
     | AccountRelationships (MastodonResult (List Relationship))
-    | AccountTimeline (MastodonResult (List Status))
+    | AccountTimeline Bool (MastodonResult (List Status))
     | AccountUnfollowed (MastodonResult Relationship)
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
@@ -75,7 +75,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
-    | LoadNext String
+    | LoadNext Timeline
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -94,14 +94,6 @@ type Msg
     | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
-
-
-type alias AccountViewInfo =
-    { account : Account
-    , timeline : List Status
-    , folowers : List Account
-    , following : List Account
-    }
 
 
 type CurrentView
@@ -158,15 +150,21 @@ type alias Viewer =
     }
 
 
+type alias Timeline =
+    { id : String
+    , statuses : List Status
+    , links : Links
+    }
+
+
 type alias Model =
     { server : String
     , registration : Maybe AppRegistration
     , client : Maybe Client
-    , userTimeline : List Status
-    , userTimelineLinks : Links
-    , localTimeline : List Status
-    , globalTimeline : List Status
-    , accountTimeline : List Status
+    , userTimeline : Timeline
+    , localTimeline : Timeline
+    , globalTimeline : Timeline
+    , accountTimeline : Timeline
     , accountFollowers : List Account
     , accountFollowing : List Account
     , accountRelationships : List Relationship
