@@ -163,11 +163,16 @@ send tagger request =
     Build.send (toResponse >> tagger) request
 
 
+isLinkUrl : String -> Bool
+isLinkUrl url =
+    String.contains "max_id=" url || String.contains "since_id=" url
+
+
 withClient : Client -> Build.RequestBuilder a -> Build.RequestBuilder a
 withClient { server, token } builder =
     let
         finalUrl =
-            if String.startsWith server builder.url then
+            if isLinkUrl builder.url then
                 builder.url
             else
                 server ++ builder.url
@@ -178,14 +183,13 @@ withClient { server, token } builder =
 
 withBodyDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
 withBodyDecoder decoder builder =
-    builder
-        |> Build.withExpect (Http.expectStringResponse (decodeResponse decoder))
+    Build.withExpect (Http.expectStringResponse (decodeResponse decoder)) builder
 
 
 withQueryParams : List ( String, String ) -> Build.RequestBuilder a -> Build.RequestBuilder a
 withQueryParams params builder =
-    if String.startsWith "http" builder.url then
+    if isLinkUrl builder.url then
         -- that's a link url, don't append any query string
         builder
     else
-        builder |> withQueryParams params
+        Build.withQueryParams params builder

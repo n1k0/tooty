@@ -68,9 +68,9 @@ initCommands registration client authCode =
 
 getAccessToken : AppRegistration -> String -> Cmd Msg
 getAccessToken registration authCode =
-    HttpBuilder.get ApiUrl.notifications
-        |> withBodyDecoder (accessTokenDecoder registration)
+    HttpBuilder.post (registration.server ++ ApiUrl.oauthToken)
         |> HttpBuilder.withJsonBody (authorizationCodeEncoder registration authCode)
+        |> withBodyDecoder (accessTokenDecoder registration)
         |> send (MastodonEvent << AccessToken)
 
 
@@ -100,8 +100,8 @@ registerApp { server, location } =
         website =
             "https://github.com/n1k0/tooty"
     in
-        HttpBuilder.post ApiUrl.apps
-            |> withBodyDecoder (appRegistrationDecoder server scope)
+        HttpBuilder.post (cleanServer ++ ApiUrl.apps)
+            |> withBodyDecoder (appRegistrationDecoder cleanServer scope)
             |> HttpBuilder.withJsonBody
                 (appRegistrationEncoder clientName redirectUri scope website)
             |> send (MastodonEvent << AppRegistered)
