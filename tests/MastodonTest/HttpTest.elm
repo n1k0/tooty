@@ -24,6 +24,16 @@ all =
                     in
                         extractLinks headers
                             |> Expect.equal { prev = Just "prevLinkUrl", next = Just "nextLinkUrl" }
+            , test "should handle link header name case appropriately" <|
+                \() ->
+                    let
+                        headers =
+                            Dict.fromList
+                                [ ( "Link", "<nextLinkUrl>; rel=\"next\", <prevLinkUrl>; rel=\"prev\"" )
+                                ]
+                    in
+                        extractLinks headers
+                            |> Expect.equal { prev = Just "prevLinkUrl", next = Just "nextLinkUrl" }
             , test "should extract a single prev link" <|
                 \() ->
                     let
