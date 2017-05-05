@@ -2,6 +2,7 @@ module Model exposing (..)
 
 import Autocomplete
 import Command
+import List.Extra exposing (removeAt)
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
@@ -855,6 +856,9 @@ update msg model =
     case msg of
         NoOp ->
             model ! []
+
+        ClearError index ->
+            { model | errors = removeAt index model.errors } ! []
 
         MastodonEvent msg ->
             let

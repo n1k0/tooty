@@ -4,6 +4,32 @@ body {
   overflow: hidden;
 }
 
+/* Alert messages */
+
+.error-list {
+  position: fixed;
+  top: 12px;
+  left: 25%;
+  right: 25%;
+  z-index: 999;
+}
+
+.error-list .alert {
+  margin: 0 0 4px 0;
+  padding: 8.5px 10px;
+  border-radius: 2px;
+  opacity: .95;
+  z-index: 9999;
+}
+
+.error-list .alert .close {
+  color: #fff;
+  opacity: .7;
+  outline: 0;
+}
+
+/* Columns */
+
 .column .panel {
   min-height: calc(100vh - 20px);
   max-height: calc(100vh - 20px);
@@ -20,6 +46,7 @@ body {
   overflow: hidden;
   overflow-y: scroll;
 }
+
 
 .notifications-panel .timeline {
   max-height: calc(100vh - 100px);

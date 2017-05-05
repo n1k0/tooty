@@ -68,6 +68,7 @@ type WebSocketMsg
 
 type Msg
     = AddFavorite Int
+    | ClearError Int
     | CloseAccount
     | CloseThread
     | DeleteStatus Int
