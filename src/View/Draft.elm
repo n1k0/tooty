@@ -20,12 +20,12 @@ type alias CurrentUser =
     Account
 
 
-visibilities : List ( String, String, String )
+visibilities : List ( String, String, String, String )
 visibilities =
-    [ ( "unlisted", "do not show in public timelines", "eye-close" )
-    , ( "private", "post to followers only", "user" )
-    , ( "direct", "post to mentioned users only", "lock" )
-    , ( "public", "post to public timelines", "globe" )
+    [ ( "direct", "Mentioned", "Visible to mentioned users only", "envelope" )
+    , ( "private", "Followers", "Visible to followers only", "lock" )
+    , ( "unlisted", "Unlisted", "Do not show in public timelines", "eye-close" )
+    , ( "public", "Public", "Visible in public timelines", "globe" )
     ]
 
 
@@ -113,20 +113,20 @@ visibilitySelector { visibility } =
     let
         btnClass v =
             if v == visibility then
-                "btn btn-sm btn-primary active"
+                "btn btn-sm btn-vis btn-primary active"
             else
-                "btn btn-sm btn-default"
+                "btn btn-sm btn-vis btn-default"
     in
         visibilities
             |> List.map
-                (\( v, t, i ) ->
+                (\( v, d, t, i ) ->
                     a
                         [ href ""
                         , class <| btnClass v
                         , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility v)
                         , title t
                         ]
-                        [ Common.icon i, text " ", text v ]
+                        [ Common.icon i, span [] [ text d ] ]
                 )
             |> Common.justifiedButtonGroup "draft-visibilities"
 
