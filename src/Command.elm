@@ -128,6 +128,7 @@ loadNotifications client url =
             HttpBuilder.get (Maybe.withDefault ApiUrl.notifications url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list notificationDecoder)
+                |> withQueryParams [ ( "limit", "30" ) ]
                 |> send (MastodonEvent << Notifications (url /= Nothing))
 
         Nothing ->
@@ -262,6 +263,7 @@ loadUserTimeline client url =
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << UserTimeline (url /= Nothing))
 
         Nothing ->
@@ -275,7 +277,7 @@ loadLocalTimeline client url =
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
-                |> withQueryParams [ ( "local", "true" ) ]
+                |> withQueryParams [ ( "local", "true" ), ( "limit", "60" ) ]
                 |> send (MastodonEvent << LocalTimeline (url /= Nothing))
 
         Nothing ->
@@ -289,6 +291,7 @@ loadGlobalTimeline client url =
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << GlobalTimeline (url /= Nothing))
 
         Nothing ->
@@ -302,6 +305,7 @@ loadAccountTimeline client accountId url =
             HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << AccountTimeline (url /= Nothing))
 
         Nothing ->
