@@ -49,7 +49,7 @@ timelineView ( label, iconName, currentUser, timeline ) =
 
 userTimelineView : CurrentUser -> Timeline -> Html Msg
 userTimelineView currentUser timeline =
-    timelineView
+    Lazy.lazy timelineView
         ( "Home timeline"
         , "home"
         , currentUser
@@ -59,7 +59,7 @@ userTimelineView currentUser timeline =
 
 localTimelineView : CurrentUser -> Timeline -> Html Msg
 localTimelineView currentUser timeline =
-    timelineView
+    Lazy.lazy timelineView
         ( "Local timeline"
         , "th-large"
         , currentUser
@@ -69,7 +69,7 @@ localTimelineView currentUser timeline =
 
 globalTimelineView : CurrentUser -> Timeline -> Html Msg
 globalTimelineView currentUser timeline =
-    timelineView
+    Lazy.lazy timelineView
         ( "Global timeline"
         , "globe"
         , currentUser
@@ -94,7 +94,7 @@ homepageView model =
         Just currentUser ->
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
-                , Lazy.lazy2 userTimelineView currentUser model.userTimeline
+                , userTimelineView currentUser model.userTimeline
                 , Lazy.lazy3
                     notificationListView
                     currentUser
@@ -102,10 +102,10 @@ homepageView model =
                     model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        Lazy.lazy2 localTimelineView currentUser model.localTimeline
+                        localTimelineView currentUser model.localTimeline
 
                     GlobalTimelineView ->
-                        Lazy.lazy2 globalTimelineView currentUser model.globalTimeline
+                        globalTimelineView currentUser model.globalTimeline
 
                     AccountView account ->
                         accountTimelineView

@@ -799,7 +799,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = prependStatusToTimeline status model.localTimeline } ! []
+                            { model | localTimeline = prependStatusToTimeline status model.localTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -823,7 +823,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = prependStatusToTimeline status model.globalTimeline } ! []
+                            { model | globalTimeline = prependStatusToTimeline status model.globalTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -925,27 +925,7 @@ update msg model =
                 ! [ Command.loadAccount model.client accountId ]
 
         LoadNext timeline ->
-            -- TODO: at some point we should have a generic timeline loading feature
-            case timeline.id of
-                "home-timeline" ->
-                    model ! [ Command.loadUserTimeline model.client timeline.links.next ]
-
-                "local-timeline" ->
-                    model ! [ Command.loadLocalTimeline model.client timeline.links.next ]
-
-                "global-timeline" ->
-                    model ! [ Command.loadGlobalTimeline model.client timeline.links.next ]
-
-                "account-timeline" ->
-                    case model.currentView of
-                        AccountView account ->
-                            model ! [ Command.loadAccountTimeline model.client account.id timeline.links.next ]
-
-                        _ ->
-                            model ! []
-
-                _ ->
-                    model ! []
+            model ! [ Command.loadNextTimeline model.client model.currentView timeline ]
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }

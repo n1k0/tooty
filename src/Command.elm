@@ -14,6 +14,7 @@ module Command
         , loadLocalTimeline
         , loadGlobalTimeline
         , loadAccountTimeline
+        , loadNextTimeline
         , loadRelationships
         , loadThread
         , loadTimelines
@@ -313,6 +314,30 @@ loadTimelines client =
         , loadGlobalTimeline client Nothing
         , loadNotifications client
         ]
+
+
+loadNextTimeline : Maybe Client -> CurrentView -> Timeline -> Cmd Msg
+loadNextTimeline client currentView { id, links } =
+    case id of
+        "home-timeline" ->
+            loadUserTimeline client links.next
+
+        "local-timeline" ->
+            loadLocalTimeline client links.next
+
+        "global-timeline" ->
+            loadGlobalTimeline client links.next
+
+        "account-timeline" ->
+            case currentView of
+                AccountView account ->
+                    loadAccountTimeline client account.id links.next
+
+                _ ->
+                    Cmd.none
+
+        _ ->
+            Cmd.none
 
 
 postStatus : Maybe Client -> StatusRequestBody -> Cmd Msg
