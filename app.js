@@ -28550,7 +28550,29 @@ var _n1k0$tooty$View_Account$accountView = F4(
 																	{
 																		ctor: '::',
 																		_0: A2(_n1k0$tooty$View_Common$accountLink, true, account),
-																		_1: {ctor: '[]'}
+																		_1: {
+																			ctor: '::',
+																			_0: function () {
+																				var _p3 = relationship;
+																				if (_p3.ctor === 'Just') {
+																					return _p3._0.followed_by ? A2(
+																						_elm_lang$html$Html$span,
+																						{
+																							ctor: '::',
+																							_0: _elm_lang$html$Html_Attributes$class('badge followed-by'),
+																							_1: {ctor: '[]'}
+																						},
+																						{
+																							ctor: '::',
+																							_0: _elm_lang$html$Html$text('Follows you'),
+																							_1: {ctor: '[]'}
+																						}) : _elm_lang$html$Html$text('');
+																				} else {
+																					return _elm_lang$html$Html$text('');
+																				}
+																			}(),
+																			_1: {ctor: '[]'}
+																		}
 																	}),
 																_1: {
 																	ctor: '::',

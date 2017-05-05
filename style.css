@@ -456,6 +456,10 @@ body {
   color: #fff;
 }
 
+.followed-by {
+  margin-left: 5px;
+}
+
 /* Viewer */
 
 .viewer {
