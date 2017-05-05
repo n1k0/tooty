@@ -7198,6 +7198,144 @@ var _elm_lang$core$Set$partition = F2(
 		};
 	});
 
+var _elm_community$dict_extra$Dict_Extra$find = F2(
+	function (predicate, dict) {
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, v, acc) {
+					var _p0 = acc;
+					if (_p0.ctor === 'Just') {
+						return acc;
+					} else {
+						return A2(predicate, k, v) ? _elm_lang$core$Maybe$Just(
+							{ctor: '_Tuple2', _0: k, _1: v}) : _elm_lang$core$Maybe$Nothing;
+					}
+				}),
+			_elm_lang$core$Maybe$Nothing,
+			dict);
+	});
+var _elm_community$dict_extra$Dict_Extra$invert = function (dict) {
+	return A3(
+		_elm_lang$core$Dict$foldl,
+		F3(
+			function (k, v, acc) {
+				return A3(_elm_lang$core$Dict$insert, v, k, acc);
+			}),
+		_elm_lang$core$Dict$empty,
+		dict);
+};
+var _elm_community$dict_extra$Dict_Extra$filterMap = F2(
+	function (f, dict) {
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, v, acc) {
+					var _p1 = A2(f, k, v);
+					if (_p1.ctor === 'Just') {
+						return A3(_elm_lang$core$Dict$insert, k, _p1._0, acc);
+					} else {
+						return acc;
+					}
+				}),
+			_elm_lang$core$Dict$empty,
+			dict);
+	});
+var _elm_community$dict_extra$Dict_Extra$mapKeys = F2(
+	function (keyMapper, dict) {
+		return A3(
+			_elm_lang$core$Dict$foldl,
+			F3(
+				function (k, v, acc) {
+					return A3(
+						_elm_lang$core$Dict$insert,
+						keyMapper(k),
+						v,
+						acc);
+				}),
+			_elm_lang$core$Dict$empty,
+			dict);
+	});
+var _elm_community$dict_extra$Dict_Extra$keepOnly = F2(
+	function (set, dict) {
+		return A3(
+			_elm_lang$core$Set$foldl,
+			F2(
+				function (k, acc) {
+					return A2(
+						_elm_lang$core$Maybe$withDefault,
+						acc,
+						A2(
+							_elm_lang$core$Maybe$map,
+							function (v) {
+								return A3(_elm_lang$core$Dict$insert, k, v, acc);
+							},
+							A2(_elm_lang$core$Dict$get, k, dict)));
+				}),
+			_elm_lang$core$Dict$empty,
+			set);
+	});
+var _elm_community$dict_extra$Dict_Extra$removeMany = F2(
+	function (set, dict) {
+		return A3(_elm_lang$core$Set$foldl, _elm_lang$core$Dict$remove, dict, set);
+	});
+var _elm_community$dict_extra$Dict_Extra$removeWhen = F2(
+	function (pred, dict) {
+		return A2(
+			_elm_lang$core$Dict$filter,
+			F2(
+				function (k, v) {
+					return !A2(pred, k, v);
+				}),
+			dict);
+	});
+var _elm_community$dict_extra$Dict_Extra$fromListBy = F2(
+	function (keyfn, xs) {
+		return A3(
+			_elm_lang$core$List$foldl,
+			F2(
+				function (x, acc) {
+					return A3(
+						_elm_lang$core$Dict$insert,
+						keyfn(x),
+						x,
+						acc);
+				}),
+			_elm_lang$core$Dict$empty,
+			xs);
+	});
+var _elm_community$dict_extra$Dict_Extra$groupBy = F2(
+	function (keyfn, list) {
+		return A3(
+			_elm_lang$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A3(
+						_elm_lang$core$Dict$update,
+						keyfn(x),
+						function (_p2) {
+							return _elm_lang$core$Maybe$Just(
+								A2(
+									_elm_lang$core$Maybe$withDefault,
+									{
+										ctor: '::',
+										_0: x,
+										_1: {ctor: '[]'}
+									},
+									A2(
+										_elm_lang$core$Maybe$map,
+										F2(
+											function (x, y) {
+												return {ctor: '::', _0: x, _1: y};
+											})(x),
+										_p2)));
+						},
+						acc);
+				}),
+			_elm_lang$core$Dict$empty,
+			list);
+	});
+
 var _elm_community$list_extra$List_Extra$greedyGroupsOfWithStep = F3(
 	function (size, step, xs) {
 		var okayXs = _elm_lang$core$Native_Utils.cmp(
@@ -24189,7 +24327,10 @@ var _n1k0$tooty$Mastodon_Http$extractLinks = function (headers) {
 						_elm_lang$core$String$trim,
 						A2(_elm_lang$core$String$split, ',', content)))));
 	};
-	var _p4 = A2(_elm_lang$core$Dict$get, 'link', headers);
+	var _p4 = A2(
+		_elm_lang$core$Dict$get,
+		'link',
+		A2(_elm_community$dict_extra$Dict_Extra$mapKeys, _elm_lang$core$String$toLower, headers));
 	if (_p4.ctor === 'Nothing') {
 		return {prev: _elm_lang$core$Maybe$Nothing, next: _elm_lang$core$Maybe$Nothing};
 	} else {
@@ -26095,34 +26236,39 @@ var _n1k0$tooty$View_Events$onClickInformation = function (msg) {
 };
 
 var _n1k0$tooty$View_Common$loadMoreBtn = function (timeline) {
-	return A2(
-		_elm_lang$html$Html$li,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('list-group-item load-more text-center'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$a,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$href(''),
-					_1: {
+	var _p0 = timeline.links.next;
+	if (_p0.ctor === 'Just') {
+		return A2(
+			_elm_lang$html$Html$li,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('list-group-item load-more text-center'),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$a,
+					{
 						ctor: '::',
-						_0: _n1k0$tooty$View_Events$onClickWithPreventAndStop(
-							_n1k0$tooty$Types$LoadNext(timeline)),
+						_0: _elm_lang$html$Html_Attributes$href(_p0._0),
+						_1: {
+							ctor: '::',
+							_0: _n1k0$tooty$View_Events$onClickWithPreventAndStop(
+								_n1k0$tooty$Types$LoadNext(timeline)),
+							_1: {ctor: '[]'}
+						}
+					},
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Load more'),
 						_1: {ctor: '[]'}
-					}
-				},
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html$text('Load more'),
-					_1: {ctor: '[]'}
-				}),
-			_1: {ctor: '[]'}
-		});
+					}),
+				_1: {ctor: '[]'}
+			});
+	} else {
+		return _elm_lang$html$Html$text('');
+	}
 };
 var _n1k0$tooty$View_Common$justifiedButtonGroup = F2(
 	function (cls, buttons) {
