@@ -2,7 +2,7 @@
 
 An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm. It is not usable yet.
 
-![](http://i.imgur.com/tMLK7fh.png)
+![](http://i.imgur.com/4sJCngb.png)
 
 ### Setting up the development environment
 
