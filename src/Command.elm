@@ -230,13 +230,16 @@ requestRelationships client ids =
 
 loadRelationships : Maybe Client -> List Int -> Cmd Msg
 loadRelationships client ids =
-    case client of
-        Just client ->
-            requestRelationships client ids
-                |> send (MastodonEvent << AccountRelationships)
+    if List.length ids > 0 then
+        case client of
+            Just client ->
+                requestRelationships client ids
+                    |> send (MastodonEvent << AccountRelationships)
 
-        Nothing ->
-            Cmd.none
+            Nothing ->
+                Cmd.none
+    else
+        Cmd.none
 
 
 loadThread : Maybe Client -> Status -> Cmd Msg

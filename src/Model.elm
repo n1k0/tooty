@@ -670,7 +670,7 @@ processMastodonEvent msg model =
                         ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = (errorText (Debug.log "error" error)) :: model.errors } ! []
 
         AccountFollowing result ->
             case result of
