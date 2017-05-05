@@ -83,10 +83,15 @@ justifiedButtonGroup cls buttons =
 
 loadMoreBtn : Timeline -> Html Msg
 loadMoreBtn timeline =
-    li [ class "list-group-item load-more text-center" ]
-        [ a
-            [ href ""
-            , onClickWithPreventAndStop <| LoadNext timeline
-            ]
-            [ text "Load more" ]
-        ]
+    case timeline.links.next of
+        Just next ->
+            li [ class "list-group-item load-more text-center" ]
+                [ a
+                    [ href next
+                    , onClickWithPreventAndStop <| LoadNext timeline
+                    ]
+                    [ text "Load more" ]
+                ]
+
+        Nothing ->
+            text ""

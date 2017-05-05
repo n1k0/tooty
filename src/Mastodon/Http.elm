@@ -13,6 +13,7 @@ module Mastodon.Http
         )
 
 import Dict
+import Dict.Extra exposing (mapKeys)
 import Http
 import HttpBuilder as Build
 import Json.Decode as Decode
@@ -88,6 +89,8 @@ extractLinks : Dict.Dict String String -> Links
 extractLinks headers =
     -- The link header content is this form:
     -- <https://...&max_id=123456>; rel="next", <https://...&since_id=123456>; rel="prev"
+    -- Note: Chrome and Firefox don't expose header names the same way. Firefox
+    -- will use "Link" when Chrome uses "link"; that's why we lowercase them.
     let
         crop =
             (String.dropLeft 1) >> (String.dropRight 1)
@@ -117,7 +120,7 @@ extractLinks headers =
                 |> List.concat
                 |> Dict.fromList
     in
-        case (Dict.get "link" headers) of
+        case (headers |> mapKeys String.toLower |> Dict.get "link") of
             Nothing ->
                 { prev = Nothing, next = Nothing }
 
