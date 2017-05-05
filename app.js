@@ -24088,26 +24088,13 @@ var _n1k0$tooty$Mastodon_Decoder$appRegistrationDecoder = F2(
 								_NoRedInk$elm_decode_pipeline$Json_Decode_Pipeline$decode(_n1k0$tooty$Mastodon_Model$AppRegistration)))))));
 	});
 
-var _n1k0$tooty$Mastodon_Http$withQueryParams = F2(
-	function (params, builder) {
-		withQueryParams:
-		while (true) {
-			if (A2(_elm_lang$core$String$startsWith, 'http', builder.url)) {
-				return builder;
-			} else {
-				var _v0 = params,
-					_v1 = builder;
-				params = _v0;
-				builder = _v1;
-				continue withQueryParams;
-			}
-		}
-	});
+var _n1k0$tooty$Mastodon_Http$isLinkUrl = function (url) {
+	return A2(_elm_lang$core$String$contains, 'max_id=', url) || A2(_elm_lang$core$String$contains, 'since_id=', url);
+};
 var _n1k0$tooty$Mastodon_Http$withClient = F2(
 	function (_p0, builder) {
 		var _p1 = _p0;
-		var _p2 = _p1.server;
-		var finalUrl = A2(_elm_lang$core$String$startsWith, _p2, builder.url) ? builder.url : A2(_elm_lang$core$Basics_ops['++'], _p2, builder.url);
+		var finalUrl = _n1k0$tooty$Mastodon_Http$isLinkUrl(builder.url) ? builder.url : A2(_elm_lang$core$Basics_ops['++'], _p1.server, builder.url);
 		return A3(
 			_lukewestby$elm_http_builder$HttpBuilder$withHeader,
 			'Authorization',
@@ -24115,6 +24102,10 @@ var _n1k0$tooty$Mastodon_Http$withClient = F2(
 			_elm_lang$core$Native_Utils.update(
 				builder,
 				{url: finalUrl}));
+	});
+var _n1k0$tooty$Mastodon_Http$withQueryParams = F2(
+	function (params, builder) {
+		return _n1k0$tooty$Mastodon_Http$isLinkUrl(builder.url) ? builder : A2(_lukewestby$elm_http_builder$HttpBuilder$withQueryParams, params, builder);
 	});
 var _n1k0$tooty$Mastodon_Http$getAuthorizationUrl = function (registration) {
 	return A2(
@@ -24139,25 +24130,25 @@ var _n1k0$tooty$Mastodon_Http$getAuthorizationUrl = function (registration) {
 		});
 };
 var _n1k0$tooty$Mastodon_Http$extractLinks = function (headers) {
-	var crop = function (_p3) {
+	var crop = function (_p2) {
 		return A2(
 			_elm_lang$core$String$dropRight,
 			1,
-			A2(_elm_lang$core$String$dropLeft, 1, _p3));
+			A2(_elm_lang$core$String$dropLeft, 1, _p2));
 	};
 	var parseDef = function (parts) {
-		var _p4 = parts;
-		_v3_2:
+		var _p3 = parts;
+		_v1_2:
 		do {
-			if (((_p4.ctor === '::') && (_p4._1.ctor === '::')) && (_p4._1._1.ctor === '[]')) {
-				switch (_p4._1._0) {
+			if (((_p3.ctor === '::') && (_p3._1.ctor === '::')) && (_p3._1._1.ctor === '[]')) {
+				switch (_p3._1._0) {
 					case 'rel=\"next\"':
 						return {
 							ctor: '::',
 							_0: {
 								ctor: '_Tuple2',
 								_0: 'next',
-								_1: crop(_p4._0)
+								_1: crop(_p3._0)
 							},
 							_1: {ctor: '[]'}
 						};
@@ -24167,15 +24158,15 @@ var _n1k0$tooty$Mastodon_Http$extractLinks = function (headers) {
 							_0: {
 								ctor: '_Tuple2',
 								_0: 'prev',
-								_1: crop(_p4._0)
+								_1: crop(_p3._0)
 							},
 							_1: {ctor: '[]'}
 						};
 					default:
-						break _v3_2;
+						break _v1_2;
 				}
 			} else {
-				break _v3_2;
+				break _v1_2;
 			}
 		} while(false);
 		return {ctor: '[]'};
@@ -24198,11 +24189,11 @@ var _n1k0$tooty$Mastodon_Http$extractLinks = function (headers) {
 						_elm_lang$core$String$trim,
 						A2(_elm_lang$core$String$split, ',', content)))));
 	};
-	var _p5 = A2(_elm_lang$core$Dict$get, 'link', headers);
-	if (_p5.ctor === 'Nothing') {
+	var _p4 = A2(_elm_lang$core$Dict$get, 'link', headers);
+	if (_p4.ctor === 'Nothing') {
 		return {prev: _elm_lang$core$Maybe$Nothing, next: _elm_lang$core$Maybe$Nothing};
 	} else {
-		var links = parseLinks(_p5._0);
+		var links = parseLinks(_p4._0);
 		return {
 			prev: A2(_elm_lang$core$Dict$get, 'prev', links),
 			next: A2(_elm_lang$core$Dict$get, 'next', links)
@@ -24211,26 +24202,26 @@ var _n1k0$tooty$Mastodon_Http$extractLinks = function (headers) {
 };
 var _n1k0$tooty$Mastodon_Http$extractMastodonError = F3(
 	function (statusCode, statusMsg, body) {
-		var _p6 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon_Decoder$mastodonErrorDecoder, body);
-		if (_p6.ctor === 'Ok') {
-			return A3(_n1k0$tooty$Mastodon_Model$MastodonError, statusCode, statusMsg, _p6._0);
+		var _p5 = A2(_elm_lang$core$Json_Decode$decodeString, _n1k0$tooty$Mastodon_Decoder$mastodonErrorDecoder, body);
+		if (_p5.ctor === 'Ok') {
+			return A3(_n1k0$tooty$Mastodon_Model$MastodonError, statusCode, statusMsg, _p5._0);
 		} else {
-			return A3(_n1k0$tooty$Mastodon_Model$ServerError, statusCode, statusMsg, _p6._0);
+			return A3(_n1k0$tooty$Mastodon_Model$ServerError, statusCode, statusMsg, _p5._0);
 		}
 	});
 var _n1k0$tooty$Mastodon_Http$extractError = function (error) {
-	var _p7 = error;
-	switch (_p7.ctor) {
+	var _p6 = error;
+	switch (_p6.ctor) {
 		case 'BadStatus':
-			var _p8 = _p7._0.status;
-			return A3(_n1k0$tooty$Mastodon_Http$extractMastodonError, _p8.code, _p8.message, _p7._0.body);
+			var _p7 = _p6._0.status;
+			return A3(_n1k0$tooty$Mastodon_Http$extractMastodonError, _p7.code, _p7.message, _p6._0.body);
 		case 'BadPayload':
-			var _p9 = _p7._1.status;
+			var _p8 = _p6._1.status;
 			return A3(
 				_n1k0$tooty$Mastodon_Model$ServerError,
-				_p9.code,
-				_p9.message,
-				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p7._0));
+				_p8.code,
+				_p8.message,
+				A2(_elm_lang$core$Basics_ops['++'], 'Failed decoding JSON: ', _p6._0));
 		case 'Timeout':
 			return _n1k0$tooty$Mastodon_Model$TimeoutError;
 		default:
@@ -24244,9 +24235,9 @@ var _n1k0$tooty$Mastodon_Http$send = F2(
 	function (tagger, request) {
 		return A2(
 			_lukewestby$elm_http_builder$HttpBuilder$send,
-			function (_p10) {
+			function (_p9) {
 				return tagger(
-					_n1k0$tooty$Mastodon_Http$toResponse(_p10));
+					_n1k0$tooty$Mastodon_Http$toResponse(_p9));
 			},
 			request);
 	});
@@ -24262,12 +24253,12 @@ var _n1k0$tooty$Mastodon_Http$decodeResponse = F2(
 	function (decoder, response) {
 		var links = _n1k0$tooty$Mastodon_Http$extractLinks(response.headers);
 		var decoded = A2(_elm_lang$core$Json_Decode$decodeString, decoder, response.body);
-		var _p11 = decoded;
-		if (_p11.ctor === 'Ok') {
+		var _p10 = decoded;
+		if (_p10.ctor === 'Ok') {
 			return _elm_lang$core$Result$Ok(
-				A2(_n1k0$tooty$Mastodon_Http$Response, _p11._0, links));
+				A2(_n1k0$tooty$Mastodon_Http$Response, _p10._0, links));
 		} else {
-			return _elm_lang$core$Result$Err(_p11._0);
+			return _elm_lang$core$Result$Err(_p10._0);
 		}
 	});
 var _n1k0$tooty$Mastodon_Http$withBodyDecoder = F2(
@@ -25777,8 +25768,9 @@ var _n1k0$tooty$Command$registerApp = function (_p47) {
 			A4(_n1k0$tooty$Mastodon_Encoder$appRegistrationEncoder, clientName, redirectUri, scope, website),
 			A2(
 				_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-				A2(_n1k0$tooty$Mastodon_Decoder$appRegistrationDecoder, _p51, scope),
-				_lukewestby$elm_http_builder$HttpBuilder$post(_n1k0$tooty$Mastodon_ApiUrl$apps))));
+				A2(_n1k0$tooty$Mastodon_Decoder$appRegistrationDecoder, cleanServer, scope),
+				_lukewestby$elm_http_builder$HttpBuilder$post(
+					A2(_elm_lang$core$Basics_ops['++'], cleanServer, _n1k0$tooty$Mastodon_ApiUrl$apps)))));
 };
 var _n1k0$tooty$Command$navigateToAuthUrl = function (registration) {
 	return _elm_lang$navigation$Navigation$load(
@@ -25793,12 +25785,13 @@ var _n1k0$tooty$Command$getAccessToken = F2(
 					_n1k0$tooty$Types$AccessToken(_p52));
 			},
 			A2(
-				_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
-				A2(_n1k0$tooty$Mastodon_Encoder$authorizationCodeEncoder, registration, authCode),
+				_n1k0$tooty$Mastodon_Http$withBodyDecoder,
+				_n1k0$tooty$Mastodon_Decoder$accessTokenDecoder(registration),
 				A2(
-					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-					_n1k0$tooty$Mastodon_Decoder$accessTokenDecoder(registration),
-					_lukewestby$elm_http_builder$HttpBuilder$get(_n1k0$tooty$Mastodon_ApiUrl$notifications))));
+					_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
+					A2(_n1k0$tooty$Mastodon_Encoder$authorizationCodeEncoder, registration, authCode),
+					_lukewestby$elm_http_builder$HttpBuilder$post(
+						A2(_elm_lang$core$Basics_ops['++'], registration.server, _n1k0$tooty$Mastodon_ApiUrl$oauthToken)))));
 	});
 var _n1k0$tooty$Command$initCommands = F3(
 	function (registration, client, authCode) {
