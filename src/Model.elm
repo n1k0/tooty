@@ -5,6 +5,7 @@ import Command
 import Navigation
 import Mastodon.Decoder
 import Mastodon.Helper
+import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import String.Extra
@@ -55,10 +56,10 @@ init flags location =
         { server = ""
         , registration = flags.registration
         , client = flags.client
-        , userTimeline = []
-        , localTimeline = []
-        , globalTimeline = []
-        , accountTimeline = []
+        , userTimeline = emptyTimeline "home-timeline"
+        , localTimeline = emptyTimeline "local-timeline"
+        , globalTimeline = emptyTimeline "global-timeline"
+        , accountTimeline = emptyTimeline "account-timeline"
         , accountFollowers = []
         , accountFollowing = []
         , accountRelationships = []
@@ -76,17 +77,20 @@ init flags location =
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
 
+emptyTimeline : String -> Timeline
+emptyTimeline id =
+    { id = id
+    , statuses = []
+    , links = Links Nothing Nothing
+    }
+
+
 preferredTimeline : Model -> CurrentView
 preferredTimeline model =
     if model.useGlobalTimeline then
         GlobalTimelineView
     else
         LocalTimelineView
-
-
-truncate : List a -> List a
-truncate entries =
-    List.take maxBuffer entries
 
 
 errorText : Error -> String
@@ -129,12 +133,15 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
                 statusUpdater status
             else
                 status
+
+        updateTimeline timeline =
+            { timeline | statuses = List.map update timeline.statuses }
     in
         { model
-            | userTimeline = List.map update model.userTimeline
-            , accountTimeline = List.map update model.accountTimeline
-            , localTimeline = List.map update model.localTimeline
-            , globalTimeline = List.map update model.globalTimeline
+            | userTimeline = updateTimeline model.userTimeline
+            , accountTimeline = updateTimeline model.accountTimeline
+            , localTimeline = updateTimeline model.localTimeline
+            , globalTimeline = updateTimeline model.globalTimeline
             , currentView =
                 case model.currentView of
                     ThreadView thread ->
@@ -191,16 +198,16 @@ processReblog statusId flag model =
         model
 
 
-deleteStatusFromTimeline : Int -> List Status -> List Status
+deleteStatusFromTimeline : Int -> Timeline -> Timeline
 deleteStatusFromTimeline statusId timeline =
-    timeline
-        |> List.filter
-            (\s ->
-                s.id
-                    /= statusId
-                    && (Mastodon.Helper.extractReblog s).id
-                    /= statusId
-            )
+    let
+        update status =
+            status.id
+                /= statusId
+                && (Mastodon.Helper.extractReblog status).id
+                /= statusId
+    in
+        { timeline | statuses = List.filter update timeline.statuses }
 
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
@@ -473,15 +480,32 @@ updateViewer viewerMsg viewer =
             (Just <| Viewer attachments attachment) ! []
 
 
+updateTimeline : Bool -> List Status -> Links -> Timeline -> Timeline
+updateTimeline append statuses links timeline =
+    let
+        newStatuses =
+            if append then
+                List.concat [ timeline.statuses, statuses ]
+            else
+                statuses
+    in
+        { timeline | statuses = newStatuses, links = links }
+
+
+prependStatusToTimeline : Status -> Timeline -> Timeline
+prependStatusToTimeline status timeline =
+    { timeline | statuses = status :: timeline.statuses }
+
+
 processMastodonEvent : MastodonMsg -> Model -> ( Model, Cmd Msg )
 processMastodonEvent msg model =
     case msg of
         AccessToken result ->
             case result of
-                Ok { server, accessToken } ->
+                Ok { decoded } ->
                     let
                         client =
-                            Client server accessToken
+                            Client decoded.server decoded.accessToken
                     in
                         { model | client = Just client }
                             ! [ Command.loadTimelines <| Just client
@@ -495,26 +519,26 @@ processMastodonEvent msg model =
 
         AccountFollowed result ->
             case result of
-                Ok relationship ->
-                    processFollowEvent relationship True model ! []
+                Ok { decoded } ->
+                    processFollowEvent decoded True model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountUnfollowed result ->
             case result of
-                Ok relationship ->
-                    processFollowEvent relationship False model ! []
+                Ok { decoded } ->
+                    processFollowEvent decoded False model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AppRegistered result ->
             case result of
-                Ok registration ->
-                    { model | registration = Just registration }
-                        ! [ Command.saveRegistration registration
-                          , Command.navigateToAuthUrl registration
+                Ok { decoded } ->
+                    { model | registration = Just decoded }
+                        ! [ Command.saveRegistration decoded
+                          , Command.navigateToAuthUrl decoded
                           ]
 
                 Err error ->
@@ -522,8 +546,8 @@ processMastodonEvent msg model =
 
         ContextLoaded status result ->
             case result of
-                Ok context ->
-                    { model | currentView = ThreadView (Thread status context) }
+                Ok { decoded } ->
+                    { model | currentView = ThreadView (Thread status decoded) }
                         ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->
@@ -535,15 +559,15 @@ processMastodonEvent msg model =
 
         CurrentUser result ->
             case result of
-                Ok currentUser ->
-                    { model | currentUser = Just currentUser } ! []
+                Ok { decoded } ->
+                    { model | currentUser = Just decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         FavoriteAdded result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -551,39 +575,40 @@ processMastodonEvent msg model =
 
         FavoriteRemoved result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        LocalTimeline result ->
+        LocalTimeline append result ->
             case result of
-                Ok localTimeline ->
-                    { model | localTimeline = localTimeline } ! []
+                Ok { decoded, links } ->
+                    { model | localTimeline = updateTimeline append decoded links model.localTimeline } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Notifications result ->
             case result of
-                Ok notifications ->
-                    { model | notifications = Mastodon.Helper.aggregateNotifications notifications } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | notifications = Mastodon.Helper.aggregateNotifications decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        GlobalTimeline result ->
+        GlobalTimeline append result ->
             case result of
-                Ok globalTimeline ->
-                    { model | globalTimeline = globalTimeline } ! []
+                Ok { decoded, links } ->
+                    { model | globalTimeline = updateTimeline append decoded links model.globalTimeline } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Reblogged result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -591,21 +616,21 @@ processMastodonEvent msg model =
 
         StatusPosted _ ->
             { model | draft = defaultDraft }
-                ! [ Command.scrollColumnToTop "home"
+                ! [ Command.scrollColumnToTop "home-timeline"
                   , Command.updateDomStatus defaultDraft.status
                   ]
 
         StatusDeleted result ->
             case result of
-                Ok id ->
-                    deleteStatusFromAllTimelines id model ! []
+                Ok { decoded } ->
+                    deleteStatusFromAllTimelines decoded model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         Unreblogged result ->
             case result of
-                Ok status ->
+                Ok _ ->
                     model ! [ Command.loadNotifications model.client ]
 
                 Err error ->
@@ -613,9 +638,9 @@ processMastodonEvent msg model =
 
         AccountReceived result ->
             case result of
-                Ok account ->
-                    { model | currentView = AccountView account }
-                        ! [ Command.loadAccountTimeline model.client account.id ]
+                Ok { decoded } ->
+                    { model | currentView = AccountView decoded }
+                        ! [ Command.loadAccountTimeline model.client decoded.id model.userTimeline.links.next ]
 
                 Err error ->
                     { model
@@ -624,55 +649,60 @@ processMastodonEvent msg model =
                     }
                         ! []
 
-        AccountTimeline result ->
+        AccountTimeline append result ->
             case result of
-                Ok statuses ->
-                    { model | accountTimeline = statuses } ! []
+                Ok { decoded, links } ->
+                    { model | accountTimeline = updateTimeline append decoded links model.accountTimeline } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowers result ->
             case result of
-                Ok followers ->
-                    { model | accountFollowers = followers }
-                        ! [ Command.loadRelationships model.client <| List.map .id followers ]
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountFollowers = decoded }
+                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountFollowing result ->
             case result of
-                Ok following ->
-                    { model | accountFollowing = following }
-                        ! [ Command.loadRelationships model.client <| List.map .id following ]
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountFollowing = decoded }
+                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountRelationship result ->
             case result of
-                Ok [ relationship ] ->
-                    { model | accountRelationship = Just relationship } ! []
+                Ok { decoded } ->
+                    case decoded of
+                        [ relationship ] ->
+                            { model | accountRelationship = Just relationship } ! []
 
-                Ok _ ->
-                    model ! []
+                        _ ->
+                            model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
         AccountRelationships result ->
             case result of
-                Ok relationships ->
-                    { model | accountRelationships = relationships } ! []
+                Ok { decoded } ->
+                    -- TODO: store next link
+                    { model | accountRelationships = decoded } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        UserTimeline result ->
+        UserTimeline append result ->
             case result of
-                Ok userTimeline ->
-                    { model | userTimeline = userTimeline } ! []
+                Ok { decoded, links } ->
+                    { model | userTimeline = updateTimeline append decoded links model.userTimeline } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -683,16 +713,16 @@ processMastodonEvent msg model =
                     model.draft
             in
                 case result of
-                    Ok accounts ->
+                    Ok { decoded } ->
                         { model
                             | draft =
                                 { draft
                                     | showAutoMenu =
                                         showAutoMenu
-                                            accounts
+                                            decoded
                                             draft.autoAtPosition
                                             draft.autoQuery
-                                    , autoAccounts = accounts
+                                    , autoAccounts = decoded
                                 }
                         }
                             -- Force selection of the first item after each
@@ -734,7 +764,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = truncate (status :: model.userTimeline) } ! []
+                            { model | userTimeline = prependStatusToTimeline status model.userTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -756,7 +786,7 @@ processWebSocketMsg msg model =
                                         notification
                                         model.notifications
                             in
-                                { model | notifications = truncate notifications } ! []
+                                { model | notifications = notifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -769,7 +799,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = truncate (status :: model.localTimeline) } ! []
+                            { model | localTimeline = prependStatusToTimeline status model.localTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -793,7 +823,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = truncate (status :: model.globalTimeline) } ! []
+                            { model | globalTimeline = prependStatusToTimeline status model.globalTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -886,13 +916,16 @@ update msg model =
 
         LoadAccount accountId ->
             { model
-                | accountTimeline = []
+                | accountTimeline = emptyTimeline "account-timeline"
                 , accountFollowers = []
                 , accountFollowing = []
                 , accountRelationships = []
                 , accountRelationship = Nothing
             }
                 ! [ Command.loadAccount model.client accountId ]
+
+        LoadNext timeline ->
+            model ! [ Command.loadNextTimeline model.client model.currentView timeline ]
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }
@@ -915,7 +948,7 @@ update msg model =
         CloseAccount ->
             { model
                 | currentView = preferredTimeline model
-                , accountTimeline = []
+                , accountTimeline = emptyTimeline "account-timeline"
                 , accountFollowing = []
                 , accountFollowers = []
             }

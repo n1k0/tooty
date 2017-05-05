@@ -27,21 +27,54 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
-timelineView : ( String, String, String, CurrentUser, List Status ) -> Html Msg
-timelineView ( label, iconName, context, currentUser, statuses ) =
+timelineView : ( String, String, CurrentUser, Timeline ) -> Html Msg
+timelineView ( label, iconName, currentUser, timeline ) =
     let
         keyedEntry status =
-            ( toString id, statusEntryView context "" currentUser status )
+            ( toString id, statusEntryView timeline.id "" currentUser status )
+
+        entries =
+            List.map keyedEntry timeline.statuses
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
                 [ a
-                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop context ]
+                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop timeline.id ]
                     [ div [ class "panel-heading" ] [ Common.icon iconName, text label ] ]
-                , Keyed.ul [ id context, class "list-group timeline" ] <|
-                    List.map keyedEntry statuses
+                , Keyed.ul [ id timeline.id, class "list-group timeline" ] <|
+                    (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
                 ]
             ]
+
+
+userTimelineView : CurrentUser -> Timeline -> Html Msg
+userTimelineView currentUser timeline =
+    Lazy.lazy timelineView
+        ( "Home timeline"
+        , "home"
+        , currentUser
+        , timeline
+        )
+
+
+localTimelineView : CurrentUser -> Timeline -> Html Msg
+localTimelineView currentUser timeline =
+    Lazy.lazy timelineView
+        ( "Local timeline"
+        , "th-large"
+        , currentUser
+        , timeline
+        )
+
+
+globalTimelineView : CurrentUser -> Timeline -> Html Msg
+globalTimelineView currentUser timeline =
+    Lazy.lazy timelineView
+        ( "Global timeline"
+        , "globe"
+        , currentUser
+        , timeline
+        )
 
 
 sidebarView : Model -> Html Msg
@@ -61,13 +94,7 @@ homepageView model =
         Just currentUser ->
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
-                , Lazy.lazy timelineView
-                    ( "Home timeline"
-                    , "home"
-                    , "home"
-                    , currentUser
-                    , model.userTimeline
-                    )
+                , userTimelineView currentUser model.userTimeline
                 , Lazy.lazy3
                     notificationListView
                     currentUser
@@ -75,22 +102,10 @@ homepageView model =
                     model.notifications
                 , case model.currentView of
                     LocalTimelineView ->
-                        Lazy.lazy timelineView
-                            ( "Local timeline"
-                            , "th-large"
-                            , "local"
-                            , currentUser
-                            , model.localTimeline
-                            )
+                        localTimelineView currentUser model.localTimeline
 
                     GlobalTimelineView ->
-                        Lazy.lazy timelineView
-                            ( "Global timeline"
-                            , "globe"
-                            , "global"
-                            , currentUser
-                            , model.globalTimeline
-                            )
+                        globalTimelineView currentUser model.globalTimeline
 
                     AccountView account ->
                         accountTimelineView

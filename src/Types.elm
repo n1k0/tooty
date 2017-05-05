@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Autocomplete
+import Mastodon.Http exposing (Response, Links)
 import Mastodon.Model exposing (..)
 import Navigation
 
@@ -29,30 +30,34 @@ type ViewerMsg
     | OpenViewer (List Attachment) Attachment
 
 
+type alias MastodonResult a =
+    Result Error (Response a)
+
+
 type MastodonMsg
-    = AccessToken (Result Error AccessTokenResult)
-    | AccountFollowed (Result Error Relationship)
-    | AccountFollowers (Result Error (List Account))
-    | AccountFollowing (Result Error (List Account))
-    | AccountReceived (Result Error Account)
-    | AccountRelationship (Result Error (List Relationship))
-    | AccountRelationships (Result Error (List Relationship))
-    | AccountTimeline (Result Error (List Status))
-    | AccountUnfollowed (Result Error Relationship)
-    | AppRegistered (Result Error AppRegistration)
-    | ContextLoaded Status (Result Error Context)
-    | CurrentUser (Result Error Account)
-    | FavoriteAdded (Result Error Status)
-    | FavoriteRemoved (Result Error Status)
-    | GlobalTimeline (Result Error (List Status))
-    | LocalTimeline (Result Error (List Status))
-    | Notifications (Result Error (List Notification))
-    | Reblogged (Result Error Status)
-    | StatusDeleted (Result Error Int)
-    | StatusPosted (Result Error Status)
-    | Unreblogged (Result Error Status)
-    | UserTimeline (Result Error (List Status))
-    | AutoSearch (Result Error (List Account))
+    = AccessToken (MastodonResult AccessTokenResult)
+    | AccountFollowed (MastodonResult Relationship)
+    | AccountFollowers (MastodonResult (List Account))
+    | AccountFollowing (MastodonResult (List Account))
+    | AccountReceived (MastodonResult Account)
+    | AccountRelationship (MastodonResult (List Relationship))
+    | AccountRelationships (MastodonResult (List Relationship))
+    | AccountTimeline Bool (MastodonResult (List Status))
+    | AccountUnfollowed (MastodonResult Relationship)
+    | AppRegistered (MastodonResult AppRegistration)
+    | AutoSearch (MastodonResult (List Account))
+    | ContextLoaded Status (MastodonResult Context)
+    | CurrentUser (MastodonResult Account)
+    | FavoriteAdded (MastodonResult Status)
+    | FavoriteRemoved (MastodonResult Status)
+    | GlobalTimeline Bool (MastodonResult (List Status))
+    | LocalTimeline Bool (MastodonResult (List Status))
+    | Notifications (MastodonResult (List Notification))
+    | Reblogged (MastodonResult Status)
+    | StatusDeleted (MastodonResult Int)
+    | StatusPosted (MastodonResult Status)
+    | Unreblogged (MastodonResult Status)
+    | UserTimeline Bool (MastodonResult (List Status))
 
 
 type WebSocketMsg
@@ -70,6 +75,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
+    | LoadNext Timeline
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -88,14 +94,6 @@ type Msg
     | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
-
-
-type alias AccountViewInfo =
-    { account : Account
-    , timeline : List Status
-    , folowers : List Account
-    , following : List Account
-    }
 
 
 type CurrentView
@@ -152,14 +150,21 @@ type alias Viewer =
     }
 
 
+type alias Timeline =
+    { id : String
+    , statuses : List Status
+    , links : Links
+    }
+
+
 type alias Model =
     { server : String
     , registration : Maybe AppRegistration
     , client : Maybe Client
-    , userTimeline : List Status
-    , localTimeline : List Status
-    , globalTimeline : List Status
-    , accountTimeline : List Status
+    , userTimeline : Timeline
+    , localTimeline : Timeline
+    , globalTimeline : Timeline
+    , accountTimeline : Timeline
     , accountFollowers : List Account
     , accountFollowing : List Account
     , accountRelationships : List Relationship

@@ -122,18 +122,21 @@ accountFollowView currentUser accounts relationships relationship account =
                 List.map keyedEntry accounts
 
 
-accountTimelineView : CurrentUser -> List Status -> CurrentUserRelation -> Account -> Html Msg
-accountTimelineView currentUser statuses relationship account =
+accountTimelineView : CurrentUser -> Timeline -> CurrentUserRelation -> Account -> Html Msg
+accountTimelineView currentUser timeline relationship account =
     let
         keyedEntry status =
             ( toString status.id
             , li [ class "list-group-item status" ]
                 [ Lazy.lazy2 statusView "account" status ]
             )
+
+        entries =
+            List.map keyedEntry timeline.statuses
     in
         accountView currentUser account relationship <|
-            Keyed.ul [ class "list-group" ] <|
-                List.map keyedEntry statuses
+            Keyed.ul [ id timeline.id, class "list-group" ] <|
+                (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
 
 accountView : CurrentUser -> Account -> CurrentUserRelation -> Html Msg -> Html Msg
