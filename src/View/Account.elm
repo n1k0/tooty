@@ -131,7 +131,7 @@ accountTimelineView currentUser timeline relationship account =
             )
 
         entries =
-            List.map keyedEntry timeline.statuses
+            List.map keyedEntry timeline.entries
     in
         accountView currentUser account relationship <|
             Keyed.ul [ id timeline.id, class "list-group" ] <|

@@ -130,13 +130,18 @@ notificationFilterView filter =
             ]
 
 
-notificationListView : CurrentUser -> NotificationFilter -> List NotificationAggregate -> Html Msg
+notificationListView : CurrentUser -> NotificationFilter -> Timeline NotificationAggregate -> Html Msg
 notificationListView currentUser filter notifications =
     let
         keyedEntry notification =
             ( toString notification.id
             , Lazy.lazy2 notificationEntryView currentUser notification
             )
+
+        entries =
+            notifications.entries
+                |> filterNotifications filter
+                |> List.map keyedEntry
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default notifications-panel" ]
@@ -145,9 +150,6 @@ notificationListView currentUser filter notifications =
                     [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
                 , notificationFilterView filter
                 , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
-                    (notifications
-                        |> filterNotifications filter
-                        |> List.map keyedEntry
-                    )
+                    (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
                 ]
             ]

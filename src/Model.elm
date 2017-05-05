@@ -64,8 +64,7 @@ init flags location =
         , accountFollowing = []
         , accountRelationships = []
         , accountRelationship = Nothing
-        , notifications = []
-        , notificationsLinks = Links Nothing Nothing
+        , notifications = emptyTimeline "notifications"
         , draft = defaultDraft
         , errors = []
         , location = location
@@ -81,7 +80,7 @@ init flags location =
 emptyTimeline : String -> Timeline a
 emptyTimeline id =
     { id = id
-    , statuses = []
+    , entries = []
     , links = Links Nothing Nothing
     }
 
@@ -136,7 +135,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
                 status
 
         updateTimeline timeline =
-            { timeline | statuses = List.map update timeline.statuses }
+            { timeline | entries = List.map update timeline.entries }
     in
         { model
             | userTimeline = updateTimeline model.userTimeline
@@ -208,7 +207,7 @@ deleteStatusFromTimeline statusId timeline =
                 && (Mastodon.Helper.extractReblog status).id
                 /= statusId
     in
-        { timeline | statuses = List.filter update timeline.statuses }
+        { timeline | entries = List.filter update timeline.entries }
 
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
@@ -487,16 +486,16 @@ updateTimeline append entries links timeline =
     let
         newEntries =
             if append then
-                List.concat [ timeline.statuses, entries ]
+                List.concat [ timeline.entries, entries ]
             else
                 entries
     in
-        { timeline | statuses = newEntries, links = links }
+        { timeline | entries = newEntries, links = links }
 
 
 prependToTimeline : a -> Timeline a -> Timeline a
 prependToTimeline entry timeline =
-    { timeline | statuses = entry :: timeline.statuses }
+    { timeline | entries = entry :: timeline.entries }
 
 
 processMastodonEvent : MastodonMsg -> Model -> ( Model, Cmd Msg )
@@ -594,11 +593,11 @@ processMastodonEvent msg model =
         Notifications append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model
-                        | notifications = Mastodon.Helper.aggregateNotifications decoded
-                        , notificationsLinks = links
-                    }
-                        ! []
+                    let
+                        aggregated =
+                            Mastodon.Helper.aggregateNotifications decoded
+                    in
+                        { model | notifications = updateTimeline append aggregated links model.notifications } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -786,12 +785,18 @@ processWebSocketMsg msg model =
                     case result of
                         Ok notification ->
                             let
-                                notifications =
-                                    Mastodon.Helper.addNotificationToAggregates
-                                        notification
-                                        model.notifications
+                                oldNotifications =
+                                    model.notifications
+
+                                newNotifications =
+                                    { oldNotifications
+                                        | entries =
+                                            Mastodon.Helper.addNotificationToAggregates
+                                                notification
+                                                oldNotifications.entries
+                                    }
                             in
-                                { model | notifications = notifications } ! []
+                                { model | notifications = newNotifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []

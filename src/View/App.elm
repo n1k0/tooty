@@ -34,7 +34,7 @@ timelineView ( label, iconName, currentUser, timeline ) =
             ( toString id, statusEntryView timeline.id "" currentUser status )
 
         entries =
-            List.map keyedEntry timeline.statuses
+            List.map keyedEntry timeline.entries
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]

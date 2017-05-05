@@ -152,7 +152,7 @@ type alias Viewer =
 
 type alias Timeline a =
     { id : String
-    , statuses : List a
+    , entries : List a
     , links : Links
     }
 
@@ -169,8 +169,7 @@ type alias Model =
     , accountFollowing : List Account
     , accountRelationships : List Relationship
     , accountRelationship : Maybe Relationship
-    , notifications : List NotificationAggregate
-    , notificationsLinks : Links
+    , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List String
     , location : Navigation.Location

@@ -318,6 +318,9 @@ loadTimelines client =
 loadNextTimeline : Maybe Client -> CurrentView -> String -> String -> Cmd Msg
 loadNextTimeline client currentView id next =
     case id of
+        "notifications" ->
+            loadNotifications client (Just next)
+
         "home-timeline" ->
             loadUserTimeline client (Just next)
 
