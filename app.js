@@ -27638,7 +27638,53 @@ var _n1k0$tooty$View_Status$statusActionsView = F2(
 					}),
 				_1: {
 					ctor: '::',
-					_0: A2(
+					_0: _elm_lang$core$Native_Utils.eq(status.visibility, 'private') ? A2(
+						_elm_lang$html$Html$span,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class(
+								A2(_elm_lang$core$Basics_ops['++'], reblogClasses, ' disabled')),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$title('Private'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _n1k0$tooty$View_Common$icon('lock'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}) : (_elm_lang$core$Native_Utils.eq(status.visibility, 'direct') ? A2(
+						_elm_lang$html$Html$span,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class(
+								A2(_elm_lang$core$Basics_ops['++'], reblogClasses, ' disabled')),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$title('Direct'),
+									_1: {ctor: '[]'}
+								},
+								{
+									ctor: '::',
+									_0: _n1k0$tooty$View_Common$icon('envelope'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}) : A2(
 						_elm_lang$html$Html$a,
 						{
 							ctor: '::',
@@ -27658,7 +27704,7 @@ var _n1k0$tooty$View_Status$statusActionsView = F2(
 									_elm_lang$core$Basics$toString(sourceStatus.reblogs_count)),
 								_1: {ctor: '[]'}
 							}
-						}),
+						})),
 					_1: {
 						ctor: '::',
 						_0: A2(
@@ -28547,17 +28593,9 @@ var _n1k0$tooty$View_Account$accountTimelineView = F4(
 				ctor: '_Tuple2',
 				_0: _elm_lang$core$Basics$toString(status.id),
 				_1: A2(
-					_elm_lang$html$Html$li,
-					{
-						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('list-group-item status'),
-						_1: {ctor: '[]'}
-					},
-					{
-						ctor: '::',
-						_0: A3(_elm_lang$html$Html_Lazy$lazy2, _n1k0$tooty$View_Status$statusView, 'account', status),
-						_1: {ctor: '[]'}
-					})
+					_elm_lang$html$Html_Lazy$lazy,
+					A3(_n1k0$tooty$View_Status$statusEntryView, 'account', 'status', currentUser),
+					status)
 			};
 		};
 		var entries = A2(_elm_lang$core$List$map, keyedEntry, timeline.statuses);
@@ -29800,7 +29838,7 @@ var _n1k0$tooty$Model$processMastodonEvent = F2(
 							}),
 						{
 							ctor: '::',
-							_0: A3(_n1k0$tooty$Command$loadAccountTimeline, model.client, _p51.id, model.userTimeline.links.next),
+							_0: A3(_n1k0$tooty$Command$loadAccountTimeline, model.client, _p51.id, model.accountTimeline.links.next),
 							_1: {ctor: '[]'}
 						});
 				} else {
@@ -30846,16 +30884,16 @@ var _n1k0$tooty$View_Draft$viewAutocompleteMenu = function (draft) {
 };
 var _n1k0$tooty$View_Draft$visibilities = {
 	ctor: '::',
-	_0: {ctor: '_Tuple3', _0: 'unlisted', _1: 'do not show in public timelines', _2: 'eye-close'},
+	_0: {ctor: '_Tuple4', _0: 'direct', _1: 'Mentioned', _2: 'Visible to mentioned users only', _3: 'envelope'},
 	_1: {
 		ctor: '::',
-		_0: {ctor: '_Tuple3', _0: 'private', _1: 'post to followers only', _2: 'user'},
+		_0: {ctor: '_Tuple4', _0: 'private', _1: 'Followers', _2: 'Visible to followers only', _3: 'lock'},
 		_1: {
 			ctor: '::',
-			_0: {ctor: '_Tuple3', _0: 'direct', _1: 'post to mentioned users only', _2: 'lock'},
+			_0: {ctor: '_Tuple4', _0: 'unlisted', _1: 'Unlisted', _2: 'Do not show in public timelines', _3: 'eye-close'},
 			_1: {
 				ctor: '::',
-				_0: {ctor: '_Tuple3', _0: 'public', _1: 'post to public timelines', _2: 'globe'},
+				_0: {ctor: '_Tuple4', _0: 'public', _1: 'Public', _2: 'Visible in public timelines', _3: 'globe'},
 				_1: {ctor: '[]'}
 			}
 		}
@@ -30864,7 +30902,7 @@ var _n1k0$tooty$View_Draft$visibilities = {
 var _n1k0$tooty$View_Draft$visibilitySelector = function (_p5) {
 	var _p6 = _p5;
 	var btnClass = function (v) {
-		return _elm_lang$core$Native_Utils.eq(v, _p6.visibility) ? 'btn btn-sm btn-primary active' : 'btn btn-sm btn-default';
+		return _elm_lang$core$Native_Utils.eq(v, _p6.visibility) ? 'btn btn-sm btn-vis btn-primary active' : 'btn btn-sm btn-vis btn-default';
 	};
 	return A2(
 		_n1k0$tooty$View_Common$justifiedButtonGroup,
@@ -30890,7 +30928,7 @@ var _n1k0$tooty$View_Draft$visibilitySelector = function (_p5) {
 										_n1k0$tooty$Types$UpdateVisibility(_p9))),
 								_1: {
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$title(_p8._1),
+									_0: _elm_lang$html$Html_Attributes$title(_p8._2),
 									_1: {ctor: '[]'}
 								}
 							}
@@ -30898,15 +30936,18 @@ var _n1k0$tooty$View_Draft$visibilitySelector = function (_p5) {
 					},
 					{
 						ctor: '::',
-						_0: _n1k0$tooty$View_Common$icon(_p8._2),
+						_0: _n1k0$tooty$View_Common$icon(_p8._3),
 						_1: {
 							ctor: '::',
-							_0: _elm_lang$html$Html$text(' '),
-							_1: {
-								ctor: '::',
-								_0: _elm_lang$html$Html$text(_p9),
-								_1: {ctor: '[]'}
-							}
+							_0: A2(
+								_elm_lang$html$Html$span,
+								{ctor: '[]'},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text(_p8._1),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
 						}
 					});
 			},
