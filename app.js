@@ -25504,16 +25504,23 @@ var _n1k0$tooty$Command$loadAccountTimeline = F3(
 							_p17));
 				},
 				A2(
-					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-					_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+					_n1k0$tooty$Mastodon_Http$withQueryParams,
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'limit', _1: '60'},
+						_1: {ctor: '[]'}
+					},
 					A2(
-						_n1k0$tooty$Mastodon_Http$withClient,
-						_p16._0,
-						_lukewestby$elm_http_builder$HttpBuilder$get(
-							A2(
-								_elm_lang$core$Maybe$withDefault,
-								_n1k0$tooty$Mastodon_ApiUrl$accountTimeline(accountId),
-								url)))));
+						_n1k0$tooty$Mastodon_Http$withBodyDecoder,
+						_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+						A2(
+							_n1k0$tooty$Mastodon_Http$withClient,
+							_p16._0,
+							_lukewestby$elm_http_builder$HttpBuilder$get(
+								A2(
+									_elm_lang$core$Maybe$withDefault,
+									_n1k0$tooty$Mastodon_ApiUrl$accountTimeline(accountId),
+									url))))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
@@ -25532,13 +25539,20 @@ var _n1k0$tooty$Command$loadGlobalTimeline = F2(
 							_p19));
 				},
 				A2(
-					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-					_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+					_n1k0$tooty$Mastodon_Http$withQueryParams,
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'limit', _1: '60'},
+						_1: {ctor: '[]'}
+					},
 					A2(
-						_n1k0$tooty$Mastodon_Http$withClient,
-						_p18._0,
-						_lukewestby$elm_http_builder$HttpBuilder$get(
-							A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$publicTimeline, url)))));
+						_n1k0$tooty$Mastodon_Http$withBodyDecoder,
+						_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+						A2(
+							_n1k0$tooty$Mastodon_Http$withClient,
+							_p18._0,
+							_lukewestby$elm_http_builder$HttpBuilder$get(
+								A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$publicTimeline, url))))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
@@ -25561,7 +25575,11 @@ var _n1k0$tooty$Command$loadLocalTimeline = F2(
 					{
 						ctor: '::',
 						_0: {ctor: '_Tuple2', _0: 'local', _1: 'true'},
-						_1: {ctor: '[]'}
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'limit', _1: '60'},
+							_1: {ctor: '[]'}
+						}
 					},
 					A2(
 						_n1k0$tooty$Mastodon_Http$withBodyDecoder,
@@ -25589,13 +25607,20 @@ var _n1k0$tooty$Command$loadUserTimeline = F2(
 							_p23));
 				},
 				A2(
-					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-					_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+					_n1k0$tooty$Mastodon_Http$withQueryParams,
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'limit', _1: '60'},
+						_1: {ctor: '[]'}
+					},
 					A2(
-						_n1k0$tooty$Mastodon_Http$withClient,
-						_p22._0,
-						_lukewestby$elm_http_builder$HttpBuilder$get(
-							A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$homeTimeline, url)))));
+						_n1k0$tooty$Mastodon_Http$withBodyDecoder,
+						_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$statusDecoder),
+						A2(
+							_n1k0$tooty$Mastodon_Http$withClient,
+							_p22._0,
+							_lukewestby$elm_http_builder$HttpBuilder$get(
+								A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$homeTimeline, url))))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
@@ -25837,13 +25862,20 @@ var _n1k0$tooty$Command$loadNotifications = F2(
 							_p41));
 				},
 				A2(
-					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
-					_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$notificationDecoder),
+					_n1k0$tooty$Mastodon_Http$withQueryParams,
+					{
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'limit', _1: '30'},
+						_1: {ctor: '[]'}
+					},
 					A2(
-						_n1k0$tooty$Mastodon_Http$withClient,
-						_p40._0,
-						_lukewestby$elm_http_builder$HttpBuilder$get(
-							A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$notifications, url)))));
+						_n1k0$tooty$Mastodon_Http$withBodyDecoder,
+						_elm_lang$core$Json_Decode$list(_n1k0$tooty$Mastodon_Decoder$notificationDecoder),
+						A2(
+							_n1k0$tooty$Mastodon_Http$withClient,
+							_p40._0,
+							_lukewestby$elm_http_builder$HttpBuilder$get(
+								A2(_elm_lang$core$Maybe$withDefault, _n1k0$tooty$Mastodon_ApiUrl$notifications, url))))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
