@@ -123,11 +123,18 @@ statusActionsView status currentUser =
                     DraftEvent (UpdateReplyTo status)
                 ]
                 [ Common.icon "share-alt" ]
-            , a
-                [ class reblogClasses
-                , onClickWithPreventAndStop reblogEvent
-                ]
-                [ Common.icon "fire", text (toString sourceStatus.reblogs_count) ]
+            , if status.visibility == "private" then
+                span [ class <| reblogClasses ++ " disabled" ]
+                    [ span [ title "Private" ] [ Common.icon "lock" ] ]
+              else if status.visibility == "direct" then
+                span [ class <| reblogClasses ++ " disabled" ]
+                    [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
+              else
+                a
+                    [ class reblogClasses
+                    , onClickWithPreventAndStop reblogEvent
+                    ]
+                    [ Common.icon "fire", text (toString sourceStatus.reblogs_count) ]
             , a
                 [ class favClasses
                 , onClickWithPreventAndStop favEvent

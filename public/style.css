@@ -348,6 +348,15 @@ body {
   color: #555;
 }
 
+.btn-vis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-vis > span {
+  margin-left: 6px;
+}
+
 /* Status text content rules */
 
 .attachment, .hashtag, .ellipsis {
