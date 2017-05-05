@@ -16,7 +16,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
 import View.Events exposing (..)
-import View.Status exposing (statusView)
+import View.Status exposing (statusEntryView)
 import View.Formatter exposing (formatContent)
 
 
@@ -127,8 +127,7 @@ accountTimelineView currentUser timeline relationship account =
     let
         keyedEntry status =
             ( toString status.id
-            , li [ class "list-group-item status" ]
-                [ Lazy.lazy2 statusView "account" status ]
+            , Lazy.lazy (statusEntryView "account" "status" currentUser) status
             )
 
         entries =
