@@ -65,6 +65,7 @@ init flags location =
         , accountRelationships = []
         , accountRelationship = Nothing
         , notifications = []
+        , notificationsLinks = Links Nothing Nothing
         , draft = defaultDraft
         , errors = []
         , location = location
@@ -568,7 +569,7 @@ processMastodonEvent msg model =
         FavoriteAdded result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -576,7 +577,7 @@ processMastodonEvent msg model =
         FavoriteRemoved result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -589,11 +590,14 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        Notifications result ->
+        Notifications append result ->
             case result of
-                Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | notifications = Mastodon.Helper.aggregateNotifications decoded } ! []
+                Ok { decoded, links } ->
+                    { model
+                        | notifications = Mastodon.Helper.aggregateNotifications decoded
+                        , notificationsLinks = links
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -609,7 +613,7 @@ processMastodonEvent msg model =
         Reblogged result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -631,7 +635,7 @@ processMastodonEvent msg model =
         Unreblogged result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -924,7 +928,7 @@ update msg model =
             }
                 ! [ Command.loadAccount model.client accountId ]
 
-        LoadNext timeline ->
+        TimelineLoadNext timeline ->
             model ! [ Command.loadNextTimeline model.client model.currentView timeline ]
 
         ViewAccountFollowers account ->

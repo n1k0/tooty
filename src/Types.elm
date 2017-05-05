@@ -52,7 +52,7 @@ type MastodonMsg
     | FavoriteRemoved (MastodonResult Status)
     | GlobalTimeline Bool (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
-    | Notifications (MastodonResult (List Notification))
+    | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
@@ -75,7 +75,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
-    | LoadNext Timeline
+    | TimelineLoadNext Timeline
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -170,6 +170,7 @@ type alias Model =
     , accountRelationships : List Relationship
     , accountRelationship : Maybe Relationship
     , notifications : List NotificationAggregate
+    , notificationsLinks : Links
     , draft : Draft
     , errors : List String
     , location : Navigation.Location

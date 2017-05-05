@@ -88,7 +88,7 @@ loadMoreBtn timeline =
             li [ class "list-group-item load-more text-center" ]
                 [ a
                     [ href next
-                    , onClickWithPreventAndStop <| LoadNext timeline
+                    , onClickWithPreventAndStop <| TimelineLoadNext timeline
                     ]
                     [ text "Load more" ]
                 ]

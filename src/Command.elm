@@ -121,15 +121,14 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
-loadNotifications : Maybe Client -> Cmd Msg
-loadNotifications client =
-    -- TODO: handle link (see loadUserTimeline)
+loadNotifications : Maybe Client -> Maybe String -> Cmd Msg
+loadNotifications client url =
     case client of
         Just client ->
-            HttpBuilder.get ApiUrl.notifications
+            HttpBuilder.get (Maybe.withDefault ApiUrl.notifications url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list notificationDecoder)
-                |> send (MastodonEvent << Notifications)
+                |> send (MastodonEvent << Notifications (url /= Nothing))
 
         Nothing ->
             Cmd.none
@@ -312,7 +311,7 @@ loadTimelines client =
         [ loadUserTimeline client Nothing
         , loadLocalTimeline client Nothing
         , loadGlobalTimeline client Nothing
-        , loadNotifications client
+        , loadNotifications client Nothing
         ]
 
 
