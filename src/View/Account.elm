@@ -156,7 +156,18 @@ accountView currentUser account relationship panelContent =
                             [ followButton currentUser relationship account
                             , Common.accountAvatarLink True account
                             , span [ class "account-display-name" ] [ text account.display_name ]
-                            , span [ class "account-username" ] [ Common.accountLink True account ]
+                            , span [ class "account-username" ]
+                                [ Common.accountLink True account
+                                , case relationship of
+                                    Just relationship ->
+                                        if relationship.followed_by then
+                                            span [ class "badge followed-by" ] [ text "Follows you" ]
+                                        else
+                                            text ""
+
+                                    Nothing ->
+                                        text ""
+                                ]
                             , span [ class "account-note" ] (formatContent account.note [])
                             ]
                         ]
