@@ -27,7 +27,7 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
-timelineView : ( String, String, CurrentUser, Timeline ) -> Html Msg
+timelineView : ( String, String, CurrentUser, Timeline Status ) -> Html Msg
 timelineView ( label, iconName, currentUser, timeline ) =
     let
         keyedEntry status =
@@ -47,7 +47,7 @@ timelineView ( label, iconName, currentUser, timeline ) =
             ]
 
 
-userTimelineView : CurrentUser -> Timeline -> Html Msg
+userTimelineView : CurrentUser -> Timeline Status -> Html Msg
 userTimelineView currentUser timeline =
     Lazy.lazy timelineView
         ( "Home timeline"
@@ -57,7 +57,7 @@ userTimelineView currentUser timeline =
         )
 
 
-localTimelineView : CurrentUser -> Timeline -> Html Msg
+localTimelineView : CurrentUser -> Timeline Status -> Html Msg
 localTimelineView currentUser timeline =
     Lazy.lazy timelineView
         ( "Local timeline"
@@ -67,7 +67,7 @@ localTimelineView currentUser timeline =
         )
 
 
-globalTimelineView : CurrentUser -> Timeline -> Html Msg
+globalTimelineView : CurrentUser -> Timeline Status -> Html Msg
 globalTimelineView currentUser timeline =
     Lazy.lazy timelineView
         ( "Global timeline"

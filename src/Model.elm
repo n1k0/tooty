@@ -78,7 +78,7 @@ init flags location =
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
 
-emptyTimeline : String -> Timeline
+emptyTimeline : String -> Timeline a
 emptyTimeline id =
     { id = id
     , statuses = []
@@ -199,7 +199,7 @@ processReblog statusId flag model =
         model
 
 
-deleteStatusFromTimeline : Int -> Timeline -> Timeline
+deleteStatusFromTimeline : Int -> Timeline Status -> Timeline Status
 deleteStatusFromTimeline statusId timeline =
     let
         update status =
@@ -219,12 +219,13 @@ deleteStatusFromAllTimelines id model =
         , localTimeline = deleteStatusFromTimeline id model.localTimeline
         , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
         , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
-        , currentView = deleteStatusFromThread id model
+        , currentView = deleteStatusFromCurrentView id model
     }
 
 
-deleteStatusFromThread : Int -> Model -> CurrentView
-deleteStatusFromThread id model =
+deleteStatusFromCurrentView : Int -> Model -> CurrentView
+deleteStatusFromCurrentView id model =
+    -- TODO: delete from current account view
     case model.currentView of
         ThreadView thread ->
             if thread.status.id == id then
@@ -481,21 +482,21 @@ updateViewer viewerMsg viewer =
             (Just <| Viewer attachments attachment) ! []
 
 
-updateTimeline : Bool -> List Status -> Links -> Timeline -> Timeline
-updateTimeline append statuses links timeline =
+updateTimeline : Bool -> List a -> Links -> Timeline a -> Timeline a
+updateTimeline append entries links timeline =
     let
-        newStatuses =
+        newEntries =
             if append then
-                List.concat [ timeline.statuses, statuses ]
+                List.concat [ timeline.statuses, entries ]
             else
-                statuses
+                entries
     in
-        { timeline | statuses = newStatuses, links = links }
+        { timeline | statuses = newEntries, links = links }
 
 
-prependStatusToTimeline : Status -> Timeline -> Timeline
-prependStatusToTimeline status timeline =
-    { timeline | statuses = status :: timeline.statuses }
+prependToTimeline : a -> Timeline a -> Timeline a
+prependToTimeline entry timeline =
+    { timeline | statuses = entry :: timeline.statuses }
 
 
 processMastodonEvent : MastodonMsg -> Model -> ( Model, Cmd Msg )
@@ -768,7 +769,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = prependStatusToTimeline status model.userTimeline } ! []
+                            { model | userTimeline = prependToTimeline status model.userTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -803,7 +804,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = prependStatusToTimeline status model.localTimeline } ! []
+                            { model | localTimeline = prependToTimeline status model.localTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -827,7 +828,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = prependStatusToTimeline status model.globalTimeline } ! []
+                            { model | globalTimeline = prependToTimeline status model.globalTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -928,8 +929,8 @@ update msg model =
             }
                 ! [ Command.loadAccount model.client accountId ]
 
-        TimelineLoadNext timeline ->
-            model ! [ Command.loadNextTimeline model.client model.currentView timeline ]
+        TimelineLoadNext id next ->
+            model ! [ Command.loadNextTimeline model.client model.currentView id next ]
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }

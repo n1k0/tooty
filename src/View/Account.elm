@@ -122,7 +122,7 @@ accountFollowView currentUser accounts relationships relationship account =
                 List.map keyedEntry accounts
 
 
-accountTimelineView : CurrentUser -> Timeline -> CurrentUserRelation -> Account -> Html Msg
+accountTimelineView : CurrentUser -> Timeline Status -> CurrentUserRelation -> Account -> Html Msg
 accountTimelineView currentUser timeline relationship account =
     let
         keyedEntry status =

@@ -315,22 +315,22 @@ loadTimelines client =
         ]
 
 
-loadNextTimeline : Maybe Client -> CurrentView -> Timeline -> Cmd Msg
-loadNextTimeline client currentView { id, links } =
+loadNextTimeline : Maybe Client -> CurrentView -> String -> String -> Cmd Msg
+loadNextTimeline client currentView id next =
     case id of
         "home-timeline" ->
-            loadUserTimeline client links.next
+            loadUserTimeline client (Just next)
 
         "local-timeline" ->
-            loadLocalTimeline client links.next
+            loadLocalTimeline client (Just next)
 
         "global-timeline" ->
-            loadGlobalTimeline client links.next
+            loadGlobalTimeline client (Just next)
 
         "account-timeline" ->
             case currentView of
                 AccountView account ->
-                    loadAccountTimeline client account.id links.next
+                    loadAccountTimeline client account.id (Just next)
 
                 _ ->
                     Cmd.none

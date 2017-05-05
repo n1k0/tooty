@@ -75,7 +75,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
-    | TimelineLoadNext Timeline
+    | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -150,9 +150,9 @@ type alias Viewer =
     }
 
 
-type alias Timeline =
+type alias Timeline a =
     { id : String
-    , statuses : List Status
+    , statuses : List a
     , links : Links
     }
 
@@ -161,10 +161,10 @@ type alias Model =
     { server : String
     , registration : Maybe AppRegistration
     , client : Maybe Client
-    , userTimeline : Timeline
-    , localTimeline : Timeline
-    , globalTimeline : Timeline
-    , accountTimeline : Timeline
+    , userTimeline : Timeline Status
+    , localTimeline : Timeline Status
+    , globalTimeline : Timeline Status
+    , accountTimeline : Timeline Status
     , accountFollowers : List Account
     , accountFollowing : List Account
     , accountRelationships : List Relationship
