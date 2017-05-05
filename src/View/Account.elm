@@ -124,7 +124,6 @@ accountFollowView currentUser accounts relationships relationship account =
 
 accountTimelineView : CurrentUser -> Timeline -> CurrentUserRelation -> Account -> Html Msg
 accountTimelineView currentUser timeline relationship account =
-    -- TODO: load more btn
     let
         keyedEntry status =
             ( toString status.id

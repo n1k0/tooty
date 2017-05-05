@@ -9,6 +9,7 @@ module Mastodon.Http
         , send
         , withClient
         , withBodyDecoder
+        , withQueryParams
         )
 
 import Dict
@@ -179,3 +180,12 @@ withBodyDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
 withBodyDecoder decoder builder =
     builder
         |> Build.withExpect (Http.expectStringResponse (decodeResponse decoder))
+
+
+withQueryParams : List ( String, String ) -> Build.RequestBuilder a -> Build.RequestBuilder a
+withQueryParams params builder =
+    if String.startsWith "http" builder.url then
+        -- that's a link url, don't append any query string
+        builder
+    else
+        builder |> withQueryParams params

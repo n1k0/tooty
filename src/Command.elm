@@ -8,12 +8,12 @@ module Command
         , loadNotifications
         , loadUserAccount
         , loadAccount
-        , loadAccountTimeline
         , loadAccountFollowers
         , loadAccountFollowing
         , loadUserTimeline
         , loadLocalTimeline
         , loadGlobalTimeline
+        , loadAccountTimeline
         , loadRelationships
         , loadThread
         , loadTimelines
@@ -164,19 +164,6 @@ loadAccount client accountId =
             Cmd.none
 
 
-loadAccountTimeline : Maybe Client -> Int -> Maybe String -> Cmd Msg
-loadAccountTimeline client accountId url =
-    case client of
-        Just client ->
-            HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
-                |> withClient client
-                |> withBodyDecoder (Decode.list statusDecoder)
-                |> send (MastodonEvent << AccountTimeline (url /= Nothing))
-
-        Nothing ->
-            Cmd.none
-
-
 loadAccountFollowers : Maybe Client -> Int -> Cmd Msg
 loadAccountFollowers client accountId =
     case client of
@@ -225,7 +212,7 @@ searchAccounts client query limit resolve =
                     HttpBuilder.get ApiUrl.searchAccount
                         |> withClient client
                         |> withBodyDecoder (Decode.list accountDecoder)
-                        |> HttpBuilder.withQueryParams qs
+                        |> withQueryParams qs
                         |> send (MastodonEvent << AutoSearch)
 
             Nothing ->
@@ -237,7 +224,7 @@ requestRelationships client ids =
     HttpBuilder.get ApiUrl.relationships
         |> withClient client
         |> withBodyDecoder (Decode.list relationshipDecoder)
-        |> HttpBuilder.withQueryParams
+        |> withQueryParams
             (List.map (\id -> ( "id[]", toString id )) ids)
 
 
@@ -285,7 +272,7 @@ loadLocalTimeline client url =
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
-                |> HttpBuilder.withQueryParams [ ( "local", "true" ) ]
+                |> withQueryParams [ ( "local", "true" ) ]
                 |> send (MastodonEvent << LocalTimeline (url /= Nothing))
 
         Nothing ->
@@ -300,6 +287,19 @@ loadGlobalTimeline client url =
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> send (MastodonEvent << GlobalTimeline (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
+loadAccountTimeline : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountTimeline client accountId url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
+                |> withClient client
+                |> withBodyDecoder (Decode.list statusDecoder)
+                |> send (MastodonEvent << AccountTimeline (url /= Nothing))
 
         Nothing ->
             Cmd.none
