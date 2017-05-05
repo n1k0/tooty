@@ -640,7 +640,7 @@ processMastodonEvent msg model =
             case result of
                 Ok { decoded } ->
                     { model | currentView = AccountView decoded }
-                        ! [ Command.loadAccountTimeline model.client decoded.id model.userTimeline.links.next ]
+                        ! [ Command.loadAccountTimeline model.client decoded.id model.accountTimeline.links.next ]
 
                 Err error ->
                     { model
