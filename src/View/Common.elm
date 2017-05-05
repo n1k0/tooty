@@ -10,6 +10,7 @@ module View.Common
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Events exposing (..)
@@ -81,14 +82,14 @@ justifiedButtonGroup cls buttons =
         List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
 
 
-loadMoreBtn : Timeline -> Html Msg
+loadMoreBtn : { timeline | id : String, links : Links } -> Html Msg
 loadMoreBtn timeline =
     case timeline.links.next of
         Just next ->
             li [ class "list-group-item load-more text-center" ]
                 [ a
                     [ href next
-                    , onClickWithPreventAndStop <| LoadNext timeline
+                    , onClickWithPreventAndStop <| TimelineLoadNext timeline.id next
                     ]
                     [ text "Load more" ]
                 ]

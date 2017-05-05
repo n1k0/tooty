@@ -64,7 +64,7 @@ init flags location =
         , accountFollowing = []
         , accountRelationships = []
         , accountRelationship = Nothing
-        , notifications = []
+        , notifications = emptyTimeline "notifications"
         , draft = defaultDraft
         , errors = []
         , location = location
@@ -77,10 +77,10 @@ init flags location =
             ! [ Command.initCommands flags.registration flags.client authCode ]
 
 
-emptyTimeline : String -> Timeline
+emptyTimeline : String -> Timeline a
 emptyTimeline id =
     { id = id
-    , statuses = []
+    , entries = []
     , links = Links Nothing Nothing
     }
 
@@ -135,7 +135,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
                 status
 
         updateTimeline timeline =
-            { timeline | statuses = List.map update timeline.statuses }
+            { timeline | entries = List.map update timeline.entries }
     in
         { model
             | userTimeline = updateTimeline model.userTimeline
@@ -198,7 +198,7 @@ processReblog statusId flag model =
         model
 
 
-deleteStatusFromTimeline : Int -> Timeline -> Timeline
+deleteStatusFromTimeline : Int -> Timeline Status -> Timeline Status
 deleteStatusFromTimeline statusId timeline =
     let
         update status =
@@ -207,7 +207,7 @@ deleteStatusFromTimeline statusId timeline =
                 && (Mastodon.Helper.extractReblog status).id
                 /= statusId
     in
-        { timeline | statuses = List.filter update timeline.statuses }
+        { timeline | entries = List.filter update timeline.entries }
 
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
@@ -218,12 +218,13 @@ deleteStatusFromAllTimelines id model =
         , localTimeline = deleteStatusFromTimeline id model.localTimeline
         , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
         , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
-        , currentView = deleteStatusFromThread id model
+        , currentView = deleteStatusFromCurrentView id model
     }
 
 
-deleteStatusFromThread : Int -> Model -> CurrentView
-deleteStatusFromThread id model =
+deleteStatusFromCurrentView : Int -> Model -> CurrentView
+deleteStatusFromCurrentView id model =
+    -- TODO: delete from current account view
     case model.currentView of
         ThreadView thread ->
             if thread.status.id == id then
@@ -480,21 +481,21 @@ updateViewer viewerMsg viewer =
             (Just <| Viewer attachments attachment) ! []
 
 
-updateTimeline : Bool -> List Status -> Links -> Timeline -> Timeline
-updateTimeline append statuses links timeline =
+updateTimeline : Bool -> List a -> Links -> Timeline a -> Timeline a
+updateTimeline append entries links timeline =
     let
-        newStatuses =
+        newEntries =
             if append then
-                List.concat [ timeline.statuses, statuses ]
+                List.concat [ timeline.entries, entries ]
             else
-                statuses
+                entries
     in
-        { timeline | statuses = newStatuses, links = links }
+        { timeline | entries = newEntries, links = links }
 
 
-prependStatusToTimeline : Status -> Timeline -> Timeline
-prependStatusToTimeline status timeline =
-    { timeline | statuses = status :: timeline.statuses }
+prependToTimeline : a -> Timeline a -> Timeline a
+prependToTimeline entry timeline =
+    { timeline | entries = entry :: timeline.entries }
 
 
 processMastodonEvent : MastodonMsg -> Model -> ( Model, Cmd Msg )
@@ -568,7 +569,7 @@ processMastodonEvent msg model =
         FavoriteAdded result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -576,7 +577,7 @@ processMastodonEvent msg model =
         FavoriteRemoved result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -589,11 +590,14 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        Notifications result ->
+        Notifications append result ->
             case result of
-                Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | notifications = Mastodon.Helper.aggregateNotifications decoded } ! []
+                Ok { decoded, links } ->
+                    let
+                        aggregated =
+                            Mastodon.Helper.aggregateNotifications decoded
+                    in
+                        { model | notifications = updateTimeline append aggregated links model.notifications } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -609,7 +613,7 @@ processMastodonEvent msg model =
         Reblogged result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -631,7 +635,7 @@ processMastodonEvent msg model =
         Unreblogged result ->
             case result of
                 Ok _ ->
-                    model ! [ Command.loadNotifications model.client ]
+                    model ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -764,7 +768,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = prependStatusToTimeline status model.userTimeline } ! []
+                            { model | userTimeline = prependToTimeline status model.userTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -781,12 +785,18 @@ processWebSocketMsg msg model =
                     case result of
                         Ok notification ->
                             let
-                                notifications =
-                                    Mastodon.Helper.addNotificationToAggregates
-                                        notification
-                                        model.notifications
+                                oldNotifications =
+                                    model.notifications
+
+                                newNotifications =
+                                    { oldNotifications
+                                        | entries =
+                                            Mastodon.Helper.addNotificationToAggregates
+                                                notification
+                                                oldNotifications.entries
+                                    }
                             in
-                                { model | notifications = notifications } ! []
+                                { model | notifications = newNotifications } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -799,7 +809,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = prependStatusToTimeline status model.localTimeline } ! []
+                            { model | localTimeline = prependToTimeline status model.localTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -823,7 +833,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = prependStatusToTimeline status model.globalTimeline } ! []
+                            { model | globalTimeline = prependToTimeline status model.globalTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []
@@ -924,8 +934,8 @@ update msg model =
             }
                 ! [ Command.loadAccount model.client accountId ]
 
-        LoadNext timeline ->
-            model ! [ Command.loadNextTimeline model.client model.currentView timeline ]
+        TimelineLoadNext id next ->
+            model ! [ Command.loadNextTimeline model.client model.currentView id next ]
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }

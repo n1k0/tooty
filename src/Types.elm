@@ -52,7 +52,7 @@ type MastodonMsg
     | FavoriteRemoved (MastodonResult Status)
     | GlobalTimeline Bool (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
-    | Notifications (MastodonResult (List Notification))
+    | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
@@ -75,7 +75,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
-    | LoadNext Timeline
+    | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
@@ -150,9 +150,9 @@ type alias Viewer =
     }
 
 
-type alias Timeline =
+type alias Timeline a =
     { id : String
-    , statuses : List Status
+    , entries : List a
     , links : Links
     }
 
@@ -161,15 +161,15 @@ type alias Model =
     { server : String
     , registration : Maybe AppRegistration
     , client : Maybe Client
-    , userTimeline : Timeline
-    , localTimeline : Timeline
-    , globalTimeline : Timeline
-    , accountTimeline : Timeline
+    , userTimeline : Timeline Status
+    , localTimeline : Timeline Status
+    , globalTimeline : Timeline Status
+    , accountTimeline : Timeline Status
     , accountFollowers : List Account
     , accountFollowing : List Account
     , accountRelationships : List Relationship
     , accountRelationship : Maybe Relationship
-    , notifications : List NotificationAggregate
+    , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List String
     , location : Navigation.Location

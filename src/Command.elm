@@ -121,15 +121,14 @@ saveRegistration registration =
         |> Ports.saveRegistration
 
 
-loadNotifications : Maybe Client -> Cmd Msg
-loadNotifications client =
-    -- TODO: handle link (see loadUserTimeline)
+loadNotifications : Maybe Client -> Maybe String -> Cmd Msg
+loadNotifications client url =
     case client of
         Just client ->
-            HttpBuilder.get ApiUrl.notifications
+            HttpBuilder.get (Maybe.withDefault ApiUrl.notifications url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list notificationDecoder)
-                |> send (MastodonEvent << Notifications)
+                |> send (MastodonEvent << Notifications (url /= Nothing))
 
         Nothing ->
             Cmd.none
@@ -312,26 +311,29 @@ loadTimelines client =
         [ loadUserTimeline client Nothing
         , loadLocalTimeline client Nothing
         , loadGlobalTimeline client Nothing
-        , loadNotifications client
+        , loadNotifications client Nothing
         ]
 
 
-loadNextTimeline : Maybe Client -> CurrentView -> Timeline -> Cmd Msg
-loadNextTimeline client currentView { id, links } =
+loadNextTimeline : Maybe Client -> CurrentView -> String -> String -> Cmd Msg
+loadNextTimeline client currentView id next =
     case id of
+        "notifications" ->
+            loadNotifications client (Just next)
+
         "home-timeline" ->
-            loadUserTimeline client links.next
+            loadUserTimeline client (Just next)
 
         "local-timeline" ->
-            loadLocalTimeline client links.next
+            loadLocalTimeline client (Just next)
 
         "global-timeline" ->
-            loadGlobalTimeline client links.next
+            loadGlobalTimeline client (Just next)
 
         "account-timeline" ->
             case currentView of
                 AccountView account ->
-                    loadAccountTimeline client account.id links.next
+                    loadAccountTimeline client account.id (Just next)
 
                 _ ->
                     Cmd.none
