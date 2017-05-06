@@ -130,28 +130,37 @@ toStatusRequestBody draft =
 updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
-        update status =
+        updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then
                 statusUpdater status
             else
                 status
 
-        updateTimeline timeline =
-            { timeline | entries = List.map update timeline.entries }
+        updateNotification notification =
+            case notification.status of
+                Just status ->
+                    { notification | status = Just <| updateStatus status }
+
+                Nothing ->
+                    notification
+
+        updateTimeline updateEntry timeline =
+            { timeline | entries = List.map updateEntry timeline.entries }
     in
         { model
-            | homeTimeline = updateTimeline model.homeTimeline
-            , accountTimeline = updateTimeline model.accountTimeline
-            , localTimeline = updateTimeline model.localTimeline
-            , globalTimeline = updateTimeline model.globalTimeline
+            | homeTimeline = updateTimeline updateStatus model.homeTimeline
+            , accountTimeline = updateTimeline updateStatus model.accountTimeline
+            , localTimeline = updateTimeline updateStatus model.localTimeline
+            , globalTimeline = updateTimeline updateStatus model.globalTimeline
+            , notifications = updateTimeline updateNotification model.notifications
             , currentView =
                 case model.currentView of
                     ThreadView thread ->
                         ThreadView
-                            { status = update thread.status
+                            { status = updateStatus thread.status
                             , context =
-                                { ancestors = List.map update thread.context.ancestors
-                                , descendants = List.map update thread.context.descendants
+                                { ancestors = List.map updateStatus thread.context.ancestors
+                                , descendants = List.map updateStatus thread.context.descendants
                                 }
                             }
 
