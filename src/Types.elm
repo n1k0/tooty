@@ -155,6 +155,7 @@ type alias Timeline a =
     { id : String
     , entries : List a
     , links : Links
+    , loading : Bool
     }
 
 

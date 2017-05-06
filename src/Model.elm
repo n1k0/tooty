@@ -83,6 +83,7 @@ emptyTimeline id =
     { id = id
     , entries = []
     , links = Links Nothing Nothing
+    , loading = False
     }
 
 
@@ -482,6 +483,37 @@ updateViewer viewerMsg viewer =
             (Just <| Viewer attachments attachment) ! []
 
 
+markTimelineLoading : Bool -> String -> Model -> Model
+markTimelineLoading loading id model =
+    let
+        mark timeline =
+            { timeline | loading = loading }
+    in
+        case id of
+            "notifications" ->
+                { model | notifications = mark model.notifications }
+
+            "home-timeline" ->
+                { model | homeTimeline = mark model.homeTimeline }
+
+            "local-timeline" ->
+                { model | localTimeline = mark model.localTimeline }
+
+            "global-timeline" ->
+                { model | globalTimeline = mark model.globalTimeline }
+
+            "account-timeline" ->
+                case model.currentView of
+                    AccountView account ->
+                        { model | accountTimeline = mark model.accountTimeline }
+
+                    _ ->
+                        model
+
+            _ ->
+                model
+
+
 updateTimeline : Bool -> List a -> Links -> Timeline a -> Timeline a
 updateTimeline append entries links timeline =
     let
@@ -491,7 +523,11 @@ updateTimeline append entries links timeline =
             else
                 entries
     in
-        { timeline | entries = newEntries, links = links }
+        { timeline
+            | entries = newEntries
+            , links = links
+            , loading = False
+        }
 
 
 prependToTimeline : a -> Timeline a -> Timeline a
@@ -939,7 +975,8 @@ update msg model =
                 ! [ Command.loadAccount model.client accountId ]
 
         TimelineLoadNext id next ->
-            model ! [ Command.loadNextTimeline model.client model.currentView id next ]
+            markTimelineLoading True id model
+                ! [ Command.loadNextTimeline model.client model.currentView id next ]
 
         ViewAccountFollowers account ->
             { model | currentView = AccountFollowersView account model.accountFollowers }

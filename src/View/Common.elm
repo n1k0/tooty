@@ -82,17 +82,22 @@ justifiedButtonGroup cls buttons =
         List.map (\b -> div [ class "btn-group" ] [ b ]) buttons
 
 
-loadMoreBtn : { timeline | id : String, links : Links } -> Html Msg
-loadMoreBtn timeline =
-    case timeline.links.next of
-        Just next ->
-            li [ class "list-group-item load-more text-center" ]
-                [ a
-                    [ href next
-                    , onClickWithPreventAndStop <| TimelineLoadNext timeline.id next
+loadMoreBtn : { timeline | id : String, links : Links, loading : Bool } -> Html Msg
+loadMoreBtn { id, links, loading } =
+    if loading then
+        -- TODO: proper spinner
+        li [ class "list-group-item load-more text-center" ]
+            [ text "Loading..." ]
+    else
+        case links.next of
+            Just next ->
+                li [ class "list-group-item load-more text-center" ]
+                    [ a
+                        [ href next
+                        , onClickWithPreventAndStop <| TimelineLoadNext id next
+                        ]
+                        [ text "Load more" ]
                     ]
-                    [ text "Load more" ]
-                ]
 
-        Nothing ->
-            text ""
+            Nothing ->
+                text ""
