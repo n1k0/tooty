@@ -435,7 +435,7 @@ updateDraft draftMsg currentUser model =
                 let
                     ( newState, maybeMsg ) =
                         Autocomplete.update
-                            updateAutocompleteConfig
+                            autocompleteUpdateConfig
                             autoMsg
                             draft.autoMaxResults
                             draft.autoState
@@ -451,6 +451,16 @@ updateDraft draftMsg currentUser model =
                         Just updateMsg ->
                             update updateMsg newModel
 
+            CloseAutocomplete ->
+                let
+                    newDraft =
+                        { draft
+                            | showAutoMenu = False
+                            , autoState = Autocomplete.reset autocompleteUpdateConfig draft.autoState
+                        }
+                in
+                    { model | draft = newDraft } ! []
+
             ResetAutocomplete toTop ->
                 let
                     newDraft =
@@ -458,13 +468,13 @@ updateDraft draftMsg currentUser model =
                             | autoState =
                                 if toTop then
                                     Autocomplete.resetToFirstItem
-                                        updateAutocompleteConfig
+                                        autocompleteUpdateConfig
                                         (acceptableAccounts draft.autoQuery draft.autoAccounts)
                                         draft.autoMaxResults
                                         draft.autoState
                                 else
                                     Autocomplete.resetToLastItem
-                                        updateAutocompleteConfig
+                                        autocompleteUpdateConfig
                                         (acceptableAccounts draft.autoQuery draft.autoAccounts)
                                         draft.autoMaxResults
                                         draft.autoState
@@ -1015,8 +1025,8 @@ update msg model =
             model ! [ Command.scrollColumnToBottom column ]
 
 
-updateAutocompleteConfig : Autocomplete.UpdateConfig Msg Account
-updateAutocompleteConfig =
+autocompleteUpdateConfig : Autocomplete.UpdateConfig Msg Account
+autocompleteUpdateConfig =
     Autocomplete.updateConfig
         { toId = .id >> toString
         , onKeyDown =

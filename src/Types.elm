@@ -22,6 +22,7 @@ type DraftMsg
     | ToggleSpoiler Bool
     | UpdateInputInformation InputInformation
     | ResetAutocomplete Bool
+    | CloseAutocomplete
     | SetAutoState Autocomplete.Msg
 
 

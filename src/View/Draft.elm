@@ -205,6 +205,8 @@ draftView ({ draft, currentUser } as model) =
                                     (\code ->
                                         if code == 38 || code == 40 then
                                             Ok NoOp
+                                        else if code == 27 then
+                                            Ok <| DraftEvent CloseAutocomplete
                                         else
                                             Err "not handling that key"
                                     )
