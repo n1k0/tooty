@@ -20,7 +20,7 @@ body {
   border-radius: 2px;
   opacity: .95;
   z-index: 9999;
-  animation: 4s ease 0s normal forwards 1 fadeout;
+  animation: 11s ease 0s normal forwards 1 fadeout;
 }
 
 @keyframes fadeout {

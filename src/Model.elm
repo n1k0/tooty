@@ -941,7 +941,7 @@ update msg model =
         Tick newTime ->
             { model
                 | currentTime = newTime
-                , errors = List.filter (\{ time } -> model.currentTime - time <= 3000) model.errors
+                , errors = List.filter (\{ time } -> model.currentTime - time <= 10000) model.errors
             }
                 ! []
 
