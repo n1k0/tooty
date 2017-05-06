@@ -4,6 +4,7 @@ import Autocomplete
 import Mastodon.Http exposing (Response, Links)
 import Mastodon.Model exposing (..)
 import Navigation
+import Time exposing (Time)
 
 
 type alias Flags =
@@ -87,6 +88,7 @@ type Msg
     | ScrollColumn ScrollDirection String
     | ServerChange String
     | SubmitDraft
+    | Tick Time
     | UnfollowAccount Int
     | UrlChange Navigation.Location
     | UseGlobalTimeline Bool
@@ -160,8 +162,15 @@ type alias Timeline a =
     }
 
 
+type alias ErrorNotification =
+    { message : String
+    , time : Time
+    }
+
+
 type alias Model =
     { server : String
+    , currentTime : Time
     , registration : Maybe AppRegistration
     , client : Maybe Client
     , homeTimeline : Timeline Status
@@ -174,7 +183,7 @@ type alias Model =
     , accountRelationship : Maybe Relationship
     , notifications : Timeline NotificationAggregate
     , draft : Draft
-    , errors : List String
+    , errors : List ErrorNotification
     , location : Navigation.Location
     , useGlobalTimeline : Bool
     , viewer : Maybe Viewer

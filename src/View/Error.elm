@@ -10,7 +10,7 @@ import Html.Events exposing (..)
 import Types exposing (..)
 
 
-errorView : Int -> String -> Html Msg
+errorView : Int -> ErrorNotification -> Html Msg
 errorView index error =
     div [ class "alert alert-danger" ]
         [ button
@@ -19,7 +19,7 @@ errorView index error =
             , onClick <| ClearError index
             ]
             [ text "×" ]
-        , text error
+        , text error.message
         ]
 
 
@@ -30,4 +30,5 @@ errorsListView model =
             text ""
 
         errors ->
-            div [ class "error-list" ] <| List.indexedMap errorView model.errors
+            div [ class "error-list" ] <|
+                List.indexedMap errorView model.errors
