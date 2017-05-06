@@ -171,7 +171,6 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
 
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
-    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId
         flag
         (\s ->
@@ -191,7 +190,6 @@ processFavourite statusId flag model =
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
-    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId
         flag
         (\s ->
@@ -223,19 +221,36 @@ deleteStatusFromTimeline statusId timeline =
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
 deleteStatusFromAllTimelines id model =
-    -- TODO: delete from thread timeline & notifications
     { model
         | homeTimeline = deleteStatusFromTimeline id model.homeTimeline
         , localTimeline = deleteStatusFromTimeline id model.localTimeline
         , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
         , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
+        , notifications = deleteStatusFromNotifications id model.notifications
         , currentView = deleteStatusFromCurrentView id model
     }
 
 
+deleteStatusFromNotifications : Int -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+deleteStatusFromNotifications statusId notifications =
+    let
+        update notification =
+            case notification.status of
+                Just status ->
+                    status.id
+                        /= statusId
+                        && (Mastodon.Helper.extractReblog status).id
+                        /= statusId
+
+                Nothing ->
+                    True
+    in
+        { notifications | entries = List.filter update notifications.entries }
+
+
 deleteStatusFromCurrentView : Int -> Model -> CurrentView
 deleteStatusFromCurrentView id model =
-    -- TODO: delete from current account view
+    -- Note: account timeline is already cleaned in deleteStatusFromAllTimelines
     case model.currentView of
         ThreadView thread ->
             if thread.status.id == id then
