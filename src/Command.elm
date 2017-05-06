@@ -10,7 +10,7 @@ module Command
         , loadAccount
         , loadAccountFollowers
         , loadAccountFollowing
-        , loadUserTimeline
+        , loadHomeTimeline
         , loadLocalTimeline
         , loadGlobalTimeline
         , loadAccountTimeline
@@ -256,15 +256,15 @@ loadThread client status =
             Cmd.none
 
 
-loadUserTimeline : Maybe Client -> Maybe String -> Cmd Msg
-loadUserTimeline client url =
+loadHomeTimeline : Maybe Client -> Maybe String -> Cmd Msg
+loadHomeTimeline client url =
     case client of
         Just client ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
-                |> send (MastodonEvent << UserTimeline (url /= Nothing))
+                |> send (MastodonEvent << HomeTimeline (url /= Nothing))
 
         Nothing ->
             Cmd.none
@@ -315,7 +315,7 @@ loadAccountTimeline client accountId url =
 loadTimelines : Maybe Client -> Cmd Msg
 loadTimelines client =
     Cmd.batch
-        [ loadUserTimeline client Nothing
+        [ loadHomeTimeline client Nothing
         , loadLocalTimeline client Nothing
         , loadGlobalTimeline client Nothing
         , loadNotifications client Nothing
@@ -329,7 +329,7 @@ loadNextTimeline client currentView id next =
             loadNotifications client (Just next)
 
         "home-timeline" ->
-            loadUserTimeline client (Just next)
+            loadHomeTimeline client (Just next)
 
         "local-timeline" ->
             loadLocalTimeline client (Just next)

@@ -47,8 +47,8 @@ timelineView ( label, iconName, currentUser, timeline ) =
             ]
 
 
-userTimelineView : CurrentUser -> Timeline Status -> Html Msg
-userTimelineView currentUser timeline =
+homeTimelineView : CurrentUser -> Timeline Status -> Html Msg
+homeTimelineView currentUser timeline =
     Lazy.lazy timelineView
         ( "Home timeline"
         , "home"
@@ -94,7 +94,7 @@ homepageView model =
         Just currentUser ->
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
-                , userTimelineView currentUser model.userTimeline
+                , homeTimelineView currentUser model.homeTimeline
                 , Lazy.lazy3
                     notificationListView
                     currentUser

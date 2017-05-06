@@ -57,7 +57,7 @@ init flags location =
         { server = ""
         , registration = flags.registration
         , client = flags.client
-        , userTimeline = emptyTimeline "home-timeline"
+        , homeTimeline = emptyTimeline "home-timeline"
         , localTimeline = emptyTimeline "local-timeline"
         , globalTimeline = emptyTimeline "global-timeline"
         , accountTimeline = emptyTimeline "account-timeline"
@@ -139,7 +139,7 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
             { timeline | entries = List.map update timeline.entries }
     in
         { model
-            | userTimeline = updateTimeline model.userTimeline
+            | homeTimeline = updateTimeline model.homeTimeline
             , accountTimeline = updateTimeline model.accountTimeline
             , localTimeline = updateTimeline model.localTimeline
             , globalTimeline = updateTimeline model.globalTimeline
@@ -215,7 +215,7 @@ deleteStatusFromAllTimelines : Int -> Model -> Model
 deleteStatusFromAllTimelines id model =
     -- TODO: delete from thread timeline & notifications
     { model
-        | userTimeline = deleteStatusFromTimeline id model.userTimeline
+        | homeTimeline = deleteStatusFromTimeline id model.homeTimeline
         , localTimeline = deleteStatusFromTimeline id model.localTimeline
         , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
         , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
@@ -704,10 +704,10 @@ processMastodonEvent msg model =
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
 
-        UserTimeline append result ->
+        HomeTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | userTimeline = updateTimeline append decoded links model.userTimeline } ! []
+                    { model | homeTimeline = updateTimeline append decoded links model.homeTimeline } ! []
 
                 Err error ->
                     { model | errors = (errorText error) :: model.errors } ! []
@@ -769,7 +769,7 @@ processWebSocketMsg msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | userTimeline = prependToTimeline status model.userTimeline } ! []
+                            { model | homeTimeline = prependToTimeline status model.homeTimeline } ! []
 
                         Err error ->
                             { model | errors = error :: model.errors } ! []

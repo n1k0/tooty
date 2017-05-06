@@ -57,7 +57,7 @@ type MastodonMsg
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
     | Unreblogged (MastodonResult Status)
-    | UserTimeline Bool (MastodonResult (List Status))
+    | HomeTimeline Bool (MastodonResult (List Status))
 
 
 type WebSocketMsg
@@ -162,7 +162,7 @@ type alias Model =
     { server : String
     , registration : Maybe AppRegistration
     , client : Maybe Client
-    , userTimeline : Timeline Status
+    , homeTimeline : Timeline Status
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status
     , accountTimeline : Timeline Status
