@@ -25072,6 +25072,7 @@ var _n1k0$tooty$Types$InputInformation = F2(
 var _n1k0$tooty$Types$SetAutoState = function (a) {
 	return {ctor: 'SetAutoState', _0: a};
 };
+var _n1k0$tooty$Types$CloseAutocomplete = {ctor: 'CloseAutocomplete'};
 var _n1k0$tooty$Types$ResetAutocomplete = function (a) {
 	return {ctor: 'ResetAutocomplete', _0: a};
 };
@@ -29010,7 +29011,7 @@ var _n1k0$tooty$Model$acceptableAccounts = F2(
 			},
 			accounts);
 	});
-var _n1k0$tooty$Model$updateAutocompleteConfig = _thebritican$elm_autocomplete$Autocomplete$updateConfig(
+var _n1k0$tooty$Model$autocompleteUpdateConfig = _thebritican$elm_autocomplete$Autocomplete$updateConfig(
 	{
 		toId: function (_p4) {
 			return _elm_lang$core$Basics$toString(
@@ -30726,7 +30727,7 @@ var _n1k0$tooty$Model$updateDraft = F3(
 			case 'SetAutoState':
 				var _p88 = A5(
 					_thebritican$elm_autocomplete$Autocomplete$update,
-					_n1k0$tooty$Model$updateAutocompleteConfig,
+					_n1k0$tooty$Model$autocompleteUpdateConfig,
 					_p78._0,
 					draft.autoMaxResults,
 					draft.autoState,
@@ -30749,18 +30750,31 @@ var _n1k0$tooty$Model$updateDraft = F3(
 				} else {
 					return A2(_n1k0$tooty$Model$update, _p89._0, newModel);
 				}
+			case 'CloseAutocomplete':
+				var newDraft = _elm_lang$core$Native_Utils.update(
+					draft,
+					{
+						showAutoMenu: false,
+						autoState: A2(_thebritican$elm_autocomplete$Autocomplete$reset, _n1k0$tooty$Model$autocompleteUpdateConfig, draft.autoState)
+					});
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Native_Utils.update(
+						model,
+						{draft: newDraft}),
+					{ctor: '[]'});
 			default:
 				var newDraft = _elm_lang$core$Native_Utils.update(
 					draft,
 					{
 						autoState: _p78._0 ? A4(
 							_thebritican$elm_autocomplete$Autocomplete$resetToFirstItem,
-							_n1k0$tooty$Model$updateAutocompleteConfig,
+							_n1k0$tooty$Model$autocompleteUpdateConfig,
 							A2(_n1k0$tooty$Model$acceptableAccounts, draft.autoQuery, draft.autoAccounts),
 							draft.autoMaxResults,
 							draft.autoState) : A4(
 							_thebritican$elm_autocomplete$Autocomplete$resetToLastItem,
-							_n1k0$tooty$Model$updateAutocompleteConfig,
+							_n1k0$tooty$Model$autocompleteUpdateConfig,
 							A2(_n1k0$tooty$Model$acceptableAccounts, draft.autoQuery, draft.autoAccounts),
 							draft.autoMaxResults,
 							draft.autoState)
@@ -31330,7 +31344,8 @@ var _n1k0$tooty$View_Draft$draftView = function (_p10) {
 																	A2(
 																		_elm_lang$core$Json_Decode$map,
 																		function (code) {
-																			return (_elm_lang$core$Native_Utils.eq(code, 38) || _elm_lang$core$Native_Utils.eq(code, 40)) ? _elm_lang$core$Result$Ok(_n1k0$tooty$Types$NoOp) : _elm_lang$core$Result$Err('not handling that key');
+																			return (_elm_lang$core$Native_Utils.eq(code, 38) || _elm_lang$core$Native_Utils.eq(code, 40)) ? _elm_lang$core$Result$Ok(_n1k0$tooty$Types$NoOp) : (_elm_lang$core$Native_Utils.eq(code, 27) ? _elm_lang$core$Result$Ok(
+																				_n1k0$tooty$Types$DraftEvent(_n1k0$tooty$Types$CloseAutocomplete)) : _elm_lang$core$Result$Err('not handling that key'));
 																		},
 																		_elm_lang$html$Html_Events$keyCode));
 																return A2(
