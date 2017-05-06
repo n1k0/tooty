@@ -130,28 +130,37 @@ toStatusRequestBody draft =
 updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
 updateTimelinesWithBoolFlag statusId flag statusUpdater model =
     let
-        update status =
+        updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then
                 statusUpdater status
             else
                 status
 
-        updateTimeline timeline =
-            { timeline | entries = List.map update timeline.entries }
+        updateNotification notification =
+            case notification.status of
+                Just status ->
+                    { notification | status = Just <| updateStatus status }
+
+                Nothing ->
+                    notification
+
+        updateTimeline updateEntry timeline =
+            { timeline | entries = List.map updateEntry timeline.entries }
     in
         { model
-            | homeTimeline = updateTimeline model.homeTimeline
-            , accountTimeline = updateTimeline model.accountTimeline
-            , localTimeline = updateTimeline model.localTimeline
-            , globalTimeline = updateTimeline model.globalTimeline
+            | homeTimeline = updateTimeline updateStatus model.homeTimeline
+            , accountTimeline = updateTimeline updateStatus model.accountTimeline
+            , localTimeline = updateTimeline updateStatus model.localTimeline
+            , globalTimeline = updateTimeline updateStatus model.globalTimeline
+            , notifications = updateTimeline updateNotification model.notifications
             , currentView =
                 case model.currentView of
                     ThreadView thread ->
                         ThreadView
-                            { status = update thread.status
+                            { status = updateStatus thread.status
                             , context =
-                                { ancestors = List.map update thread.context.ancestors
-                                , descendants = List.map update thread.context.descendants
+                                { ancestors = List.map updateStatus thread.context.ancestors
+                                , descendants = List.map updateStatus thread.context.descendants
                                 }
                             }
 
@@ -162,7 +171,6 @@ updateTimelinesWithBoolFlag statusId flag statusUpdater model =
 
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
-    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId
         flag
         (\s ->
@@ -182,7 +190,6 @@ processFavourite statusId flag model =
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
-    -- TODO: update notifications too
     updateTimelinesWithBoolFlag statusId
         flag
         (\s ->
@@ -214,19 +221,36 @@ deleteStatusFromTimeline statusId timeline =
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
 deleteStatusFromAllTimelines id model =
-    -- TODO: delete from thread timeline & notifications
     { model
         | homeTimeline = deleteStatusFromTimeline id model.homeTimeline
         , localTimeline = deleteStatusFromTimeline id model.localTimeline
         , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
         , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
+        , notifications = deleteStatusFromNotifications id model.notifications
         , currentView = deleteStatusFromCurrentView id model
     }
 
 
+deleteStatusFromNotifications : Int -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+deleteStatusFromNotifications statusId notifications =
+    let
+        update notification =
+            case notification.status of
+                Just status ->
+                    status.id
+                        /= statusId
+                        && (Mastodon.Helper.extractReblog status).id
+                        /= statusId
+
+                Nothing ->
+                    True
+    in
+        { notifications | entries = List.filter update notifications.entries }
+
+
 deleteStatusFromCurrentView : Int -> Model -> CurrentView
 deleteStatusFromCurrentView id model =
-    -- TODO: delete from current account view
+    -- Note: account timeline is already cleaned in deleteStatusFromAllTimelines
     case model.currentView of
         ThreadView thread ->
             if thread.status.id == id then
