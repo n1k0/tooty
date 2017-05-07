@@ -11,6 +11,7 @@ import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import String.Extra
 import Task
+import Time
 import Types exposing (..)
 
 
@@ -55,6 +56,7 @@ init flags location =
             extractAuthCode location
     in
         { server = ""
+        , currentTime = 0
         , registration = flags.registration
         , client = flags.client
         , homeTimeline = emptyTimeline "home-timeline"
@@ -85,6 +87,15 @@ emptyTimeline id =
     , links = Links Nothing Nothing
     , loading = False
     }
+
+
+addErrorNotification : String -> Model -> List ErrorNotification
+addErrorNotification message model =
+    let
+        error =
+            { message = message, time = model.currentTime }
+    in
+        error :: model.errors
 
 
 preferredTimeline : Model -> CurrentView
@@ -587,7 +598,7 @@ processMastodonEvent msg model =
                               ]
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountFollowed result ->
             case result of
@@ -595,7 +606,7 @@ processMastodonEvent msg model =
                     processFollowEvent decoded True model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountUnfollowed result ->
             case result of
@@ -603,7 +614,7 @@ processMastodonEvent msg model =
                     processFollowEvent decoded False model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AppRegistered result ->
             case result of
@@ -614,7 +625,7 @@ processMastodonEvent msg model =
                           ]
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         ContextLoaded status result ->
             case result of
@@ -625,7 +636,7 @@ processMastodonEvent msg model =
                 Err error ->
                     { model
                         | currentView = preferredTimeline model
-                        , errors = (errorText error) :: model.errors
+                        , errors = addErrorNotification (errorText error) model
                     }
                         ! []
 
@@ -635,7 +646,7 @@ processMastodonEvent msg model =
                     { model | currentUser = Just decoded } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         FavoriteAdded result ->
             case result of
@@ -643,7 +654,7 @@ processMastodonEvent msg model =
                     model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         FavoriteRemoved result ->
             case result of
@@ -651,7 +662,7 @@ processMastodonEvent msg model =
                     model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         LocalTimeline append result ->
             case result of
@@ -659,7 +670,7 @@ processMastodonEvent msg model =
                     { model | localTimeline = updateTimeline append decoded links model.localTimeline } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         Notifications append result ->
             case result of
@@ -671,7 +682,7 @@ processMastodonEvent msg model =
                         { model | notifications = updateTimeline append aggregated links model.notifications } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         GlobalTimeline append result ->
             case result of
@@ -679,7 +690,7 @@ processMastodonEvent msg model =
                     { model | globalTimeline = updateTimeline append decoded links model.globalTimeline } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         Reblogged result ->
             case result of
@@ -687,7 +698,7 @@ processMastodonEvent msg model =
                     model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         StatusPosted _ ->
             { model | draft = defaultDraft }
@@ -701,7 +712,7 @@ processMastodonEvent msg model =
                     deleteStatusFromAllTimelines decoded model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         Unreblogged result ->
             case result of
@@ -709,7 +720,7 @@ processMastodonEvent msg model =
                     model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountReceived result ->
             case result of
@@ -720,7 +731,7 @@ processMastodonEvent msg model =
                 Err error ->
                     { model
                         | currentView = preferredTimeline model
-                        , errors = (errorText error) :: model.errors
+                        , errors = addErrorNotification (errorText error) model
                     }
                         ! []
 
@@ -730,7 +741,7 @@ processMastodonEvent msg model =
                     { model | accountTimeline = updateTimeline append decoded links model.accountTimeline } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountFollowers result ->
             case result of
@@ -740,7 +751,7 @@ processMastodonEvent msg model =
                         ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
-                    { model | errors = (errorText (Debug.log "error" error)) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountFollowing result ->
             case result of
@@ -750,7 +761,7 @@ processMastodonEvent msg model =
                         ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountRelationship result ->
             case result of
@@ -763,7 +774,7 @@ processMastodonEvent msg model =
                             model ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountRelationships result ->
             case result of
@@ -772,7 +783,7 @@ processMastodonEvent msg model =
                     { model | accountRelationships = decoded } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         HomeTimeline append result ->
             case result of
@@ -780,7 +791,7 @@ processMastodonEvent msg model =
                     { model | homeTimeline = updateTimeline append decoded links model.homeTimeline } ! []
 
                 Err error ->
-                    { model | errors = (errorText error) :: model.errors } ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AutoSearch result ->
             let
@@ -807,7 +818,7 @@ processMastodonEvent msg model =
                     Err error ->
                         { model
                             | draft = { draft | showAutoMenu = False }
-                            , errors = (errorText error) :: model.errors
+                            , errors = addErrorNotification (errorText error) model
                         }
                             ! []
 
@@ -834,7 +845,7 @@ processWebSocketMsg msg model =
         NewWebsocketUserMessage message ->
             case (Mastodon.Decoder.decodeWebSocketMessage message) of
                 Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
+                    { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
@@ -842,7 +853,7 @@ processWebSocketMsg msg model =
                             { model | homeTimeline = prependToTimeline status model.homeTimeline } ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
@@ -850,7 +861,7 @@ processWebSocketMsg msg model =
                             deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.NotificationEvent result ->
                     case result of
@@ -870,12 +881,12 @@ processWebSocketMsg msg model =
                                 { model | notifications = newNotifications } ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
         NewWebsocketLocalMessage message ->
             case (Mastodon.Decoder.decodeWebSocketMessage message) of
                 Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
+                    { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
@@ -883,7 +894,7 @@ processWebSocketMsg msg model =
                             { model | localTimeline = prependToTimeline status model.localTimeline } ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
@@ -891,7 +902,7 @@ processWebSocketMsg msg model =
                             deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 _ ->
                     model ! []
@@ -899,7 +910,7 @@ processWebSocketMsg msg model =
         NewWebsocketGlobalMessage message ->
             case (Mastodon.Decoder.decodeWebSocketMessage message) of
                 Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = error :: model.errors } ! []
+                    { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
@@ -907,7 +918,7 @@ processWebSocketMsg msg model =
                             { model | globalTimeline = prependToTimeline status model.globalTimeline } ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 Mastodon.WebSocket.StatusDeleteEvent result ->
                     case result of
@@ -915,7 +926,7 @@ processWebSocketMsg msg model =
                             deleteStatusFromAllTimelines id model ! []
 
                         Err error ->
-                            { model | errors = error :: model.errors } ! []
+                            { model | errors = addErrorNotification error model } ! []
 
                 _ ->
                     model ! []
@@ -926,6 +937,13 @@ update msg model =
     case msg of
         NoOp ->
             model ! []
+
+        Tick newTime ->
+            { model
+                | currentTime = newTime
+                , errors = List.filter (\{ time } -> model.currentTime - time <= 10000) model.errors
+            }
+                ! []
 
         ClearError index ->
             { model | errors = removeAt index model.errors } ! []
@@ -1083,35 +1101,36 @@ acceptableAccounts query accounts =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    case model.client of
-        Just client ->
-            let
-                subs =
-                    [ Mastodon.WebSocket.subscribeToWebSockets
-                        client
-                        Mastodon.WebSocket.UserStream
-                        NewWebsocketUserMessage
-                    ]
-                        ++ (if model.currentView == GlobalTimelineView then
-                                [ Mastodon.WebSocket.subscribeToWebSockets
-                                    client
-                                    Mastodon.WebSocket.GlobalPublicStream
-                                    NewWebsocketGlobalMessage
-                                ]
-                            else if model.currentView == LocalTimelineView then
-                                [ Mastodon.WebSocket.subscribeToWebSockets
-                                    client
-                                    Mastodon.WebSocket.LocalPublicStream
-                                    NewWebsocketLocalMessage
-                                ]
-                            else
-                                []
-                           )
-            in
-                Sub.batch <|
-                    (List.map (Sub.map WebSocketEvent) subs)
-                        ++ [ Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription ]
+subscriptions { client, currentView } =
+    let
+        timeSub =
+            Time.every Time.millisecond Tick
 
-        Nothing ->
-            Sub.batch []
+        userWsSub =
+            Mastodon.WebSocket.subscribeToWebSockets
+                client
+                Mastodon.WebSocket.UserStream
+                NewWebsocketUserMessage
+                |> Sub.map WebSocketEvent
+
+        otherWsSub =
+            if currentView == GlobalTimelineView then
+                Mastodon.WebSocket.subscribeToWebSockets
+                    client
+                    Mastodon.WebSocket.GlobalPublicStream
+                    NewWebsocketGlobalMessage
+                    |> Sub.map WebSocketEvent
+            else if currentView == LocalTimelineView then
+                Mastodon.WebSocket.subscribeToWebSockets
+                    client
+                    Mastodon.WebSocket.LocalPublicStream
+                    NewWebsocketLocalMessage
+                    |> Sub.map WebSocketEvent
+            else
+                Sub.none
+
+        autoCompleteSub =
+            Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
+    in
+        [ timeSub, userWsSub, otherWsSub, autoCompleteSub ]
+            |> Sub.batch

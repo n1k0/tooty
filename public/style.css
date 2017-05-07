@@ -20,6 +20,13 @@ body {
   border-radius: 2px;
   opacity: .95;
   z-index: 9999;
+  animation: 11s ease 0s normal forwards 1 fadeout;
+}
+
+@keyframes fadeout {
+  0% { opacity: 1; }
+  66% { opacity: 1; }
+  100% { opacity: 0; display: none; visibility: hidden}
 }
 
 .error-list .alert .close {
