@@ -241,6 +241,12 @@ li.load-more {
   margin-right: 5px;
 }
 
+.actions > .btn:active:hover {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
 .actions .favourited {
   color: #d1ac0e;
 }
