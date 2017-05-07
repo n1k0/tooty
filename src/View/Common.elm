@@ -91,13 +91,12 @@ loadMoreBtn { id, links, loading } =
     else
         case links.next of
             Just next ->
-                li [ class "list-group-item load-more text-center" ]
-                    [ a
-                        [ href next
-                        , onClickWithPreventAndStop <| TimelineLoadNext id next
-                        ]
-                        [ text "Load more" ]
+                a
+                    [ class "list-group-item load-more text-center"
+                    , href next
+                    , onClickWithPreventAndStop <| TimelineLoadNext id next
                     ]
+                    [ text "Load more" ]
 
             Nothing ->
                 text ""
