@@ -1,12 +1,12 @@
 module Update.Timeline
     exposing
         ( deleteStatusFromAllTimelines
-        , deleteStatusFromTimeline
+        , deleteStatus
         , empty
         , preferred
-        , prependToTimeline
+        , prepend
         , update
-        , updateTimelinesWithBoolFlag
+        , updateWithBoolFlag
         )
 
 import Mastodon.Helper
@@ -43,10 +43,10 @@ deleteStatusFromCurrentView id model =
 deleteStatusFromAllTimelines : Int -> Model -> Model
 deleteStatusFromAllTimelines id model =
     { model
-        | homeTimeline = deleteStatusFromTimeline id model.homeTimeline
-        , localTimeline = deleteStatusFromTimeline id model.localTimeline
-        , globalTimeline = deleteStatusFromTimeline id model.globalTimeline
-        , accountTimeline = deleteStatusFromTimeline id model.accountTimeline
+        | homeTimeline = deleteStatus id model.homeTimeline
+        , localTimeline = deleteStatus id model.localTimeline
+        , globalTimeline = deleteStatus id model.globalTimeline
+        , accountTimeline = deleteStatus id model.accountTimeline
         , notifications = deleteStatusFromNotifications id model.notifications
         , currentView = deleteStatusFromCurrentView id model
     }
@@ -58,10 +58,7 @@ deleteStatusFromNotifications statusId notifications =
         update notification =
             case notification.status of
                 Just status ->
-                    status.id
-                        /= statusId
-                        && (Mastodon.Helper.extractReblog status).id
-                        /= statusId
+                    not <| Mastodon.Helper.statusReferenced statusId status
 
                 Nothing ->
                     True
@@ -69,16 +66,11 @@ deleteStatusFromNotifications statusId notifications =
         { notifications | entries = List.filter update notifications.entries }
 
 
-deleteStatusFromTimeline : Int -> Timeline Status -> Timeline Status
-deleteStatusFromTimeline statusId timeline =
-    let
-        update status =
-            status.id
-                /= statusId
-                && (Mastodon.Helper.extractReblog status).id
-                /= statusId
-    in
-        { timeline | entries = List.filter update timeline.entries }
+deleteStatus : Int -> Timeline Status -> Timeline Status
+deleteStatus statusId ({ entries } as timeline) =
+    { timeline
+        | entries = List.filter (not << Mastodon.Helper.statusReferenced statusId) entries
+    }
 
 
 empty : String -> Timeline a
@@ -98,8 +90,8 @@ preferred model =
         LocalTimelineView
 
 
-prependToTimeline : a -> Timeline a -> Timeline a
-prependToTimeline entry timeline =
+prepend : a -> Timeline a -> Timeline a
+prepend entry timeline =
     { timeline | entries = entry :: timeline.entries }
 
 
@@ -119,8 +111,8 @@ update append entries links timeline =
         }
 
 
-updateTimelinesWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
-updateTimelinesWithBoolFlag statusId flag statusUpdater model =
+updateWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
+updateWithBoolFlag statusId flag statusUpdater model =
     let
         updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then

@@ -19,7 +19,7 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | homeTimeline = Update.Timeline.prependToTimeline status model.homeTimeline } ! []
+                            { model | homeTimeline = Update.Timeline.prepend status model.homeTimeline } ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
@@ -60,7 +60,7 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = Update.Timeline.prependToTimeline status model.localTimeline } ! []
+                            { model | localTimeline = Update.Timeline.prepend status model.localTimeline } ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
@@ -84,7 +84,7 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = Update.Timeline.prependToTimeline status model.globalTimeline } ! []
+                            { model | globalTimeline = Update.Timeline.prepend status model.globalTimeline } ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []

@@ -71,7 +71,7 @@ toStatusRequestBody draft =
 
 processFavourite : Int -> Bool -> Model -> Model
 processFavourite statusId flag model =
-    Update.Timeline.updateTimelinesWithBoolFlag statusId
+    Update.Timeline.updateWithBoolFlag statusId
         flag
         (\s ->
             { s
@@ -90,7 +90,7 @@ processFavourite statusId flag model =
 
 processReblog : Int -> Bool -> Model -> Model
 processReblog statusId flag model =
-    Update.Timeline.updateTimelinesWithBoolFlag statusId
+    Update.Timeline.updateWithBoolFlag statusId
         flag
         (\s ->
             { s
