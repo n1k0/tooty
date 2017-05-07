@@ -1,7 +1,6 @@
 module Update.Draft
     exposing
-        ( acceptableAccounts
-        , empty
+        ( empty
         , showAutoMenu
         , update
         )
@@ -12,18 +11,7 @@ import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import String.Extra
 import Types exposing (..)
-
-
-acceptableAccounts : String -> List Account -> List Account
-acceptableAccounts query accounts =
-    let
-        lowerQuery =
-            String.toLower query
-    in
-        if query == "" then
-            []
-        else
-            List.filter (String.contains lowerQuery << String.toLower << .username) accounts
+import Util
 
 
 autocompleteUpdateConfig : Autocomplete.UpdateConfig Msg Account
@@ -239,7 +227,7 @@ update draftMsg currentUser model =
                             autoMsg
                             draft.autoMaxResults
                             draft.autoState
-                            (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                            (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
 
                     newModel =
                         { model | draft = { draft | autoState = newState } }
@@ -269,13 +257,13 @@ update draftMsg currentUser model =
                                 if toTop then
                                     Autocomplete.resetToFirstItem
                                         autocompleteUpdateConfig
-                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
                                         draft.autoMaxResults
                                         draft.autoState
                                 else
                                     Autocomplete.resetToLastItem
                                         autocompleteUpdateConfig
-                                        (acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
                                         draft.autoMaxResults
                                         draft.autoState
                         }

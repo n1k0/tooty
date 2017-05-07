@@ -9,11 +9,7 @@ import Json.Encode as Encode
 import Json.Decode as Decode
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-
-
--- FIXME: don't import update fns in views
-
-import Update.Draft
+import Util
 import View.Common as Common
 import View.Events exposing (..)
 import View.Formatter exposing (formatContent)
@@ -40,7 +36,7 @@ viewAutocompleteMenu draft =
             (Autocomplete.view viewConfig
                 draft.autoMaxResults
                 draft.autoState
-                (Update.Draft.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
             )
         ]
 

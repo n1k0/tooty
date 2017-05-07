@@ -10,47 +10,34 @@ import Update.Mastodon
 import Update.Timeline
 import Update.Viewer
 import Update.WebSocket
-
-
-extractAuthCode : Navigation.Location -> Maybe String
-extractAuthCode { search } =
-    case (String.split "?code=" search) of
-        [ _, authCode ] ->
-            Just authCode
-
-        _ ->
-            Nothing
+import Util
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init flags location =
-    let
-        authCode =
-            extractAuthCode location
-    in
-        { server = ""
-        , currentTime = 0
-        , registration = flags.registration
-        , client = flags.client
-        , homeTimeline = Update.Timeline.empty "home-timeline"
-        , localTimeline = Update.Timeline.empty "local-timeline"
-        , globalTimeline = Update.Timeline.empty "global-timeline"
-        , accountTimeline = Update.Timeline.empty "account-timeline"
-        , accountFollowers = []
-        , accountFollowing = []
-        , accountRelationships = []
-        , accountRelationship = Nothing
-        , notifications = Update.Timeline.empty "notifications"
-        , draft = Update.Draft.empty
-        , errors = []
-        , location = location
-        , useGlobalTimeline = False
-        , viewer = Nothing
-        , currentView = LocalTimelineView
-        , currentUser = Nothing
-        , notificationFilter = NotificationAll
-        }
-            ! [ Command.initCommands flags.registration flags.client authCode ]
+init { registration, client } location =
+    { server = ""
+    , currentTime = 0
+    , registration = registration
+    , client = client
+    , homeTimeline = Update.Timeline.empty "home-timeline"
+    , localTimeline = Update.Timeline.empty "local-timeline"
+    , globalTimeline = Update.Timeline.empty "global-timeline"
+    , accountTimeline = Update.Timeline.empty "account-timeline"
+    , accountFollowers = []
+    , accountFollowing = []
+    , accountRelationships = []
+    , accountRelationship = Nothing
+    , notifications = Update.Timeline.empty "notifications"
+    , draft = Update.Draft.empty
+    , errors = []
+    , location = location
+    , useGlobalTimeline = False
+    , viewer = Nothing
+    , currentView = LocalTimelineView
+    , currentUser = Nothing
+    , notificationFilter = NotificationAll
+    }
+        ! [ Command.initCommands registration client (Util.extractAuthCode location) ]
 
 
 toStatusRequestBody : Draft -> StatusRequestBody
@@ -67,75 +54,6 @@ toStatusRequestBody draft =
     , sensitive = draft.sensitive
     , visibility = draft.visibility
     }
-
-
-processFavourite : Int -> Bool -> Model -> Model
-processFavourite statusId flag model =
-    Update.Timeline.updateWithBoolFlag statusId
-        flag
-        (\s ->
-            { s
-                | favourited = Just flag
-                , favourites_count =
-                    if flag then
-                        s.favourites_count + 1
-                    else if s.favourites_count > 0 then
-                        s.favourites_count - 1
-                    else
-                        0
-            }
-        )
-        model
-
-
-processReblog : Int -> Bool -> Model -> Model
-processReblog statusId flag model =
-    Update.Timeline.updateWithBoolFlag statusId
-        flag
-        (\s ->
-            { s
-                | reblogged = Just flag
-                , reblogs_count =
-                    if flag then
-                        s.reblogs_count + 1
-                    else if s.reblogs_count > 0 then
-                        s.reblogs_count - 1
-                    else
-                        0
-            }
-        )
-        model
-
-
-markTimelineLoading : Bool -> String -> Model -> Model
-markTimelineLoading loading id model =
-    let
-        mark timeline =
-            { timeline | loading = loading }
-    in
-        case id of
-            "notifications" ->
-                { model | notifications = mark model.notifications }
-
-            "home-timeline" ->
-                { model | homeTimeline = mark model.homeTimeline }
-
-            "local-timeline" ->
-                { model | localTimeline = mark model.localTimeline }
-
-            "global-timeline" ->
-                { model | globalTimeline = mark model.globalTimeline }
-
-            "account-timeline" ->
-                case model.currentView of
-                    AccountView account ->
-                        { model | accountTimeline = mark model.accountTimeline }
-
-                    _ ->
-                        model
-
-            _ ->
-                model
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -193,16 +111,20 @@ update msg model =
             model ! [ Command.deleteStatus model.client id ]
 
         ReblogStatus id ->
-            processReblog id True model ! [ Command.reblogStatus model.client id ]
+            Update.Timeline.processReblog id True model
+                ! [ Command.reblogStatus model.client id ]
 
         UnreblogStatus id ->
-            processReblog id False model ! [ Command.unreblogStatus model.client id ]
+            Update.Timeline.processReblog id False model
+                ! [ Command.unreblogStatus model.client id ]
 
         AddFavorite id ->
-            processFavourite id True model ! [ Command.favouriteStatus model.client id ]
+            Update.Timeline.processFavourite id True model
+                ! [ Command.favouriteStatus model.client id ]
 
         RemoveFavorite id ->
-            processFavourite id False model ! [ Command.unfavouriteStatus model.client id ]
+            Update.Timeline.processFavourite id False model
+                ! [ Command.unfavouriteStatus model.client id ]
 
         DraftEvent draftMsg ->
             case model.currentUser of
@@ -233,7 +155,7 @@ update msg model =
                 ! [ Command.loadAccount model.client accountId ]
 
         TimelineLoadNext id next ->
-            markTimelineLoading True id model
+            Update.Timeline.markAsLoading True id model
                 ! [ Command.loadNextTimeline model.client model.currentView id next ]
 
         ViewAccountFollowers account ->

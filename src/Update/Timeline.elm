@@ -3,8 +3,11 @@ module Update.Timeline
         ( deleteStatusFromAllTimelines
         , deleteStatus
         , empty
+        , markAsLoading
         , preferred
         , prepend
+        , processReblog
+        , processFavourite
         , update
         , updateWithBoolFlag
         )
@@ -82,6 +85,37 @@ empty id =
     }
 
 
+markAsLoading : Bool -> String -> Model -> Model
+markAsLoading loading id model =
+    let
+        mark timeline =
+            { timeline | loading = loading }
+    in
+        case id of
+            "notifications" ->
+                { model | notifications = mark model.notifications }
+
+            "home-timeline" ->
+                { model | homeTimeline = mark model.homeTimeline }
+
+            "local-timeline" ->
+                { model | localTimeline = mark model.localTimeline }
+
+            "global-timeline" ->
+                { model | globalTimeline = mark model.globalTimeline }
+
+            "account-timeline" ->
+                case model.currentView of
+                    AccountView account ->
+                        { model | accountTimeline = mark model.accountTimeline }
+
+                    _ ->
+                        model
+
+            _ ->
+                model
+
+
 preferred : Model -> CurrentView
 preferred model =
     if model.useGlobalTimeline then
@@ -93,6 +127,44 @@ preferred model =
 prepend : a -> Timeline a -> Timeline a
 prepend entry timeline =
     { timeline | entries = entry :: timeline.entries }
+
+
+processFavourite : Int -> Bool -> Model -> Model
+processFavourite statusId flag model =
+    updateWithBoolFlag statusId
+        flag
+        (\s ->
+            { s
+                | favourited = Just flag
+                , favourites_count =
+                    if flag then
+                        s.favourites_count + 1
+                    else if s.favourites_count > 0 then
+                        s.favourites_count - 1
+                    else
+                        0
+            }
+        )
+        model
+
+
+processReblog : Int -> Bool -> Model -> Model
+processReblog statusId flag model =
+    updateWithBoolFlag statusId
+        flag
+        (\s ->
+            { s
+                | reblogged = Just flag
+                , reblogs_count =
+                    if flag then
+                        s.reblogs_count + 1
+                    else if s.reblogs_count > 0 then
+                        s.reblogs_count - 1
+                    else
+                        0
+            }
+        )
+        model
 
 
 update : Bool -> List a -> Links -> Timeline a -> Timeline a

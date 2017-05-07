@@ -11,6 +11,22 @@ import Update.Error exposing (..)
 import Update.Timeline
 
 
+errorText : Error -> String
+errorText error =
+    case error of
+        MastodonError statusCode statusMsg errorMsg ->
+            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+
+        ServerError statusCode statusMsg errorMsg ->
+            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+
+        TimeoutError ->
+            "Request timed out."
+
+        NetworkError ->
+            "Unreachable host."
+
+
 update : MastodonMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
