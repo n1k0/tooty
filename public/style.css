@@ -54,6 +54,9 @@ body {
   overflow-y: scroll;
 }
 
+li.load-more {
+  cursor: wait;
+}
 
 .notifications-panel .timeline {
   max-height: calc(100vh - 100px);
