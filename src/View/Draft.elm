@@ -8,8 +8,8 @@ import Html.Lazy as Lazy
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Mastodon.Model exposing (..)
-import Model
 import Types exposing (..)
+import Util
 import View.Common as Common
 import View.Events exposing (..)
 import View.Formatter exposing (formatContent)
@@ -36,7 +36,7 @@ viewAutocompleteMenu draft =
             (Autocomplete.view viewConfig
                 draft.autoMaxResults
                 draft.autoState
-                (Model.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
             )
         ]
 

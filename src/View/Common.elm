@@ -85,7 +85,6 @@ justifiedButtonGroup cls buttons =
 loadMoreBtn : { timeline | id : String, links : Links, loading : Bool } -> Html Msg
 loadMoreBtn { id, links, loading } =
     if loading then
-        -- TODO: proper spinner
         li [ class "list-group-item load-more text-center" ]
             [ text "Loading..." ]
     else

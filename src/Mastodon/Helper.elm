@@ -6,6 +6,7 @@ module Mastodon.Helper
         , getReplyPrefix
         , notificationToAggregate
         , sameAccount
+        , statusReferenced
         )
 
 import List.Extra exposing (groupWhile, uniqueBy)
@@ -170,3 +171,8 @@ sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool
 sameAccount { id, acct, username } account =
     -- Note: different instances can share the same id for different accounts.
     id == account.id && acct == account.acct && username == account.username
+
+
+statusReferenced : Int -> Status -> Bool
+statusReferenced id status =
+    status.id == id || (extractReblog status).id == id
