@@ -8,8 +8,12 @@ import Html.Lazy as Lazy
 import Json.Encode as Encode
 import Json.Decode as Decode
 import Mastodon.Model exposing (..)
-import Model
 import Types exposing (..)
+
+
+-- FIXME: don't import update fns in views
+
+import Update.Draft
 import View.Common as Common
 import View.Events exposing (..)
 import View.Formatter exposing (formatContent)
@@ -36,7 +40,7 @@ viewAutocompleteMenu draft =
             (Autocomplete.view viewConfig
                 draft.autoMaxResults
                 draft.autoState
-                (Model.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                (Update.Draft.acceptableAccounts draft.autoQuery draft.autoAccounts)
             )
         ]
 

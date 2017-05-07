@@ -3,6 +3,7 @@ module Main exposing (main)
 import Navigation
 import View.App exposing (view)
 import Model exposing (..)
+import Subscription exposing (subscriptions)
 import Types exposing (..)
 
 
