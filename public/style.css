@@ -247,12 +247,18 @@ li.load-more {
   box-shadow: none;
 }
 
+.actions > .btn:hover > .glyphicon-star,
 .actions .favourited {
   color: #d1ac0e;
 }
-
+.actions > .btn:hover > .glyphicon-fire,
 .actions .reblogged {
   color: #d56344;
+}
+
+.actions > .btn:hover > .glyphicon-share-alt,
+.actions > .btn-delete:hover {
+  color: #fff;
 }
 
 .btn-delete .glyphicon {
