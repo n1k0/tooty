@@ -13,6 +13,7 @@ import String.Extra
 import Task
 import Time
 import Types exposing (..)
+import Update.Viewer
 
 
 maxBuffer : Int
@@ -518,16 +519,6 @@ updateDraft draftMsg currentUser model =
                     { model | draft = newDraft } ! []
 
 
-updateViewer : ViewerMsg -> Maybe Viewer -> ( Maybe Viewer, Cmd Msg )
-updateViewer viewerMsg viewer =
-    case viewerMsg of
-        CloseViewer ->
-            Nothing ! []
-
-        OpenViewer attachments attachment ->
-            (Just <| Viewer attachments attachment) ! []
-
-
 markTimelineLoading : Bool -> String -> Model -> Model
 markTimelineLoading loading id model =
     let
@@ -1009,7 +1000,7 @@ update msg model =
         ViewerEvent viewerMsg ->
             let
                 ( viewer, commands ) =
-                    updateViewer viewerMsg model.viewer
+                    Update.Viewer.update viewerMsg model.viewer
             in
                 { model | viewer = viewer } ! [ commands ]
 
