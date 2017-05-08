@@ -25,7 +25,7 @@ An [experimental Mastodon client](https://n1k0.github.io/tooty/) written in Elm.
 
     $ npm run optimize
 
-This command which will compress and optimize the generated js bundle. It usually allows reducing its size by ~75%, at the cost of the JavaScript code being barely readable. Use this command for deploying tooty to production.
+This command compresses and optimizes the generated js bundle. It usually allows reducing its size by ~75%, at the cost of the JavaScript code being barely readable. Use this command for deploying tooty to production.
 
 ### Deploying to gh-pages
 
