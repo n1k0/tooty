@@ -165,6 +165,9 @@ update msg model =
             }
                 ! []
 
+        CloseAccountSelector ->
+            { model | currentView = Update.Timeline.preferred model } ! []
+
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []
 

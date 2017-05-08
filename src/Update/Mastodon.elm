@@ -90,17 +90,17 @@ update msg model =
         CurrentUser result ->
             case result of
                 Ok { decoded } ->
-                    { model
-                        | currentUser = Just decoded
-                        , clients =
+                    let
+                        updatedClients =
                             case model.clients of
                                 client :: xs ->
                                     ({ client | account = Just decoded }) :: xs
 
                                 _ ->
                                     model.clients
-                    }
-                        ! []
+                    in
+                        { model | currentUser = Just decoded, clients = updatedClients }
+                            ! [ Command.saveClients updatedClients ]
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []

@@ -72,6 +72,7 @@ type Msg
     = AddFavorite Int
     | ClearError Int
     | CloseAccount
+    | CloseAccountSelector
     | CloseThread
     | DeleteStatus Int
     | DraftEvent DraftMsg
