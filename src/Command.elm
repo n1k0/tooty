@@ -165,27 +165,27 @@ loadAccount client accountId =
             Cmd.none
 
 
-loadAccountFollowers : Maybe Client -> Int -> Cmd Msg
-loadAccountFollowers client accountId =
+loadAccountFollowers : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountFollowers client accountId url =
     case client of
         Just client ->
-            HttpBuilder.get (ApiUrl.followers accountId)
+            HttpBuilder.get (Maybe.withDefault (ApiUrl.followers accountId) url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list accountDecoder)
-                |> send (MastodonEvent << AccountFollowers)
+                |> send (MastodonEvent << AccountFollowers (url /= Nothing))
 
         Nothing ->
             Cmd.none
 
 
-loadAccountFollowing : Maybe Client -> Int -> Cmd Msg
-loadAccountFollowing client accountId =
+loadAccountFollowing : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountFollowing client accountId url =
     case client of
         Just client ->
-            HttpBuilder.get (ApiUrl.following accountId)
+            HttpBuilder.get (Maybe.withDefault (ApiUrl.following accountId) url)
                 |> withClient client
                 |> withBodyDecoder (Decode.list accountDecoder)
-                |> send (MastodonEvent << AccountFollowing)
+                |> send (MastodonEvent << AccountFollowing (url /= Nothing))
 
         Nothing ->
             Cmd.none
@@ -341,6 +341,22 @@ loadNextTimeline client currentView id next =
             case currentView of
                 AccountView account ->
                     loadAccountTimeline client account.id (Just next)
+
+                _ ->
+                    Cmd.none
+
+        "account-followers" ->
+            case currentView of
+                AccountFollowersView account timeline ->
+                    loadAccountFollowers client account.id (Just next)
+
+                _ ->
+                    Cmd.none
+
+        "account-following" ->
+            case currentView of
+                AccountFollowingView account timeline ->
+                    loadAccountFollowing client account.id (Just next)
 
                 _ ->
                     Cmd.none

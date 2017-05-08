@@ -100,12 +100,12 @@ followView currentUser relationship account =
 
 accountFollowView :
     CurrentUser
-    -> List Account
+    -> Timeline Account
     -> List Relationship
     -> CurrentUserRelation
     -> Account
     -> Html Msg
-accountFollowView currentUser accounts relationships relationship account =
+accountFollowView currentUser timeline relationships relationship account =
     let
         keyedEntry account =
             ( toString account.id
@@ -116,10 +116,13 @@ accountFollowView currentUser accounts relationships relationship account =
                     account
                 ]
             )
+
+        entries =
+            List.map keyedEntry timeline.entries
     in
         accountView currentUser account relationship <|
             Keyed.ul [ class "list-group" ] <|
-                List.map keyedEntry accounts
+                (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
 
 accountTimelineView : CurrentUser -> Timeline Status -> CurrentUserRelation -> Account -> Html Msg
