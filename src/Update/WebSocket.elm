@@ -2,6 +2,7 @@ module Update.WebSocket exposing (update)
 
 import Mastodon.Decoder
 import Mastodon.Helper
+import Mastodon.Model exposing (..)
 import Mastodon.WebSocket
 import Types exposing (..)
 import Update.Error exposing (..)
@@ -19,7 +20,11 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | homeTimeline = Update.Timeline.prepend status model.homeTimeline } ! []
+                            (model
+                                |> (\m -> { m | homeTimeline = Update.Timeline.prepend status m.homeTimeline })
+                                |> updateCurrentViewWithStatus status
+                            )
+                                ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
@@ -60,7 +65,11 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | localTimeline = Update.Timeline.prepend status model.localTimeline } ! []
+                            (model
+                                |> (\m -> { m | localTimeline = Update.Timeline.prepend status m.localTimeline })
+                                |> updateCurrentViewWithStatus status
+                            )
+                                ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
@@ -84,7 +93,11 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            { model | globalTimeline = Update.Timeline.prepend status model.globalTimeline } ! []
+                            (model
+                                |> (\m -> { m | globalTimeline = Update.Timeline.prepend status m.globalTimeline })
+                                |> updateCurrentViewWithStatus status
+                            )
+                                ! []
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
@@ -99,3 +112,50 @@ update msg model =
 
                 _ ->
                     model ! []
+
+
+isThreadMember : Thread -> Status -> Bool
+isThreadMember thread status =
+    case status.in_reply_to_id of
+        Nothing ->
+            False
+
+        Just inReplyToId ->
+            let
+                threadStatusIds =
+                    List.concat
+                        [ [ thread.status.id ]
+                        , List.map .id thread.context.ancestors
+                        , List.map .id thread.context.descendants
+                        ]
+            in
+                List.member inReplyToId threadStatusIds
+
+
+appendToThreadDescendants : Thread -> Status -> Thread
+appendToThreadDescendants ({ context } as thread) status =
+    { thread
+        | context =
+            { context
+                | descendants = List.append thread.context.descendants [ status ]
+            }
+    }
+
+
+updateCurrentViewWithStatus : Status -> Model -> Model
+updateCurrentViewWithStatus status model =
+    case model.currentView of
+        ThreadView ({ context } as thread) ->
+            if isThreadMember thread status then
+                { model | currentView = ThreadView (appendToThreadDescendants thread status) }
+            else
+                model
+
+        AccountView account ->
+            if Mastodon.Helper.sameAccount account status.account then
+                { model | accountTimeline = Update.Timeline.prepend status model.accountTimeline }
+            else
+                model
+
+        _ ->
+            model
