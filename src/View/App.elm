@@ -139,7 +139,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
         [ errorsListView model
-        , case model.client of
+        , case (List.head model.clients) of
             Just client ->
                 homepageView model
 

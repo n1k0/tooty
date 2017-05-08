@@ -165,7 +165,7 @@ update draftMsg currentUser model =
                 in
                     { model | draft = newDraft }
                         ! if query /= "" && atPosition /= Nothing then
-                            [ Command.searchAccounts model.client query model.draft.autoMaxResults False ]
+                            [ Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False ]
                           else
                             []
 

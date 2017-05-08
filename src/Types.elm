@@ -8,7 +8,7 @@ import Time exposing (Time)
 
 
 type alias Flags =
-    { client : Maybe Client
+    { clients : List Client
     , registration : Maybe AppRegistration
     }
 
@@ -172,7 +172,7 @@ type alias Model =
     { server : String
     , currentTime : Time
     , registration : Maybe AppRegistration
-    , client : Maybe Client
+    , clients : List Client
     , homeTimeline : Timeline Status
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status

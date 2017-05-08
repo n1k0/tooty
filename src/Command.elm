@@ -3,7 +3,7 @@ module Command
         ( initCommands
         , navigateToAuthUrl
         , registerApp
-        , saveClient
+        , saveClients
         , saveRegistration
         , loadNotifications
         , loadUserAccount
@@ -107,11 +107,13 @@ registerApp { server, location } =
             |> send (MastodonEvent << AppRegistered)
 
 
-saveClient : Client -> Cmd Msg
-saveClient client =
-    clientEncoder client
+saveClients : List Client -> Cmd Msg
+saveClients clients =
+    clients
+        |> List.map clientEncoder
+        |> Encode.list
         |> Encode.encode 0
-        |> Ports.saveClient
+        |> Ports.saveClients
 
 
 saveRegistration : AppRegistration -> Cmd Msg

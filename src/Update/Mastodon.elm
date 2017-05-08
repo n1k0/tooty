@@ -37,9 +37,9 @@ update msg model =
                         client =
                             Client decoded.server decoded.accessToken
                     in
-                        { model | client = Just client }
+                        { model | clients = client :: model.clients }
                             ! [ Command.loadTimelines <| Just client
-                              , Command.saveClient client
+                              , Command.saveClients <| client :: model.clients
                               , Navigation.modifyUrl model.location.pathname
                               , Navigation.reload
                               ]
@@ -182,7 +182,11 @@ update msg model =
                         | currentView = AccountView decoded
                         , accountRelationships = []
                     }
-                        ! [ Command.loadAccountTimeline model.client decoded.id model.accountTimeline.links.next ]
+                        ! [ Command.loadAccountTimeline
+                                (List.head model.clients)
+                                decoded.id
+                                model.accountTimeline.links.next
+                          ]
 
                 Err error ->
                     { model
@@ -203,7 +207,7 @@ update msg model =
             case result of
                 Ok { decoded, links } ->
                     { model | accountFollowers = Update.Timeline.update append decoded links model.accountFollowers }
-                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
+                        ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -212,7 +216,7 @@ update msg model =
             case result of
                 Ok { decoded, links } ->
                     { model | accountFollowing = Update.Timeline.update append decoded links model.accountFollowing }
-                        ! [ Command.loadRelationships model.client <| List.map .id decoded ]
+                        ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
