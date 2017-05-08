@@ -25178,12 +25178,14 @@ var _n1k0$tooty$Types$AccountRelationship = function (a) {
 var _n1k0$tooty$Types$AccountReceived = function (a) {
 	return {ctor: 'AccountReceived', _0: a};
 };
-var _n1k0$tooty$Types$AccountFollowing = function (a) {
-	return {ctor: 'AccountFollowing', _0: a};
-};
-var _n1k0$tooty$Types$AccountFollowers = function (a) {
-	return {ctor: 'AccountFollowers', _0: a};
-};
+var _n1k0$tooty$Types$AccountFollowing = F2(
+	function (a, b) {
+		return {ctor: 'AccountFollowing', _0: a, _1: b};
+	});
+var _n1k0$tooty$Types$AccountFollowers = F2(
+	function (a, b) {
+		return {ctor: 'AccountFollowers', _0: a, _1: b};
+	});
 var _n1k0$tooty$Types$AccountFollowed = function (a) {
 	return {ctor: 'AccountFollowed', _0: a};
 };
@@ -25755,15 +25757,18 @@ var _n1k0$tooty$Command$searchAccounts = F4(
 			}
 		}
 	});
-var _n1k0$tooty$Command$loadAccountFollowing = F2(
-	function (client, accountId) {
+var _n1k0$tooty$Command$loadAccountFollowing = F3(
+	function (client, accountId, url) {
 		var _p30 = client;
 		if (_p30.ctor === 'Just') {
 			return A2(
 				_n1k0$tooty$Mastodon_Http$send,
 				function (_p31) {
 					return _n1k0$tooty$Types$MastodonEvent(
-						_n1k0$tooty$Types$AccountFollowing(_p31));
+						A2(
+							_n1k0$tooty$Types$AccountFollowing,
+							!_elm_lang$core$Native_Utils.eq(url, _elm_lang$core$Maybe$Nothing),
+							_p31));
 				},
 				A2(
 					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
@@ -25772,20 +25777,26 @@ var _n1k0$tooty$Command$loadAccountFollowing = F2(
 						_n1k0$tooty$Mastodon_Http$withClient,
 						_p30._0,
 						_lukewestby$elm_http_builder$HttpBuilder$get(
-							_n1k0$tooty$Mastodon_ApiUrl$following(accountId)))));
+							A2(
+								_elm_lang$core$Maybe$withDefault,
+								_n1k0$tooty$Mastodon_ApiUrl$following(accountId),
+								url)))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
 	});
-var _n1k0$tooty$Command$loadAccountFollowers = F2(
-	function (client, accountId) {
+var _n1k0$tooty$Command$loadAccountFollowers = F3(
+	function (client, accountId, url) {
 		var _p32 = client;
 		if (_p32.ctor === 'Just') {
 			return A2(
 				_n1k0$tooty$Mastodon_Http$send,
 				function (_p33) {
 					return _n1k0$tooty$Types$MastodonEvent(
-						_n1k0$tooty$Types$AccountFollowers(_p33));
+						A2(
+							_n1k0$tooty$Types$AccountFollowers,
+							!_elm_lang$core$Native_Utils.eq(url, _elm_lang$core$Maybe$Nothing),
+							_p33));
 				},
 				A2(
 					_n1k0$tooty$Mastodon_Http$withBodyDecoder,
@@ -25794,7 +25805,10 @@ var _n1k0$tooty$Command$loadAccountFollowers = F2(
 						_n1k0$tooty$Mastodon_Http$withClient,
 						_p32._0,
 						_lukewestby$elm_http_builder$HttpBuilder$get(
-							_n1k0$tooty$Mastodon_ApiUrl$followers(accountId)))));
+							A2(
+								_elm_lang$core$Maybe$withDefault,
+								_n1k0$tooty$Mastodon_ApiUrl$followers(accountId),
+								url)))));
 		} else {
 			return _elm_lang$core$Platform_Cmd$none;
 		}
@@ -25951,6 +25965,28 @@ var _n1k0$tooty$Command$loadNextTimeline = F4(
 				} else {
 					return _elm_lang$core$Platform_Cmd$none;
 				}
+			case 'account-followers':
+				var _p44 = currentView;
+				if (_p44.ctor === 'AccountFollowersView') {
+					return A3(
+						_n1k0$tooty$Command$loadAccountFollowers,
+						client,
+						_p44._0.id,
+						_elm_lang$core$Maybe$Just(next));
+				} else {
+					return _elm_lang$core$Platform_Cmd$none;
+				}
+			case 'account-following':
+				var _p45 = currentView;
+				if (_p45.ctor === 'AccountFollowingView') {
+					return A3(
+						_n1k0$tooty$Command$loadAccountFollowing,
+						client,
+						_p45._0.id,
+						_elm_lang$core$Maybe$Just(next));
+				} else {
+					return _elm_lang$core$Platform_Cmd$none;
+				}
 			default:
 				return _elm_lang$core$Platform_Cmd$none;
 		}
@@ -25969,20 +26005,20 @@ var _n1k0$tooty$Command$saveClient = function (client) {
 			0,
 			_n1k0$tooty$Mastodon_Encoder$clientEncoder(client)));
 };
-var _n1k0$tooty$Command$registerApp = function (_p44) {
-	var _p45 = _p44;
-	var _p48 = _p45.server;
-	var _p47 = _p45.location;
+var _n1k0$tooty$Command$registerApp = function (_p46) {
+	var _p47 = _p46;
+	var _p50 = _p47.server;
+	var _p49 = _p47.location;
 	var website = 'https://github.com/n1k0/tooty';
 	var scope = 'read write follow';
 	var clientName = 'tooty';
-	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p48) ? A2(_elm_lang$core$String$dropRight, 1, _p48) : _p48;
-	var redirectUri = A2(_elm_lang$core$Basics_ops['++'], _p47.origin, _p47.pathname);
+	var cleanServer = A2(_elm_lang$core$String$endsWith, '/', _p50) ? A2(_elm_lang$core$String$dropRight, 1, _p50) : _p50;
+	var redirectUri = A2(_elm_lang$core$Basics_ops['++'], _p49.origin, _p49.pathname);
 	return A2(
 		_n1k0$tooty$Mastodon_Http$send,
-		function (_p46) {
+		function (_p48) {
 			return _n1k0$tooty$Types$MastodonEvent(
-				_n1k0$tooty$Types$AppRegistered(_p46));
+				_n1k0$tooty$Types$AppRegistered(_p48));
 		},
 		A2(
 			_lukewestby$elm_http_builder$HttpBuilder$withJsonBody,
@@ -26001,9 +26037,9 @@ var _n1k0$tooty$Command$getAccessToken = F2(
 	function (registration, authCode) {
 		return A2(
 			_n1k0$tooty$Mastodon_Http$send,
-			function (_p49) {
+			function (_p51) {
 				return _n1k0$tooty$Types$MastodonEvent(
-					_n1k0$tooty$Types$AccessToken(_p49));
+					_n1k0$tooty$Types$AccessToken(_p51));
 			},
 			A2(
 				_n1k0$tooty$Mastodon_Http$withBodyDecoder,
@@ -26018,13 +26054,13 @@ var _n1k0$tooty$Command$initCommands = F3(
 	function (registration, client, authCode) {
 		return _elm_lang$core$Platform_Cmd$batch(
 			function () {
-				var _p50 = authCode;
-				if (_p50.ctor === 'Just') {
-					var _p51 = registration;
-					if (_p51.ctor === 'Just') {
+				var _p52 = authCode;
+				if (_p52.ctor === 'Just') {
+					var _p53 = registration;
+					if (_p53.ctor === 'Just') {
 						return {
 							ctor: '::',
-							_0: A2(_n1k0$tooty$Command$getAccessToken, _p51._0, _p50._0),
+							_0: A2(_n1k0$tooty$Command$getAccessToken, _p53._0, _p52._0),
 							_1: {ctor: '[]'}
 						};
 					} else {
@@ -26899,8 +26935,8 @@ var _n1k0$tooty$Init$init = F2(
 				localTimeline: _n1k0$tooty$Update_Timeline$empty('local-timeline'),
 				globalTimeline: _n1k0$tooty$Update_Timeline$empty('global-timeline'),
 				accountTimeline: _n1k0$tooty$Update_Timeline$empty('account-timeline'),
-				accountFollowers: {ctor: '[]'},
-				accountFollowing: {ctor: '[]'},
+				accountFollowers: _n1k0$tooty$Update_Timeline$empty('account-followers'),
+				accountFollowing: _n1k0$tooty$Update_Timeline$empty('account-following'),
 				accountRelationships: {ctor: '[]'},
 				accountRelationship: _elm_lang$core$Maybe$Nothing,
 				notifications: _n1k0$tooty$Update_Timeline$empty('notifications'),
@@ -29326,7 +29362,7 @@ var _n1k0$tooty$View_Account$accountView = F4(
 			});
 	});
 var _n1k0$tooty$View_Account$accountFollowView = F5(
-	function (currentUser, accounts, relationships, relationship, account) {
+	function (currentUser, timeline, relationships, relationship, account) {
 		var keyedEntry = function (account) {
 			return {
 				ctor: '_Tuple2',
@@ -29354,6 +29390,7 @@ var _n1k0$tooty$View_Account$accountFollowView = F5(
 					})
 			};
 		};
+		var entries = A2(_elm_lang$core$List$map, keyedEntry, timeline.entries);
 		return A4(
 			_n1k0$tooty$View_Account$accountView,
 			currentUser,
@@ -29366,7 +29403,18 @@ var _n1k0$tooty$View_Account$accountFollowView = F5(
 					_0: _elm_lang$html$Html_Attributes$class('list-group'),
 					_1: {ctor: '[]'}
 				},
-				A2(_elm_lang$core$List$map, keyedEntry, accounts)));
+				A2(
+					_elm_lang$core$Basics_ops['++'],
+					entries,
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'load-more',
+							_1: _n1k0$tooty$View_Common$loadMoreBtn(timeline)
+						},
+						_1: {ctor: '[]'}
+					})));
 	});
 var _n1k0$tooty$View_Account$accountTimelineView = F4(
 	function (currentUser, timeline, relationship, account) {
@@ -31755,7 +31803,8 @@ var _n1k0$tooty$Update_Mastodon$update = F2(
 						_elm_lang$core$Native_Utils.update(
 							model,
 							{
-								currentView: _n1k0$tooty$Types$AccountView(_p21)
+								currentView: _n1k0$tooty$Types$AccountView(_p21),
+								accountRelationships: {ctor: '[]'}
 							}),
 						{
 							ctor: '::',
@@ -31801,14 +31850,16 @@ var _n1k0$tooty$Update_Mastodon$update = F2(
 						{ctor: '[]'});
 				}
 			case 'AccountFollowers':
-				var _p23 = _p2._0;
+				var _p23 = _p2._1;
 				if (_p23.ctor === 'Ok') {
 					var _p24 = _p23._0.decoded;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{accountFollowers: _p24}),
+							{
+								accountFollowers: A4(_n1k0$tooty$Update_Timeline$update, _p2._0, _p24, _p23._0.links, model.accountFollowers)
+							}),
 						{
 							ctor: '::',
 							_0: A2(
@@ -31836,14 +31887,16 @@ var _n1k0$tooty$Update_Mastodon$update = F2(
 						{ctor: '[]'});
 				}
 			case 'AccountFollowing':
-				var _p25 = _p2._0;
+				var _p25 = _p2._1;
 				if (_p25.ctor === 'Ok') {
 					var _p26 = _p25._0.decoded;
 					return A2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{accountFollowing: _p26}),
+							{
+								accountFollowing: A4(_n1k0$tooty$Update_Timeline$update, _p2._0, _p26, _p25._0.links, model.accountFollowing)
+							}),
 						{
 							ctor: '::',
 							_0: A2(
@@ -31909,7 +31962,18 @@ var _n1k0$tooty$Update_Mastodon$update = F2(
 						_elm_lang$core$Platform_Cmd_ops['!'],
 						_elm_lang$core$Native_Utils.update(
 							model,
-							{accountRelationships: _p29._0.decoded}),
+							{
+								accountRelationships: _elm_lang$core$List$concat(
+									{
+										ctor: '::',
+										_0: model.accountRelationships,
+										_1: {
+											ctor: '::',
+											_0: _p29._0.decoded,
+											_1: {ctor: '[]'}
+										}
+									})
+							}),
 						{ctor: '[]'});
 				} else {
 					return A2(
@@ -32431,8 +32495,8 @@ var _n1k0$tooty$Update_Main$update = F2(
 						model,
 						{
 							accountTimeline: _n1k0$tooty$Update_Timeline$empty('account-timeline'),
-							accountFollowers: {ctor: '[]'},
-							accountFollowing: {ctor: '[]'},
+							accountFollowers: _n1k0$tooty$Update_Timeline$empty('account-followers'),
+							accountFollowing: _n1k0$tooty$Update_Timeline$empty('account-following'),
 							accountRelationships: {ctor: '[]'},
 							accountRelationship: _elm_lang$core$Maybe$Nothing
 						}),
@@ -32458,11 +32522,12 @@ var _n1k0$tooty$Update_Main$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							currentView: A2(_n1k0$tooty$Types$AccountFollowersView, _p13, model.accountFollowers)
+							currentView: A2(_n1k0$tooty$Types$AccountFollowersView, _p13, model.accountFollowers),
+							accountRelationships: {ctor: '[]'}
 						}),
 					{
 						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadAccountFollowers, model.client, _p13.id),
+						_0: A3(_n1k0$tooty$Command$loadAccountFollowers, model.client, _p13.id, _elm_lang$core$Maybe$Nothing),
 						_1: {ctor: '[]'}
 					});
 			case 'ViewAccountFollowing':
@@ -32472,11 +32537,12 @@ var _n1k0$tooty$Update_Main$update = F2(
 					_elm_lang$core$Native_Utils.update(
 						model,
 						{
-							currentView: A2(_n1k0$tooty$Types$AccountFollowingView, _p14, model.accountFollowing)
+							currentView: A2(_n1k0$tooty$Types$AccountFollowingView, _p14, model.accountFollowing),
+							accountRelationships: {ctor: '[]'}
 						}),
 					{
 						ctor: '::',
-						_0: A2(_n1k0$tooty$Command$loadAccountFollowing, model.client, _p14.id),
+						_0: A3(_n1k0$tooty$Command$loadAccountFollowing, model.client, _p14.id, _elm_lang$core$Maybe$Nothing),
 						_1: {ctor: '[]'}
 					});
 			case 'ViewAccountStatuses':
@@ -32508,8 +32574,8 @@ var _n1k0$tooty$Update_Main$update = F2(
 						{
 							currentView: _n1k0$tooty$Update_Timeline$preferred(model),
 							accountTimeline: _n1k0$tooty$Update_Timeline$empty('account-timeline'),
-							accountFollowing: {ctor: '[]'},
-							accountFollowers: {ctor: '[]'}
+							accountFollowing: _n1k0$tooty$Update_Timeline$empty('account-following'),
+							accountFollowers: _n1k0$tooty$Update_Timeline$empty('account-followers')
 						}),
 					{ctor: '[]'});
 			case 'FilterNotifications':
