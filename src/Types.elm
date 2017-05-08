@@ -82,6 +82,7 @@ type Msg
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
+    | OpenAccountSelector
     | ReblogStatus Int
     | Register
     | RemoveFavorite Int
@@ -105,6 +106,7 @@ type CurrentView
       AccountFollowersView Account (Timeline Account)
     | AccountFollowingView Account (Timeline Account)
     | AccountView Account
+    | AccountSelectorView
     | GlobalTimelineView
     | LocalTimelineView
     | ThreadView Thread

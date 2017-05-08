@@ -69,6 +69,9 @@ update msg model =
         OpenThread status ->
             model ! [ Command.loadThread (List.head model.clients) status ]
 
+        OpenAccountSelector ->
+            { model | currentView = AccountSelectorView } ! []
+
         CloseThread ->
             { model | currentView = Update.Timeline.preferred model } ! []
 
