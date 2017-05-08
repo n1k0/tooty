@@ -35,7 +35,7 @@ update msg model =
                 Ok { decoded } ->
                     let
                         client =
-                            Client decoded.server decoded.accessToken
+                            Client decoded.server decoded.accessToken Nothing
                     in
                         { model | clients = client :: model.clients }
                             ! [ Command.loadTimelines <| Just client
@@ -90,7 +90,17 @@ update msg model =
         CurrentUser result ->
             case result of
                 Ok { decoded } ->
-                    { model | currentUser = Just decoded } ! []
+                    { model
+                        | currentUser = Just decoded
+                        , clients =
+                            case model.clients of
+                                client :: xs ->
+                                    ({ client | account = Just decoded }) :: xs
+
+                                _ ->
+                                    model.clients
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []

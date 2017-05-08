@@ -51,11 +51,31 @@ authorizationCodeEncoder registration authCode =
         ]
 
 
+accountEncoder : Account -> Encode.Value
+accountEncoder account =
+    Encode.object
+        [ ( "acct", Encode.string account.acct )
+        , ( "avatar", Encode.string account.avatar )
+        , ( "created_at", Encode.string account.created_at )
+        , ( "display_name", Encode.string account.display_name )
+        , ( "followers_count", Encode.int account.followers_count )
+        , ( "following_count", Encode.int account.following_count )
+        , ( "header", Encode.string account.header )
+        , ( "id", Encode.int account.id )
+        , ( "locked", Encode.bool account.locked )
+        , ( "note", Encode.string account.note )
+        , ( "statuses_count", Encode.int account.statuses_count )
+        , ( "url", Encode.string account.url )
+        , ( "username", Encode.string account.username )
+        ]
+
+
 clientEncoder : Client -> Encode.Value
 clientEncoder client =
     Encode.object
         [ ( "server", Encode.string client.server )
         , ( "token", Encode.string client.token )
+        , ( "account", encodeMaybe accountEncoder client.account )
         ]
 
 

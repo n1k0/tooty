@@ -104,6 +104,7 @@ type alias Attachment =
 type alias Client =
     { server : Server
     , token : Token
+    , account : Maybe Account
     }
 
 

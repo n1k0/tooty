@@ -17,9 +17,18 @@
   <body>
     <script src="app.js"></script>
     <script>
+    // FIXME: this is a transitional upgrade to new client format, which now
+    // requires an account property set.
+    const clients = (JSON.parse(localStorage.getItem("tooty.clients")) || [])
+      .map(client => {
+        if (!client.hasOwnProperty("account")) {
+          client.account = null;
+        }
+        return client;
+      });
 
     const app = Elm.Main.fullscreen({
-      clients: JSON.parse(localStorage.getItem("tooty.clients")) || [],
+      clients: clients,
       registration: JSON.parse(localStorage.getItem("tooty.registration"))
     });
 
