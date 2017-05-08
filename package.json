@@ -7,7 +7,7 @@
     "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
     "debug": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js --debug",
     "deploy": "npm run build && npm run optimize && node_modules/.bin/gh-pages --dist build/",
-    "optimize": "node_modules/.bin/uglifyjs build/app.js --stats -c -m -o build/app.js",
+    "optimize": "node_modules/.bin/uglifyjs build/app.js -c -m -o build/app.js",
     "start": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js",
     "test": "node_modules/.bin/elm-test"
   },
