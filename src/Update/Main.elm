@@ -118,8 +118,8 @@ update msg model =
         LoadAccount accountId ->
             { model
                 | accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowers = []
-                , accountFollowing = []
+                , accountFollowers = Update.Timeline.empty "account-followers"
+                , accountFollowing = Update.Timeline.empty "account-following"
                 , accountRelationships = []
                 , accountRelationship = Nothing
             }
@@ -130,12 +130,18 @@ update msg model =
                 ! [ Command.loadNextTimeline model.client model.currentView id next ]
 
         ViewAccountFollowers account ->
-            { model | currentView = AccountFollowersView account model.accountFollowers }
-                ! [ Command.loadAccountFollowers model.client account.id ]
+            { model
+                | currentView = AccountFollowersView account model.accountFollowers
+                , accountRelationships = []
+            }
+                ! [ Command.loadAccountFollowers model.client account.id Nothing ]
 
         ViewAccountFollowing account ->
-            { model | currentView = AccountFollowingView account model.accountFollowing }
-                ! [ Command.loadAccountFollowing model.client account.id ]
+            { model
+                | currentView = AccountFollowingView account model.accountFollowing
+                , accountRelationships = []
+            }
+                ! [ Command.loadAccountFollowing model.client account.id Nothing ]
 
         ViewAccountStatuses account ->
             { model | currentView = AccountView account } ! []
@@ -151,8 +157,8 @@ update msg model =
             { model
                 | currentView = Update.Timeline.preferred model
                 , accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowing = []
-                , accountFollowers = []
+                , accountFollowing = Update.Timeline.empty "account-following"
+                , accountFollowers = Update.Timeline.empty "account-followers"
             }
                 ! []
 

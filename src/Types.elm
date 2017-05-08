@@ -39,8 +39,8 @@ type alias MastodonResult a =
 type MastodonMsg
     = AccessToken (MastodonResult AccessTokenResult)
     | AccountFollowed (MastodonResult Relationship)
-    | AccountFollowers (MastodonResult (List Account))
-    | AccountFollowing (MastodonResult (List Account))
+    | AccountFollowers Bool (MastodonResult (List Account))
+    | AccountFollowing Bool (MastodonResult (List Account))
     | AccountReceived (MastodonResult Account)
     | AccountRelationship (MastodonResult (List Relationship))
     | AccountRelationships (MastodonResult (List Relationship))
@@ -102,8 +102,8 @@ type Msg
 
 type CurrentView
     = -- Basically, what we should be displaying in the fourth column
-      AccountFollowersView Account (List Account)
-    | AccountFollowingView Account (List Account)
+      AccountFollowersView Account (Timeline Account)
+    | AccountFollowingView Account (Timeline Account)
     | AccountView Account
     | GlobalTimelineView
     | LocalTimelineView
@@ -177,8 +177,8 @@ type alias Model =
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status
     , accountTimeline : Timeline Status
-    , accountFollowers : List Account
-    , accountFollowing : List Account
+    , accountFollowers : Timeline Account
+    , accountFollowing : Timeline Account
     , accountRelationships : List Relationship
     , accountRelationship : Maybe Relationship
     , notifications : Timeline NotificationAggregate

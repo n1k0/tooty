@@ -178,7 +178,10 @@ update msg model =
         AccountReceived result ->
             case result of
                 Ok { decoded } ->
-                    { model | currentView = AccountView decoded }
+                    { model
+                        | currentView = AccountView decoded
+                        , accountRelationships = []
+                    }
                         ! [ Command.loadAccountTimeline model.client decoded.id model.accountTimeline.links.next ]
 
                 Err error ->
@@ -196,21 +199,19 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
-        AccountFollowers result ->
+        AccountFollowers append result ->
             case result of
-                Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | accountFollowers = decoded }
+                Ok { decoded, links } ->
+                    { model | accountFollowers = Update.Timeline.update append decoded links model.accountFollowers }
                         ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
-        AccountFollowing result ->
+        AccountFollowing append result ->
             case result of
-                Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | accountFollowing = decoded }
+                Ok { decoded, links } ->
+                    { model | accountFollowing = Update.Timeline.update append decoded links model.accountFollowing }
                         ! [ Command.loadRelationships model.client <| List.map .id decoded ]
 
                 Err error ->
@@ -232,8 +233,10 @@ update msg model =
         AccountRelationships result ->
             case result of
                 Ok { decoded } ->
-                    -- TODO: store next link
-                    { model | accountRelationships = decoded } ! []
+                    { model
+                        | accountRelationships = List.concat [ model.accountRelationships, decoded ]
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
