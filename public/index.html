@@ -31,6 +31,10 @@
       localStorage.setItem("tooty.registration", json);
     });
 
+    app.ports.deleteRegistration.subscribe(json => {
+      localStorage.removeItem("tooty.registration");
+    });
+
     app.ports.setStatus.subscribe(function(data) {
       var element = document.getElementById(data.id);
       if (element) {

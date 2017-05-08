@@ -57,7 +57,9 @@ initCommands registration client authCode =
             Just authCode ->
                 case registration of
                     Just registration ->
-                        [ getAccessToken registration authCode ]
+                        [ getAccessToken registration authCode
+                        , Ports.deleteRegistration ""
+                        ]
 
                     Nothing ->
                         []

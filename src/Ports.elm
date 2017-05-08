@@ -1,6 +1,7 @@
 port module Ports
     exposing
         ( saveRegistration
+        , deleteRegistration
         , scrollIntoView
         , saveClients
         , setStatus
@@ -8,6 +9,9 @@ port module Ports
 
 
 port saveRegistration : String -> Cmd msg
+
+
+port deleteRegistration : String -> Cmd msg
 
 
 port saveClients : String -> Cmd msg
