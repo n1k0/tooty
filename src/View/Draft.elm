@@ -79,10 +79,12 @@ currentUserView currentUser =
                 [ Common.accountAvatarLink False currentUser
                 , div [ class "username" ]
                     [ Common.accountLink False currentUser
-
-                    -- TODO: style
-                    , a [ href "", onClickWithPreventAndStop <| OpenAccountSelector ]
-                        [ text "Switch account" ]
+                    , span []
+                        [ text " ("
+                        , a [ href "", onClickWithPreventAndStop <| OpenAccountSelector ]
+                            [ text "switch account" ]
+                        , text ")"
+                        ]
                     ]
                 , p [ class "status-text" ] <| formatContent currentUser.note []
                 ]

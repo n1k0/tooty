@@ -157,6 +157,10 @@ li.load-more {
   margin-bottom: 4px;
 }
 
+.current-user .username > span {
+  font-weight: normal;
+}
+
 .follow-entry {
   display: flex;
   flex-direction: row;
@@ -676,7 +680,7 @@ li.load-more {
   justify-content: space-between;
   align-content: stretch;
   align-items: flex-start;
-  padding: 8px;
+  padding: 16px;
 }
 
 .account-selector-item > img {

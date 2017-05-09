@@ -43,6 +43,19 @@ update msg model =
         ClearError index ->
             { model | errors = removeAt index model.errors } ! []
 
+        SwitchClient client ->
+            let
+                newClients =
+                    client :: (List.filter (\c -> c.token /= client.token) model.clients)
+            in
+                { model
+                    | clients = newClients
+                    , currentView = Update.Timeline.preferred model
+                }
+                    ! [ Command.loadUserAccount <| Just client
+                      , Command.loadTimelines <| Just client
+                      ]
+
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =

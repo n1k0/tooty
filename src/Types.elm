@@ -90,6 +90,7 @@ type Msg
     | ScrollColumn ScrollDirection String
     | ServerChange String
     | SubmitDraft
+    | SwitchClient Client
     | Tick Time
     | UnfollowAccount Int
     | UrlChange Navigation.Location

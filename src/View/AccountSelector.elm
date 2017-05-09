@@ -2,6 +2,7 @@ module View.AccountSelector exposing (accountSelectorView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
 import String.Extra exposing (replace)
@@ -49,7 +50,11 @@ accountIdentityView currentUser client =
                     , if isCurrentUser then
                         text ""
                       else
-                        button [ class "btn btn-default" ] [ text "Use" ]
+                        button
+                            [ class "btn btn-default"
+                            , onClick <| SwitchClient client
+                            ]
+                            [ text "Use" ]
                     ]
 
         Nothing ->
