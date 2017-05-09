@@ -83,7 +83,7 @@ update msg model =
             model ! [ Command.loadThread (List.head model.clients) status ]
 
         OpenAccountSelector ->
-            { model | currentView = AccountSelectorView } ! []
+            { model | currentView = AccountSelectorView, server = "" } ! []
 
         CloseThread ->
             { model | currentView = Update.Timeline.preferred model } ! []
