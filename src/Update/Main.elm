@@ -43,6 +43,19 @@ update msg model =
         ClearError index ->
             { model | errors = removeAt index model.errors } ! []
 
+        SwitchClient client ->
+            let
+                newClients =
+                    client :: (List.filter (\c -> c.token /= client.token) model.clients)
+            in
+                { model
+                    | clients = newClients
+                    , currentView = Update.Timeline.preferred model
+                }
+                    ! [ Command.loadUserAccount <| Just client
+                      , Command.loadTimelines <| Just client
+                      ]
+
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =
@@ -67,35 +80,38 @@ update msg model =
             model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            model ! [ Command.loadThread model.client status ]
+            model ! [ Command.loadThread (List.head model.clients) status ]
+
+        OpenAccountSelector ->
+            { model | currentView = AccountSelectorView, server = "" } ! []
 
         CloseThread ->
             { model | currentView = Update.Timeline.preferred model } ! []
 
         FollowAccount id ->
-            model ! [ Command.follow model.client id ]
+            model ! [ Command.follow (List.head model.clients) id ]
 
         UnfollowAccount id ->
-            model ! [ Command.unfollow model.client id ]
+            model ! [ Command.unfollow (List.head model.clients) id ]
 
         DeleteStatus id ->
-            model ! [ Command.deleteStatus model.client id ]
+            model ! [ Command.deleteStatus (List.head model.clients) id ]
 
         ReblogStatus id ->
             Update.Timeline.processReblog id True model
-                ! [ Command.reblogStatus model.client id ]
+                ! [ Command.reblogStatus (List.head model.clients) id ]
 
         UnreblogStatus id ->
             Update.Timeline.processReblog id False model
-                ! [ Command.unreblogStatus model.client id ]
+                ! [ Command.unreblogStatus (List.head model.clients) id ]
 
         AddFavorite id ->
             Update.Timeline.processFavourite id True model
-                ! [ Command.favouriteStatus model.client id ]
+                ! [ Command.favouriteStatus (List.head model.clients) id ]
 
         RemoveFavorite id ->
             Update.Timeline.processFavourite id False model
-                ! [ Command.unfavouriteStatus model.client id ]
+                ! [ Command.unfavouriteStatus (List.head model.clients) id ]
 
         DraftEvent draftMsg ->
             case model.currentUser of
@@ -113,7 +129,7 @@ update msg model =
                 { model | viewer = viewer } ! [ commands ]
 
         SubmitDraft ->
-            model ! [ Command.postStatus model.client <| toStatusRequestBody model.draft ]
+            model ! [ Command.postStatus (List.head model.clients) <| toStatusRequestBody model.draft ]
 
         LoadAccount accountId ->
             { model
@@ -123,25 +139,25 @@ update msg model =
                 , accountRelationships = []
                 , accountRelationship = Nothing
             }
-                ! [ Command.loadAccount model.client accountId ]
+                ! [ Command.loadAccount (List.head model.clients) accountId ]
 
         TimelineLoadNext id next ->
             Update.Timeline.markAsLoading True id model
-                ! [ Command.loadNextTimeline model.client model.currentView id next ]
+                ! [ Command.loadNextTimeline (List.head model.clients) model.currentView id next ]
 
         ViewAccountFollowers account ->
             { model
                 | currentView = AccountFollowersView account model.accountFollowers
                 , accountRelationships = []
             }
-                ! [ Command.loadAccountFollowers model.client account.id Nothing ]
+                ! [ Command.loadAccountFollowers (List.head model.clients) account.id Nothing ]
 
         ViewAccountFollowing account ->
             { model
                 | currentView = AccountFollowingView account model.accountFollowing
                 , accountRelationships = []
             }
-                ! [ Command.loadAccountFollowing model.client account.id Nothing ]
+                ! [ Command.loadAccountFollowing (List.head model.clients) account.id Nothing ]
 
         ViewAccountStatuses account ->
             { model | currentView = AccountView account } ! []
@@ -161,6 +177,9 @@ update msg model =
                 , accountFollowers = Update.Timeline.empty "account-followers"
             }
                 ! []
+
+        CloseAccountSelector ->
+            { model | currentView = Update.Timeline.preferred model } ! []
 
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []

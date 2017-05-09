@@ -7,6 +7,7 @@ import Html.Attributes exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Account exposing (accountFollowView, accountTimelineView)
+import View.AccountSelector exposing (accountSelectorView)
 import View.Auth exposing (authView)
 import View.Common as Common
 import View.Draft exposing (draftView)
@@ -114,6 +115,9 @@ homepageView model =
                             model.accountRelationship
                             account
 
+                    AccountSelectorView ->
+                        accountSelectorView model
+
                     AccountFollowersView account followers ->
                         accountFollowView
                             currentUser
@@ -139,7 +143,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
         [ errorsListView model
-        , case model.client of
+        , case (List.head model.clients) of
             Just client ->
                 homepageView model
 

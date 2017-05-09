@@ -9,11 +9,11 @@ import Util
 
 
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init { registration, client } location =
+init { registration, clients } location =
     { server = ""
     , currentTime = 0
     , registration = registration
-    , client = client
+    , clients = clients
     , homeTimeline = Update.Timeline.empty "home-timeline"
     , localTimeline = Update.Timeline.empty "local-timeline"
     , globalTimeline = Update.Timeline.empty "global-timeline"
@@ -32,4 +32,4 @@ init { registration, client } location =
     , currentUser = Nothing
     , notificationFilter = NotificationAll
     }
-        ! [ Command.initCommands registration client (Util.extractAuthCode location) ]
+        ! [ Command.initCommands registration (List.head clients) (Util.extractAuthCode location) ]

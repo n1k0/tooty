@@ -7,14 +7,14 @@ import Types exposing (..)
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { client, currentView } =
+subscriptions { clients, currentView } =
     let
         timeSub =
             Time.every Time.millisecond Tick
 
         userWsSub =
             Mastodon.WebSocket.subscribeToWebSockets
-                client
+                (List.head clients)
                 Mastodon.WebSocket.UserStream
                 NewWebsocketUserMessage
                 |> Sub.map WebSocketEvent
@@ -22,13 +22,13 @@ subscriptions { client, currentView } =
         otherWsSub =
             if currentView == GlobalTimelineView then
                 Mastodon.WebSocket.subscribeToWebSockets
-                    client
+                    (List.head clients)
                     Mastodon.WebSocket.GlobalPublicStream
                     NewWebsocketGlobalMessage
                     |> Sub.map WebSocketEvent
             else if currentView == LocalTimelineView then
                 Mastodon.WebSocket.subscribeToWebSockets
-                    client
+                    (List.head clients)
                     Mastodon.WebSocket.LocalPublicStream
                     NewWebsocketLocalMessage
                     |> Sub.map WebSocketEvent

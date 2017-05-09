@@ -8,7 +8,7 @@ import Time exposing (Time)
 
 
 type alias Flags =
-    { client : Maybe Client
+    { clients : List Client
     , registration : Maybe AppRegistration
     }
 
@@ -72,6 +72,7 @@ type Msg
     = AddFavorite Int
     | ClearError Int
     | CloseAccount
+    | CloseAccountSelector
     | CloseThread
     | DeleteStatus Int
     | DraftEvent DraftMsg
@@ -82,12 +83,14 @@ type Msg
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
+    | OpenAccountSelector
     | ReblogStatus Int
     | Register
     | RemoveFavorite Int
     | ScrollColumn ScrollDirection String
     | ServerChange String
     | SubmitDraft
+    | SwitchClient Client
     | Tick Time
     | UnfollowAccount Int
     | UrlChange Navigation.Location
@@ -105,6 +108,7 @@ type CurrentView
       AccountFollowersView Account (Timeline Account)
     | AccountFollowingView Account (Timeline Account)
     | AccountView Account
+    | AccountSelectorView
     | GlobalTimelineView
     | LocalTimelineView
     | ThreadView Thread
@@ -172,7 +176,7 @@ type alias Model =
     { server : String
     , currentTime : Time
     , registration : Maybe AppRegistration
-    , client : Maybe Client
+    , clients : List Client
     , homeTimeline : Timeline Status
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status

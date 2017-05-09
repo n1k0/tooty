@@ -1,6 +1,7 @@
 module View.Common
     exposing
-        ( accountAvatarLink
+        ( accountAvatar
+        , accountAvatarLink
         , accountLink
         , closeablePanelheading
         , icon
@@ -14,6 +15,11 @@ import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Events exposing (..)
+
+
+accountAvatar : String -> Account -> Html Msg
+accountAvatar avatarClass account =
+    img [ class avatarClass, src account.avatar ] []
 
 
 accountLink : Bool -> Account -> Html Msg
@@ -52,7 +58,7 @@ accountAvatarLink external account =
             , accountHref
             , title <| "@" ++ account.username
             ]
-            [ img [ class avatarClass, src account.avatar ] [] ]
+            [ accountAvatar avatarClass account ]
 
 
 closeablePanelheading : String -> String -> String -> Msg -> Html Msg
