@@ -2,19 +2,58 @@ module View.AccountSelector exposing (accountSelectorView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
+import String.Extra exposing (replace)
 import Types exposing (..)
+import View.Auth exposing (authForm)
 import View.Common exposing (..)
 
 
-accountIdentityView : Client -> Html Msg
-accountIdentityView client =
+type alias CurrentUser =
+    Maybe Account
+
+
+accountIdentityView : CurrentUser -> Client -> Html Msg
+accountIdentityView currentUser client =
     case client.account of
         Just account ->
-            li [ class "list-group-item" ] [ text <| account.username ]
+            let
+                ( isCurrentUser, entryClass ) =
+                    case currentUser of
+                        Just currentUser ->
+                            if sameAccount account currentUser then
+                                ( True, "active" )
+                            else
+                                ( False, "" )
+
+                        Nothing ->
+                            ( False, "" )
+            in
+                li [ class <| "list-group-item account-selector-item " ++ entryClass ]
+                    [ accountAvatar "" account
+                    , span []
+                        [ strong []
+                            [ text <|
+                                if account.display_name /= "" then
+                                    account.display_name
+                                else
+                                    account.username
+                            ]
+                        , br [] []
+                        , account.url
+                            |> replace "https://" "@"
+                            |> replace "/@" "@"
+                            |> text
+                        ]
+                    , if isCurrentUser then
+                        text ""
+                      else
+                        button [ class "btn btn-default" ] [ text "Use" ]
+                    ]
 
         Nothing ->
-            li [ class "list-group-item" ] [ text "unknown" ]
+            text ""
 
 
 accountSelectorView : Model -> Html Msg
@@ -22,7 +61,11 @@ accountSelectorView model =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ closeablePanelheading "account-selector" "user" "Account selector" CloseAccountSelector
-            , ul [ class "list-group" ] <|
-                List.map accountIdentityView model.clients
+            , ul [ class "list-group " ] <|
+                List.map (accountIdentityView model.currentUser) model.clients
+            , div [ class "panel-body" ]
+                [ h3 [] [ text "Add an account" ]
+                , authForm model
+                ]
             ]
         ]

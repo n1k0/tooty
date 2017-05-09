@@ -561,71 +561,71 @@ li.load-more {
 /* Scrollbars */
 
 ::-webkit-scrollbar {
-    width: 10px;
-    height: 8px
+  width: 10px;
+  height: 8px
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #444;
-    border: 0px none #ffffff;
-    border-radius: 50px;
+  background: #444;
+  border: 0px none #ffffff;
+  border-radius: 50px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #777;
+  background: #777;
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: #777;
+  background: #777;
 }
 
 ::-webkit-scrollbar-track {
-    border: 0px none #ffffff;
-    border-radius: 0;
-    background: rgba(0,0,0,0.1);
+  border: 0px none #ffffff;
+  border-radius: 0;
+  background: rgba(0,0,0,0.1);
 }
 
 ::-webkit-scrollbar-track:hover {
-    background: #2a2e31;
+  background: #2a2e31;
 }
 
 ::-webkit-scrollbar-track:active {
-    background: #2a2e31;
+  background: #2a2e31;
 }
 
 ::-webkit-scrollbar-corner {
-    background: transparent;
+  background: transparent;
 }
 
 /* Autocomplete */
 
 .autocomplete-menu {
-    position: relative;
-    margin-top: -10px;
-    min-width: 120px;
+  position: relative;
+  margin-top: -10px;
+  min-width: 120px;
 }
 
 .autocomplete-list {
-    list-style: none;
-    padding: 0;
-    margin: auto;
-    max-height: 200px;
-    overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: auto;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .autocomplete-item {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-content: stretch;
-    align-items: flex-start;
-    padding: 8px;
-    cursor: pointer;
-    background: #fff;
-    color: #777;
-    border-color: #bbb;
-    border-left-color: #272b30;
-    border-right-color: #272b30;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  align-items: flex-start;
+  padding: 8px;
+  cursor: pointer;
+  background: #fff;
+  color: #777;
+  border-color: #bbb;
+  border-left-color: #272b30;
+  border-right-color: #272b30;
 }
 
 .autocomplete-item:hover,
@@ -644,11 +644,11 @@ li.load-more {
 }
 
 .autocomplete-item > img {
-    flex: 1 1 auto;
-    height: 20px;
-    width: 20px;
-    margin-right: 10px;
-    border-radius: 2px;
+  flex: 1 1 auto;
+  height: 20px;
+  width: 20px;
+  margin-right: 10px;
+  border-radius: 2px;
 }
 
 .autocomplete-item > strong {
@@ -661,6 +661,42 @@ li.load-more {
 
 .autocomplete-item > span {
   flex: 100 1 auto;
+  text-align: right;
+  align-self: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Account selector */
+
+.account-selector-item {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  align-items: flex-start;
+  padding: 8px;
+}
+
+.account-selector-item > img {
+  flex: 1 1 auto;
+  height: 42px;
+  width: 42px;
+  margin-right: 10px;
+  border-radius: 2px;
+}
+
+.account-selector-item > span {
+  flex: 100 1 auto;
+  align-self: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-selector-item > button {
+  flex: 1 1 auto;
   text-align: right;
   align-self: auto;
   white-space: nowrap;
