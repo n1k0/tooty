@@ -17,9 +17,11 @@
   <body>
     <script src="app.js"></script>
     <script>
-    // FIXME: this is a transitional upgrade to new client format, which now
-    // requires an account property set.
-    const clients = (JSON.parse(localStorage.getItem("tooty.clients")) || [])
+    // Note: this is a transitional upgrade to new client storage format, which
+    // is now now a list of clients, which all requiring an "account" property set.
+    const oldClient = JSON.parse(localStorage.getItem("tooty.client"));
+    const defaultClients = oldClient ? [oldClient] : [];
+    const clients = (JSON.parse(localStorage.getItem("tooty.clients")) || defaultClients)
       .map(client => {
         if (!client.hasOwnProperty("account")) {
           client.account = null;
