@@ -255,7 +255,7 @@ draftView ({ draft, currentUser } as model) =
                         , autoMenu
                         ]
                     , visibilitySelector draft
-                    , fileUploadField "att1"
+                    , fileUploadField draft
                     , div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -294,15 +294,37 @@ draftView ({ draft, currentUser } as model) =
             ]
 
 
-fileUploadField : String -> Html Msg
-fileUploadField fileInputId =
-    div [ class "form-group" ]
-        [ label [ for fileInputId ] [ text "Attachment" ]
-        , input
-            [ type_ "file"
-            , id fileInputId
-            , class "form-control"
-            , on "change" (Decode.succeed <| DraftEvent (UploadMedia fileInputId))
+fileUploadField : Draft -> Html Msg
+fileUploadField draft =
+    {-
+       TODO:
+       - limit to 4 attachments (render input when length < 4)
+       - add delete button
+    -}
+    let
+        attachmentPreview attachment =
+            li [ class "attachment-entry" ]
+                [ span
+                    [ class "attachment-image"
+                    , style
+                        [ ( "background"
+                          , "url(" ++ attachment.preview_url ++ ") center center / cover no-repeat"
+                          )
+                        ]
+                    ]
+                    []
+                ]
+    in
+        div []
+            [ ul [ class "attachments" ] <| List.map attachmentPreview draft.attachments
+            , div [ class "form-group" ]
+                [ label [ for "draft-attachment" ] [ text "Attachment" ]
+                , input
+                    [ type_ "file"
+                    , id "draft-attachment"
+                    , class "form-control"
+                    , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
+                    ]
+                    []
+                ]
             ]
-            []
-        ]

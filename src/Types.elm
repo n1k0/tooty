@@ -123,6 +123,7 @@ type alias Draft =
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
+    , attachments : List Attachment
     , statusLength : Int
 
     -- Autocomplete values

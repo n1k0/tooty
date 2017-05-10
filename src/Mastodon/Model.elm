@@ -190,12 +190,12 @@ type alias StatusRequestBody =
     -- sensitive: set this to mark the media of the status as NSFW
     -- spoiler_text: text to be shown as a warning before the actual content
     -- visibility: either "direct", "private", "unlisted" or "public"
-    -- TODO: media_ids: array of media IDs to attach to the status (maximum 4)
     { status : String
     , in_reply_to_id : Maybe Int
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String
+    , media_ids : List Int
     }
 
 

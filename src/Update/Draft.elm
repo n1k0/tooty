@@ -7,6 +7,8 @@ module Update.Draft
 
 import Autocomplete
 import Command
+import Json.Decode as Decode
+import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import String.Extra
@@ -43,6 +45,7 @@ empty =
     , spoilerText = Nothing
     , sensitive = False
     , visibility = "public"
+    , attachments = []
     , statusLength = 0
     , autoState = Autocomplete.empty
     , autoAtPosition = Nothing
@@ -279,7 +282,21 @@ update draftMsg currentUser model =
 
             UploadResult encoded ->
                 let
-                    _ =
-                        Debug.log "attachment" encoded
+                    decodedAttachment =
+                        Decode.decodeString attachmentDecoder encoded
+
+                    draft =
+                        model.draft
                 in
-                    model ! []
+                    case decodedAttachment of
+                        Ok attachment ->
+                            { model
+                                | draft =
+                                    { draft
+                                        | attachments = List.append draft.attachments [ attachment ]
+                                    }
+                            }
+                                ! []
+
+                        Err error ->
+                            { model | errors = addErrorNotification error model } ! []

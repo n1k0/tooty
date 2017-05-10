@@ -38,4 +38,6 @@ port uploadMedia : { id : String, url : String, token : String } -> Cmd msg
 port uploadError : (String -> msg) -> Sub msg
 
 
+{-| TODO: Try to see if we could have Attachment -> msg here
+-}
 port uploadSuccess : (String -> msg) -> Sub msg
