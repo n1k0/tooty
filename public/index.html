@@ -64,6 +64,19 @@
       });
     });
 
+    app.ports.uploadMedia.subscribe(data => {
+      const files = Array.from(document.getElementById(data.id).files);
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      fetch(data.url, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + data.token },
+        body: formData,
+      })
+        .catch(err => app.ports.uploadError.send(err.message))
+        .then(response => response.text())
+        .then(app.ports.uploadSuccess.send);
+    });
     </script>
   </body>
 </html>

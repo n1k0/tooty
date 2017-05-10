@@ -255,6 +255,7 @@ draftView ({ draft, currentUser } as model) =
                         , autoMenu
                         ]
                     , visibilitySelector draft
+                    , fileUploadField "att1"
                     , div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -291,3 +292,17 @@ draftView ({ draft, currentUser } as model) =
                     ]
                 ]
             ]
+
+
+fileUploadField : String -> Html Msg
+fileUploadField fileInputId =
+    div [ class "form-group" ]
+        [ label [ for fileInputId ] [ text "Attachment" ]
+        , input
+            [ type_ "file"
+            , id fileInputId
+            , class "form-control"
+            , on "change" (Decode.succeed <| DraftEvent (UploadMedia fileInputId))
+            ]
+            []
+        ]

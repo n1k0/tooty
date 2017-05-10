@@ -2,6 +2,7 @@ module Subscription exposing (subscriptions)
 
 import Autocomplete
 import Mastodon.WebSocket
+import Ports
 import Time
 import Types exposing (..)
 
@@ -37,6 +38,18 @@ subscriptions { clients, currentView } =
 
         autoCompleteSub =
             Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
+
+        uploadSuccessSub =
+            Ports.uploadSuccess (DraftEvent << UploadResult)
+
+        uploadErrorSub =
+            Ports.uploadError (DraftEvent << UploadError)
     in
-        [ timeSub, userWsSub, otherWsSub, autoCompleteSub ]
-            |> Sub.batch
+        Sub.batch
+            [ timeSub
+            , userWsSub
+            , otherWsSub
+            , autoCompleteSub
+            , uploadSuccessSub
+            , uploadErrorSub
+            ]

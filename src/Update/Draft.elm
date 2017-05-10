@@ -10,6 +10,7 @@ import Command
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import String.Extra
+import Update.Error exposing (addErrorNotification)
 import Types exposing (..)
 import Util
 
@@ -269,3 +270,16 @@ update draftMsg currentUser model =
                         }
                 in
                     { model | draft = newDraft } ! []
+
+            UploadMedia id ->
+                model ! [ Command.uploadMedia (List.head model.clients) id ]
+
+            UploadError error ->
+                { model | errors = addErrorNotification error model } ! []
+
+            UploadResult encoded ->
+                let
+                    _ =
+                        Debug.log "attachment" encoded
+                in
+                    model ! []
