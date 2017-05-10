@@ -5,6 +5,7 @@ import List.Extra exposing (removeAt)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import Update.Draft
+import Update.Error
 import Update.Mastodon
 import Update.Timeline
 import Update.Viewer
@@ -36,7 +37,7 @@ update msg model =
         Tick newTime ->
             { model
                 | currentTime = newTime
-                , errors = List.filter (\{ time } -> model.currentTime - time <= 10000) model.errors
+                , errors = Update.Error.cleanErrors newTime model.errors
             }
                 ! []
 
