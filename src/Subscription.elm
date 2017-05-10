@@ -10,7 +10,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { clients, currentView } =
     let
         timeSub =
-            Time.every Time.millisecond Tick
+            Time.every Time.second Tick
 
         userWsSub =
             Mastodon.WebSocket.subscribeToWebSockets
