@@ -410,6 +410,68 @@ li.load-more {
   margin-left: 6px;
 }
 
+.draft-attachments-field {
+  margin-top: 12px;
+}
+
+.draft-attachments {
+  display: table;
+  width: 100%;
+  padding: 0 2px;
+  margin-bottom: 0px;
+  list-style-type: none;
+}
+
+.draft-attachment-entry {
+  display: table-cell;
+  width: 25%;
+  height: 60px;
+}
+
+.draft-attachment-entry a {
+  display: block;
+  height: 60px;
+  opacity: 0;
+  background: transparent;
+  font-size: 45px;
+  color: #fff;
+  text-align: center;
+}
+
+.draft-attachment-entry a:hover {
+  transition: 150ms all ease;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.draft-attachment-input {
+  display: block;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  height: 35px;
+  outline: 0;
+}
+
+.draft-attachment-input:after {
+  background-image: linear-gradient(#484e55, #3a3f44 60%, #313539);
+  color: #c8c8c8;
+  line-height: 32px;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  content: 'Attach a media';
+  outline: 0;
+}
+
+.draft-attachment-input:hover:after {
+  background-image: linear-gradient(#020202, #101112 40%, #141618);
+}
+
 /* Status text content rules */
 
 .attachment, .hashtag, .ellipsis {

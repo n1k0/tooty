@@ -27,6 +27,7 @@ module Command
         , unfavouriteStatus
         , follow
         , unfollow
+        , uploadMedia
         , focusId
         , scrollColumnToTop
         , scrollColumnToBottom
@@ -474,6 +475,20 @@ unfollow client id =
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountUnfollowed)
+
+        Nothing ->
+            Cmd.none
+
+
+uploadMedia : Maybe Client -> String -> Cmd Msg
+uploadMedia client fileInputId =
+    case client of
+        Just { server, token } ->
+            Ports.uploadMedia
+                { id = fileInputId
+                , url = server ++ ApiUrl.uploadMedia
+                , token = token
+                }
 
         Nothing ->
             Cmd.none

@@ -21,6 +21,7 @@ module Mastodon.ApiUrl
         , unfavourite
         , follow
         , unfollow
+        , uploadMedia
         , streaming
         , searchAccount
         )
@@ -149,3 +150,8 @@ unfavourite id =
 streaming : String
 streaming =
     apiPrefix ++ "/streaming/"
+
+
+uploadMedia : String
+uploadMedia =
+    apiPrefix ++ "/media"

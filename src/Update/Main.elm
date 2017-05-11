@@ -25,6 +25,7 @@ toStatusRequestBody draft =
     , spoiler_text = draft.spoilerText
     , sensitive = draft.sensitive
     , visibility = draft.visibility
+    , media_ids = List.map .id draft.attachments
     }
 
 

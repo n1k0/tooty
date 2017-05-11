@@ -239,7 +239,7 @@ draftView ({ draft, currentUser } as model) =
                             textarea
                                 [ id "status"
                                 , class "form-control"
-                                , rows 8
+                                , rows 7
                                 , placeholder <|
                                     if hasSpoiler then
                                         "This text will be hidden by default, as you have enabled a spoiler."
@@ -255,6 +255,7 @@ draftView ({ draft, currentUser } as model) =
                         , autoMenu
                         ]
                     , visibilitySelector draft
+                    , fileUploadField draft
                     , div [ class "form-group checkbox" ]
                         [ label []
                             [ input
@@ -290,4 +291,42 @@ draftView ({ draft, currentUser } as model) =
                         ]
                     ]
                 ]
+            ]
+
+
+fileUploadField : Draft -> Html Msg
+fileUploadField draft =
+    let
+        attachmentPreview attachment =
+            li
+                [ class "draft-attachment-entry"
+                , style
+                    [ ( "background"
+                      , "url(" ++ attachment.preview_url ++ ") center center / cover no-repeat"
+                      )
+                    ]
+                ]
+                [ a
+                    [ href ""
+                    , onClickWithPreventAndStop <| DraftEvent (RemoveMedia attachment.id)
+                    ]
+                    [ text "×" ]
+                ]
+    in
+        div [ class "draft-attachments-field form-group" ]
+            [ if List.length draft.attachments > 0 then
+                ul [ class "draft-attachments" ] <|
+                    List.map attachmentPreview draft.attachments
+              else
+                text ""
+            , if List.length draft.attachments < 4 then
+                input
+                    [ type_ "file"
+                    , id "draft-attachment"
+                    , class "form-control draft-attachment-input"
+                    , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
+                    ]
+                    []
+              else
+                text ""
             ]

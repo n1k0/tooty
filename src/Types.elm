@@ -15,16 +15,20 @@ type alias Flags =
 
 type DraftMsg
     = ClearDraft
+    | CloseAutocomplete
+    | RemoveMedia Int
+    | ResetAutocomplete Bool
+    | SelectAccount String
+    | SetAutoState Autocomplete.Msg
+    | ToggleSpoiler Bool
+    | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
     | UpdateSpoiler String
     | UpdateVisibility String
     | UpdateReplyTo Status
-    | SelectAccount String
-    | ToggleSpoiler Bool
-    | UpdateInputInformation InputInformation
-    | ResetAutocomplete Bool
-    | CloseAutocomplete
-    | SetAutoState Autocomplete.Msg
+    | UploadError String
+    | UploadMedia String
+    | UploadResult String
 
 
 type ViewerMsg
@@ -120,6 +124,7 @@ type alias Draft =
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
+    , attachments : List Attachment
     , statusLength : Int
 
     -- Autocomplete values

@@ -99,4 +99,5 @@ statusRequestBodyEncoder statusData =
         , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
         , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "visibility", Encode.string statusData.visibility )
+        , ( "media_ids", Encode.list (List.map Encode.int statusData.media_ids) )
         ]
