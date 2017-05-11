@@ -16,6 +16,7 @@ type alias Flags =
 type DraftMsg
     = ClearDraft
     | CloseAutocomplete
+    | RemoveMedia Int
     | ResetAutocomplete Bool
     | SelectAccount String
     | SetAutoState Autocomplete.Msg
