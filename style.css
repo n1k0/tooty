@@ -465,7 +465,18 @@ li.load-more {
   height: 100%;
   display: block;
   content: 'Attach a media';
+  border-radius: 4px;
+}
+
+input.form-control[type=file] {
+  background: none;
+}
+
+input[type=file]:focus {
   outline: 0;
+  outline-offset: 0;
+  border-color: #000;
+  box-shadow: none;
 }
 
 .draft-attachment-input:hover:after {
