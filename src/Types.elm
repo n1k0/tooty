@@ -125,6 +125,7 @@ type alias Draft =
     , sensitive : Bool
     , visibility : String
     , attachments : List Attachment
+    , mediaUploading : Bool
     , statusLength : Int
 
     -- Autocomplete values

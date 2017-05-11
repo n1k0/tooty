@@ -319,7 +319,10 @@ fileUploadField draft =
                     List.map attachmentPreview draft.attachments
               else
                 text ""
-            , if List.length draft.attachments < 4 then
+            , if draft.mediaUploading then
+                button [ class "btn btn-default btn-loading", disabled True ]
+                    [ text "Uploading media..." ]
+              else if List.length draft.attachments < 4 then
                 input
                     [ type_ "file"
                     , id "draft-attachment"

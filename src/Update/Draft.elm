@@ -46,6 +46,7 @@ empty =
     , sensitive = False
     , visibility = "public"
     , attachments = []
+    , mediaUploading = False
     , statusLength = 0
     , autoState = Autocomplete.empty
     , autoAtPosition = Nothing
@@ -278,10 +279,15 @@ update draftMsg currentUser ({ draft } as model) =
                 { model | draft = newDraft } ! []
 
         UploadMedia id ->
-            model ! [ Command.uploadMedia (List.head model.clients) id ]
+            { model | draft = { draft | mediaUploading = True } }
+                ! [ Command.uploadMedia (List.head model.clients) id ]
 
         UploadError error ->
-            { model | errors = addErrorNotification error model } ! []
+            { model
+                | draft = { draft | mediaUploading = False }
+                , errors = addErrorNotification error model
+            }
+                ! []
 
         UploadResult encoded ->
             if encoded == "" then
@@ -297,10 +303,15 @@ update draftMsg currentUser ({ draft } as model) =
                             { model
                                 | draft =
                                     { draft
-                                        | attachments = List.append draft.attachments [ attachment ]
+                                        | mediaUploading = False
+                                        , attachments = List.append draft.attachments [ attachment ]
                                     }
                             }
                                 ! []
 
                         Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                            { model
+                                | draft = { draft | mediaUploading = False }
+                                , errors = addErrorNotification error model
+                            }
+                                ! []
