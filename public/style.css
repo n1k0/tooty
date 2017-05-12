@@ -213,6 +213,10 @@ li.load-more {
 
 .status-text a, .u-url, .status .mention, .hashtag, .tag {
   color: #9baec8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Thread */
