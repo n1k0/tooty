@@ -323,13 +323,15 @@ fileUploadField draft =
                 button [ class "btn btn-default btn-loading", disabled True ]
                     [ text "Uploading media..." ]
               else if List.length draft.attachments < 4 then
-                input
-                    [ type_ "file"
-                    , id "draft-attachment"
-                    , class "form-control draft-attachment-input"
-                    , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
+                label [ class "form-control draft-attachment-input-label" ]
+                    [ input
+                        [ type_ "file"
+                        , id "draft-attachment"
+                        , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
+                        ]
+                        []
+                    , text ""
                     ]
-                    []
               else
                 text ""
             ]
