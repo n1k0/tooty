@@ -47,11 +47,16 @@ accountIdentityView currentUser client =
                             |> replace "/@" "@"
                             |> text
                         ]
+                    , button
+                        [ class "btn btn-danger"
+                        , onClick <| LogoutClient client
+                        ]
+                        [ text "Logout" ]
                     , if isCurrentUser then
                         text ""
                       else
                         button
-                            [ class "btn btn-default"
+                            [ class "btn btn-primary"
                             , onClick <| SwitchClient client
                             ]
                             [ text "Use" ]

@@ -83,6 +83,7 @@ type Msg
     | FilterNotifications NotificationFilter
     | FollowAccount Int
     | LoadAccount Int
+    | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
     | NoOp

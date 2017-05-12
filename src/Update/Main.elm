@@ -58,6 +58,23 @@ update msg model =
                       , Command.loadTimelines <| Just client
                       ]
 
+        LogoutClient client ->
+            let
+                newClients =
+                    List.filter (\c -> c.token /= client.token) model.clients
+
+                newClient =
+                    List.head newClients
+            in
+                { model
+                    | clients = newClients
+                    , currentView = Update.Timeline.preferred model
+                }
+                    ! [ Command.saveClients newClients
+                      , Command.loadUserAccount newClient
+                      , Command.loadTimelines newClient
+                      ]
+
         MastodonEvent msg ->
             let
                 ( newModel, commands ) =
