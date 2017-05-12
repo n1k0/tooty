@@ -144,7 +144,7 @@ statusActionsView status currentUser =
                 a
                     [ class <| baseBtnClasses ++ " btn-delete"
                     , href ""
-                    , onClickWithPreventAndStop <| DeleteStatus sourceStatus.id
+                    , onClickWithPreventAndStop <| AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
                     ]
                     [ Common.icon "trash" ]
               else
