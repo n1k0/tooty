@@ -180,7 +180,7 @@ draftView ({ draft, currentUser } as model) =
                                 , checked hasSpoiler
                                 ]
                                 []
-                            , text " Add a spoiler"
+                            , text " Add a Content Warning"
                             ]
                         ]
                     , if hasSpoiler then
@@ -242,7 +242,7 @@ draftView ({ draft, currentUser } as model) =
                                 , rows 7
                                 , placeholder <|
                                     if hasSpoiler then
-                                        "This text will be hidden by default, as you have enabled a spoiler."
+                                        "This text will be hidden by default, as you have enabled a Content Warning."
                                     else
                                         "Once upon a time..."
                                 , required True
