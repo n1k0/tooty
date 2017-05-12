@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+
+  tooty:
+    build: .
+    restart: always
+    ports:
+      - "80:80"
