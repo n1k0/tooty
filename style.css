@@ -444,16 +444,21 @@ li.load-more {
   background: rgba(0, 0, 0, 0.85);
 }
 
-.draft-attachment-input {
+#draft-attachment {
+    display:none;
+}
+.draft-attachment-input-label {
   display: block;
   position: relative;
   width: 100%;
   cursor: pointer;
   height: 38px;
   outline: 0;
+  background-color: transparent;
+  font-weight: normal;
 }
 
-.draft-attachment-input:after {
+.draft-attachment-input-label:after {
   background-image: linear-gradient(#484e55, #3a3f44 60%, #313539);
   color: #c8c8c8;
   line-height: 34px;
@@ -472,14 +477,14 @@ input.form-control[type=file] {
   background: none;
 }
 
-input[type=file]:focus {
+.draft-attachment-input-label:focus {
   outline: 0;
   outline-offset: 0;
   border-color: #000;
   box-shadow: none;
 }
 
-.draft-attachment-input:hover:after {
+.draft-attachment-input-label:hover:after {
   background-image: linear-gradient(#020202, #101112 40%, #141618);
 }
 
