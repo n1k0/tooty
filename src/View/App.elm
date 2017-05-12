@@ -155,4 +155,10 @@ view model =
 
             Nothing ->
                 text ""
+        , case model.confirm of
+            Nothing ->
+                text ""
+
+            Just confirm ->
+                Common.confirmView confirm
         ]

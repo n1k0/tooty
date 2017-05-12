@@ -7,10 +7,12 @@ module View.Common
         , icon
         , justifiedButtonGroup
         , loadMoreBtn
+        , confirmView
         )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -105,3 +107,30 @@ loadMoreBtn { id, links, loading } =
 
             Nothing ->
                 text ""
+
+
+confirmView : Confirm -> Html Msg
+confirmView { message, onConfirm, onCancel } =
+    div []
+        [ div [ class "modal-backdrop" ] []
+        , div
+            [ class "modal fade in", style [ ( "display", "block" ) ], tabindex -1 ]
+            [ div
+                [ class "modal-dialog" ]
+                [ div
+                    [ class "modal-content" ]
+                    [ div [ class "modal-header" ] [ h4 [] [ text "Confirmation required" ] ]
+                    , div [ class "modal-body" ] [ p [] [ text message ] ]
+                    , div
+                        [ class "modal-footer" ]
+                        [ button
+                            [ type_ "button", class "btn btn-default", onClick (ConfirmCancelled onCancel) ]
+                            [ text "Cancel" ]
+                        , button
+                            [ type_ "button", class "btn btn-primary", onClick (Confirmed onConfirm) ]
+                            [ text "OK" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]

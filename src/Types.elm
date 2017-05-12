@@ -74,10 +74,13 @@ type WebSocketMsg
 
 type Msg
     = AddFavorite Int
+    | AskConfirm String Msg Msg
     | ClearError Int
     | CloseAccount
     | CloseAccountSelector
     | CloseThread
+    | ConfirmCancelled Msg
+    | Confirmed Msg
     | DeleteStatus Int
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
@@ -106,6 +109,13 @@ type Msg
     | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+
+
+type alias Confirm =
+    { message : String
+    , onConfirm : Msg
+    , onCancel : Msg
+    }
 
 
 type CurrentView
@@ -201,6 +211,7 @@ type alias Model =
     , currentUser : Maybe Account
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
+    , confirm : Maybe Confirm
     }
 
 

@@ -31,5 +31,6 @@ init { registration, clients } location =
     , currentView = LocalTimelineView
     , currentUser = Nothing
     , notificationFilter = NotificationAll
+    , confirm = Nothing
     }
         ! [ Command.initCommands registration (List.head clients) (Util.extractAuthCode location) ]

@@ -49,7 +49,16 @@ accountIdentityView currentUser client =
                         ]
                     , button
                         [ class "btn btn-danger"
-                        , onClick <| LogoutClient client
+                        , onClick <|
+                            AskConfirm
+                                """
+                                Are you sure you want to unregister this account
+                                with Tooty? Note that you'll probably want to
+                                revoke the application in the official Web client
+                                on the related instance.
+                                """
+                                (LogoutClient client)
+                                NoOp
                         ]
                         [ text "Logout" ]
                     , if isCurrentUser then

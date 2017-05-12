@@ -45,6 +45,15 @@ update msg model =
         ClearError index ->
             { model | errors = removeAt index model.errors } ! []
 
+        AskConfirm message onClick onCancel ->
+            { model | confirm = Just <| Confirm message onClick onCancel } ! []
+
+        ConfirmCancelled onCancel ->
+            update onCancel { model | confirm = Nothing }
+
+        Confirmed onConfirm ->
+            update onConfirm { model | confirm = Nothing }
+
         SwitchClient client ->
             let
                 newClients =
