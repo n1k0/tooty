@@ -49,7 +49,9 @@ Note: The `deploy` command uses the `optimize` one internally.
     $ docker build -t tooty:latest .
     $ docker run --name tooty -d -p 80:80 tooty:latest
 or 
+
     $ docker-compose build && docker-compose up -d
+
 
 ## Licence
 
