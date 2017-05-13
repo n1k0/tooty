@@ -798,3 +798,15 @@ input.form-control[type=file] {
   text-overflow: ellipsis;
   margin-left: 3px;
 }
+
+/* Modal confirm window */
+
+.modal-dialog {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.modal-content {
+  flex: 1 1 auto;
+}
