@@ -46,6 +46,10 @@ body {
   min-height: 0;
 }
 
+.panel-default .panel-heading {
+  background-color: inherit;
+}
+
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
@@ -53,6 +57,13 @@ body {
   overflow: hidden;
   overflow-y: scroll;
 }
+
+#favorite-timeline,
+#local-timeline,
+#global-timeline {
+  max-height: calc(100vh - 102px);
+}
+
 
 li.load-more {
   cursor: wait;
@@ -119,7 +130,7 @@ li.load-more {
   padding-top: 6px;
 }
 
-.notifications-panel .btn-group-justified .btn {
+.panel .btn-group-justified .btn {
   border-radius: 0;
   border-bottom: 0;
   outline: 0;
