@@ -809,6 +809,7 @@ input.form-control[type=file] {
 
 .modal-content {
   flex: 1 1 auto;
+  margin-top: -150px;
 }
 
 /* Emojis */
@@ -816,5 +817,5 @@ input.form-control[type=file] {
 .elmoji-img {
   width: 18px;
   height: 18px;
-  margin-right: 1px;
+  margin: 0 1px;
 }
