@@ -1,5 +1,6 @@
 module View.Formatter exposing (formatContent)
 
+import Elmoji
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import HtmlParser
@@ -32,31 +33,27 @@ toVirtualDom mentions nodes =
 
 createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mention -> Html Msg
 createLinkNode attrs children mentions =
-    let
-        maybeMention =
-            getMentionForLink attrs mentions
-    in
-        case maybeMention of
-            Just mention ->
-                Html.node "a"
-                    ((List.map toAttribute attrs)
-                        ++ [ onClickWithPreventAndStop (LoadAccount mention.id) ]
-                    )
-                    (toVirtualDom mentions children)
+    case (getMentionForLink attrs mentions) of
+        Just mention ->
+            Html.node "a"
+                ((List.map toAttribute attrs)
+                    ++ [ onClickWithPreventAndStop (LoadAccount mention.id) ]
+                )
+                (toVirtualDom mentions children)
 
-            Nothing ->
-                Html.node "a"
-                    ((List.map toAttribute attrs)
-                        ++ [ onClickWithStop NoOp, target "_blank" ]
-                    )
-                    (toVirtualDom mentions children)
+        Nothing ->
+            Html.node "a"
+                ((List.map toAttribute attrs)
+                    ++ [ onClickWithStop NoOp, target "_blank" ]
+                )
+                (toVirtualDom mentions children)
 
 
 getHrefLink : List ( String, String ) -> Maybe String
 getHrefLink attrs =
     attrs
-        |> List.filter (\( name, value ) -> (name == "href"))
-        |> List.map (\( name, value ) -> value)
+        |> List.filter (\( name, _ ) -> name == "href")
+        |> List.map (\( _, value ) -> value)
         |> List.head
 
 
@@ -82,7 +79,7 @@ toVirtualDomEach mentions node =
             Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
 
         HtmlParser.Text s ->
-            text s
+            Elmoji.text_ s
 
         HtmlParser.Comment _ ->
             text ""
