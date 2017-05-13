@@ -20,22 +20,34 @@ type alias CurrentUser =
 filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
 filterNotifications filter notifications =
     let
-        applyFilter { type_ } =
-            case filter of
-                NotificationAll ->
-                    True
+        applyFilter { type_, status } =
+            let
+                visibility =
+                    case status of
+                        Just status ->
+                            status.visibility
 
-                NotificationOnlyMentions ->
-                    type_ == "mention"
+                        Nothing ->
+                            ""
+            in
+                case filter of
+                    NotificationAll ->
+                        True
 
-                NotificationOnlyBoosts ->
-                    type_ == "reblog"
+                    NotificationOnlyMentions ->
+                        type_ == "mention" && visibility /= "direct"
 
-                NotificationOnlyFavourites ->
-                    type_ == "favourite"
+                    NotificationOnlyDirect ->
+                        type_ == "mention" && visibility == "direct"
 
-                NotificationOnlyFollows ->
-                    type_ == "follow"
+                    NotificationOnlyBoosts ->
+                        type_ == "reblog"
+
+                    NotificationOnlyFavourites ->
+                        type_ == "favourite"
+
+                    NotificationOnlyFollows ->
+                        type_ == "follow"
     in
         if filter == NotificationAll then
             notifications
@@ -124,6 +136,7 @@ notificationFilterView filter =
         Common.justifiedButtonGroup "notification-filters"
             [ filterBtn "All notifications" "asterisk" NotificationAll
             , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
+            , filterBtn "Direct" "envelope" NotificationOnlyDirect
             , filterBtn "Boosts" "fire" NotificationOnlyBoosts
             , filterBtn "Favorites" "star" NotificationOnlyFavourites
             , filterBtn "Follows" "user" NotificationOnlyFollows

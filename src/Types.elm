@@ -153,6 +153,7 @@ type alias Draft =
 type NotificationFilter
     = NotificationAll
     | NotificationOnlyMentions
+    | NotificationOnlyDirect
     | NotificationOnlyBoosts
     | NotificationOnlyFavourites
     | NotificationOnlyFollows
