@@ -61,6 +61,15 @@ update msg model =
             in
                 { model
                     | clients = newClients
+                    , homeTimeline = Update.Timeline.empty "home-timeline"
+                    , localTimeline = Update.Timeline.empty "local-timeline"
+                    , globalTimeline = Update.Timeline.empty "global-timeline"
+                    , accountTimeline = Update.Timeline.empty "account-timeline"
+                    , accountFollowers = Update.Timeline.empty "account-followers"
+                    , accountFollowing = Update.Timeline.empty "account-following"
+                    , notifications = Update.Timeline.empty "notifications"
+                    , accountRelationships = []
+                    , accountRelationship = Nothing
                     , currentView = Update.Timeline.preferred model
                 }
                     ! [ Command.loadUserAccount <| Just client
