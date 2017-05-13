@@ -82,7 +82,7 @@ update msg model =
 
                 Err error ->
                     { model
-                        | currentView = Update.Timeline.preferred model
+                        | currentView = LocalTimelineView
                         , errors = addErrorNotification (errorText error) model
                     }
                         ! []
@@ -149,6 +149,14 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
+        FavoriteTimeline append result ->
+            case result of
+                Ok { decoded, links } ->
+                    { model | favoriteTimeline = Update.Timeline.update append decoded links model.favoriteTimeline } ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
         Reblogged result ->
             case result of
                 Ok _ ->
@@ -200,7 +208,7 @@ update msg model =
 
                 Err error ->
                     { model
-                        | currentView = Update.Timeline.preferred model
+                        | currentView = LocalTimelineView
                         , errors = addErrorNotification (errorText error) model
                     }
                         ! []

@@ -96,18 +96,18 @@ statusActionsView status currentUser =
         ( reblogClasses, reblogEvent ) =
             case status.reblogged of
                 Just True ->
-                    ( baseBtnClasses ++ " reblogged", UnreblogStatus sourceStatus.id )
+                    ( baseBtnClasses ++ " reblogged", UnreblogStatus sourceStatus )
 
                 _ ->
-                    ( baseBtnClasses, ReblogStatus sourceStatus.id )
+                    ( baseBtnClasses, ReblogStatus sourceStatus )
 
         ( favClasses, favEvent ) =
             case status.favourited of
                 Just True ->
-                    ( baseBtnClasses ++ " favourited", RemoveFavorite sourceStatus.id )
+                    ( baseBtnClasses ++ " favourited", RemoveFavorite sourceStatus )
 
                 _ ->
-                    ( baseBtnClasses, AddFavorite sourceStatus.id )
+                    ( baseBtnClasses, AddFavorite sourceStatus )
 
         statusDate =
             Date.fromString status.created_at

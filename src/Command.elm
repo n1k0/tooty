@@ -14,6 +14,7 @@ module Command
         , loadLocalTimeline
         , loadGlobalTimeline
         , loadAccountTimeline
+        , loadFavoriteTimeline
         , loadNextTimeline
         , loadRelationships
         , loadThread
@@ -317,6 +318,20 @@ loadAccountTimeline client accountId url =
             Cmd.none
 
 
+loadFavoriteTimeline : Maybe Client -> Maybe String -> Cmd Msg
+loadFavoriteTimeline client url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault ApiUrl.favouriteTimeline url)
+                |> withClient client
+                |> withBodyDecoder (Decode.list statusDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
+                |> send (MastodonEvent << FavoriteTimeline (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Client -> Cmd Msg
 loadTimelines client =
     Cmd.batch
@@ -341,6 +356,9 @@ loadNextTimeline client currentView id next =
 
         "global-timeline" ->
             loadGlobalTimeline client (Just next)
+
+        "favorite-timeline" ->
+            loadFavoriteTimeline client (Just next)
 
         "account-timeline" ->
             case currentView of

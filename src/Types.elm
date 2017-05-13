@@ -56,14 +56,15 @@ type MastodonMsg
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
+    | FavoriteTimeline Bool (MastodonResult (List Status))
     | GlobalTimeline Bool (MastodonResult (List Status))
+    | HomeTimeline Bool (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
     | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
     | Unreblogged (MastodonResult Status)
-    | HomeTimeline Bool (MastodonResult (List Status))
 
 
 type WebSocketMsg
@@ -73,7 +74,7 @@ type WebSocketMsg
 
 
 type Msg
-    = AddFavorite Int
+    = AddFavorite Status
     | AskConfirm String Msg Msg
     | ClearError Int
     | CloseAccount
@@ -91,19 +92,18 @@ type Msg
     | MastodonEvent MastodonMsg
     | NoOp
     | OpenThread Status
-    | OpenAccountSelector
-    | ReblogStatus Int
+    | ReblogStatus Status
     | Register
-    | RemoveFavorite Int
+    | RemoveFavorite Status
     | ScrollColumn ScrollDirection String
     | ServerChange String
+    | SetView CurrentView
     | SubmitDraft
     | SwitchClient Client
     | Tick Time
     | UnfollowAccount Int
     | UrlChange Navigation.Location
-    | UseGlobalTimeline Bool
-    | UnreblogStatus Int
+    | UnreblogStatus Status
     | ViewAccountFollowing Account
     | ViewAccountFollowers Account
     | ViewAccountStatuses Account
@@ -124,6 +124,7 @@ type CurrentView
     | AccountFollowingView Account (Timeline Account)
     | AccountView Account
     | AccountSelectorView
+    | FavoriteTimelineView
     | GlobalTimelineView
     | LocalTimelineView
     | ThreadView Thread
@@ -198,6 +199,7 @@ type alias Model =
     , homeTimeline : Timeline Status
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status
+    , favoriteTimeline : Timeline Status
     , accountTimeline : Timeline Status
     , accountFollowers : Timeline Account
     , accountFollowing : Timeline Account
@@ -207,7 +209,6 @@ type alias Model =
     , draft : Draft
     , errors : List ErrorNotification
     , location : Navigation.Location
-    , useGlobalTimeline : Bool
     , viewer : Maybe Viewer
     , currentUser : Maybe Account
     , currentView : CurrentView

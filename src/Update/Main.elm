@@ -54,6 +54,18 @@ update msg model =
         Confirmed onConfirm ->
             update onConfirm { model | confirm = Nothing }
 
+        SetView view ->
+            case view of
+                AccountSelectorView ->
+                    { model | currentView = view, server = "" } ! []
+
+                FavoriteTimelineView ->
+                    { model | currentView = view }
+                        ! [ Command.loadFavoriteTimeline (List.head model.clients) Nothing ]
+
+                _ ->
+                    { model | currentView = view } ! []
+
         SwitchClient client ->
             let
                 newClients =
@@ -64,13 +76,14 @@ update msg model =
                     , homeTimeline = Update.Timeline.empty "home-timeline"
                     , localTimeline = Update.Timeline.empty "local-timeline"
                     , globalTimeline = Update.Timeline.empty "global-timeline"
+                    , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
                     , accountTimeline = Update.Timeline.empty "account-timeline"
                     , accountFollowers = Update.Timeline.empty "account-followers"
                     , accountFollowing = Update.Timeline.empty "account-following"
                     , notifications = Update.Timeline.empty "notifications"
                     , accountRelationships = []
                     , accountRelationship = Nothing
-                    , currentView = Update.Timeline.preferred model
+                    , currentView = LocalTimelineView
                 }
                     ! [ Command.loadUserAccount <| Just client
                       , Command.loadTimelines <| Just client
@@ -86,7 +99,7 @@ update msg model =
             in
                 { model
                     | clients = newClients
-                    , currentView = Update.Timeline.preferred model
+                    , currentView = LocalTimelineView
                 }
                     ! [ Command.saveClients newClients
                       , Command.loadUserAccount newClient
@@ -119,11 +132,8 @@ update msg model =
         OpenThread status ->
             model ! [ Command.loadThread (List.head model.clients) status ]
 
-        OpenAccountSelector ->
-            { model | currentView = AccountSelectorView, server = "" } ! []
-
         CloseThread ->
-            { model | currentView = Update.Timeline.preferred model } ! []
+            { model | currentView = LocalTimelineView } ! []
 
         FollowAccount id ->
             model ! [ Command.follow (List.head model.clients) id ]
@@ -134,21 +144,21 @@ update msg model =
         DeleteStatus id ->
             model ! [ Command.deleteStatus (List.head model.clients) id ]
 
-        ReblogStatus id ->
-            Update.Timeline.processReblog id True model
-                ! [ Command.reblogStatus (List.head model.clients) id ]
+        ReblogStatus status ->
+            Update.Timeline.processReblog status True model
+                ! [ Command.reblogStatus (List.head model.clients) status.id ]
 
-        UnreblogStatus id ->
-            Update.Timeline.processReblog id False model
-                ! [ Command.unreblogStatus (List.head model.clients) id ]
+        UnreblogStatus status ->
+            Update.Timeline.processReblog status False model
+                ! [ Command.unreblogStatus (List.head model.clients) status.id ]
 
-        AddFavorite id ->
-            Update.Timeline.processFavourite id True model
-                ! [ Command.favouriteStatus (List.head model.clients) id ]
+        AddFavorite status ->
+            Update.Timeline.processFavourite status True model
+                ! [ Command.favouriteStatus (List.head model.clients) status.id ]
 
-        RemoveFavorite id ->
-            Update.Timeline.processFavourite id False model
-                ! [ Command.unfavouriteStatus (List.head model.clients) id ]
+        RemoveFavorite status ->
+            Update.Timeline.processFavourite status False model
+                ! [ Command.unfavouriteStatus (List.head model.clients) status.id ]
 
         DraftEvent draftMsg ->
             case model.currentUser of
@@ -199,16 +209,9 @@ update msg model =
         ViewAccountStatuses account ->
             { model | currentView = AccountView account } ! []
 
-        UseGlobalTimeline flag ->
-            let
-                newModel =
-                    { model | useGlobalTimeline = flag }
-            in
-                { newModel | currentView = Update.Timeline.preferred newModel } ! []
-
         CloseAccount ->
             { model
-                | currentView = Update.Timeline.preferred model
+                | currentView = LocalTimelineView
                 , accountTimeline = Update.Timeline.empty "account-timeline"
                 , accountFollowing = Update.Timeline.empty "account-following"
                 , accountFollowers = Update.Timeline.empty "account-followers"
@@ -216,7 +219,7 @@ update msg model =
                 ! []
 
         CloseAccountSelector ->
-            { model | currentView = Update.Timeline.preferred model } ! []
+            { model | currentView = LocalTimelineView } ! []
 
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []

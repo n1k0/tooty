@@ -4,7 +4,6 @@ module Update.Timeline
         , deleteStatus
         , empty
         , markAsLoading
-        , preferred
         , prepend
         , processReblog
         , processFavourite
@@ -25,7 +24,7 @@ deleteStatusFromCurrentView id model =
         ThreadView thread ->
             if thread.status.id == id then
                 -- the current thread status as been deleted, close it
-                preferred model
+                LocalTimelineView
             else
                 let
                     update statuses =
@@ -49,6 +48,7 @@ deleteStatusFromAllTimelines id model =
         | homeTimeline = deleteStatus id model.homeTimeline
         , localTimeline = deleteStatus id model.localTimeline
         , globalTimeline = deleteStatus id model.globalTimeline
+        , favoriteTimeline = deleteStatus id model.favoriteTimeline
         , accountTimeline = deleteStatus id model.accountTimeline
         , notifications = deleteStatusFromNotifications id model.notifications
         , currentView = deleteStatusFromCurrentView id model
@@ -104,6 +104,9 @@ markAsLoading loading id model =
             "global-timeline" ->
                 { model | globalTimeline = mark model.globalTimeline }
 
+            "favorite-timeline" ->
+                { model | favoriteTimeline = mark model.favoriteTimeline }
+
             "account-timeline" ->
                 case model.currentView of
                     AccountView account ->
@@ -116,47 +119,49 @@ markAsLoading loading id model =
                 model
 
 
-preferred : Model -> CurrentView
-preferred model =
-    if model.useGlobalTimeline then
-        GlobalTimelineView
-    else
-        LocalTimelineView
-
-
 prepend : a -> Timeline a -> Timeline a
 prepend entry timeline =
     { timeline | entries = entry :: timeline.entries }
 
 
-processFavourite : Int -> Bool -> Model -> Model
-processFavourite statusId flag model =
-    updateWithBoolFlag statusId
-        flag
-        (\s ->
-            { s
-                | favourited = Just flag
-                , favourites_count =
-                    if flag then
-                        s.favourites_count + 1
-                    else if s.favourites_count > 0 then
-                        s.favourites_count - 1
-                    else
-                        0
-            }
-        )
-        model
+processFavourite : Status -> Bool -> Model -> Model
+processFavourite status added model =
+    let
+        favoriteTimeline =
+            if added then
+                prepend status model.favoriteTimeline
+            else
+                deleteStatus status.id model.favoriteTimeline
+
+        newModel =
+            { model | favoriteTimeline = favoriteTimeline }
+    in
+        updateWithBoolFlag status.id
+            added
+            (\s ->
+                { s
+                    | favourited = Just added
+                    , favourites_count =
+                        if added then
+                            s.favourites_count + 1
+                        else if s.favourites_count > 0 then
+                            s.favourites_count - 1
+                        else
+                            0
+                }
+            )
+            newModel
 
 
-processReblog : Int -> Bool -> Model -> Model
-processReblog statusId flag model =
-    updateWithBoolFlag statusId
-        flag
+processReblog : Status -> Bool -> Model -> Model
+processReblog status added model =
+    updateWithBoolFlag status.id
+        added
         (\s ->
             { s
-                | reblogged = Just flag
+                | reblogged = Just added
                 , reblogs_count =
-                    if flag then
+                    if added then
                         s.reblogs_count + 1
                     else if s.reblogs_count > 0 then
                         s.reblogs_count - 1
@@ -208,6 +213,7 @@ updateWithBoolFlag statusId flag statusUpdater model =
             , accountTimeline = updateTimeline updateStatus model.accountTimeline
             , localTimeline = updateTimeline updateStatus model.localTimeline
             , globalTimeline = updateTimeline updateStatus model.globalTimeline
+            , favoriteTimeline = updateTimeline updateStatus model.favoriteTimeline
             , notifications = updateTimeline updateNotification model.notifications
             , currentView =
                 case model.currentView of

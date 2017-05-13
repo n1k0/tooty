@@ -11,6 +11,7 @@ module Mastodon.ApiUrl
         , status
         , homeTimeline
         , publicTimeline
+        , favouriteTimeline
         , notifications
         , relationships
         , statuses
@@ -105,6 +106,11 @@ publicTimeline =
 accountTimeline : Int -> String
 accountTimeline id =
     (account id) ++ "/statuses"
+
+
+favouriteTimeline : String
+favouriteTimeline =
+    apiPrefix ++ "/favourites"
 
 
 notifications : String

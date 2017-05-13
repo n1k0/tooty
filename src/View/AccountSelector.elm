@@ -9,6 +9,7 @@ import String.Extra exposing (replace)
 import Types exposing (..)
 import View.Auth exposing (authForm)
 import View.Common exposing (..)
+import View.Timeline exposing (contextualTimelineMenu)
 
 
 type alias CurrentUser =
@@ -80,6 +81,7 @@ accountSelectorView model =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ closeablePanelheading "account-selector" "user" "Account selector" CloseAccountSelector
+            , contextualTimelineMenu model.currentView
             , ul [ class "list-group " ] <|
                 List.map (accountIdentityView model.currentUser) model.clients
             , div [ class "panel-body" ]
