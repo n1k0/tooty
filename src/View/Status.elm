@@ -150,7 +150,7 @@ statusActionsView status currentUser =
               else
                 text ""
             , a
-                [ class baseBtnClasses, href status.url, target "_blank" ]
+                [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
                 [ Common.icon "time", formatDate ]
             ]
 

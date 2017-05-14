@@ -179,7 +179,7 @@ type alias Status =
     , spoiler_text : String
     , tags : List Tag
     , uri : String
-    , url : String
+    , url : Maybe String
     , visibility : String
     }
 

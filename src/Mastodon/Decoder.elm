@@ -144,7 +144,7 @@ statusDecoder =
         |> Pipe.required "spoiler_text" Decode.string
         |> Pipe.required "tags" (Decode.list tagDecoder)
         |> Pipe.required "uri" Decode.string
-        |> Pipe.required "url" Decode.string
+        |> Pipe.required "url" (Decode.nullable Decode.string)
         |> Pipe.required "visibility" Decode.string
 
 
