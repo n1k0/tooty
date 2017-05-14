@@ -77,7 +77,7 @@ contextualTimelineMenu currentView =
                 ]
                 [ Common.icon iconName ]
     in
-        Common.justifiedButtonGroup ""
+        Common.justifiedButtonGroup "column-menu"
             [ btnView "Local timeline" "th-large" LocalTimelineView
             , btnView "Global timeline" "globe" GlobalTimelineView
             , btnView "Favorites" "star" FavoriteTimelineView

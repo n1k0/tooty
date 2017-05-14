@@ -130,7 +130,7 @@ li.load-more {
   padding-top: 6px;
 }
 
-.panel .btn-group-justified .btn {
+.btn-group-justified.column-menu .btn {
   border-radius: 0;
   border-bottom: 0;
   outline: 0;
