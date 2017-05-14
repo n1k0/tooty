@@ -100,7 +100,7 @@ statusNicoToVjousse =
     , spoiler_text = ""
     , tags = []
     , uri = "tag:mamot.fr,2017-04-24:objectId=737932:objectType=Status"
-    , url = "https://mamot.fr/@n1k0/737932"
+    , url = Just "https://mamot.fr/@n1k0/737932"
     , visibility = "public"
     }
 
@@ -130,7 +130,7 @@ statusNicoToVjousseAgain =
     , spoiler_text = ""
     , tags = []
     , uri = "tag:mamot.fr,2017-04-25:objectId=752169:objectType=Status"
-    , url = "https://mamot.fr/@n1k0/752169"
+    , url = Just "https://mamot.fr/@n1k0/752169"
     , visibility = "public"
     }
 
@@ -160,7 +160,7 @@ statusPloumToVjousse =
     , spoiler_text = ""
     , tags = []
     , uri = "tag:mamot.fr,2017-04-25:objectId=752169:objectType=Status"
-    , url = "https://mamot.fr/@n1k0/752169"
+    , url = Just "https://mamot.fr/@n1k0/752169"
     , visibility = "public"
     }
 
@@ -184,7 +184,7 @@ statusReblogged =
     , spoiler_text = ""
     , tags = []
     , uri = "tag:mamot.fr,2017-04-24:objectId=737932:objectType=Status"
-    , url = "https://mamot.fr/@n1k0/737932"
+    , url = Just "https://mamot.fr/@n1k0/737932"
     , visibility = "public"
     }
 
