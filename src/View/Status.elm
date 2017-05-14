@@ -114,7 +114,7 @@ statusActionsView status currentUser =
                 |> Result.withDefault (Date.fromTime 0)
 
         formatDate =
-            text <| DateFormat.format DateEn.config "%m/%d/%Y %H:%M" statusDate
+            text <| DateFormat.format DateEn.config "%d/%m/%Y %H:%M" statusDate
     in
         div [ class "btn-group actions" ]
             [ a
