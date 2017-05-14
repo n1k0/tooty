@@ -57,15 +57,33 @@ filterNotifications filter notifications =
 
 notificationHeading : List Account -> String -> String -> Html Msg
 notificationHeading accounts str iconType =
-    div [ class "status-info" ]
-        [ div [ class "avatars" ] <| List.map (Common.accountAvatarLink False) accounts
-        , p [ class "status-info-text" ] <|
-            List.intersperse (text " ")
-                [ Common.icon iconType
-                , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) accounts)
-                , text str
-                ]
-        ]
+    let
+        ( firstAccounts, finalStr ) =
+            case accounts of
+                [ a1 ] ->
+                    ( [ a1 ], str )
+
+                [ a1, a2 ] ->
+                    ( [ a1, a2 ], str )
+
+                [ a1, a2, a3 ] ->
+                    ( [ a1, a2, a3 ], str )
+
+                a1 :: a2 :: a3 :: xs ->
+                    ( [ a1, a2, a3 ], " and " ++ (toString <| List.length xs) ++ " others " ++ str )
+
+                _ ->
+                    ( [], "" )
+    in
+        div [ class "status-info" ]
+            [ div [ class "avatars" ] <| List.map (Common.accountAvatarLink False) accounts
+            , p [ class "status-info-text" ] <|
+                List.intersperse (text " ")
+                    [ Common.icon iconType
+                    , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) firstAccounts)
+                    , text finalStr
+                    ]
+            ]
 
 
 notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
@@ -102,7 +120,7 @@ notificationFollowView currentUser { accounts } =
     in
         div [ class "notification follow" ]
             [ notificationHeading accounts "started following you" "user"
-            , div [ class "" ] <| List.map profileView accounts
+            , div [ class "" ] <| List.map profileView (List.take 3 accounts)
             ]
 
 

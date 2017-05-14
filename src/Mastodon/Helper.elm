@@ -113,7 +113,7 @@ addNotificationToAggregates notification aggregates =
     in
         {-
            If we did no modification to the old aggregates it's
-           because we didn't found any match. So me have to create
+           because we didn't found any match. So we have to create
            a new aggregate
         -}
         if newAggregates == aggregates then
