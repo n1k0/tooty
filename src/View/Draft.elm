@@ -168,7 +168,7 @@ draftView ({ draft, currentUser } as model) =
                     else
                         "Post a message"
                 ]
-            , div [ class "panel-body" ]
+            , div [ class "panel-body timeline" ]
                 [ currentUserView currentUser
                 , draftReplyToView draft
                 , Html.form [ class "form", onSubmit SubmitDraft ]

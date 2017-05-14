@@ -389,6 +389,10 @@ li.load-more {
 
 /* Draft form */
 
+.draft .panel-body {
+  overflow: auto;
+}
+
 .form {
   clear: both;
 }
