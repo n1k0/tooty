@@ -176,7 +176,10 @@ update msg model =
                 { model | viewer = viewer } ! [ commands ]
 
         SubmitDraft ->
-            model ! [ Command.postStatus (List.head model.clients) <| toStatusRequestBody model.draft ]
+            model
+                ! [ Command.postStatus (List.head model.clients) <|
+                        toStatusRequestBody model.draft
+                  ]
 
         LoadAccount accountId ->
             { model

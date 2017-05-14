@@ -172,10 +172,7 @@ update msg model =
                 draft =
                     Update.Draft.empty
             in
-                { model | draft = draft }
-                    ! [ Command.scrollColumnToTop "home-timeline"
-                      , Command.updateDomStatus draft.status
-                      ]
+                { model | draft = draft } ! [ Command.updateDomStatus draft.status ]
 
         StatusDeleted result ->
             case result of
