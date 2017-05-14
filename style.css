@@ -37,6 +37,11 @@ body {
 
 /* Columns */
 
+.column {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
 .column .panel {
   min-height: calc(100vh - 20px);
   max-height: calc(100vh - 20px);
@@ -53,9 +58,13 @@ body {
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 65px);
+  max-height: calc(100vh - 60px);
   overflow: hidden;
   overflow-y: scroll;
+}
+
+.timeline > .list-group-item {
+  padding: 8px 12px;
 }
 
 #favorite-timeline,
@@ -164,7 +173,7 @@ li.load-more {
 .status .username,
 .current-user .username {
   font-weight: bold;
-  margin-left: 65px;
+  margin-left: 60px;
   margin-bottom: 4px;
 }
 
@@ -217,7 +226,7 @@ li.load-more {
 }
 
 .status-text {
-  margin-left: 65px;
+  margin-left: 60px;
   color: #efefef;
   cursor: pointer;
 }
@@ -244,8 +253,8 @@ li.load-more {
 /* Status actions */
 
 .actions {
-  margin-left: 65px;
-  width: calc(100% - 65px);
+  margin-left: 60px;
+  width: calc(100% - 60px);
 }
 
 .actions > .btn {
