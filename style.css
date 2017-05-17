@@ -229,6 +229,8 @@ li.load-more {
   margin-left: 60px;
   color: #efefef;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-text a, .u-url, .status .mention, .hashtag, .tag {
