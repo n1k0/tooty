@@ -16,7 +16,7 @@ authForm model =
                 , class "form-control"
                 , id "server"
                 , required True
-                , placeholder "https://mastodon.social"
+                , placeholder "https://mastodon.cloud"
                 , value model.server
                 , pattern "https://.+"
                 , onInput ServerChange
