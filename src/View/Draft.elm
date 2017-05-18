@@ -256,24 +256,27 @@ draftView ({ draft, currentUser } as model) =
                         ]
                     , visibilitySelector draft
                     , fileUploadField draft
-                    , div [ class "form-group checkbox" ]
-                        [ label []
-                            [ input
-                                [ type_ "checkbox"
-                                , onCheck <| DraftEvent << UpdateSensitive
-                                , checked draft.sensitive
-                                ]
-                                []
-                            , text " This post is NSFW"
-                            ]
-                        ]
                     , Common.justifiedButtonGroup "draft-actions"
                         [ button
                             [ type_ "button"
                             , class "btn btn-default"
+                            , title "Clear this draft"
                             , onClick (DraftEvent ClearDraft)
                             ]
-                            [ text "Clear" ]
+                            [ Common.icon "trash" ]
+                        , button
+                            [ type_ "button"
+                            , class <|
+                                "btn btn-default btn-nsfw "
+                                    ++ (if draft.sensitive then
+                                            "btn-primary active"
+                                        else
+                                            ""
+                                       )
+                            , title "Mark this post as Not Safe For Work (sensitive content)"
+                            , onClick <| DraftEvent (UpdateSensitive (not draft.sensitive))
+                            ]
+                            [ text "NSFW" ]
                         , div
                             [ class <|
                                 if limitExceeded then

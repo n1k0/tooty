@@ -143,10 +143,14 @@ li.load-more {
   padding-top: 6px;
 }
 
+.btn-group-justified .btn,
+.btn-group-justified .btn:focus {
+  outline: 0;
+}
+
 .btn-group-justified.column-menu .btn {
   border-radius: 0;
   border-bottom: 0;
-  outline: 0;
 }
 
 .notification.reblog,
@@ -403,13 +407,14 @@ li.load-more {
   clear: both;
 }
 
-.charcount {
-  cursor: default;
+.btn-nsfw {
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 20px;
 }
 
-.draft-actions .btn-group:nth-child(2) {
-  width: .5%;
-  min-width: 30px;
+.charcount {
+  cursor: default;
 }
 
 .in-reply-to .well {
