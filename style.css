@@ -444,6 +444,21 @@ li.load-more {
   margin-left: 6px;
 }
 
+.status-field {
+  margin-bottom: 0;
+}
+
+.status-field textarea {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.draft-visibilities .btn {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
 .draft-attachments-field {
   margin-top: 12px;
 }
@@ -613,7 +628,6 @@ input.form-control[type=file] {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
   left: 0;
   top: 0;
   width: 100%;
@@ -726,9 +740,12 @@ input.form-control[type=file] {
 /* Autocomplete */
 
 .autocomplete-menu {
-  position: relative;
+  position: absolute;
   margin-top: -10px;
   min-width: 120px;
+  left: 16px;
+  right: 16px;
+  z-index: 10;
 }
 
 .autocomplete-list {
