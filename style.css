@@ -1,6 +1,7 @@
 body {
   font-family: Roboto, sans-serif;
-  padding: 10px 0 0 0;
+  padding: 0;
+  margin: 0;
 }
 
 /* Alert messages */
@@ -37,13 +38,12 @@ body {
 /* Columns */
 
 .column {
-  padding-left: 5px;
-  padding-right: 5px;
+  padding: 0;
 }
 
 .column .panel {
-  min-height: calc(100vh - 20px);
-  max-height: calc(100vh - 20px);
+  height: 100vh;
+  margin-bottom: 0;
 }
 
 .column .panel.draft, .column .panel.options {
@@ -57,7 +57,7 @@ body {
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 60px);
+  max-height: calc(100vh - 45px);
   overflow: hidden;
   overflow-y: scroll;
 }
@@ -69,7 +69,7 @@ body {
 #favorite-timeline,
 #local-timeline,
 #global-timeline {
-  max-height: calc(100vh - 102px);
+  max-height: calc(100vh - 80px);
 }
 
 
@@ -78,7 +78,7 @@ li.load-more {
 }
 
 .notifications-panel .timeline {
-  max-height: calc(100vh - 100px);
+  max-height: calc(100vh - 80px);
 }
 
 .panel a {
@@ -228,6 +228,8 @@ li.load-more {
   margin-left: 60px;
   color: #efefef;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .status-text a, .u-url, .status .mention, .hashtag, .tag {
