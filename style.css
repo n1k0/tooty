@@ -3,6 +3,11 @@ body {
   padding: 0;
   margin: 0;
 }
+@media only screen and (min-width: 992px) {
+  html, body {
+    overflow: hidden;
+  }
+}
 
 /* Alert messages */
 
