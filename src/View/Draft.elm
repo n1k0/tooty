@@ -172,20 +172,9 @@ draftView ({ draft, currentUser } as model) =
                 [ currentUserView currentUser
                 , draftReplyToView draft
                 , Html.form [ class "form", onSubmit SubmitDraft ]
-                    [ div [ class "form-group checkbox" ]
-                        [ label []
-                            [ input
-                                [ type_ "checkbox"
-                                , onCheck <| DraftEvent << ToggleSpoiler
-                                , checked hasSpoiler
-                                ]
-                                []
-                            , text " Add a Content Warning"
-                            ]
-                        ]
-                    , if hasSpoiler then
+                    [ if hasSpoiler then
                         div [ class "form-group" ]
-                            [ label [ for "spoiler" ] [ text "Visible part" ]
+                            [ label [ for "spoiler" ] [ text "Content Warning (visible part)" ]
                             , textarea
                                 [ id "spoiler"
                                 , class "form-control"
@@ -199,14 +188,12 @@ draftView ({ draft, currentUser } as model) =
                             ]
                       else
                         text ""
+                    , visibilitySelector draft
                     , div [ class "form-group status-field" ]
-                        [ label [ for "status" ]
-                            [ text <|
-                                if hasSpoiler then
-                                    "Hidden part"
-                                else
-                                    "Status"
-                            ]
+                        [ if hasSpoiler then
+                            label [ for "status" ] [ text "Hidden part" ]
+                          else
+                            text ""
                         , let
                             dec =
                                 (Decode.map
@@ -254,51 +241,68 @@ draftView ({ draft, currentUser } as model) =
                                 []
                         , autoMenu
                         ]
-                    , visibilitySelector draft
-                    , fileUploadField draft
-                    , Common.justifiedButtonGroup "draft-actions"
-                        [ button
-                            [ type_ "button"
-                            , class "btn btn-default"
-                            , title "Clear this draft"
-                            , onClick (DraftEvent ClearDraft)
+                    , draftAttachments draft.attachments
+                    , div [ class "draft-actions" ]
+                        [ div [ class "draft-actions-btns" ]
+                            [ Common.justifiedButtonGroup ""
+                                [ button
+                                    [ type_ "button"
+                                    , class "btn btn-default btn-clear"
+                                    , title "Clear this draft"
+                                    , onClick (DraftEvent ClearDraft)
+                                    ]
+                                    [ Common.icon "trash" ]
+                                , button
+                                    [ type_ "button"
+                                    , class <|
+                                        "btn btn-default btn-cw "
+                                            ++ (if hasSpoiler then
+                                                    "btn-primary active"
+                                                else
+                                                    ""
+                                               )
+                                    , title "Add a Content Warning"
+                                    , onClick <| DraftEvent (ToggleSpoiler (not hasSpoiler))
+                                    ]
+                                    [ text "CW" ]
+                                , button
+                                    [ type_ "button"
+                                    , class <|
+                                        "btn btn-default btn-nsfw "
+                                            ++ (if draft.sensitive then
+                                                    "btn-primary active"
+                                                else
+                                                    ""
+                                               )
+                                    , title "Mark this post as Not Safe For Work (sensitive content)"
+                                    , onClick <| DraftEvent (UpdateSensitive (not draft.sensitive))
+                                    ]
+                                    [ text "NSFW" ]
+                                , fileUploadField draft
+                                ]
                             ]
-                            [ Common.icon "trash" ]
-                        , button
-                            [ type_ "button"
-                            , class <|
-                                "btn btn-default btn-nsfw "
-                                    ++ (if draft.sensitive then
-                                            "btn-primary active"
-                                        else
-                                            ""
-                                       )
-                            , title "Mark this post as Not Safe For Work (sensitive content)"
-                            , onClick <| DraftEvent (UpdateSensitive (not draft.sensitive))
-                            ]
-                            [ text "NSFW" ]
-                        , div
-                            [ class <|
-                                if limitExceeded then
-                                    "btn btn-danger charcount active"
-                                else
-                                    "btn btn-default charcount active"
-                            ]
-                            [ text <| toString charCount ]
+                        , if limitExceeded then
+                            div
+                                [ class "draft-actions-charcount text-center exceed" ]
+                                [ text <| toString (500 - charCount) ]
+                          else
+                            div
+                                [ class "draft-actions-charcount text-center" ]
+                                [ text <| toString charCount ]
                         , button
                             [ type_ "submit"
-                            , class "btn btn-warning"
+                            , class "draft-actions-submit btn btn-warning btn-toot"
                             , disabled limitExceeded
                             ]
-                            [ text "Toot!" ]
+                            [ text "Toot" ]
                         ]
                     ]
                 ]
             ]
 
 
-fileUploadField : Draft -> Html Msg
-fileUploadField draft =
+draftAttachments : List Attachment -> Html Msg
+draftAttachments attachments =
     let
         attachmentPreview attachment =
             li
@@ -316,25 +320,29 @@ fileUploadField draft =
                     [ text "×" ]
                 ]
     in
-        div [ class "draft-attachments-field form-group" ]
-            [ if List.length draft.attachments > 0 then
+        div [ class "draft-attachments-field" ]
+            [ if List.length attachments > 0 then
                 ul [ class "draft-attachments" ] <|
-                    List.map attachmentPreview draft.attachments
-              else
-                text ""
-            , if draft.mediaUploading then
-                button [ class "btn btn-default btn-loading", disabled True ]
-                    [ text "Uploading media..." ]
-              else if List.length draft.attachments < 4 then
-                label [ class "form-control draft-attachment-input-label" ]
-                    [ input
-                        [ type_ "file"
-                        , id "draft-attachment"
-                        , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
-                        ]
-                        []
-                    , text ""
-                    ]
+                    List.map attachmentPreview attachments
               else
                 text ""
             ]
+
+
+fileUploadField : Draft -> Html Msg
+fileUploadField draft =
+    if draft.mediaUploading then
+        button [ class "btn btn-default btn-loading", disabled True ]
+            [ Common.icon "time" ]
+    else if List.length draft.attachments < 4 then
+        label [ class "btn btn-default draft-attachment-input-label" ]
+            [ input
+                [ type_ "file"
+                , id "draft-attachment"
+                , on "change" (Decode.succeed <| DraftEvent (UploadMedia "draft-attachment"))
+                ]
+                []
+            , text ""
+            ]
+    else
+        text ""

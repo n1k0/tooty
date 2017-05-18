@@ -407,14 +407,44 @@ li.load-more {
   clear: both;
 }
 
-.btn-nsfw {
+.draft-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-content: stretch;
+  align-items: flex-start;
+}
+
+.draft-actions-btns {
+  flex: 1 1 auto;
+  width: 60%;
+}
+
+.draft-actions-charcount {
+  flex: 1 1 auto;
+  width: 15%;
+  padding: 0 12px;
+  line-height: 38px;
+}
+
+.draft-actions-submit {
+  flex: 1 1 auto;
+  width: 25%;
+  font-weight: bold;
+}
+
+.draft-actions .btn {
+  padding: 8px 2px;
+}
+
+.btn-clear, .btn-nsfw, .btn-cw, .charcount {
   font-size: 10px;
   font-weight: bold;
   line-height: 20px;
 }
 
-.charcount {
-  cursor: default;
+.exceed {
+  color: red;
 }
 
 .in-reply-to .well {
@@ -454,14 +484,14 @@ li.load-more {
 }
 
 .status-field textarea {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 
 .draft-visibilities .btn {
-  border-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+  border-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .draft-attachments-field {
@@ -523,7 +553,8 @@ li.load-more {
   width: 100%;
   height: 100%;
   display: block;
-  content: 'Attach a media';
+  font-family: "Glyphicons Halflings";
+  content: "\e046";
   border-radius: 4px;
 }
 
