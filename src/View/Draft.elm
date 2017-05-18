@@ -199,7 +199,7 @@ draftView ({ draft, currentUser } as model) =
                             ]
                       else
                         text ""
-                    , div [ class "form-group" ]
+                    , div [ class "form-group status-field" ]
                         [ label [ for "status" ]
                             [ text <|
                                 if hasSpoiler then
