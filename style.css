@@ -1,7 +1,6 @@
 body {
   font-family: Roboto, sans-serif;
   padding: 10px 0 0 0;
-  overflow: hidden;
 }
 
 /* Alert messages */
@@ -229,8 +228,6 @@ li.load-more {
   margin-left: 60px;
   color: #efefef;
   cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .status-text a, .u-url, .status .mention, .hashtag, .tag {
