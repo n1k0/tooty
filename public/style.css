@@ -627,6 +627,8 @@ input.form-control[type=file] {
 .viewer-content {
   display: block;
   margin: auto;
+  min-width: 30vw;
+  min-height: 30vh;
   max-width: 80vw;
   max-height: 90vh;
   animation-name: zoom;
