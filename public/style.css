@@ -486,12 +486,27 @@ li.load-more {
 .status-field textarea {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+  border: none;
+}
+
+.draft-visibilities {
+  margin-bottom: -3px;
 }
 
 .draft-visibilities .btn {
   border-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
+}
+
+.draft-visibilities .btn.active {
+  color: #333;
+  background-color: #fff;
+  border: none;
+}
+
+.draft-visibilities .btn.active:hover {
+  background: #fff;
 }
 
 .draft-attachments-field {
