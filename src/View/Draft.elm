@@ -190,11 +190,7 @@ draftView ({ draft, currentUser } as model) =
                         text ""
                     , visibilitySelector draft
                     , div [ class "form-group status-field" ]
-                        [ if hasSpoiler then
-                            label [ for "status" ] [ text "Hidden part" ]
-                          else
-                            text ""
-                        , let
+                        [ let
                             dec =
                                 (Decode.map
                                     (\code ->
