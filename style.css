@@ -120,6 +120,10 @@ li.load-more {
   background: #493438;
 }
 
+span.applink {
+  cursor: default;
+}
+
 .reblog > p:first-of-type,
 .notification > p:first-of-type {
   color: #999;
