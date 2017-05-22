@@ -178,7 +178,7 @@ draftView ({ draft, currentUser } as model) =
                             , textarea
                                 [ id "spoiler"
                                 , class "form-control"
-                                , rows 5
+                                , rows 4
                                 , placeholder "This text will always be visible."
                                 , onInput <| DraftEvent << UpdateSpoiler
                                 , required True
