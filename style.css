@@ -817,9 +817,8 @@ input.form-control[type=file] {
   cursor: pointer;
   background: #fff;
   color: #777;
-  border-color: #bbb;
-  border-left-color: #272b30;
-  border-right-color: #272b30;
+  border: none;
+  border-top: 1px solid #ddd;
 }
 
 .autocomplete-item:hover,
