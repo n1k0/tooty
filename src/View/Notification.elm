@@ -99,7 +99,7 @@ notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
             _ ->
                 text ""
         , Lazy.lazy2 statusView context status
-        , Lazy.lazy2 statusActionsView status currentUser
+        , Lazy.lazy3 statusActionsView status currentUser False
         ]
 
 

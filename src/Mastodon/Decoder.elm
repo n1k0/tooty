@@ -59,6 +59,13 @@ accountDecoder =
         |> Pipe.required "username" Decode.string
 
 
+applicationDecoder : Decode.Decoder Application
+applicationDecoder =
+    Pipe.decode Application
+        |> Pipe.required "name" Decode.string
+        |> Pipe.required "website" (Decode.nullable Decode.string)
+
+
 attachmentDecoder : Decode.Decoder Attachment
 attachmentDecoder =
     Pipe.decode Attachment
@@ -128,6 +135,7 @@ statusDecoder : Decode.Decoder Status
 statusDecoder =
     Pipe.decode Status
         |> Pipe.required "account" accountDecoder
+        |> Pipe.required "application" (Decode.nullable applicationDecoder)
         |> Pipe.required "content" Decode.string
         |> Pipe.required "created_at" Decode.string
         |> Pipe.optional "favourited" (Decode.nullable Decode.bool) Nothing

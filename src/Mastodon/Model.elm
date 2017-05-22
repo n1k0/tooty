@@ -3,6 +3,7 @@ module Mastodon.Model
         ( AccessTokenResult
         , AppRegistration
         , Account
+        , Application
         , Attachment
         , Client
         , Context
@@ -90,6 +91,12 @@ type alias Account =
     }
 
 
+type alias Application =
+    { name : String
+    , website : Maybe String
+    }
+
+
 type alias Attachment =
     -- type_: -- "image", "video", "gifv"
     { id : Int
@@ -163,6 +170,7 @@ type alias Relationship =
 
 type alias Status =
     { account : Account
+    , application : Maybe Application
     , content : String
     , created_at : String
     , favourited : Maybe Bool

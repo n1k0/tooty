@@ -84,8 +84,8 @@ attachmentListView context { media_attachments, sensitive } =
                     List.map (keyedEntry attachments) attachments
 
 
-statusActionsView : Status -> CurrentUser -> Html Msg
-statusActionsView status currentUser =
+statusActionsView : Status -> CurrentUser -> Bool -> Html Msg
+statusActionsView status currentUser showApp =
     let
         sourceStatus =
             Mastodon.Helper.extractReblog status
@@ -119,8 +119,7 @@ statusActionsView status currentUser =
         div [ class "btn-group actions" ]
             [ a
                 [ class baseBtnClasses
-                , onClickWithPreventAndStop <|
-                    DraftEvent (UpdateReplyTo status)
+                , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
                 ]
                 [ Common.icon "share-alt" ]
             , if status.visibility == "private" then
@@ -131,20 +130,17 @@ statusActionsView status currentUser =
                     [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
               else
                 a
-                    [ class reblogClasses
-                    , onClickWithPreventAndStop reblogEvent
-                    ]
+                    [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
                     [ Common.icon "fire", text (toString sourceStatus.reblogs_count) ]
             , a
-                [ class favClasses
-                , onClickWithPreventAndStop favEvent
-                ]
+                [ class favClasses, onClickWithPreventAndStop favEvent ]
                 [ Common.icon "star", text (toString sourceStatus.favourites_count) ]
             , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
                 a
                     [ class <| baseBtnClasses ++ " btn-delete"
                     , href ""
-                    , onClickWithPreventAndStop <| AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
+                    , onClickWithPreventAndStop <|
+                        AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
                     ]
                     [ Common.icon "trash" ]
               else
@@ -152,6 +148,10 @@ statusActionsView status currentUser =
             , a
                 [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
                 [ Common.icon "time", formatDate ]
+            , if showApp then
+                Common.appLink (baseBtnClasses ++ " applink") status.application
+              else
+                text ""
             ]
 
 
@@ -205,7 +205,7 @@ statusEntryView context className currentUser status =
     in
         li liAttributes
             [ Lazy.lazy2 statusView context status
-            , Lazy.lazy2 statusActionsView status currentUser
+            , Lazy.lazy3 statusActionsView status currentUser (className == "thread-target")
             ]
 
 

@@ -3,6 +3,7 @@ module View.Common
         ( accountAvatar
         , accountAvatarLink
         , accountLink
+        , appLink
         , closeablePanelheading
         , icon
         , justifiedButtonGroup
@@ -61,6 +62,21 @@ accountAvatarLink external account =
             , title <| "@" ++ account.username
             ]
             [ accountAvatar avatarClass account ]
+
+
+appLink : String -> Maybe Application -> Html Msg
+appLink classes app =
+    case app of
+        Nothing ->
+            text ""
+
+        Just { name, website } ->
+            case website of
+                Nothing ->
+                    span [ class classes ] [ text name ]
+
+                Just website ->
+                    a [ href website, target "_blank", class classes ] [ text name ]
 
 
 closeablePanelheading : String -> String -> String -> Msg -> Html Msg
