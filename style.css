@@ -487,6 +487,7 @@ li.load-more {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border: none;
+  padding-top: 12px;
 }
 
 .draft-visibilities {
