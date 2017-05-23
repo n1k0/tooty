@@ -78,6 +78,7 @@ accountPloum =
 statusNicoToVjousse : Status
 statusNicoToVjousse =
     { account = accountNico
+    , application = Nothing
     , content = "<p>@vjousse coucou</p>"
     , created_at = "2017-04-24T20:16:20.922Z"
     , favourited = Nothing
@@ -108,6 +109,7 @@ statusNicoToVjousse =
 statusNicoToVjousseAgain : Status
 statusNicoToVjousseAgain =
     { account = accountNico
+    , application = Nothing
     , content = "<p>@vjousse recoucou</p>"
     , created_at = "2017-04-25T07:41:23.492Z"
     , favourited = Nothing
@@ -138,6 +140,7 @@ statusNicoToVjousseAgain =
 statusPloumToVjousse : Status
 statusPloumToVjousse =
     { account = accountPloum
+    , application = Nothing
     , content = "<p>hey @vjousse</p>"
     , created_at = "2017-04-25T07:41:23.492Z"
     , favourited = Nothing
@@ -168,6 +171,7 @@ statusPloumToVjousse =
 statusReblogged : Status
 statusReblogged =
     { account = accountVjousse
+    , application = Nothing
     , content = "<p>fake post</p>"
     , created_at = "2017-04-24T20:16:20.922Z"
     , favourited = Nothing
