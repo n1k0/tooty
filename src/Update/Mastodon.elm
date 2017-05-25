@@ -463,4 +463,5 @@ processBlockEvent account relationship model =
             , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
             , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
             , blocks = Update.Timeline.removeBlock account model.blocks
+            , notifications = Update.Timeline.dropNotificationsFromAccount account model.notifications
         }

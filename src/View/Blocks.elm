@@ -75,7 +75,7 @@ blocksView model =
                 [ Common.closeablePanelheading "blocks" "ban-circle" "Blocked accounts" (SetView LocalTimelineView)
                 , contextualTimelineMenu model.currentView
                 , if List.length model.blocks.entries == 0 then
-                    p [ class "empty-timeline-text" ] [ text "You basically blocked nobody yet. You rock." ]
+                    p [ class "empty-timeline-text" ] [ text "Nobody's muted here." ]
                   else
                     Keyed.ul [ class "list-group" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.blocks ) ])

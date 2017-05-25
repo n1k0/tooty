@@ -4,6 +4,7 @@ module Update.Timeline
         , deleteStatusFromAllTimelines
         , deleteStatus
         , dropAccountStatuses
+        , dropNotificationsFromAccount
         , empty
         , markAsLoading
         , prepend
@@ -112,6 +113,20 @@ dropAccountStatuses account timeline =
             not <| Mastodon.Helper.sameAccount account status.account
     in
         { timeline | entries = List.filter keep timeline.entries }
+
+
+dropNotificationsFromAccount : Account -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+dropNotificationsFromAccount account timeline =
+    let
+        keepNotification notification =
+            case notification.status of
+                Just status ->
+                    status.account /= account
+
+                Nothing ->
+                    True
+    in
+        { timeline | entries = List.filter keepNotification timeline.entries }
 
 
 empty : String -> Timeline a

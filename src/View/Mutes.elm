@@ -75,7 +75,7 @@ mutesView model =
                 [ Common.closeablePanelheading "mutes" "volume-off" "Muted accounts" (SetView LocalTimelineView)
                 , contextualTimelineMenu model.currentView
                 , if (not model.mutes.loading && List.length model.mutes.entries == 0) then
-                    p [ class "empty-timeline-text" ] [ text "You basically muted nobody yet. You rock." ]
+                    p [ class "empty-timeline-text" ] [ text "Nobody's blocked here." ]
                   else
                     Keyed.ul [ class "list-group" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.mutes ) ])
