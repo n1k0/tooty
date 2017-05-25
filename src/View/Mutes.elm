@@ -77,7 +77,7 @@ mutesView model =
                 , if (not model.mutes.loading && List.length model.mutes.entries == 0) then
                     p [ class "empty-timeline-text" ] [ text "Nobody's blocked here." ]
                   else
-                    Keyed.ul [ class "list-group" ] <|
+                    Keyed.ul [ class "list-group timeline" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.mutes ) ])
                 ]
             ]

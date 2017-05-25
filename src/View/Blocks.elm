@@ -77,7 +77,7 @@ blocksView model =
                 , if List.length model.blocks.entries == 0 then
                     p [ class "empty-timeline-text" ] [ text "Nobody's muted here." ]
                   else
-                    Keyed.ul [ class "list-group" ] <|
+                    Keyed.ul [ class "list-group timeline" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.blocks ) ])
                 ]
             ]
