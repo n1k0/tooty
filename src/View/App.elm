@@ -8,9 +8,11 @@ import Types exposing (..)
 import View.Account exposing (accountFollowView, accountTimelineView)
 import View.AccountSelector exposing (accountSelectorView)
 import View.Auth exposing (authView)
+import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
+import View.Mutes exposing (mutesView)
 import View.Notification exposing (notificationListView)
 import View.Thread exposing (threadView)
 import View.Timeline exposing (contextualTimelineView, homeTimelineView)
@@ -57,6 +59,12 @@ homepageView model =
 
                     AccountSelectorView ->
                         accountSelectorView model
+
+                    MutesView ->
+                        mutesView model
+
+                    BlocksView ->
+                        blocksView model
 
                     AccountFollowersView account followers ->
                         accountFollowView

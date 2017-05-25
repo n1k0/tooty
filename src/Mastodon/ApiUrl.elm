@@ -12,6 +12,8 @@ module Mastodon.ApiUrl
         , homeTimeline
         , publicTimeline
         , favouriteTimeline
+        , mutes
+        , blocks
         , notifications
         , relationships
         , statuses
@@ -22,6 +24,10 @@ module Mastodon.ApiUrl
         , unfavourite
         , follow
         , unfollow
+        , mute
+        , unmute
+        , block
+        , unblock
         , uploadMedia
         , streaming
         , searchAccount
@@ -68,6 +74,26 @@ unfollow id =
     accounts ++ (toString id) ++ "/unfollow"
 
 
+mute : Int -> String
+mute id =
+    accounts ++ (toString id) ++ "/mute"
+
+
+unmute : Int -> String
+unmute id =
+    accounts ++ (toString id) ++ "/unmute"
+
+
+block : Int -> String
+block id =
+    accounts ++ (toString id) ++ "/block"
+
+
+unblock : Int -> String
+unblock id =
+    accounts ++ (toString id) ++ "/unblock"
+
+
 userAccount : String
 userAccount =
     accounts ++ "verify_credentials"
@@ -111,6 +137,16 @@ accountTimeline id =
 favouriteTimeline : String
 favouriteTimeline =
     apiPrefix ++ "/favourites"
+
+
+mutes : String
+mutes =
+    apiPrefix ++ "/mutes"
+
+
+blocks : String
+blocks =
+    apiPrefix ++ "/blocks"
 
 
 notifications : String

@@ -81,6 +81,8 @@ contextualTimelineMenu currentView =
             [ btnView "Local timeline" "th-large" LocalTimelineView
             , btnView "Global timeline" "globe" GlobalTimelineView
             , btnView "Favorites" "star" FavoriteTimelineView
+            , btnView "Blocks" "ban-circle" BlocksView
+            , btnView "Mutes" "volume-off" MutesView
             , btnView "Accounts" "user" AccountSelectorView
             ]
 

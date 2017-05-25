@@ -51,7 +51,7 @@ followButton currentUser relationship account =
                 case relationship of
                     Nothing ->
                         ( NoOp
-                        , "btn btn-default btn-disabled"
+                        , "btn btn-default btn-follow btn-disabled"
                         , "question-sign"
                         , "Unknown relationship"
                         )
@@ -59,13 +59,13 @@ followButton currentUser relationship account =
                     Just relationship ->
                         if relationship.following then
                             ( UnfollowAccount account
-                            , "btn btn-default btn-primary"
+                            , "btn btn-default btn-follow btn-primary"
                             , "eye-close"
                             , "Unfollow"
                             )
                         else
                             ( FollowAccount account
-                            , "btn btn-default"
+                            , "btn btn-default btn-follow"
                             , "eye-open"
                             , "Follow"
                             )
@@ -94,8 +94,75 @@ followView currentUser relationship account =
             , br [] []
             , text <| "@" ++ account.acct
             ]
+        , muteButton currentUser relationship account
         , followButton currentUser relationship account
         ]
+
+
+muteButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
+muteButton currentUser relationship account =
+    if Mastodon.Helper.sameAccount account currentUser then
+        text ""
+    else
+        let
+            ( muteEvent, btnClasses, iconName, tooltip ) =
+                case relationship of
+                    Nothing ->
+                        ( NoOp
+                        , "btn btn-default btn-mute btn-disabled"
+                        , "question-sign"
+                        , "Unknown relationship"
+                        )
+
+                    Just relationship ->
+                        if relationship.muting then
+                            ( Unmute account
+                            , "btn btn-default btn-mute btn-primary"
+                            , "volume-up"
+                            , "Unmute"
+                            )
+                        else
+                            ( Mute account
+                            , "btn btn-default btn-mute"
+                            , "volume-off"
+                            , "Mute"
+                            )
+        in
+            button [ class btnClasses, title tooltip, onClick muteEvent ]
+                [ Common.icon iconName ]
+
+
+blockButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
+blockButton currentUser relationship account =
+    if Mastodon.Helper.sameAccount account currentUser then
+        text ""
+    else
+        let
+            ( blockEvent, btnClasses, iconName, tooltip ) =
+                case relationship of
+                    Nothing ->
+                        ( NoOp
+                        , "btn btn-default btn-block btn-disabled"
+                        , "question-sign"
+                        , "Unknown relationship"
+                        )
+
+                    Just relationship ->
+                        if relationship.blocking then
+                            ( Unblock account
+                            , "btn btn-default btn-block btn-primary"
+                            , "ok-circle"
+                            , "Unblock"
+                            )
+                        else
+                            ( Block account
+                            , "btn btn-default btn-block"
+                            , "ban-circle"
+                            , "Block"
+                            )
+        in
+            button [ class btnClasses, title tooltip, onClick blockEvent ]
+                [ Common.icon iconName ]
 
 
 accountFollowView :
@@ -157,16 +224,30 @@ accountView currentUser account relationship panelContent =
                         ]
                         [ div [ class "opacity-layer" ]
                             [ followButton currentUser relationship account
+                            , muteButton currentUser relationship account
+                            , blockButton currentUser relationship account
                             , Common.accountAvatarLink True account
                             , span [ class "account-display-name" ] [ text account.display_name ]
                             , span [ class "account-username" ]
                                 [ Common.accountLink True account
                                 , case relationship of
                                     Just relationship ->
-                                        if relationship.followed_by then
-                                            span [ class "badge followed-by" ] [ text "Follows you" ]
-                                        else
-                                            text ""
+                                        span []
+                                            [ if relationship.followed_by then
+                                                span [ class "badge followed-by" ] [ text "Follows you" ]
+                                              else
+                                                text ""
+                                            , text " "
+                                            , if relationship.muting then
+                                                span [ class "badge muting" ] [ text "Muted" ]
+                                              else
+                                                text ""
+                                            , text " "
+                                            , if relationship.blocking then
+                                                span [ class "badge blocking" ] [ text "Blocked" ]
+                                              else
+                                                text ""
+                                            ]
 
                                     Nothing ->
                                         text ""
