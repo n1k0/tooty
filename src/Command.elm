@@ -472,27 +472,27 @@ unfavouriteStatus client statusId =
             Cmd.none
 
 
-follow : Maybe Client -> Int -> Cmd Msg
-follow client id =
+follow : Maybe Client -> Account -> Cmd Msg
+follow client account =
     case client of
         Just client ->
-            HttpBuilder.post (ApiUrl.follow id)
+            HttpBuilder.post (ApiUrl.follow account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << AccountFollowed)
+                |> send (MastodonEvent << (AccountFollowed account))
 
         Nothing ->
             Cmd.none
 
 
-unfollow : Maybe Client -> Int -> Cmd Msg
-unfollow client id =
+unfollow : Maybe Client -> Account -> Cmd Msg
+unfollow client account =
     case client of
         Just client ->
-            HttpBuilder.post (ApiUrl.unfollow id)
+            HttpBuilder.post (ApiUrl.unfollow account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << AccountUnfollowed)
+                |> send (MastodonEvent << (AccountUnfollowed account))
 
         Nothing ->
             Cmd.none

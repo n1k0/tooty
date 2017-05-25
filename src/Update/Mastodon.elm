@@ -47,7 +47,7 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
-        AccountFollowed result ->
+        AccountFollowed _ result ->
             case result of
                 Ok { decoded } ->
                     processFollowEvent decoded True model ! []
@@ -55,10 +55,10 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
-        AccountUnfollowed result ->
+        AccountUnfollowed account result ->
             case result of
                 Ok { decoded } ->
-                    processFollowEvent decoded False model ! []
+                    processUnfollowEvent account decoded model ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -328,3 +328,19 @@ processFollowEvent relationship flag model =
             | accountRelationships = accountRelationships
             , accountRelationship = accountRelationship
         }
+
+
+processUnfollowEvent : Account -> Relationship -> Model -> Model
+processUnfollowEvent account relationship model =
+    let
+        newModel =
+            processFollowEvent relationship False model
+    in
+        case model.currentUser of
+            Just currentUser ->
+                { newModel
+                    | homeTimeline = Update.Timeline.cleanUnfollow account currentUser model.homeTimeline
+                }
+
+            Nothing ->
+                newModel

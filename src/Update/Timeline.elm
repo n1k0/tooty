@@ -1,6 +1,7 @@
 module Update.Timeline
     exposing
-        ( deleteStatusFromAllTimelines
+        ( cleanUnfollow
+        , deleteStatusFromAllTimelines
         , deleteStatus
         , empty
         , markAsLoading
@@ -15,6 +16,30 @@ import Mastodon.Helper
 import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
+
+
+type alias CurrentUser =
+    Account
+
+
+{-| Remove statuses from a given account when they're not a direct mention to
+the current user. This is typically used after an account has been unfollowed.
+-}
+cleanUnfollow : Account -> CurrentUser -> Timeline Status -> Timeline Status
+cleanUnfollow account currentUser timeline =
+    let
+        keep status =
+            if Mastodon.Helper.sameAccount account status.account then
+                case List.head status.mentions of
+                    Just mention ->
+                        mention.id == currentUser.id && mention.acct == currentUser.acct
+
+                    Nothing ->
+                        False
+            else
+                True
+    in
+        { timeline | entries = List.filter keep timeline.entries }
 
 
 deleteStatusFromCurrentView : Int -> Model -> CurrentView

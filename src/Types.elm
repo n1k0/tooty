@@ -42,14 +42,14 @@ type alias MastodonResult a =
 
 type MastodonMsg
     = AccessToken (MastodonResult AccessTokenResult)
-    | AccountFollowed (MastodonResult Relationship)
+    | AccountFollowed Account (MastodonResult Relationship)
     | AccountFollowers Bool (MastodonResult (List Account))
     | AccountFollowing Bool (MastodonResult (List Account))
     | AccountReceived (MastodonResult Account)
     | AccountRelationship (MastodonResult (List Relationship))
     | AccountRelationships (MastodonResult (List Relationship))
     | AccountTimeline Bool (MastodonResult (List Status))
-    | AccountUnfollowed (MastodonResult Relationship)
+    | AccountUnfollowed Account (MastodonResult Relationship)
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
     | ContextLoaded Status (MastodonResult Context)
@@ -85,7 +85,7 @@ type Msg
     | DeleteStatus Int
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
-    | FollowAccount Int
+    | FollowAccount Account
     | LoadAccount Int
     | LogoutClient Client
     | TimelineLoadNext String String
@@ -101,7 +101,7 @@ type Msg
     | SubmitDraft
     | SwitchClient Client
     | Tick Time
-    | UnfollowAccount Int
+    | UnfollowAccount Account
     | UrlChange Navigation.Location
     | UnreblogStatus Status
     | ViewAccountFollowing Account

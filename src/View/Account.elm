@@ -58,13 +58,13 @@ followButton currentUser relationship account =
 
                     Just relationship ->
                         if relationship.following then
-                            ( UnfollowAccount account.id
+                            ( UnfollowAccount account
                             , "btn btn-default btn-primary"
                             , "eye-close"
                             , "Unfollow"
                             )
                         else
-                            ( FollowAccount account.id
+                            ( FollowAccount account
                             , "btn btn-default"
                             , "eye-open"
                             , "Follow"

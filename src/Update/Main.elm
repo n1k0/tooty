@@ -135,11 +135,11 @@ update msg model =
         CloseThread ->
             { model | currentView = LocalTimelineView } ! []
 
-        FollowAccount id ->
-            model ! [ Command.follow (List.head model.clients) id ]
+        FollowAccount account ->
+            model ! [ Command.follow (List.head model.clients) account ]
 
-        UnfollowAccount id ->
-            model ! [ Command.unfollow (List.head model.clients) id ]
+        UnfollowAccount account ->
+            model ! [ Command.unfollow (List.head model.clients) account ]
 
         DeleteStatus id ->
             model ! [ Command.deleteStatus (List.head model.clients) id ]
