@@ -9,7 +9,7 @@ import Fixtures
 all : Test
 all =
     describe "Update.Timeline tests"
-        [ describe "removeAccountStatuses"
+        [ describe "cleanUnfollow"
             [ test "Remove account statuses" <|
                 \() ->
                     let
@@ -27,7 +27,7 @@ all =
                             }
                     in
                         timeline
-                            |> Update.Timeline.removeAccountStatuses Fixtures.accountNico Fixtures.accountVjousse
+                            |> Update.Timeline.cleanUnfollow Fixtures.accountNico Fixtures.accountVjousse
                             |> .entries
                             |> Expect.equal
                                 [ Fixtures.statusNicoToVjousse
