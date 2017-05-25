@@ -62,7 +62,7 @@ body {
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 45px);
+  max-height: calc(100vh - 44px);
   overflow: hidden;
   overflow-y: scroll;
 }
@@ -80,10 +80,12 @@ body {
   padding: 100px 20px;
 }
 
+#blocks-timeline,
 #favorite-timeline,
+#global-timeline,
 #local-timeline,
-#global-timeline {
-  max-height: calc(100vh - 80px);
+#mutes-timeline {
+  max-height: calc(100vh - 81px);
 }
 
 
@@ -92,7 +94,7 @@ li.load-more {
 }
 
 .notifications-panel .timeline {
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 81px);
 }
 
 .panel a {

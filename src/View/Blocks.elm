@@ -72,12 +72,12 @@ blocksView model =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "blocks" "ban-circle" "Blocked accounts" (SetView LocalTimelineView)
+                [ Common.closeablePanelheading "blocks-timeline" "ban-circle" "Blocked accounts" (SetView LocalTimelineView)
                 , contextualTimelineMenu model.currentView
                 , if List.length model.blocks.entries == 0 then
                     p [ class "empty-timeline-text" ] [ text "Nobody's muted here." ]
                   else
-                    Keyed.ul [ class "list-group timeline" ] <|
+                    Keyed.ul [ id "blocks-timeline", class "list-group timeline" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.blocks ) ])
                 ]
             ]

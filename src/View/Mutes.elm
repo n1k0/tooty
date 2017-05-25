@@ -72,12 +72,12 @@ mutesView model =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "mutes" "volume-off" "Muted accounts" (SetView LocalTimelineView)
+                [ Common.closeablePanelheading "mutes-timeline" "volume-off" "Muted accounts" (SetView LocalTimelineView)
                 , contextualTimelineMenu model.currentView
                 , if (not model.mutes.loading && List.length model.mutes.entries == 0) then
                     p [ class "empty-timeline-text" ] [ text "Nobody's blocked here." ]
                   else
-                    Keyed.ul [ class "list-group timeline" ] <|
+                    Keyed.ul [ id "mutes-timeline", class "list-group timeline" ] <|
                         (entries ++ [ ( "load-more", Common.loadMoreBtn model.mutes ) ])
                 ]
             ]
