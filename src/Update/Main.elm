@@ -60,8 +60,25 @@ update msg model =
                     { model | currentView = view, server = "" } ! []
 
                 FavoriteTimelineView ->
-                    { model | currentView = view }
+                    { model
+                        | currentView = view
+                        , favoriteTimeline = Update.Timeline.setLoading True model.favoriteTimeline
+                    }
                         ! [ Command.loadFavoriteTimeline (List.head model.clients) Nothing ]
+
+                BlocksView ->
+                    { model
+                        | currentView = view
+                        , blocks = Update.Timeline.setLoading True model.blocks
+                    }
+                        ! [ Command.loadBlocks (List.head model.clients) Nothing ]
+
+                MutesView ->
+                    { model
+                        | currentView = view
+                        , mutes = Update.Timeline.setLoading True model.mutes
+                    }
+                        ! [ Command.loadMutes (List.head model.clients) Nothing ]
 
                 _ ->
                     { model | currentView = view } ! []
@@ -140,6 +157,18 @@ update msg model =
 
         UnfollowAccount account ->
             model ! [ Command.unfollow (List.head model.clients) account ]
+
+        Mute account ->
+            model ! [ Command.mute (List.head model.clients) account ]
+
+        Unmute account ->
+            model ! [ Command.unmute (List.head model.clients) account ]
+
+        Block account ->
+            model ! [ Command.block (List.head model.clients) account ]
+
+        Unblock account ->
+            model ! [ Command.unblock (List.head model.clients) account ]
 
         DeleteStatus id ->
             model ! [ Command.deleteStatus (List.head model.clients) id ]
@@ -220,9 +249,6 @@ update msg model =
                 , accountFollowers = Update.Timeline.empty "account-followers"
             }
                 ! []
-
-        CloseAccountSelector ->
-            { model | currentView = LocalTimelineView } ! []
 
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []

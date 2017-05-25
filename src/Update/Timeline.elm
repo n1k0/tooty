@@ -3,11 +3,16 @@ module Update.Timeline
         ( cleanUnfollow
         , deleteStatusFromAllTimelines
         , deleteStatus
+        , dropAccountStatuses
+        , dropNotificationsFromAccount
         , empty
         , markAsLoading
         , prepend
         , processReblog
         , processFavourite
+        , removeBlock
+        , removeMute
+        , setLoading
         , update
         , updateWithBoolFlag
         )
@@ -99,6 +104,29 @@ deleteStatus statusId ({ entries } as timeline) =
     { timeline
         | entries = List.filter (not << Mastodon.Helper.statusReferenced statusId) entries
     }
+
+
+dropAccountStatuses : Account -> Timeline Status -> Timeline Status
+dropAccountStatuses account timeline =
+    let
+        keep status =
+            not <| Mastodon.Helper.sameAccount account status.account
+    in
+        { timeline | entries = List.filter keep timeline.entries }
+
+
+dropNotificationsFromAccount : Account -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+dropNotificationsFromAccount account timeline =
+    let
+        keepNotification notification =
+            case notification.status of
+                Just status ->
+                    status.account /= account
+
+                Nothing ->
+                    True
+    in
+        { timeline | entries = List.filter keepNotification timeline.entries }
 
 
 empty : String -> Timeline a
@@ -195,6 +223,29 @@ processReblog status added model =
             }
         )
         model
+
+
+removeBlock : Account -> Timeline Account -> Timeline Account
+removeBlock account timeline =
+    let
+        keep blockedAccount =
+            not <| Mastodon.Helper.sameAccount account blockedAccount
+    in
+        { timeline | entries = List.filter keep timeline.entries }
+
+
+removeMute : Account -> Timeline Account -> Timeline Account
+removeMute account timeline =
+    let
+        keep mutedAccount =
+            not <| Mastodon.Helper.sameAccount account mutedAccount
+    in
+        { timeline | entries = List.filter keep timeline.entries }
+
+
+setLoading : Bool -> Timeline a -> Timeline a
+setLoading flag timeline =
+    { timeline | loading = flag }
 
 
 update : Bool -> List a -> Links -> Timeline a -> Timeline a

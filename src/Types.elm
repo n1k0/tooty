@@ -45,13 +45,18 @@ type MastodonMsg
     | AccountFollowed Account (MastodonResult Relationship)
     | AccountFollowers Bool (MastodonResult (List Account))
     | AccountFollowing Bool (MastodonResult (List Account))
+    | AccountBlocked Account (MastodonResult Relationship)
+    | AccountMuted Account (MastodonResult Relationship)
     | AccountReceived (MastodonResult Account)
     | AccountRelationship (MastodonResult (List Relationship))
     | AccountRelationships (MastodonResult (List Relationship))
     | AccountTimeline Bool (MastodonResult (List Status))
     | AccountUnfollowed Account (MastodonResult Relationship)
+    | AccountUnblocked Account (MastodonResult Relationship)
+    | AccountUnmuted Account (MastodonResult Relationship)
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
+    | Blocks Bool (MastodonResult (List Account))
     | ContextLoaded Status (MastodonResult Context)
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
@@ -60,6 +65,7 @@ type MastodonMsg
     | GlobalTimeline Bool (MastodonResult (List Status))
     | HomeTimeline Bool (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
+    | Mutes Bool (MastodonResult (List Account))
     | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
@@ -76,9 +82,9 @@ type WebSocketMsg
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
+    | Block Account
     | ClearError Int
     | CloseAccount
-    | CloseAccountSelector
     | CloseThread
     | ConfirmCancelled Msg
     | Confirmed Msg
@@ -90,6 +96,7 @@ type Msg
     | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
+    | Mute Account
     | NoOp
     | OpenThread Status
     | ReblogStatus Status
@@ -102,8 +109,10 @@ type Msg
     | SwitchClient Client
     | Tick Time
     | UnfollowAccount Account
-    | UrlChange Navigation.Location
+    | Unblock Account
+    | Unmute Account
     | UnreblogStatus Status
+    | UrlChange Navigation.Location
     | ViewAccountFollowing Account
     | ViewAccountFollowers Account
     | ViewAccountStatuses Account
@@ -124,9 +133,11 @@ type CurrentView
     | AccountFollowingView Account (Timeline Account)
     | AccountView Account
     | AccountSelectorView
+    | BlocksView
     | FavoriteTimelineView
     | GlobalTimelineView
     | LocalTimelineView
+    | MutesView
     | ThreadView Thread
 
 
@@ -200,6 +211,8 @@ type alias Model =
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status
     , favoriteTimeline : Timeline Status
+    , mutes : Timeline Account
+    , blocks : Timeline Account
     , accountTimeline : Timeline Status
     , accountFollowers : Timeline Account
     , accountFollowing : Timeline Account

@@ -15,6 +15,8 @@ module Command
         , loadGlobalTimeline
         , loadAccountTimeline
         , loadFavoriteTimeline
+        , loadMutes
+        , loadBlocks
         , loadNextTimeline
         , loadRelationships
         , loadThread
@@ -28,6 +30,10 @@ module Command
         , unfavouriteStatus
         , follow
         , unfollow
+        , mute
+        , unmute
+        , block
+        , unblock
         , uploadMedia
         , focusId
         , scrollColumnToTop
@@ -332,6 +338,34 @@ loadFavoriteTimeline client url =
             Cmd.none
 
 
+loadMutes : Maybe Client -> Maybe String -> Cmd Msg
+loadMutes client url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault ApiUrl.mutes url)
+                |> withClient client
+                |> withBodyDecoder (Decode.list accountDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
+                |> send (MastodonEvent << Mutes (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
+loadBlocks : Maybe Client -> Maybe String -> Cmd Msg
+loadBlocks client url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault ApiUrl.blocks url)
+                |> withClient client
+                |> withBodyDecoder (Decode.list accountDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
+                |> send (MastodonEvent << Blocks (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
 loadTimelines : Maybe Client -> Cmd Msg
 loadTimelines client =
     Cmd.batch
@@ -493,6 +527,58 @@ unfollow client account =
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << (AccountUnfollowed account))
+
+        Nothing ->
+            Cmd.none
+
+
+mute : Maybe Client -> Account -> Cmd Msg
+mute client account =
+    case client of
+        Just client ->
+            HttpBuilder.post (ApiUrl.mute account.id)
+                |> withClient client
+                |> withBodyDecoder relationshipDecoder
+                |> send (MastodonEvent << (AccountMuted account))
+
+        Nothing ->
+            Cmd.none
+
+
+unmute : Maybe Client -> Account -> Cmd Msg
+unmute client account =
+    case client of
+        Just client ->
+            HttpBuilder.post (ApiUrl.unmute account.id)
+                |> withClient client
+                |> withBodyDecoder relationshipDecoder
+                |> send (MastodonEvent << (AccountUnmuted account))
+
+        Nothing ->
+            Cmd.none
+
+
+block : Maybe Client -> Account -> Cmd Msg
+block client account =
+    case client of
+        Just client ->
+            HttpBuilder.post (ApiUrl.block account.id)
+                |> withClient client
+                |> withBodyDecoder relationshipDecoder
+                |> send (MastodonEvent << (AccountBlocked account))
+
+        Nothing ->
+            Cmd.none
+
+
+unblock : Maybe Client -> Account -> Cmd Msg
+unblock client account =
+    case client of
+        Just client ->
+            HttpBuilder.post (ApiUrl.unblock account.id)
+                |> withClient client
+                |> withBodyDecoder relationshipDecoder
+                |> send (MastodonEvent << (AccountUnblocked account))
 
         Nothing ->
             Cmd.none

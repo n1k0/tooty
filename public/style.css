@@ -62,19 +62,30 @@ body {
 .timeline {
   overflow-y: auto;
   overflow-x: hidden;
-  max-height: calc(100vh - 45px);
+  max-height: calc(100vh - 44px);
   overflow: hidden;
   overflow-y: scroll;
 }
 
-.timeline > .list-group-item {
+.timeline .list-group-item {
   padding: 8px 12px;
 }
 
+.empty-timeline-text {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 35px;
+  opacity: .5;
+  padding: 100px 20px;
+}
+
+#blocks-timeline,
 #favorite-timeline,
+#global-timeline,
 #local-timeline,
-#global-timeline {
-  max-height: calc(100vh - 80px);
+#mutes-timeline {
+  max-height: calc(100vh - 81px);
 }
 
 
@@ -83,7 +94,7 @@ li.load-more {
 }
 
 .notifications-panel .timeline {
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 81px);
 }
 
 .panel a {
@@ -223,8 +234,9 @@ span.applink {
   order: 0;
   flex: 0 1 auto;
   align-self: auto;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
+  margin-left: 2px;
 }
 
 .acct {
@@ -618,7 +630,7 @@ input.form-control[type=file] {
   text-align: center;
 }
 
-.account-detail .opacity-layer{
+.account-detail .opacity-layer {
   background: rgba(49,53,67,0.9);
 }
 
@@ -631,11 +643,19 @@ input.form-control[type=file] {
 
 .account-detail .btn {
   position: absolute;
-  top: 1em;
-  left: 1em;
-  width: 50px;
-  height: 50px;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
   opacity: .8;
+}
+
+.account-detail .btn-mute {
+  top: 54px;
+}
+
+.account-detail .btn-block {
+  top: 98px;
 }
 
 .account-detail .account-display-name {

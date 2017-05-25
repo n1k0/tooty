@@ -50,7 +50,7 @@ update msg model =
         AccountFollowed _ result ->
             case result of
                 Ok { decoded } ->
-                    processFollowEvent decoded True model ! []
+                    processFollowEvent decoded model ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -59,6 +59,38 @@ update msg model =
             case result of
                 Ok { decoded } ->
                     processUnfollowEvent account decoded model ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        AccountMuted account result ->
+            case result of
+                Ok { decoded } ->
+                    processMuteEvent account decoded model ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        AccountUnmuted account result ->
+            case result of
+                Ok { decoded } ->
+                    processMuteEvent account decoded model ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        AccountBlocked account result ->
+            case result of
+                Ok { decoded } ->
+                    processBlockEvent account decoded model ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        AccountUnblocked account result ->
+            case result of
+                Ok { decoded } ->
+                    processBlockEvent account decoded model ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -153,6 +185,22 @@ update msg model =
             case result of
                 Ok { decoded, links } ->
                     { model | favoriteTimeline = Update.Timeline.update append decoded links model.favoriteTimeline } ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        Mutes append result ->
+            case result of
+                Ok { decoded, links } ->
+                    { model | mutes = Update.Timeline.update append decoded links model.mutes } ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        Blocks append result ->
+            case result of
+                Ok { decoded, links } ->
+                    { model | blocks = Update.Timeline.update append decoded links model.blocks } ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -301,12 +349,12 @@ update msg model =
 {-| Update viewed account relationships as well as the relationship with the
 current connected user, both according to the "following" status provided.
 -}
-processFollowEvent : Relationship -> Bool -> Model -> Model
-processFollowEvent relationship flag model =
+processFollowEvent : Relationship -> Model -> Model
+processFollowEvent relationship model =
     let
         updateRelationship r =
             if r.id == relationship.id then
-                { r | following = flag }
+                { r | following = relationship.following }
             else
                 r
 
@@ -317,7 +365,7 @@ processFollowEvent relationship flag model =
             case model.accountRelationship of
                 Just accountRelationship ->
                     if accountRelationship.id == relationship.id then
-                        Just { relationship | following = flag }
+                        Just { relationship | following = relationship.following }
                     else
                         model.accountRelationship
 
@@ -334,7 +382,7 @@ processUnfollowEvent : Account -> Relationship -> Model -> Model
 processUnfollowEvent account relationship model =
     let
         newModel =
-            processFollowEvent relationship False model
+            processFollowEvent relationship model
     in
         case model.currentUser of
             Just currentUser ->
@@ -344,3 +392,76 @@ processUnfollowEvent account relationship model =
 
             Nothing ->
                 newModel
+
+
+{-| Update viewed account relationships as well as the relationship with the
+current connected user, both according to the "muting" status provided.
+-}
+processMuteEvent : Account -> Relationship -> Model -> Model
+processMuteEvent account relationship model =
+    let
+        updateRelationship r =
+            if r.id == relationship.id then
+                { r | muting = relationship.muting }
+            else
+                r
+
+        accountRelationships =
+            model.accountRelationships |> List.map updateRelationship
+
+        accountRelationship =
+            case model.accountRelationship of
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
+                        Just { relationship | muting = relationship.muting }
+                    else
+                        model.accountRelationship
+
+                Nothing ->
+                    Nothing
+    in
+        { model
+            | accountRelationships = accountRelationships
+            , accountRelationship = accountRelationship
+            , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
+            , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
+            , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
+            , mutes = Update.Timeline.removeMute account model.mutes
+        }
+
+
+{-| Update viewed account relationships as well as the relationship with the
+current connected user, both according to the "blocking" status provided.
+-}
+processBlockEvent : Account -> Relationship -> Model -> Model
+processBlockEvent account relationship model =
+    let
+        updateRelationship r =
+            if r.id == relationship.id then
+                { r | blocking = relationship.blocking }
+            else
+                r
+
+        accountRelationships =
+            model.accountRelationships |> List.map updateRelationship
+
+        accountRelationship =
+            case model.accountRelationship of
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
+                        Just { relationship | blocking = relationship.blocking }
+                    else
+                        model.accountRelationship
+
+                Nothing ->
+                    Nothing
+    in
+        { model
+            | accountRelationships = accountRelationships
+            , accountRelationship = accountRelationship
+            , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
+            , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
+            , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
+            , blocks = Update.Timeline.removeBlock account model.blocks
+            , notifications = Update.Timeline.dropNotificationsFromAccount account model.notifications
+        }
