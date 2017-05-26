@@ -2,7 +2,7 @@
 
 An experimental multi-account [Mastodon Web client](https://n1k0.github.io/tooty/) written in Elm.
 
-![](http://i.imgur.com/icZtOh6.png)
+![](http://i.imgur.com/xxu6idX.png)
 
 Tooty is a fully static Web application running in recent browsers, you don't need any custom server setup to use it. Just serve it and you're done, or use the [public version hosted on Github Pages](https://n1k0.github.io/tooty/).
 
