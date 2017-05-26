@@ -63,6 +63,7 @@ type MastodonMsg
     | FavoriteRemoved (MastodonResult Status)
     | FavoriteTimeline Bool (MastodonResult (List Status))
     | GlobalTimeline Bool (MastodonResult (List Status))
+    | HashtagTimeline Bool (MastodonResult (List Status))
     | HomeTimeline Bool (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
     | Mutes Bool (MastodonResult (List Account))
@@ -136,6 +137,7 @@ type CurrentView
     | BlocksView
     | FavoriteTimelineView
     | GlobalTimelineView
+    | HashtagView String
     | LocalTimelineView
     | MutesView
     | ThreadView Thread
@@ -211,6 +213,7 @@ type alias Model =
     , localTimeline : Timeline Status
     , globalTimeline : Timeline Status
     , favoriteTimeline : Timeline Status
+    , hashtagTimeline : Timeline Status
     , mutes : Timeline Account
     , blocks : Timeline Account
     , accountTimeline : Timeline Status

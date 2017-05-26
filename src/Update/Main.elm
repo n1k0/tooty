@@ -80,6 +80,13 @@ update msg model =
                     }
                         ! [ Command.loadMutes (List.head model.clients) Nothing ]
 
+                HashtagView hashtag ->
+                    { model
+                        | currentView = view
+                        , hashtagTimeline = Update.Timeline.setLoading True model.hashtagTimeline
+                    }
+                        ! [ Command.loadHashtagTimeline (List.head model.clients) hashtag Nothing ]
+
                 _ ->
                     { model | currentView = view } ! []
 

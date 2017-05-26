@@ -1,17 +1,15 @@
 module View.Formatter exposing (formatContent)
 
+import Dict
 import Elmoji
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import HtmlParser
-import String.Extra exposing (replace)
+import Http
 import Mastodon.Model exposing (..)
+import String.Extra exposing (replace, rightOf)
 import Types exposing (..)
 import View.Events exposing (..)
-
-
--- Custom Events
--- Views
 
 
 formatContent : String -> List Mention -> List (Html Msg)
@@ -42,11 +40,20 @@ createLinkNode attrs children mentions =
                 (toVirtualDom mentions children)
 
         Nothing ->
-            Html.node "a"
-                ((List.map toAttribute attrs)
-                    ++ [ onClickWithStop NoOp, target "_blank" ]
-                )
-                (toVirtualDom mentions children)
+            case getHashtagForLink attrs of
+                Just hashtag ->
+                    Html.node "a"
+                        ((List.map toAttribute attrs)
+                            ++ [ onClickWithPreventAndStop (SetView (HashtagView hashtag)) ]
+                        )
+                        (toVirtualDom mentions children)
+
+                Nothing ->
+                    Html.node "a"
+                        ((List.map toAttribute attrs)
+                            ++ [ onClickWithStop NoOp, target "_blank" ]
+                        )
+                        (toVirtualDom mentions children)
 
 
 getHrefLink : List ( String, String ) -> Maybe String
@@ -55,6 +62,24 @@ getHrefLink attrs =
         |> List.filter (\( name, _ ) -> name == "href")
         |> List.map (\( _, value ) -> value)
         |> List.head
+
+
+getHashtagForLink : List ( String, String ) -> Maybe String
+getHashtagForLink attrs =
+    let
+        hashtag =
+            attrs
+                |> Dict.fromList
+                |> Dict.get "href"
+                |> Maybe.withDefault ""
+                |> rightOf "/tags/"
+                |> Http.decodeUri
+                |> Maybe.withDefault ""
+    in
+        if hashtag /= "" then
+            Just hashtag
+        else
+            Nothing
 
 
 getMentionForLink : List ( String, String ) -> List Mention -> Maybe Mention

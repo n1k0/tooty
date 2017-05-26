@@ -15,6 +15,7 @@ module Command
         , loadGlobalTimeline
         , loadAccountTimeline
         , loadFavoriteTimeline
+        , loadHashtagTimeline
         , loadMutes
         , loadBlocks
         , loadNextTimeline
@@ -338,6 +339,20 @@ loadFavoriteTimeline client url =
             Cmd.none
 
 
+loadHashtagTimeline : Maybe Client -> String -> Maybe String -> Cmd Msg
+loadHashtagTimeline client hashtag url =
+    case client of
+        Just client ->
+            HttpBuilder.get (Maybe.withDefault (ApiUrl.hashtag hashtag) url)
+                |> withClient client
+                |> withBodyDecoder (Decode.list statusDecoder)
+                |> withQueryParams [ ( "limit", "60" ) ]
+                |> send (MastodonEvent << HashtagTimeline (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
 loadMutes : Maybe Client -> Maybe String -> Cmd Msg
 loadMutes client url =
     case client of
@@ -393,6 +408,14 @@ loadNextTimeline client currentView id next =
 
         "favorite-timeline" ->
             loadFavoriteTimeline client (Just next)
+
+        "hashtag-timeline" ->
+            case currentView of
+                HashtagView hashtag ->
+                    loadHashtagTimeline client hashtag (Just next)
+
+                _ ->
+                    Cmd.none
 
         "account-timeline" ->
             case currentView of
