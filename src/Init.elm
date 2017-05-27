@@ -18,6 +18,7 @@ init { registration, clients } location =
     , localTimeline = Update.Timeline.empty "local-timeline"
     , globalTimeline = Update.Timeline.empty "global-timeline"
     , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
+    , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
     , mutes = Update.Timeline.empty "mutes-timeline"
     , blocks = Update.Timeline.empty "blocks-timeline"
     , accountTimeline = Update.Timeline.empty "account-timeline"

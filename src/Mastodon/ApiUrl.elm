@@ -12,6 +12,7 @@ module Mastodon.ApiUrl
         , homeTimeline
         , publicTimeline
         , favouriteTimeline
+        , hashtag
         , mutes
         , blocks
         , notifications
@@ -137,6 +138,11 @@ accountTimeline id =
 favouriteTimeline : String
 favouriteTimeline =
     apiPrefix ++ "/favourites"
+
+
+hashtag : String -> String
+hashtag tag =
+    apiPrefix ++ "/timelines/tag/" ++ tag
 
 
 mutes : String

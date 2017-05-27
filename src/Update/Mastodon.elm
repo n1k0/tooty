@@ -153,6 +153,14 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
+        HashtagTimeline append result ->
+            case result of
+                Ok { decoded, links } ->
+                    { model | hashtagTimeline = Update.Timeline.update append decoded links model.hashtagTimeline } ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
         LocalTimeline append result ->
             case result of
                 Ok { decoded, links } ->

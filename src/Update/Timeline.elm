@@ -160,6 +160,9 @@ markAsLoading loading id model =
             "favorite-timeline" ->
                 { model | favoriteTimeline = mark model.favoriteTimeline }
 
+            "hashtag-timeline" ->
+                { model | hashtagTimeline = mark model.hashtagTimeline }
+
             "account-timeline" ->
                 case model.currentView of
                     AccountView account ->

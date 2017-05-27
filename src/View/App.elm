@@ -12,6 +12,10 @@ import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
+
+
+-- import View.HashTag exposing (hashtagView)
+
 import View.Mutes exposing (mutesView)
 import View.Notification exposing (notificationListView)
 import View.Thread exposing (threadView)
@@ -108,6 +112,14 @@ homepageView model =
                             "star"
                             currentUser
                             model.favoriteTimeline
+
+                    HashtagView hashtag ->
+                        contextualTimelineView
+                            (HashtagView hashtag)
+                            ("#" ++ hashtag)
+                            "tags"
+                            currentUser
+                            model.hashtagTimeline
                 ]
 
 
