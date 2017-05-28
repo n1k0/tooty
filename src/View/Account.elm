@@ -81,9 +81,7 @@ followView currentUser relationship account =
         , div [ class "userinfo" ]
             [ strong []
                 [ a
-                    [ href account.url
-                    , onClickWithPreventAndStop <| LoadAccount account.id
-                    ]
+                    [ href <| "#account/" ++ (toString account.id) ]
                     [ text <|
                         if account.display_name /= "" then
                             account.display_name
@@ -216,7 +214,7 @@ accountView currentUser account relationship panelContent =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "account" "user" "Account" CloseAccount
+                [ Common.closeablePanelheading "account" "user" "Account"
                 , div [ id "account", class "timeline" ]
                     [ div
                         [ class "account-detail"

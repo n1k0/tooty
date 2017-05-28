@@ -32,7 +32,7 @@ accountLink external account =
             if external then
                 target "_blank"
             else
-                onClickWithPreventAndStop (LoadAccount account.id)
+                href <| "#account/" ++ (toString account.id)
     in
         a
             [ href account.url
@@ -48,7 +48,7 @@ accountAvatarLink external account =
             if external then
                 target "_blank"
             else
-                onClickWithPreventAndStop (LoadAccount account.id)
+                href <| "#account/" ++ (toString account.id)
 
         avatarClass =
             if external then
@@ -79,8 +79,8 @@ appLink classes app =
                     a [ href website, target "_blank", class classes ] [ text name ]
 
 
-closeablePanelheading : String -> String -> String -> Msg -> Html Msg
-closeablePanelheading context iconName label onClose =
+closeablePanelheading : String -> String -> String -> Html Msg
+closeablePanelheading context iconName label =
     div [ class "panel-heading" ]
         [ div [ class "row" ]
             [ a
@@ -88,7 +88,7 @@ closeablePanelheading context iconName label onClose =
                 [ div [ class "col-xs-9 heading" ] [ icon iconName, text label ] ]
             , div [ class "col-xs-3 text-right" ]
                 [ a
-                    [ href "", onClickWithPreventAndStop onClose ]
+                    [ href "", onClickWithPreventAndStop Back ]
                     [ icon "remove" ]
                 ]
             ]

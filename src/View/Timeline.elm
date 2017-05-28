@@ -3,11 +3,11 @@ module View.Timeline
         ( contextualTimelineView
         , contextualTimelineMenu
         , homeTimelineView
+        , topScrollableColumn
         )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
 import Mastodon.Model exposing (..)
@@ -60,37 +60,37 @@ homeTimelineView currentUser timeline =
         (timelineView currentUser timeline)
 
 
-contextualTimelineMenu : CurrentView -> Html Msg
-contextualTimelineMenu currentView =
+contextualTimelineMenu : String -> Html Msg
+contextualTimelineMenu hash =
     let
-        btnView tooltip iconName view =
-            button
-                [ class <|
+        btnView href_ iconName tooltip =
+            a
+                [ href href_
+                , class <|
                     "btn "
-                        ++ (if currentView == view then
+                        ++ (if hash == href_ then
                                 "btn-primary active"
                             else
                                 "btn-default"
                            )
-                , onClick <| SetView view
-                , Html.Attributes.title tooltip
+                , title tooltip
                 ]
                 [ Common.icon iconName ]
     in
         Common.justifiedButtonGroup "column-menu"
-            [ btnView "Local timeline" "th-large" LocalTimelineView
-            , btnView "Global timeline" "globe" GlobalTimelineView
-            , btnView "Favorites" "star" FavoriteTimelineView
-            , btnView "Blocks" "ban-circle" BlocksView
-            , btnView "Mutes" "volume-off" MutesView
-            , btnView "Accounts" "user" AccountSelectorView
+            [ btnView "#local" "th-large" "Local timeline"
+            , btnView "#global" "globe" "Global timeline"
+            , btnView "#favorites" "star" "Favorites"
+            , btnView "#blocks" "ban-circle" "Blocks"
+            , btnView "#mutes" "volume-off" "Mutes"
+            , btnView "#accounts" "user" "Accounts"
             ]
 
 
-contextualTimelineView : CurrentView -> String -> String -> CurrentUser -> Timeline Status -> Html Msg
-contextualTimelineView currentView title iconName currentUser timeline =
+contextualTimelineView : String -> String -> String -> CurrentUser -> Timeline Status -> Html Msg
+contextualTimelineView hash title iconName currentUser timeline =
     div []
-        [ contextualTimelineMenu currentView
+        [ contextualTimelineMenu hash
         , timelineView currentUser timeline
         ]
         |> Lazy.lazy2 topScrollableColumn ( title, iconName, timeline.id )

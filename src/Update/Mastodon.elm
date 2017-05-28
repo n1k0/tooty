@@ -109,7 +109,10 @@ update msg model =
         ContextLoaded status result ->
             case result of
                 Ok { decoded } ->
-                    { model | currentView = ThreadView (Thread status decoded) }
+                    { model
+                        | threadStatus = Nothing
+                        , currentView = ThreadView (Thread status decoded)
+                    }
                         ! [ Command.scrollToThreadStatus <| toString status.id ]
 
                 Err error ->

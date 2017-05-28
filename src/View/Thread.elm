@@ -38,7 +38,7 @@ threadView currentUser thread =
     in
         div [ class "col-md-3 column" ]
             [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "thread" "list" "Thread" CloseThread
+                [ Common.closeablePanelheading "thread" "list" "Thread"
                 , Keyed.ul [ id "thread", class "list-group timeline" ] <|
                     List.map keyedEntry statuses
                 ]

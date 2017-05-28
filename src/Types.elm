@@ -83,6 +83,7 @@ type WebSocketMsg
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
+    | Back
     | Block Account
     | ClearError Int
     | CloseAccount
@@ -93,11 +94,11 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | LoadAccount Int
     | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
     | Mute Account
+    | Navigate String
     | NoOp
     | OpenThread Status
     | ReblogStatus Status
@@ -105,7 +106,6 @@ type Msg
     | RemoveFavorite Status
     | ScrollColumn ScrollDirection String
     | ServerChange String
-    | SetView CurrentView
     | SubmitDraft
     | SwitchClient Client
     | Tick Time
@@ -230,6 +230,7 @@ type alias Model =
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
     , confirm : Maybe Confirm
+    , threadStatus : Maybe Status
     }
 
 

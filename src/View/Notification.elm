@@ -112,7 +112,7 @@ notificationFollowView currentUser { accounts } =
                 , div [ class "username" ] [ Common.accountLink False account ]
                 , p
                     [ class "status-text"
-                    , onClick <| LoadAccount account.id
+                    , onClick <| Navigate ("#account/" ++ (toString account.id))
                     ]
                   <|
                     formatContent account.note []

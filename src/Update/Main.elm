@@ -3,10 +3,12 @@ module Update.Main exposing (update)
 import Command
 import List.Extra exposing (removeAt)
 import Mastodon.Model exposing (..)
+import Navigation
 import Types exposing (..)
 import Update.Draft
 import Update.Error
 import Update.Mastodon
+import Update.Route
 import Update.Timeline
 import Update.Viewer
 import Update.WebSocket
@@ -35,6 +37,19 @@ update msg model =
         NoOp ->
             model ! []
 
+        UrlChange location ->
+            let
+                newModel =
+                    { model | location = location }
+            in
+                Update.Route.update newModel
+
+        Back ->
+            model ! [ Navigation.back 1 ]
+
+        Navigate href ->
+            model ! [ Navigation.newUrl href ]
+
         Tick newTime ->
             { model
                 | currentTime = newTime
@@ -53,42 +68,6 @@ update msg model =
 
         Confirmed onConfirm ->
             update onConfirm { model | confirm = Nothing }
-
-        SetView view ->
-            case view of
-                AccountSelectorView ->
-                    { model | currentView = view, server = "" } ! []
-
-                FavoriteTimelineView ->
-                    { model
-                        | currentView = view
-                        , favoriteTimeline = Update.Timeline.setLoading True model.favoriteTimeline
-                    }
-                        ! [ Command.loadFavoriteTimeline (List.head model.clients) Nothing ]
-
-                BlocksView ->
-                    { model
-                        | currentView = view
-                        , blocks = Update.Timeline.setLoading True model.blocks
-                    }
-                        ! [ Command.loadBlocks (List.head model.clients) Nothing ]
-
-                MutesView ->
-                    { model
-                        | currentView = view
-                        , mutes = Update.Timeline.setLoading True model.mutes
-                    }
-                        ! [ Command.loadMutes (List.head model.clients) Nothing ]
-
-                HashtagView hashtag ->
-                    { model
-                        | currentView = view
-                        , hashtagTimeline = Update.Timeline.setLoading True model.hashtagTimeline
-                    }
-                        ! [ Command.loadHashtagTimeline (List.head model.clients) hashtag Nothing ]
-
-                _ ->
-                    { model | currentView = view } ! []
 
         SwitchClient client ->
             let
@@ -147,17 +126,17 @@ update msg model =
         ServerChange server ->
             { model | server = server } ! []
 
-        UrlChange location ->
-            model ! []
-
         Register ->
             model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            model ! [ Command.loadThread (List.head model.clients) status ]
+            { model | threadStatus = Just status }
+                ! [ Command.loadThread (List.head model.clients) status
+                  , Navigation.newUrl <| "#thread/" ++ (toString status.id)
+                  ]
 
         CloseThread ->
-            { model | currentView = LocalTimelineView } ! []
+            model ! [ Navigation.back 1 ]
 
         FollowAccount account ->
             model ! [ Command.follow (List.head model.clients) account ]
@@ -216,16 +195,6 @@ update msg model =
                 ! [ Command.postStatus (List.head model.clients) <|
                         toStatusRequestBody model.draft
                   ]
-
-        LoadAccount accountId ->
-            { model
-                | accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountRelationships = []
-                , accountRelationship = Nothing
-            }
-                ! [ Command.loadAccount (List.head model.clients) accountId ]
 
         TimelineLoadNext id next ->
             Update.Timeline.markAsLoading True id model

@@ -91,7 +91,7 @@ homepageView model =
 
                     LocalTimelineView ->
                         contextualTimelineView
-                            LocalTimelineView
+                            model.location.hash
                             "Local timeline"
                             "th-large"
                             currentUser
@@ -99,7 +99,7 @@ homepageView model =
 
                     GlobalTimelineView ->
                         contextualTimelineView
-                            GlobalTimelineView
+                            model.location.hash
                             "Global timeline"
                             "globe"
                             currentUser
@@ -107,7 +107,7 @@ homepageView model =
 
                     FavoriteTimelineView ->
                         contextualTimelineView
-                            FavoriteTimelineView
+                            model.location.hash
                             "Favorites"
                             "star"
                             currentUser
@@ -115,7 +115,7 @@ homepageView model =
 
                     HashtagView hashtag ->
                         contextualTimelineView
-                            (HashtagView hashtag)
+                            model.location.hash
                             ("#" ++ hashtag)
                             "tags"
                             currentUser
