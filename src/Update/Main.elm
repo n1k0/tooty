@@ -131,8 +131,8 @@ update msg model =
 
         OpenThread status ->
             { model | threadStatus = Just status }
-                ! [ Command.loadThread (List.head model.clients) status
-                  , Navigation.newUrl <| "#thread/" ++ (toString status.id)
+                ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id)
+                  , Command.loadThread (List.head model.clients) status
                   ]
 
         CloseThread ->
