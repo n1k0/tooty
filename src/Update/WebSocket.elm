@@ -116,30 +116,38 @@ update msg model =
 
 isThreadMember : Thread -> Status -> Bool
 isThreadMember thread status =
-    case status.in_reply_to_id of
-        Nothing ->
-            False
+    case ( thread.status, thread.context ) of
+        ( Just status, Just context ) ->
+            case status.in_reply_to_id of
+                Nothing ->
+                    False
 
-        Just inReplyToId ->
-            let
-                threadStatusIds =
-                    List.concat
-                        [ [ thread.status.id ]
-                        , List.map .id thread.context.ancestors
-                        , List.map .id thread.context.descendants
-                        ]
-            in
-                List.member inReplyToId threadStatusIds
+                Just inReplyToId ->
+                    let
+                        threadStatusIds =
+                            List.concat
+                                [ [ status.id ]
+                                , List.map .id context.ancestors
+                                , List.map .id context.descendants
+                                ]
+                    in
+                        List.member inReplyToId threadStatusIds
+
+        _ ->
+            False
 
 
 appendToThreadDescendants : Thread -> Status -> Thread
 appendToThreadDescendants ({ context } as thread) status =
-    { thread
-        | context =
-            { context
-                | descendants = List.append thread.context.descendants [ status ]
+    case thread.context of
+        Just context ->
+            { thread
+                | context =
+                    Just { context | descendants = List.append context.descendants [ status ] }
             }
-    }
+
+        _ ->
+            thread
 
 
 updateCurrentViewWithStatus : Status -> Model -> Model

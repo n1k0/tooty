@@ -256,14 +256,20 @@ loadRelationships client ids =
         Cmd.none
 
 
-loadThread : Maybe Client -> Status -> Cmd Msg
-loadThread client status =
+loadThread : Maybe Client -> Int -> Cmd Msg
+loadThread client id =
     case client of
         Just client ->
-            HttpBuilder.get (ApiUrl.context status.id)
-                |> withClient client
-                |> withBodyDecoder contextDecoder
-                |> send (MastodonEvent << (ContextLoaded status))
+            Cmd.batch
+                [ HttpBuilder.get (ApiUrl.status id)
+                    |> withClient client
+                    |> withBodyDecoder statusDecoder
+                    |> send (MastodonEvent << (ThreadStatusLoaded id))
+                , HttpBuilder.get (ApiUrl.context id)
+                    |> withClient client
+                    |> withBodyDecoder contextDecoder
+                    |> send (MastodonEvent << (ThreadContextLoaded id))
+                ]
 
         Nothing ->
             Cmd.none

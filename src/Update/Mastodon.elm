@@ -106,14 +106,40 @@ update msg model =
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
 
-        ContextLoaded status result ->
+        ThreadStatusLoaded id result ->
             case result of
                 Ok { decoded } ->
                     { model
-                        | threadStatus = Nothing
-                        , currentView = ThreadView (Thread status decoded)
+                        | currentView =
+                            case model.currentView of
+                                ThreadView thread ->
+                                    ThreadView { thread | status = Just decoded }
+
+                                _ ->
+                                    model.currentView
                     }
-                        ! [ Command.scrollToThreadStatus <| toString status.id ]
+                        ! [ Command.scrollToThreadStatus <| toString id ]
+
+                Err error ->
+                    { model
+                        | currentView = LocalTimelineView
+                        , errors = addErrorNotification (errorText error) model
+                    }
+                        ! []
+
+        ThreadContextLoaded id result ->
+            case result of
+                Ok { decoded } ->
+                    { model
+                        | currentView =
+                            case model.currentView of
+                                ThreadView thread ->
+                                    ThreadView { thread | context = Just decoded }
+
+                                _ ->
+                                    model.currentView
+                    }
+                        ! [ Command.scrollToThreadStatus <| toString id ]
 
                 Err error ->
                     { model

@@ -52,21 +52,27 @@ deleteStatusFromCurrentView id model =
     -- Note: account timeline is already cleaned in deleteStatusFromAllTimelines
     case model.currentView of
         ThreadView thread ->
-            if thread.status.id == id then
-                -- the current thread status as been deleted, close it
-                LocalTimelineView
-            else
-                let
-                    update statuses =
-                        List.filter (\s -> s.id /= id) statuses
-                in
-                    ThreadView
-                        { thread
-                            | context =
-                                { ancestors = update thread.context.ancestors
-                                , descendants = update thread.context.descendants
+            case ( thread.status, thread.context ) of
+                ( Just status, Just context ) ->
+                    if status.id == id then
+                        -- the current thread status as been deleted, close it
+                        LocalTimelineView
+                    else
+                        let
+                            update statuses =
+                                List.filter (\s -> s.id /= id) statuses
+                        in
+                            ThreadView
+                                { thread
+                                    | context =
+                                        Just <|
+                                            { ancestors = update context.ancestors
+                                            , descendants = update context.descendants
+                                            }
                                 }
-                        }
+
+                _ ->
+                    model.currentView
 
         currentView ->
             currentView
@@ -297,13 +303,19 @@ updateWithBoolFlag statusId flag statusUpdater model =
             , currentView =
                 case model.currentView of
                     ThreadView thread ->
-                        ThreadView
-                            { status = updateStatus thread.status
-                            , context =
-                                { ancestors = List.map updateStatus thread.context.ancestors
-                                , descendants = List.map updateStatus thread.context.descendants
-                                }
-                            }
+                        case ( thread.status, thread.context ) of
+                            ( Just status, Just context ) ->
+                                ThreadView
+                                    { status = Just <| updateStatus status
+                                    , context =
+                                        Just <|
+                                            { ancestors = List.map updateStatus context.ancestors
+                                            , descendants = List.map updateStatus context.descendants
+                                            }
+                                    }
+
+                            _ ->
+                                model.currentView
 
                     currentView ->
                         currentView

@@ -87,5 +87,11 @@ update model =
             }
                 ! [ Command.loadHashtagTimeline (List.head model.clients) hashtag Nothing ]
 
+        Just (ThreadRoute id) ->
+            { model
+                | currentView = ThreadView (Thread Nothing Nothing)
+            }
+                ! [ Command.loadThread (List.head model.clients) id ]
+
         _ ->
             { model | currentView = LocalTimelineView } ! []

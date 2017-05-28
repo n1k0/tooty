@@ -39,7 +39,6 @@ init { registration, clients } location =
                 , currentUser = Nothing
                 , notificationFilter = NotificationAll
                 , confirm = Nothing
-                , threadStatus = Nothing
                 }
     in
         model

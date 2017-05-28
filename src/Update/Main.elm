@@ -130,13 +130,10 @@ update msg model =
             model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            { model | threadStatus = Just status }
-                ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id)
-                  , Command.loadThread (List.head model.clients) status
-                  ]
-
-        CloseThread ->
-            model ! [ Navigation.back 1 ]
+            { model
+                | currentView = ThreadView (Thread Nothing Nothing)
+            }
+                ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id) ]
 
         FollowAccount account ->
             model ! [ Command.follow (List.head model.clients) account ]

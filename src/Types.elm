@@ -57,7 +57,6 @@ type MastodonMsg
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
     | Blocks Bool (MastodonResult (List Account))
-    | ContextLoaded Status (MastodonResult Context)
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
@@ -71,6 +70,8 @@ type MastodonMsg
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
+    | ThreadStatusLoaded Int (MastodonResult Status)
+    | ThreadContextLoaded Int (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
 
 
@@ -87,7 +88,6 @@ type Msg
     | Block Account
     | ClearError Int
     | CloseAccount
-    | CloseThread
     | ConfirmCancelled Msg
     | Confirmed Msg
     | DeleteStatus Int
@@ -179,8 +179,8 @@ type ScrollDirection
 
 
 type alias Thread =
-    { status : Status
-    , context : Context
+    { status : Maybe Status
+    , context : Maybe Context
     }
 
 
@@ -230,7 +230,6 @@ type alias Model =
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
     , confirm : Maybe Confirm
-    , threadStatus : Maybe Status
     }
 
 
