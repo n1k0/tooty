@@ -68,7 +68,7 @@ contextualTimelineMenu hash =
                 [ href href_
                 , class <|
                     "btn "
-                        ++ (if hash == href_ then
+                        ++ (if hash == href_ || (hash == "" && href_ == "#") then
                                 "btn-primary active"
                             else
                                 "btn-default"
@@ -78,7 +78,7 @@ contextualTimelineMenu hash =
                 [ Common.icon iconName ]
     in
         Common.justifiedButtonGroup "column-menu"
-            [ btnView "#local" "th-large" "Local timeline"
+            [ btnView "#" "th-large" "Local timeline"
             , btnView "#global" "globe" "Global timeline"
             , btnView "#favorites" "star" "Favorites"
             , btnView "#blocks" "ban-circle" "Blocks"
