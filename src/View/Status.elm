@@ -159,8 +159,8 @@ statusContentView : String -> Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text", onClickWithStop <| OpenThread status ]
-                [ div [] <| formatContent status.content status.mentions
+            div [ class "status-text" ]
+                [ div [ onClickWithStop <| OpenThread status ] <| formatContent status.content status.mentions
                 , attachmentListView context status
                 ]
 
