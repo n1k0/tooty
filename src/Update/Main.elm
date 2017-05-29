@@ -83,7 +83,7 @@ update msg model =
                     , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
                     , accountInfo = Update.AccountInfo.empty
                     , notifications = Update.Timeline.empty "notifications"
-                    , currentView = LocalTimelineView
+                    , currentView = AccountSelectorView
                 }
                     ! [ Command.loadUserAccount <| Just client
                       , Command.loadTimelines <| Just client

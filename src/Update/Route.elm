@@ -106,9 +106,7 @@ update ({ accountInfo } as model) =
                 ! [ Command.loadHashtagTimeline (List.head model.clients) hashtag Nothing ]
 
         Just (ThreadRoute id) ->
-            { model
-                | currentView = ThreadView (Thread Nothing Nothing)
-            }
+            { model | currentView = ThreadView (Thread Nothing Nothing) }
                 ! [ Command.loadThread (List.head model.clients) id ]
 
         _ ->
