@@ -3,10 +3,13 @@ module Update.Main exposing (update)
 import Command
 import List.Extra exposing (removeAt)
 import Mastodon.Model exposing (..)
+import Navigation
 import Types exposing (..)
+import Update.AccountInfo
 import Update.Draft
 import Update.Error
 import Update.Mastodon
+import Update.Route
 import Update.Timeline
 import Update.Viewer
 import Update.WebSocket
@@ -35,6 +38,19 @@ update msg model =
         NoOp ->
             model ! []
 
+        UrlChange location ->
+            let
+                newModel =
+                    { model | location = location }
+            in
+                Update.Route.update newModel
+
+        Back ->
+            model ! [ Navigation.back 1 ]
+
+        Navigate href ->
+            model ! [ Navigation.newUrl href ]
+
         Tick newTime ->
             { model
                 | currentTime = newTime
@@ -54,42 +70,6 @@ update msg model =
         Confirmed onConfirm ->
             update onConfirm { model | confirm = Nothing }
 
-        SetView view ->
-            case view of
-                AccountSelectorView ->
-                    { model | currentView = view, server = "" } ! []
-
-                FavoriteTimelineView ->
-                    { model
-                        | currentView = view
-                        , favoriteTimeline = Update.Timeline.setLoading True model.favoriteTimeline
-                    }
-                        ! [ Command.loadFavoriteTimeline (List.head model.clients) Nothing ]
-
-                BlocksView ->
-                    { model
-                        | currentView = view
-                        , blocks = Update.Timeline.setLoading True model.blocks
-                    }
-                        ! [ Command.loadBlocks (List.head model.clients) Nothing ]
-
-                MutesView ->
-                    { model
-                        | currentView = view
-                        , mutes = Update.Timeline.setLoading True model.mutes
-                    }
-                        ! [ Command.loadMutes (List.head model.clients) Nothing ]
-
-                HashtagView hashtag ->
-                    { model
-                        | currentView = view
-                        , hashtagTimeline = Update.Timeline.setLoading True model.hashtagTimeline
-                    }
-                        ! [ Command.loadHashtagTimeline (List.head model.clients) hashtag Nothing ]
-
-                _ ->
-                    { model | currentView = view } ! []
-
         SwitchClient client ->
             let
                 newClients =
@@ -101,16 +81,11 @@ update msg model =
                     , localTimeline = Update.Timeline.empty "local-timeline"
                     , globalTimeline = Update.Timeline.empty "global-timeline"
                     , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
-                    , hashtagTimeline = Update.Timeline.empty "hashtag-following"
-                    , accountTimeline = Update.Timeline.empty "account-timeline"
-                    , accountFollowers = Update.Timeline.empty "account-followers"
-                    , accountFollowing = Update.Timeline.empty "account-following"
+                    , accountInfo = Update.AccountInfo.empty
                     , mutes = Update.Timeline.empty "mutes-timeline"
                     , blocks = Update.Timeline.empty "blocks-timeline"
                     , notifications = Update.Timeline.empty "notifications"
-                    , accountRelationships = []
-                    , accountRelationship = Nothing
-                    , currentView = LocalTimelineView
+                    , currentView = AccountSelectorView
                 }
                     ! [ Command.loadUserAccount <| Just client
                       , Command.loadTimelines <| Just client
@@ -150,17 +125,14 @@ update msg model =
         ServerChange server ->
             { model | server = server } ! []
 
-        UrlChange location ->
-            model ! []
-
         Register ->
             model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            model ! [ Command.loadThread (List.head model.clients) status ]
-
-        CloseThread ->
-            { model | currentView = LocalTimelineView } ! []
+            { model
+                | currentView = ThreadView (Thread Nothing Nothing)
+            }
+                ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id) ]
 
         FollowAccount account ->
             model ! [ Command.follow (List.head model.clients) account ]
@@ -220,45 +192,9 @@ update msg model =
                         toStatusRequestBody model.draft
                   ]
 
-        LoadAccount accountId ->
-            { model
-                | accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountRelationships = []
-                , accountRelationship = Nothing
-            }
-                ! [ Command.loadAccount (List.head model.clients) accountId ]
-
         TimelineLoadNext id next ->
             Update.Timeline.markAsLoading True id model
-                ! [ Command.loadNextTimeline (List.head model.clients) model.currentView id next ]
-
-        ViewAccountFollowers account ->
-            { model
-                | currentView = AccountFollowersView account model.accountFollowers
-                , accountRelationships = []
-            }
-                ! [ Command.loadAccountFollowers (List.head model.clients) account.id Nothing ]
-
-        ViewAccountFollowing account ->
-            { model
-                | currentView = AccountFollowingView account model.accountFollowing
-                , accountRelationships = []
-            }
-                ! [ Command.loadAccountFollowing (List.head model.clients) account.id Nothing ]
-
-        ViewAccountStatuses account ->
-            { model | currentView = AccountView account } ! []
-
-        CloseAccount ->
-            { model
-                | currentView = LocalTimelineView
-                , accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-            }
-                ! []
+                ! [ Command.loadNextTimeline model id next ]
 
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []

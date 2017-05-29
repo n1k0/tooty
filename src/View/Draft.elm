@@ -81,8 +81,7 @@ currentUserView currentUser =
                     [ Common.accountLink False currentUser
                     , span []
                         [ text " ("
-                        , a [ href "", onClickWithPreventAndStop <| SetView AccountSelectorView ]
-                            [ text "switch account" ]
+                        , a [ href "#accounts" ] [ text "switch account" ]
                         , text ")"
                         ]
                     ]

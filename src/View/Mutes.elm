@@ -8,8 +8,7 @@ import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Events exposing (..)
-import View.Timeline exposing (contextualTimelineMenu)
+import View.Timeline exposing (contextualTimelineMenu, topScrollableColumn)
 
 
 type alias CurrentUser =
@@ -36,9 +35,7 @@ muteView currentUser account =
                 , div [ class "userinfo" ]
                     [ strong []
                         [ a
-                            [ href account.url
-                            , onClickWithPreventAndStop <| LoadAccount account.id
-                            ]
+                            [ href <| "#account/" ++ (toString account.id) ]
                             [ text <|
                                 if account.display_name /= "" then
                                     account.display_name
@@ -60,24 +57,22 @@ muteView currentUser account =
 
 
 mutesView : Model -> Html Msg
-mutesView model =
+mutesView { currentUser, currentView, mutes, location } =
     let
         keyedEntry account =
             ( toString account.id
-            , muteView model.currentUser account
+            , muteView currentUser account
             )
 
         entries =
-            List.map keyedEntry model.mutes.entries
+            List.map keyedEntry mutes.entries
     in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "mutes-timeline" "volume-off" "Muted accounts" (SetView LocalTimelineView)
-                , contextualTimelineMenu model.currentView
-                , if (not model.mutes.loading && List.length model.mutes.entries == 0) then
-                    p [ class "empty-timeline-text" ] [ text "Nobody's blocked here." ]
+        topScrollableColumn ( "Mutes", "volume-off", mutes.id ) <|
+            div []
+                [ contextualTimelineMenu location.hash
+                , if (not mutes.loading && List.length mutes.entries == 0) then
+                    p [ class "empty-timeline-text" ] [ text "Nobody's muted yet." ]
                   else
                     Keyed.ul [ id "mutes-timeline", class "list-group timeline" ] <|
-                        (entries ++ [ ( "load-more", Common.loadMoreBtn model.mutes ) ])
+                        (entries ++ [ ( "load-more", Common.loadMoreBtn mutes ) ])
                 ]
-            ]

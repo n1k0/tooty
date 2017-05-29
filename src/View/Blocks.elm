@@ -8,8 +8,7 @@ import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Events exposing (..)
-import View.Timeline exposing (contextualTimelineMenu)
+import View.Timeline exposing (contextualTimelineMenu, topScrollableColumn)
 
 
 type alias CurrentUser =
@@ -36,9 +35,7 @@ blockView currentUser account =
                 , div [ class "userinfo" ]
                     [ strong []
                         [ a
-                            [ href account.url
-                            , onClickWithPreventAndStop <| LoadAccount account.id
-                            ]
+                            [ href <| "#account/" ++ (toString account.id) ]
                             [ text <|
                                 if account.display_name /= "" then
                                     account.display_name
@@ -60,24 +57,22 @@ blockView currentUser account =
 
 
 blocksView : Model -> Html Msg
-blocksView model =
+blocksView { currentUser, currentView, blocks, location } =
     let
         keyedEntry account =
             ( toString account.id
-            , blockView model.currentUser account
+            , blockView currentUser account
             )
 
         entries =
-            List.map keyedEntry model.blocks.entries
+            List.map keyedEntry blocks.entries
     in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "blocks-timeline" "ban-circle" "Blocked accounts" (SetView LocalTimelineView)
-                , contextualTimelineMenu model.currentView
-                , if List.length model.blocks.entries == 0 then
-                    p [ class "empty-timeline-text" ] [ text "Nobody's muted here." ]
+        topScrollableColumn ( "Blocks", "ban-circle", blocks.id ) <|
+            div []
+                [ contextualTimelineMenu location.hash
+                , if (not blocks.loading && List.length blocks.entries == 0) then
+                    p [ class "empty-timeline-text" ] [ text "Nobody's blocked yet." ]
                   else
                     Keyed.ul [ id "blocks-timeline", class "list-group timeline" ] <|
-                        (entries ++ [ ( "load-more", Common.loadMoreBtn model.blocks ) ])
+                        (entries ++ [ ( "load-more", Common.loadMoreBtn blocks ) ])
                 ]
-            ]

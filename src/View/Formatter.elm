@@ -29,23 +29,26 @@ toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
 
 
+replaceHref : String -> List ( String, String ) -> List (Attribute Msg)
+replaceHref newHref attrs =
+    attrs
+        |> List.map toAttribute
+        |> List.append [ onClickWithPreventAndStop <| Navigate newHref ]
+
+
 createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mention -> Html Msg
 createLinkNode attrs children mentions =
     case (getMentionForLink attrs mentions) of
         Just mention ->
             Html.node "a"
-                ((List.map toAttribute attrs)
-                    ++ [ onClickWithPreventAndStop (LoadAccount mention.id) ]
-                )
+                (replaceHref ("#account/" ++ (toString mention.id)) attrs)
                 (toVirtualDom mentions children)
 
         Nothing ->
             case getHashtagForLink attrs of
                 Just hashtag ->
                     Html.node "a"
-                        ((List.map toAttribute attrs)
-                            ++ [ onClickWithPreventAndStop (SetView (HashtagView hashtag)) ]
-                        )
+                        (replaceHref ("#hashtag/" ++ hashtag) attrs)
                         (toVirtualDom mentions children)
 
                 Nothing ->

@@ -159,8 +159,8 @@ statusContentView : String -> Status -> Html Msg
 statusContentView context status =
     case status.spoiler_text of
         "" ->
-            div [ class "status-text", onClickWithStop <| OpenThread status ]
-                [ div [] <| formatContent status.content status.mentions
+            div [ class "status-text" ]
+                [ div [ onClickWithStop <| OpenThread status ] <| formatContent status.content status.mentions
                 , attachmentListView context status
                 ]
 
@@ -213,9 +213,7 @@ statusView : String -> Status -> Html Msg
 statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
-            [ href account.url
-            , onClickWithPreventAndStop (LoadAccount account.id)
-            ]
+            [ href <| "#account/" ++ (toString account.id) ]
     in
         case reblog of
             Just (Reblog reblog) ->

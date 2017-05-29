@@ -13,33 +13,43 @@ type alias CurrentUser =
     Account
 
 
+threadStatuses : CurrentUser -> Thread -> Html Msg
+threadStatuses currentUser thread =
+    case ( thread.status, thread.context ) of
+        ( Just threadStatus, Just context ) ->
+            let
+                statuses =
+                    List.concat
+                        [ context.ancestors
+                        , [ threadStatus ]
+                        , context.descendants
+                        ]
+
+                threadEntry status =
+                    statusEntryView "thread"
+                        (if status == threadStatus then
+                            "thread-target"
+                         else
+                            ""
+                        )
+                        currentUser
+                        status
+
+                keyedEntry status =
+                    ( toString status.id, threadEntry status )
+            in
+                Keyed.ul [ id "thread", class "list-group timeline" ] <|
+                    List.map keyedEntry statuses
+
+        _ ->
+            text ""
+
+
 threadView : CurrentUser -> Thread -> Html Msg
 threadView currentUser thread =
-    let
-        statuses =
-            List.concat
-                [ thread.context.ancestors
-                , [ thread.status ]
-                , thread.context.descendants
-                ]
-
-        threadEntry status =
-            statusEntryView "thread"
-                (if status == thread.status then
-                    "thread-target"
-                 else
-                    ""
-                )
-                currentUser
-                status
-
-        keyedEntry status =
-            ( toString status.id, threadEntry status )
-    in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "thread" "list" "Thread" CloseThread
-                , Keyed.ul [ id "thread", class "list-group timeline" ] <|
-                    List.map keyedEntry statuses
-                ]
+    div [ class "col-md-3 column" ]
+        [ div [ class "panel panel-default" ]
+            [ Common.closeablePanelheading "thread" "list" "Thread"
+            , threadStatuses currentUser thread
             ]
+        ]

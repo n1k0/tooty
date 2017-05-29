@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Lazy as Lazy
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import View.Account exposing (accountFollowView, accountTimelineView)
+import View.Account exposing (accountView)
 import View.AccountSelector exposing (accountSelectorView)
 import View.Auth exposing (authView)
 import View.Blocks exposing (blocksView)
@@ -54,12 +54,8 @@ homepageView model =
                     model.notificationFilter
                     model.notifications
                 , case model.currentView of
-                    AccountView account ->
-                        accountTimelineView
-                            currentUser
-                            model.accountTimeline
-                            model.accountRelationship
-                            account
+                    AccountView subView ->
+                        accountView subView currentUser model.accountInfo
 
                     AccountSelectorView ->
                         accountSelectorView model
@@ -70,28 +66,12 @@ homepageView model =
                     BlocksView ->
                         blocksView model
 
-                    AccountFollowersView account followers ->
-                        accountFollowView
-                            currentUser
-                            model.accountFollowers
-                            model.accountRelationships
-                            model.accountRelationship
-                            account
-
-                    AccountFollowingView account following ->
-                        accountFollowView
-                            currentUser
-                            model.accountFollowing
-                            model.accountRelationships
-                            model.accountRelationship
-                            account
-
                     ThreadView thread ->
                         threadView currentUser thread
 
                     LocalTimelineView ->
                         contextualTimelineView
-                            LocalTimelineView
+                            model.location.hash
                             "Local timeline"
                             "th-large"
                             currentUser
@@ -99,7 +79,7 @@ homepageView model =
 
                     GlobalTimelineView ->
                         contextualTimelineView
-                            GlobalTimelineView
+                            model.location.hash
                             "Global timeline"
                             "globe"
                             currentUser
@@ -107,7 +87,7 @@ homepageView model =
 
                     FavoriteTimelineView ->
                         contextualTimelineView
-                            FavoriteTimelineView
+                            model.location.hash
                             "Favorites"
                             "star"
                             currentUser
@@ -115,7 +95,7 @@ homepageView model =
 
                     HashtagView hashtag ->
                         contextualTimelineView
-                            (HashtagView hashtag)
+                            model.location.hash
                             ("#" ++ hashtag)
                             "tags"
                             currentUser

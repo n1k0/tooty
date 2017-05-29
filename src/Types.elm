@@ -57,7 +57,6 @@ type MastodonMsg
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
     | Blocks Bool (MastodonResult (List Account))
-    | ContextLoaded Status (MastodonResult Context)
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
@@ -71,6 +70,8 @@ type MastodonMsg
     | Reblogged (MastodonResult Status)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
+    | ThreadStatusLoaded Int (MastodonResult Status)
+    | ThreadContextLoaded Int (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
 
 
@@ -83,21 +84,20 @@ type WebSocketMsg
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
+    | Back
     | Block Account
     | ClearError Int
-    | CloseAccount
-    | CloseThread
     | ConfirmCancelled Msg
     | Confirmed Msg
     | DeleteStatus Int
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | LoadAccount Int
     | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
     | Mute Account
+    | Navigate String
     | NoOp
     | OpenThread Status
     | ReblogStatus Status
@@ -105,7 +105,6 @@ type Msg
     | RemoveFavorite Status
     | ScrollColumn ScrollDirection String
     | ServerChange String
-    | SetView CurrentView
     | SubmitDraft
     | SwitchClient Client
     | Tick Time
@@ -114,11 +113,18 @@ type Msg
     | Unmute Account
     | UnreblogStatus Status
     | UrlChange Navigation.Location
-    | ViewAccountFollowing Account
-    | ViewAccountFollowers Account
-    | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+
+
+type alias AccountInfo =
+    { account : Maybe Account
+    , timeline : Timeline Status
+    , followers : Timeline Account
+    , following : Timeline Account
+    , relationships : List Relationship
+    , relationship : Maybe Relationship
+    }
 
 
 type alias Confirm =
@@ -130,9 +136,7 @@ type alias Confirm =
 
 type CurrentView
     = -- Basically, what we should be displaying in the fourth column
-      AccountFollowersView Account (Timeline Account)
-    | AccountFollowingView Account (Timeline Account)
-    | AccountView Account
+      AccountView CurrentAccountView
     | AccountSelectorView
     | BlocksView
     | FavoriteTimelineView
@@ -141,6 +145,12 @@ type CurrentView
     | LocalTimelineView
     | MutesView
     | ThreadView Thread
+
+
+type CurrentAccountView
+    = AccountStatusesView
+    | AccountFollowersView
+    | AccountFollowingView
 
 
 type alias Draft =
@@ -179,8 +189,8 @@ type ScrollDirection
 
 
 type alias Thread =
-    { status : Status
-    , context : Context
+    { status : Maybe Status
+    , context : Maybe Context
     }
 
 
@@ -216,11 +226,7 @@ type alias Model =
     , hashtagTimeline : Timeline Status
     , mutes : Timeline Account
     , blocks : Timeline Account
-    , accountTimeline : Timeline Status
-    , accountFollowers : Timeline Account
-    , accountFollowing : Timeline Account
-    , accountRelationships : List Relationship
-    , accountRelationship : Maybe Relationship
+    , accountInfo : AccountInfo
     , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List ErrorNotification
