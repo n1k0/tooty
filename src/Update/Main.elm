@@ -39,11 +39,7 @@ update msg model =
             model ! []
 
         UrlChange location ->
-            let
-                newModel =
-                    { model | location = location }
-            in
-                Update.Route.update newModel
+            Update.Route.update { model | location = location }
 
         Back ->
             model ! [ Navigation.back 1 ]
@@ -129,9 +125,7 @@ update msg model =
             model ! [ Command.registerApp model ]
 
         OpenThread status ->
-            { model
-                | currentView = ThreadView (Thread Nothing Nothing)
-            }
+            { model | currentView = ThreadView (Thread Nothing Nothing) }
                 ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id) ]
 
         FollowAccount account ->

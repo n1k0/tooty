@@ -139,7 +139,7 @@ isThreadMember thread status =
 
 appendToThreadDescendants : Thread -> Status -> Thread
 appendToThreadDescendants ({ context } as thread) status =
-    case thread.context of
+    case context of
         Just context ->
             { thread
                 | context =
@@ -151,7 +151,7 @@ appendToThreadDescendants ({ context } as thread) status =
 
 
 updateCurrentViewWithStatus : Status -> Model -> Model
-updateCurrentViewWithStatus status model =
+updateCurrentViewWithStatus status ({ accountInfo } as model) =
     case model.currentView of
         ThreadView ({ context } as thread) ->
             if isThreadMember thread status then
@@ -163,16 +163,12 @@ updateCurrentViewWithStatus status model =
             case model.accountInfo.account of
                 Just account ->
                     if Mastodon.Helper.sameAccount account status.account then
-                        let
-                            accountInfo =
-                                model.accountInfo
-                        in
-                            { model
-                                | accountInfo =
-                                    { accountInfo
-                                        | timeline = Update.Timeline.prepend status accountInfo.timeline
-                                    }
-                            }
+                        { model
+                            | accountInfo =
+                                { accountInfo
+                                    | timeline = Update.Timeline.prepend status accountInfo.timeline
+                                }
+                        }
                     else
                         model
 

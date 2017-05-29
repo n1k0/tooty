@@ -55,7 +55,7 @@ deleteStatusFromCurrentView id model =
             case ( thread.status, thread.context ) of
                 ( Just status, Just context ) ->
                     if status.id == id then
-                        -- the current thread status as been deleted, close it
+                        -- current thread status has been deleted, close it
                         LocalTimelineView
                     else
                         let
@@ -79,11 +79,8 @@ deleteStatusFromCurrentView id model =
 
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
-deleteStatusFromAllTimelines id model =
+deleteStatusFromAllTimelines id ({ accountInfo } as model) =
     let
-        accountInfo =
-            model.accountInfo
-
         accountTimeline =
             deleteStatus id accountInfo.timeline
     in
@@ -152,7 +149,7 @@ empty id =
 
 
 markAsLoading : Bool -> String -> Model -> Model
-markAsLoading loading id model =
+markAsLoading loading id ({ accountInfo } as model) =
     let
         mark timeline =
             { timeline | loading = loading }
@@ -176,19 +173,16 @@ markAsLoading loading id model =
             "hashtag-timeline" ->
                 { model | hashtagTimeline = mark model.hashtagTimeline }
 
+            "mutes-timeline" ->
+                { model | mutes = mark model.mutes }
+
+            "blocks-timeline" ->
+                { model | blocks = mark model.blocks }
+
             "account-timeline" ->
                 case model.currentView of
                     AccountView account ->
-                        let
-                            accountInfo =
-                                model.accountInfo
-                        in
-                            { model
-                                | accountInfo =
-                                    { accountInfo
-                                        | timeline = mark accountInfo.timeline
-                                    }
-                            }
+                        { model | accountInfo = { accountInfo | timeline = mark accountInfo.timeline } }
 
                     _ ->
                         model
@@ -290,7 +284,7 @@ update append entries links timeline =
 
 
 updateWithBoolFlag : Int -> Bool -> (Status -> Status) -> Model -> Model
-updateWithBoolFlag statusId flag statusUpdater model =
+updateWithBoolFlag statusId flag statusUpdater ({ accountInfo } as model) =
     let
         updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then
@@ -305,9 +299,6 @@ updateWithBoolFlag statusId flag statusUpdater model =
 
                 Nothing ->
                     notification
-
-        accountInfo =
-            model.accountInfo
 
         updateTimeline updateEntry timeline =
             { timeline | entries = List.map updateEntry timeline.entries }

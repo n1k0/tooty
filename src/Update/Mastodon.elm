@@ -341,12 +341,7 @@ update msg ({ accountInfo } as model) =
         AccountRelationships result ->
             case result of
                 Ok { decoded } ->
-                    { model
-                        | accountInfo =
-                            { accountInfo
-                                | relationships = List.concat [ accountInfo.relationships, decoded ]
-                            }
-                    }
+                    { model | accountInfo = { accountInfo | relationships = accountInfo.relationships ++ decoded } }
                         ! []
 
                 Err error ->
