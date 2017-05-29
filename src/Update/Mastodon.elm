@@ -278,22 +278,10 @@ update msg ({ accountInfo } as model) =
         AccountReceived result ->
             case result of
                 Ok { decoded } ->
-                    { model
-                        | currentView = AccountView AccountStatusesView
-                        , accountInfo = { accountInfo | account = Just decoded, relationships = [] }
-                    }
-                        ! [ Command.loadAccountTimeline
-                                (List.head model.clients)
-                                decoded.id
-                                accountInfo.timeline.links.next
-                          ]
+                    { model | accountInfo = { accountInfo | account = Just decoded, relationships = [] } } ! []
 
                 Err error ->
-                    { model
-                        | currentView = LocalTimelineView
-                        , errors = addErrorNotification (errorText error) model
-                    }
-                        ! []
+                    { model | errors = addErrorNotification (errorText error) model } ! []
 
         AccountTimeline append result ->
             case result of

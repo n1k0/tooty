@@ -72,20 +72,31 @@ update ({ accountInfo } as model) =
             { model | currentView = AccountSelectorView, server = "" } ! []
 
         Just (AccountRoute accountId) ->
-            { model | accountInfo = Update.AccountInfo.empty }
-                ! [ Command.loadAccount (List.head model.clients) accountId ]
+            { model
+                | currentView = AccountView AccountStatusesView
+                , accountInfo = Update.AccountInfo.empty
+            }
+                ! [ Command.loadAccount (List.head model.clients) accountId
+                  , Command.loadAccountTimeline (List.head model.clients) accountId Nothing
+                  ]
 
         Just (AccountFollowersRoute accountId) ->
             { model
-                | accountInfo = { accountInfo | followers = Update.Timeline.empty "account-followers" }
+                | currentView = AccountView AccountFollowersView
+                , accountInfo = { accountInfo | followers = Update.Timeline.empty "account-followers" }
             }
-                ! [ Command.loadAccountFollowers (List.head model.clients) accountId Nothing ]
+                ! [ Command.loadAccount (List.head model.clients) accountId
+                  , Command.loadAccountFollowers (List.head model.clients) accountId Nothing
+                  ]
 
         Just (AccountFollowingRoute accountId) ->
             { model
-                | accountInfo = { accountInfo | following = Update.Timeline.empty "account-following" }
+                | currentView = AccountView AccountFollowingView
+                , accountInfo = { accountInfo | following = Update.Timeline.empty "account-following" }
             }
-                ! [ Command.loadAccountFollowing (List.head model.clients) accountId Nothing ]
+                ! [ Command.loadAccount (List.head model.clients) accountId
+                  , Command.loadAccountFollowing (List.head model.clients) accountId Nothing
+                  ]
 
         Just (HashtagRoute hashtag) ->
             { model

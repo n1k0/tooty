@@ -1,9 +1,4 @@
-module View.Account
-    exposing
-        ( accountFollowView
-        , accountTimelineView
-        , accountView
-        )
+module View.Account exposing (accountView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -25,16 +20,6 @@ type alias CurrentUser =
 
 type alias CurrentUserRelation =
     Maybe Relationship
-
-
-counterLink : String -> String -> Int -> Account -> Html Msg
-counterLink href_ label count account =
-    a
-        [ href href_, class "col-md-4" ]
-        [ text label
-        , br [] []
-        , text <| toString count
-        ]
 
 
 followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
@@ -183,9 +168,8 @@ accountFollowView view currentUser accountInfo =
     in
         case accountInfo.account of
             Just account ->
-                accountView currentUser account accountInfo.relationship <|
-                    Keyed.ul [ class "list-group" ] <|
-                        (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+                Keyed.ul [ class "list-group" ] <|
+                    (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
             Nothing ->
                 text ""
@@ -204,67 +188,111 @@ accountTimelineView currentUser accountInfo =
     in
         case accountInfo.account of
             Just account ->
-                accountView currentUser account accountInfo.relationship <|
-                    Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
-                        (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
+                Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
+                    (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
 
             Nothing ->
                 text ""
 
 
-accountView : CurrentUser -> Account -> CurrentUserRelation -> Html Msg -> Html Msg
-accountView currentUser account relationship panelContent =
+counterLink : String -> String -> Int -> Bool -> Html Msg
+counterLink href_ label count active =
+    a
+        [ href href_
+        , class <|
+            "col-md-4"
+                ++ (if active then
+                        " active"
+                    else
+                        ""
+                   )
+        ]
+        [ text label
+        , br [] []
+        , text <| toString count
+        ]
+
+
+counterLinks : CurrentAccountView -> Account -> Html Msg
+counterLinks subView account =
     let
         { statuses_count, following_count, followers_count } =
             account
     in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default" ]
-                [ Common.closeablePanelheading "account" "user" "Account"
-                , div [ id "account", class "timeline" ]
-                    [ div
-                        [ class "account-detail"
-                        , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
-                        ]
-                        [ div [ class "opacity-layer" ]
-                            [ followButton currentUser relationship account
-                            , muteButton currentUser relationship account
-                            , blockButton currentUser relationship account
-                            , Common.accountAvatarLink True account
-                            , span [ class "account-display-name" ] [ text account.display_name ]
-                            , span [ class "account-username" ]
-                                [ Common.accountLink True account
-                                , case relationship of
-                                    Just relationship ->
-                                        span []
-                                            [ if relationship.followed_by then
-                                                span [ class "badge followed-by" ] [ text "Follows you" ]
-                                              else
-                                                text ""
-                                            , text " "
-                                            , if relationship.muting then
-                                                span [ class "badge muting" ] [ text "Muted" ]
-                                              else
-                                                text ""
-                                            , text " "
-                                            , if relationship.blocking then
-                                                span [ class "badge blocking" ] [ text "Blocked" ]
-                                              else
-                                                text ""
-                                            ]
+        div [ class "row account-infos" ]
+            [ counterLink
+                ("#account/" ++ (toString account.id))
+                "Statuses"
+                statuses_count
+                (subView == AccountStatusesView)
+            , counterLink
+                ("#account/" ++ (toString account.id) ++ "/following")
+                "Following"
+                following_count
+                (subView == AccountFollowingView)
+            , counterLink
+                ("#account/" ++ (toString account.id) ++ "/followers")
+                "Followers"
+                followers_count
+                (subView == AccountFollowersView)
+            ]
 
-                                    Nothing ->
-                                        text ""
-                                ]
-                            , span [ class "account-note" ] (formatContent account.note [])
+
+accountView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
+accountView subView currentUser accountInfo =
+    case accountInfo.account of
+        Nothing ->
+            text ""
+
+        Just account ->
+            div [ class "col-md-3 column" ]
+                [ div [ class "panel panel-default" ]
+                    [ Common.closeablePanelheading "account" "user" "Account"
+                    , div [ id "account", class "timeline" ]
+                        [ div
+                            [ class "account-detail"
+                            , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
                             ]
+                            [ div [ class "opacity-layer" ]
+                                [ followButton currentUser accountInfo.relationship account
+                                , muteButton currentUser accountInfo.relationship account
+                                , blockButton currentUser accountInfo.relationship account
+                                , Common.accountAvatarLink True account
+                                , span [ class "account-display-name" ] [ text account.display_name ]
+                                , span [ class "account-username" ]
+                                    [ Common.accountLink True account
+                                    , case accountInfo.relationship of
+                                        Just relationship ->
+                                            span []
+                                                [ if relationship.followed_by then
+                                                    span [ class "badge followed-by" ] [ text "Follows you" ]
+                                                  else
+                                                    text ""
+                                                , text " "
+                                                , if relationship.muting then
+                                                    span [ class "badge muting" ] [ text "Muted" ]
+                                                  else
+                                                    text ""
+                                                , text " "
+                                                , if relationship.blocking then
+                                                    span [ class "badge blocking" ] [ text "Blocked" ]
+                                                  else
+                                                    text ""
+                                                ]
+
+                                        Nothing ->
+                                            text ""
+                                    ]
+                                , span [ class "account-note" ] (formatContent account.note [])
+                                ]
+                            ]
+                        , counterLinks subView account
+                        , case subView of
+                            AccountStatusesView ->
+                                accountTimelineView currentUser accountInfo
+
+                            _ ->
+                                accountFollowView subView currentUser accountInfo
                         ]
-                    , div [ class "row account-infos" ]
-                        [ counterLink ("#account/" ++ (toString account.id)) "Statuses" statuses_count account
-                        , counterLink ("#account/" ++ (toString account.id) ++ "/following") "Following" following_count account
-                        , counterLink ("#account/" ++ (toString account.id) ++ "/followers") "Followers" followers_count account
-                        ]
-                    , panelContent
                     ]
                 ]
-            ]

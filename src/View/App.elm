@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Lazy as Lazy
 import Mastodon.Model exposing (..)
 import Types exposing (..)
-import View.Account exposing (accountFollowView, accountTimelineView)
+import View.Account exposing (accountView)
 import View.AccountSelector exposing (accountSelectorView)
 import View.Auth exposing (authView)
 import View.Blocks exposing (blocksView)
@@ -54,22 +54,8 @@ homepageView model =
                     model.notificationFilter
                     model.notifications
                 , case model.currentView of
-                    AccountView AccountStatusesView ->
-                        accountTimelineView
-                            currentUser
-                            model.accountInfo
-
-                    AccountView AccountFollowersView ->
-                        accountFollowView
-                            AccountFollowersView
-                            currentUser
-                            model.accountInfo
-
-                    AccountView AccountFollowingView ->
-                        accountFollowView
-                            AccountFollowingView
-                            currentUser
-                            model.accountInfo
+                    AccountView subView ->
+                        accountView subView currentUser model.accountInfo
 
                     AccountSelectorView ->
                         accountSelectorView model

@@ -688,8 +688,7 @@ input.form-control[type=file] {
 }
 
 .account-infos a:hover,
-.account-infos a:focus,
-.account-infos a:active {
+.account-infos a.active {
   text-decoration: none;
   color: #fff;
 }
