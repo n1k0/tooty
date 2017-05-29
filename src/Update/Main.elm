@@ -82,6 +82,8 @@ update msg model =
                     , globalTimeline = Update.Timeline.empty "global-timeline"
                     , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
                     , accountInfo = Update.AccountInfo.empty
+                    , mutes = Update.Timeline.empty "mutes-timeline"
+                    , blocks = Update.Timeline.empty "blocks-timeline"
                     , notifications = Update.Timeline.empty "notifications"
                     , currentView = AccountSelectorView
                 }
