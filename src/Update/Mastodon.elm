@@ -402,8 +402,8 @@ processFollowEvent relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just relationship ->
-                    if relationship.id == relationship.id then
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
                         Just { relationship | following = relationship.following }
                     else
                         accountInfo.relationship
@@ -453,8 +453,8 @@ processMuteEvent account relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just relationship ->
-                    if relationship.id == relationship.id then
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
                         Just { relationship | muting = relationship.muting }
                     else
                         accountInfo.relationship
@@ -492,8 +492,8 @@ processBlockEvent account relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just relationship ->
-                    if relationship.id == relationship.id then
+                Just accountRelationship ->
+                    if accountRelationship.id == relationship.id then
                         Just { relationship | blocking = relationship.blocking }
                     else
                         accountInfo.relationship
