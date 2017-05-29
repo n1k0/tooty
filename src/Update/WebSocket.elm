@@ -117,7 +117,7 @@ update msg model =
 isThreadMember : Thread -> Status -> Bool
 isThreadMember thread status =
     case ( thread.status, thread.context ) of
-        ( Just status, Just context ) ->
+        ( Just threadStatus, Just context ) ->
             case status.in_reply_to_id of
                 Nothing ->
                     False
@@ -126,7 +126,7 @@ isThreadMember thread status =
                     let
                         threadStatusIds =
                             List.concat
-                                [ [ status.id ]
+                                [ [ threadStatus.id ]
                                 , List.map .id context.ancestors
                                 , List.map .id context.descendants
                                 ]
@@ -153,7 +153,7 @@ appendToThreadDescendants ({ context } as thread) status =
 updateCurrentViewWithStatus : Status -> Model -> Model
 updateCurrentViewWithStatus status ({ accountInfo } as model) =
     case model.currentView of
-        ThreadView ({ context } as thread) ->
+        ThreadView thread ->
             if isThreadMember thread status then
                 { model | currentView = ThreadView (appendToThreadDescendants thread status) }
             else
