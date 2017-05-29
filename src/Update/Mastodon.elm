@@ -28,7 +28,7 @@ errorText error =
 
 
 update : MastodonMsg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ accountInfo } as model) =
     case msg of
         AccessToken result ->
             case result of
@@ -279,13 +279,13 @@ update msg model =
             case result of
                 Ok { decoded } ->
                     { model
-                        | currentView = AccountView decoded
-                        , accountRelationships = []
+                        | currentView = AccountView AccountStatusesView
+                        , accountInfo = { accountInfo | account = Just decoded, relationships = [] }
                     }
                         ! [ Command.loadAccountTimeline
                                 (List.head model.clients)
                                 decoded.id
-                                model.accountTimeline.links.next
+                                accountInfo.timeline.links.next
                           ]
 
                 Err error ->
@@ -298,7 +298,13 @@ update msg model =
         AccountTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | accountTimeline = Update.Timeline.update append decoded links model.accountTimeline } ! []
+                    { model
+                        | accountInfo =
+                            { accountInfo
+                                | timeline = Update.Timeline.update append decoded links accountInfo.timeline
+                            }
+                    }
+                        ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []
@@ -306,7 +312,12 @@ update msg model =
         AccountFollowers append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | accountFollowers = Update.Timeline.update append decoded links model.accountFollowers }
+                    { model
+                        | accountInfo =
+                            { accountInfo
+                                | followers = Update.Timeline.update append decoded links accountInfo.followers
+                            }
+                    }
                         ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
 
                 Err error ->
@@ -315,7 +326,12 @@ update msg model =
         AccountFollowing append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | accountFollowing = Update.Timeline.update append decoded links model.accountFollowing }
+                    { model
+                        | accountInfo =
+                            { accountInfo
+                                | following = Update.Timeline.update append decoded links accountInfo.following
+                            }
+                    }
                         ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
 
                 Err error ->
@@ -326,7 +342,7 @@ update msg model =
                 Ok { decoded } ->
                     case decoded of
                         [ relationship ] ->
-                            { model | accountRelationship = Just relationship } ! []
+                            { model | accountInfo = { accountInfo | relationship = Just relationship } } ! []
 
                         _ ->
                             model ! []
@@ -338,7 +354,10 @@ update msg model =
             case result of
                 Ok { decoded } ->
                     { model
-                        | accountRelationships = List.concat [ model.accountRelationships, decoded ]
+                        | accountInfo =
+                            { accountInfo
+                                | relationships = List.concat [ accountInfo.relationships, decoded ]
+                            }
                     }
                         ! []
 
@@ -387,7 +406,7 @@ update msg model =
 current connected user, both according to the "following" status provided.
 -}
 processFollowEvent : Relationship -> Model -> Model
-processFollowEvent relationship model =
+processFollowEvent relationship ({ accountInfo } as model) =
     let
         updateRelationship r =
             if r.id == relationship.id then
@@ -396,22 +415,25 @@ processFollowEvent relationship model =
                 r
 
         accountRelationships =
-            model.accountRelationships |> List.map updateRelationship
+            accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case model.accountRelationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+            case accountInfo.relationship of
+                Just relationship ->
+                    if relationship.id == relationship.id then
                         Just { relationship | following = relationship.following }
                     else
-                        model.accountRelationship
+                        accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
         { model
-            | accountRelationships = accountRelationships
-            , accountRelationship = accountRelationship
+            | accountInfo =
+                { accountInfo
+                    | relationships = accountRelationships
+                    , relationship = accountRelationship
+                }
         }
 
 
@@ -435,7 +457,7 @@ processUnfollowEvent account relationship model =
 current connected user, both according to the "muting" status provided.
 -}
 processMuteEvent : Account -> Relationship -> Model -> Model
-processMuteEvent account relationship model =
+processMuteEvent account relationship ({ accountInfo } as model) =
     let
         updateRelationship r =
             if r.id == relationship.id then
@@ -444,22 +466,25 @@ processMuteEvent account relationship model =
                 r
 
         accountRelationships =
-            model.accountRelationships |> List.map updateRelationship
+            accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case model.accountRelationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+            case accountInfo.relationship of
+                Just relationship ->
+                    if relationship.id == relationship.id then
                         Just { relationship | muting = relationship.muting }
                     else
-                        model.accountRelationship
+                        accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
         { model
-            | accountRelationships = accountRelationships
-            , accountRelationship = accountRelationship
+            | accountInfo =
+                { accountInfo
+                    | relationship = accountRelationship
+                    , relationships = accountRelationships
+                }
             , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
             , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
             , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
@@ -471,7 +496,7 @@ processMuteEvent account relationship model =
 current connected user, both according to the "blocking" status provided.
 -}
 processBlockEvent : Account -> Relationship -> Model -> Model
-processBlockEvent account relationship model =
+processBlockEvent account relationship ({ accountInfo } as model) =
     let
         updateRelationship r =
             if r.id == relationship.id then
@@ -480,22 +505,25 @@ processBlockEvent account relationship model =
                 r
 
         accountRelationships =
-            model.accountRelationships |> List.map updateRelationship
+            accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case model.accountRelationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+            case accountInfo.relationship of
+                Just relationship ->
+                    if relationship.id == relationship.id then
                         Just { relationship | blocking = relationship.blocking }
                     else
-                        model.accountRelationship
+                        accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
         { model
-            | accountRelationships = accountRelationships
-            , accountRelationship = accountRelationship
+            | accountInfo =
+                { accountInfo
+                    | relationship = accountRelationship
+                    , relationships = accountRelationships
+                }
             , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
             , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
             , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline

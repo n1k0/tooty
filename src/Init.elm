@@ -3,6 +3,7 @@ module Init exposing (init)
 import Command
 import Navigation
 import Types exposing (..)
+import Update.AccountInfo
 import Update.Draft
 import Update.Route
 import Update.Timeline
@@ -25,11 +26,7 @@ init { registration, clients } location =
                 , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
                 , mutes = Update.Timeline.empty "mutes-timeline"
                 , blocks = Update.Timeline.empty "blocks-timeline"
-                , accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountRelationships = []
-                , accountRelationship = Nothing
+                , accountInfo = Update.AccountInfo.empty
                 , notifications = Update.Timeline.empty "notifications"
                 , draft = Update.Draft.empty
                 , errors = []

@@ -54,12 +54,22 @@ homepageView model =
                     model.notificationFilter
                     model.notifications
                 , case model.currentView of
-                    AccountView account ->
+                    AccountView AccountStatusesView ->
                         accountTimelineView
                             currentUser
-                            model.accountTimeline
-                            model.accountRelationship
-                            account
+                            model.accountInfo
+
+                    AccountView AccountFollowersView ->
+                        accountFollowView
+                            AccountFollowersView
+                            currentUser
+                            model.accountInfo
+
+                    AccountView AccountFollowingView ->
+                        accountFollowView
+                            AccountFollowingView
+                            currentUser
+                            model.accountInfo
 
                     AccountSelectorView ->
                         accountSelectorView model
@@ -69,22 +79,6 @@ homepageView model =
 
                     BlocksView ->
                         blocksView model
-
-                    AccountFollowersView account followers ->
-                        accountFollowView
-                            currentUser
-                            model.accountFollowers
-                            model.accountRelationships
-                            model.accountRelationship
-                            account
-
-                    AccountFollowingView account following ->
-                        accountFollowView
-                            currentUser
-                            model.accountFollowing
-                            model.accountRelationships
-                            model.accountRelationship
-                            account
 
                     ThreadView thread ->
                         threadView currentUser thread

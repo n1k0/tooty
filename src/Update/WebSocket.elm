@@ -159,11 +159,25 @@ updateCurrentViewWithStatus status model =
             else
                 model
 
-        AccountView account ->
-            if Mastodon.Helper.sameAccount account status.account then
-                { model | accountTimeline = Update.Timeline.prepend status model.accountTimeline }
-            else
-                model
+        AccountView _ ->
+            case model.accountInfo.account of
+                Just account ->
+                    if Mastodon.Helper.sameAccount account status.account then
+                        let
+                            accountInfo =
+                                model.accountInfo
+                        in
+                            { model
+                                | accountInfo =
+                                    { accountInfo
+                                        | timeline = Update.Timeline.prepend status accountInfo.timeline
+                                    }
+                            }
+                    else
+                        model
+
+                Nothing ->
+                    model
 
         _ ->
             model

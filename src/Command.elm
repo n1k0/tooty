@@ -397,58 +397,62 @@ loadTimelines client =
         ]
 
 
-loadNextTimeline : Maybe Client -> CurrentView -> String -> String -> Cmd Msg
-loadNextTimeline client currentView id next =
-    case id of
-        "notifications" ->
-            loadNotifications client (Just next)
+loadNextTimeline : Model -> String -> String -> Cmd Msg
+loadNextTimeline { clients, currentView, accountInfo } id next =
+    let
+        client =
+            List.head clients
+    in
+        case id of
+            "notifications" ->
+                loadNotifications client (Just next)
 
-        "home-timeline" ->
-            loadHomeTimeline client (Just next)
+            "home-timeline" ->
+                loadHomeTimeline client (Just next)
 
-        "local-timeline" ->
-            loadLocalTimeline client (Just next)
+            "local-timeline" ->
+                loadLocalTimeline client (Just next)
 
-        "global-timeline" ->
-            loadGlobalTimeline client (Just next)
+            "global-timeline" ->
+                loadGlobalTimeline client (Just next)
 
-        "favorite-timeline" ->
-            loadFavoriteTimeline client (Just next)
+            "favorite-timeline" ->
+                loadFavoriteTimeline client (Just next)
 
-        "hashtag-timeline" ->
-            case currentView of
-                HashtagView hashtag ->
-                    loadHashtagTimeline client hashtag (Just next)
+            "hashtag-timeline" ->
+                case currentView of
+                    HashtagView hashtag ->
+                        loadHashtagTimeline client hashtag (Just next)
 
-                _ ->
-                    Cmd.none
+                    _ ->
+                        Cmd.none
 
-        "account-timeline" ->
-            case currentView of
-                AccountView account ->
-                    loadAccountTimeline client account.id (Just next)
+            "account-timeline" ->
+                case accountInfo.account of
+                    Just account ->
+                        loadAccountTimeline client account.id (Just next)
 
-                _ ->
-                    Cmd.none
+                    _ ->
+                        Cmd.none
 
-        "account-followers" ->
-            case currentView of
-                AccountFollowersView account timeline ->
-                    loadAccountFollowers client account.id (Just next)
+            "account-followers" ->
+                case accountInfo.account of
+                    Just account ->
+                        loadAccountFollowers client account.id (Just next)
 
-                _ ->
-                    Cmd.none
+                    _ ->
+                        Cmd.none
 
-        "account-following" ->
-            case currentView of
-                AccountFollowingView account timeline ->
-                    loadAccountFollowing client account.id (Just next)
+            "account-following" ->
+                case accountInfo.account of
+                    Just account ->
+                        loadAccountFollowing client account.id (Just next)
 
-                _ ->
-                    Cmd.none
+                    _ ->
+                        Cmd.none
 
-        _ ->
-            Cmd.none
+            _ ->
+                Cmd.none
 
 
 postStatus : Maybe Client -> StatusRequestBody -> Cmd Msg

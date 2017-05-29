@@ -5,6 +5,7 @@ import List.Extra exposing (removeAt)
 import Mastodon.Model exposing (..)
 import Navigation
 import Types exposing (..)
+import Update.AccountInfo
 import Update.Draft
 import Update.Error
 import Update.Mastodon
@@ -80,12 +81,8 @@ update msg model =
                     , localTimeline = Update.Timeline.empty "local-timeline"
                     , globalTimeline = Update.Timeline.empty "global-timeline"
                     , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
-                    , accountTimeline = Update.Timeline.empty "account-timeline"
-                    , accountFollowers = Update.Timeline.empty "account-followers"
-                    , accountFollowing = Update.Timeline.empty "account-following"
+                    , accountInfo = Update.AccountInfo.empty
                     , notifications = Update.Timeline.empty "notifications"
-                    , accountRelationships = []
-                    , accountRelationship = Nothing
                     , currentView = LocalTimelineView
                 }
                     ! [ Command.loadUserAccount <| Just client
@@ -195,33 +192,7 @@ update msg model =
 
         TimelineLoadNext id next ->
             Update.Timeline.markAsLoading True id model
-                ! [ Command.loadNextTimeline (List.head model.clients) model.currentView id next ]
-
-        ViewAccountFollowers account ->
-            { model
-                | currentView = AccountFollowersView account model.accountFollowers
-                , accountRelationships = []
-            }
-                ! [ Command.loadAccountFollowers (List.head model.clients) account.id Nothing ]
-
-        ViewAccountFollowing account ->
-            { model
-                | currentView = AccountFollowingView account model.accountFollowing
-                , accountRelationships = []
-            }
-                ! [ Command.loadAccountFollowing (List.head model.clients) account.id Nothing ]
-
-        ViewAccountStatuses account ->
-            { model | currentView = AccountView account } ! []
-
-        CloseAccount ->
-            { model
-                | currentView = LocalTimelineView
-                , accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-            }
-                ! []
+                ! [ Command.loadNextTimeline model id next ]
 
         FilterNotifications filter ->
             { model | notificationFilter = filter } ! []

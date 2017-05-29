@@ -2,6 +2,7 @@ module Update.Route exposing (update)
 
 import Command
 import Types exposing (..)
+import Update.AccountInfo
 import Update.Timeline
 import UrlParser exposing (..)
 
@@ -38,7 +39,7 @@ route =
 
 
 update : Model -> ( Model, Cmd Msg )
-update model =
+update ({ accountInfo } as model) =
     case parseHash route model.location of
         Just LocalTimelineRoute ->
             { model | currentView = LocalTimelineView } ! []
@@ -71,14 +72,20 @@ update model =
             { model | currentView = AccountSelectorView, server = "" } ! []
 
         Just (AccountRoute accountId) ->
-            { model
-                | accountTimeline = Update.Timeline.empty "account-timeline"
-                , accountFollowers = Update.Timeline.empty "account-followers"
-                , accountFollowing = Update.Timeline.empty "account-following"
-                , accountRelationships = []
-                , accountRelationship = Nothing
-            }
+            { model | accountInfo = Update.AccountInfo.empty }
                 ! [ Command.loadAccount (List.head model.clients) accountId ]
+
+        Just (AccountFollowersRoute accountId) ->
+            { model
+                | accountInfo = { accountInfo | followers = Update.Timeline.empty "account-followers" }
+            }
+                ! [ Command.loadAccountFollowers (List.head model.clients) accountId Nothing ]
+
+        Just (AccountFollowingRoute accountId) ->
+            { model
+                | accountInfo = { accountInfo | following = Update.Timeline.empty "account-following" }
+            }
+                ! [ Command.loadAccountFollowing (List.head model.clients) accountId Nothing ]
 
         Just (HashtagRoute hashtag) ->
             { model

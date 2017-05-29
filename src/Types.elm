@@ -87,7 +87,6 @@ type Msg
     | Back
     | Block Account
     | ClearError Int
-    | CloseAccount
     | ConfirmCancelled Msg
     | Confirmed Msg
     | DeleteStatus Int
@@ -114,11 +113,18 @@ type Msg
     | Unmute Account
     | UnreblogStatus Status
     | UrlChange Navigation.Location
-    | ViewAccountFollowing Account
-    | ViewAccountFollowers Account
-    | ViewAccountStatuses Account
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
+
+
+type alias AccountInfo =
+    { account : Maybe Account
+    , timeline : Timeline Status
+    , followers : Timeline Account
+    , following : Timeline Account
+    , relationships : List Relationship
+    , relationship : Maybe Relationship
+    }
 
 
 type alias Confirm =
@@ -130,9 +136,7 @@ type alias Confirm =
 
 type CurrentView
     = -- Basically, what we should be displaying in the fourth column
-      AccountFollowersView Account (Timeline Account)
-    | AccountFollowingView Account (Timeline Account)
-    | AccountView Account
+      AccountView CurrentAccountView
     | AccountSelectorView
     | BlocksView
     | FavoriteTimelineView
@@ -141,6 +145,12 @@ type CurrentView
     | LocalTimelineView
     | MutesView
     | ThreadView Thread
+
+
+type CurrentAccountView
+    = AccountStatusesView
+    | AccountFollowersView
+    | AccountFollowingView
 
 
 type alias Draft =
@@ -216,11 +226,7 @@ type alias Model =
     , hashtagTimeline : Timeline Status
     , mutes : Timeline Account
     , blocks : Timeline Account
-    , accountTimeline : Timeline Status
-    , accountFollowers : Timeline Account
-    , accountFollowing : Timeline Account
-    , accountRelationships : List Relationship
-    , accountRelationship : Maybe Relationship
+    , accountInfo : AccountInfo
     , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List ErrorNotification

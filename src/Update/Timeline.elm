@@ -80,15 +80,22 @@ deleteStatusFromCurrentView id model =
 
 deleteStatusFromAllTimelines : Int -> Model -> Model
 deleteStatusFromAllTimelines id model =
-    { model
-        | homeTimeline = deleteStatus id model.homeTimeline
-        , localTimeline = deleteStatus id model.localTimeline
-        , globalTimeline = deleteStatus id model.globalTimeline
-        , favoriteTimeline = deleteStatus id model.favoriteTimeline
-        , accountTimeline = deleteStatus id model.accountTimeline
-        , notifications = deleteStatusFromNotifications id model.notifications
-        , currentView = deleteStatusFromCurrentView id model
-    }
+    let
+        accountInfo =
+            model.accountInfo
+
+        accountTimeline =
+            deleteStatus id accountInfo.timeline
+    in
+        { model
+            | homeTimeline = deleteStatus id model.homeTimeline
+            , localTimeline = deleteStatus id model.localTimeline
+            , globalTimeline = deleteStatus id model.globalTimeline
+            , favoriteTimeline = deleteStatus id model.favoriteTimeline
+            , accountInfo = { accountInfo | timeline = accountTimeline }
+            , notifications = deleteStatusFromNotifications id model.notifications
+            , currentView = deleteStatusFromCurrentView id model
+        }
 
 
 deleteStatusFromNotifications : Int -> Timeline NotificationAggregate -> Timeline NotificationAggregate
@@ -172,7 +179,16 @@ markAsLoading loading id model =
             "account-timeline" ->
                 case model.currentView of
                     AccountView account ->
-                        { model | accountTimeline = mark model.accountTimeline }
+                        let
+                            accountInfo =
+                                model.accountInfo
+                        in
+                            { model
+                                | accountInfo =
+                                    { accountInfo
+                                        | timeline = mark accountInfo.timeline
+                                    }
+                            }
 
                     _ ->
                         model
@@ -290,12 +306,15 @@ updateWithBoolFlag statusId flag statusUpdater model =
                 Nothing ->
                     notification
 
+        accountInfo =
+            model.accountInfo
+
         updateTimeline updateEntry timeline =
             { timeline | entries = List.map updateEntry timeline.entries }
     in
         { model
             | homeTimeline = updateTimeline updateStatus model.homeTimeline
-            , accountTimeline = updateTimeline updateStatus model.accountTimeline
+            , accountInfo = { accountInfo | timeline = updateTimeline updateStatus accountInfo.timeline }
             , localTimeline = updateTimeline updateStatus model.localTimeline
             , globalTimeline = updateTimeline updateStatus model.globalTimeline
             , favoriteTimeline = updateTimeline updateStatus model.favoriteTimeline

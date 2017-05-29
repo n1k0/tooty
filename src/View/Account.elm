@@ -15,7 +15,6 @@ import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Events exposing (..)
 import View.Status exposing (statusEntryView)
 import View.Formatter exposing (formatContent)
 
@@ -28,13 +27,10 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
-accountCounterLink : String -> Int -> (Account -> Msg) -> Account -> Html Msg
-accountCounterLink label count tagger account =
+counterLink : String -> String -> Int -> Account -> Html Msg
+counterLink href_ label count account =
     a
-        [ href ""
-        , class "col-md-4"
-        , onClickWithPreventAndStop <| tagger account
-        ]
+        [ href href_, class "col-md-4" ]
         [ text label
         , br [] []
         , text <| toString count
@@ -163,35 +159,40 @@ blockButton currentUser relationship account =
                 [ Common.icon iconName ]
 
 
-accountFollowView :
-    CurrentUser
-    -> Timeline Account
-    -> List Relationship
-    -> CurrentUserRelation
-    -> Account
-    -> Html Msg
-accountFollowView currentUser timeline relationships relationship account =
+accountFollowView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
+accountFollowView view currentUser accountInfo =
     let
         keyedEntry account =
             ( toString account.id
             , li [ class "list-group-item status" ]
                 [ followView
                     currentUser
-                    (find (\r -> r.id == account.id) relationships)
+                    (find (\r -> r.id == account.id) accountInfo.relationships)
                     account
                 ]
             )
 
+        timeline =
+            if view == AccountFollowersView then
+                accountInfo.followers
+            else
+                accountInfo.following
+
         entries =
             List.map keyedEntry timeline.entries
     in
-        accountView currentUser account relationship <|
-            Keyed.ul [ class "list-group" ] <|
-                (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+        case accountInfo.account of
+            Just account ->
+                accountView currentUser account accountInfo.relationship <|
+                    Keyed.ul [ class "list-group" ] <|
+                        (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+
+            Nothing ->
+                text ""
 
 
-accountTimelineView : CurrentUser -> Timeline Status -> CurrentUserRelation -> Account -> Html Msg
-accountTimelineView currentUser timeline relationship account =
+accountTimelineView : CurrentUser -> AccountInfo -> Html Msg
+accountTimelineView currentUser accountInfo =
     let
         keyedEntry status =
             ( toString status.id
@@ -199,11 +200,16 @@ accountTimelineView currentUser timeline relationship account =
             )
 
         entries =
-            List.map keyedEntry timeline.entries
+            List.map keyedEntry accountInfo.timeline.entries
     in
-        accountView currentUser account relationship <|
-            Keyed.ul [ id timeline.id, class "list-group" ] <|
-                (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+        case accountInfo.account of
+            Just account ->
+                accountView currentUser account accountInfo.relationship <|
+                    Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
+                        (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
+
+            Nothing ->
+                text ""
 
 
 accountView : CurrentUser -> Account -> CurrentUserRelation -> Html Msg -> Html Msg
@@ -254,9 +260,9 @@ accountView currentUser account relationship panelContent =
                             ]
                         ]
                     , div [ class "row account-infos" ]
-                        [ accountCounterLink "Statuses" statuses_count ViewAccountStatuses account
-                        , accountCounterLink "Following" following_count ViewAccountFollowing account
-                        , accountCounterLink "Followers" followers_count ViewAccountFollowers account
+                        [ counterLink ("#account/" ++ (toString account.id)) "Statuses" statuses_count account
+                        , counterLink ("#account/" ++ (toString account.id) ++ "/following") "Following" following_count account
+                        , counterLink ("#account/" ++ (toString account.id) ++ "/followers") "Followers" followers_count account
                         ]
                     , panelContent
                     ]
