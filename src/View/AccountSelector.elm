@@ -80,7 +80,7 @@ accountSelectorView : Model -> Html Msg
 accountSelectorView model =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
-            [ div [ class "panel-heading" ] [ icon "user", text "Accounts" ]
+            [ div [] [ div [ class "panel-heading" ] [ icon "user", text "Accounts" ] ]
             , contextualTimelineMenu model.location.hash
             , ul [ class "list-group " ] <|
                 List.map (accountIdentityView model.currentUser) model.clients
