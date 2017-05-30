@@ -35,7 +35,7 @@ searchResultsView results =
         accountList =
             case results.accounts of
                 [] ->
-                    p [] [ text "No accounts found." ]
+                    p [ class "panel-body" ] [ text "No accounts found." ]
 
                 accounts ->
                     accountListView accounts
@@ -43,7 +43,7 @@ searchResultsView results =
         hashtagList =
             case results.hashtags of
                 [] ->
-                    p [] [ text "No hashtags found." ]
+                    p [ class "panel-body" ] [ text "No hashtags found." ]
 
                 hashtags ->
                     hashtags
