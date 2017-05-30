@@ -3,6 +3,7 @@ module View.Timeline
         ( contextualTimelineView
         , contextualTimelineMenu
         , homeTimelineView
+        , hashtagTimelineView
         , topScrollableColumn
         )
 
@@ -37,6 +38,16 @@ topScrollableColumn ( label, iconName, timelineId ) content =
         ]
 
 
+closeableColumn : ( String, String, String ) -> Html Msg -> Html Msg
+closeableColumn ( label, iconName, timelineId ) content =
+    div [ class "col-md-3 column" ]
+        [ div [ class "panel panel-default" ]
+            [ Common.closeablePanelheading timelineId iconName label
+            , content
+            ]
+        ]
+
+
 timelineView : CurrentUser -> Timeline Status -> Html Msg
 timelineView currentUser timeline =
     let
@@ -55,6 +66,16 @@ homeTimelineView currentUser timeline =
     Lazy.lazy2 topScrollableColumn
         ( "Home timeline"
         , "home"
+        , timeline.id
+        )
+        (timelineView currentUser timeline)
+
+
+hashtagTimelineView : String -> CurrentUser -> Timeline Status -> Html Msg
+hashtagTimelineView hashtag currentUser timeline =
+    Lazy.lazy2 closeableColumn
+        ( ("#" ++ hashtag)
+        , "tags"
         , timeline.id
         )
         (timelineView currentUser timeline)
@@ -80,6 +101,7 @@ contextualTimelineMenu hash =
         Common.justifiedButtonGroup "column-menu"
             [ btnView "#" "th-large" "Local timeline"
             , btnView "#global" "globe" "Global timeline"
+            , btnView "#search" "search" "Search"
             , btnView "#favorites" "star" "Favorites"
             , btnView "#blocks" "ban-circle" "Blocks"
             , btnView "#mutes" "volume-off" "Mutes"

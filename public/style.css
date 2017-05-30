@@ -112,7 +112,7 @@ li.load-more {
 }
 
 .status, .follow-profile, .current-user {
-  min-height: 50px;
+  min-height: 70px;
   clear: both;
 }
 
@@ -126,8 +126,12 @@ li.load-more {
 
 .follow-profile .status-text {
   opacity: .8;
+  font-size: 13px;
 }
 
+.follow-profile .status-text > p {
+  margin-bottom: 0;
+}
 .nsfw {
   background: #493438;
 }
@@ -275,6 +279,16 @@ span.applink {
 .thread-target .status-text {
   font-size: 1.3em;
   cursor: default;
+}
+
+/* Search form */
+
+.panel-body.search-form {
+  padding-bottom: 0;
+}
+
+form.search {
+  padding-bottom: 0;
 }
 
 /* Status actions */

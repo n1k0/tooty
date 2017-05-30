@@ -28,7 +28,7 @@ errorText error =
 
 
 update : MastodonMsg -> Model -> ( Model, Cmd Msg )
-update msg ({ accountInfo } as model) =
+update msg ({ accountInfo, search } as model) =
     case msg of
         AccessToken result ->
             case result of
@@ -349,6 +349,14 @@ update msg ({ accountInfo } as model) =
             case result of
                 Ok { decoded, links } ->
                     { model | homeTimeline = Update.Timeline.update append decoded links model.homeTimeline } ! []
+
+                Err error ->
+                    { model | errors = addErrorNotification (errorText error) model } ! []
+
+        SearchResultsReceived result ->
+            case result of
+                Ok { decoded } ->
+                    { model | search = { search | term = model.search.term, results = Just decoded } } ! []
 
                 Err error ->
                     { model | errors = addErrorNotification (errorText error) model } ! []

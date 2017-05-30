@@ -68,11 +68,17 @@ type MastodonMsg
     | Mutes Bool (MastodonResult (List Account))
     | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
+    | SearchResultsReceived (MastodonResult SearchResults)
     | StatusDeleted (MastodonResult Int)
     | StatusPosted (MastodonResult Status)
     | ThreadStatusLoaded Int (MastodonResult Status)
     | ThreadContextLoaded Int (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
+
+
+type SearchMsg
+    = SubmitSearch
+    | UpdateSearch String
 
 
 type WebSocketMsg
@@ -104,6 +110,7 @@ type Msg
     | Register
     | RemoveFavorite Status
     | ScrollColumn ScrollDirection String
+    | SearchEvent SearchMsg
     | ServerChange String
     | SubmitDraft
     | SwitchClient Client
@@ -144,6 +151,7 @@ type CurrentView
     | HashtagView String
     | LocalTimelineView
     | MutesView
+    | SearchView
     | ThreadView Thread
 
 
@@ -186,6 +194,12 @@ type NotificationFilter
 type ScrollDirection
     = ScrollTop
     | ScrollBottom
+
+
+type alias Search =
+    { term : String
+    , results : Maybe SearchResults
+    }
 
 
 type alias Thread =
@@ -236,6 +250,7 @@ type alias Model =
     , currentView : CurrentView
     , notificationFilter : NotificationFilter
     , confirm : Maybe Confirm
+    , search : Search
     }
 
 

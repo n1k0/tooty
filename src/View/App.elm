@@ -12,14 +12,11 @@ import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
-
-
--- import View.HashTag exposing (hashtagView)
-
+import View.Search exposing (searchView)
 import View.Mutes exposing (mutesView)
 import View.Notification exposing (notificationListView)
 import View.Thread exposing (threadView)
-import View.Timeline exposing (contextualTimelineView, homeTimelineView)
+import View.Timeline exposing (contextualTimelineView, homeTimelineView, hashtagTimelineView)
 import View.Viewer exposing (viewerView)
 
 
@@ -94,12 +91,10 @@ homepageView model =
                             model.favoriteTimeline
 
                     HashtagView hashtag ->
-                        contextualTimelineView
-                            model.location.hash
-                            ("#" ++ hashtag)
-                            "tags"
-                            currentUser
-                            model.hashtagTimeline
+                        hashtagTimelineView hashtag currentUser model.hashtagTimeline
+
+                    SearchView ->
+                        searchView model
                 ]
 
 

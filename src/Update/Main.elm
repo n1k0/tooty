@@ -10,6 +10,7 @@ import Update.Draft
 import Update.Error
 import Update.Mastodon
 import Update.Route
+import Update.Search
 import Update.Timeline
 import Update.Viewer
 import Update.WebSocket
@@ -110,6 +111,9 @@ update msg model =
                     Update.Mastodon.update msg model
             in
                 newModel ! [ commands ]
+
+        SearchEvent msg ->
+            Update.Search.update msg model
 
         WebSocketEvent msg ->
             let

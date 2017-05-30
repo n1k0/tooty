@@ -14,6 +14,7 @@ module Mastodon.Model
         , Reblog(..)
         , Relationship
         , Tag
+        , SearchResults
         , Status
         , StatusRequestBody
         )
@@ -165,6 +166,13 @@ type alias Relationship =
     , following : Bool
     , muting : Bool
     , requested : Bool
+    }
+
+
+type alias SearchResults =
+    { accounts : List Account
+    , statuses : List Status
+    , hashtags : List String
     }
 
 

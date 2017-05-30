@@ -110,12 +110,11 @@ notificationFollowView currentUser { accounts } =
             div [ class "status follow-profile" ]
                 [ Common.accountAvatarLink False account
                 , div [ class "username" ] [ Common.accountLink False account ]
-                , p
-                    [ class "status-text"
-                    , onClick <| Navigate ("#account/" ++ (toString account.id))
-                    ]
-                  <|
-                    formatContent account.note []
+                , formatContent account.note []
+                    |> div
+                        [ class "status-text"
+                        , onClick <| Navigate ("#account/" ++ (toString account.id))
+                        ]
                 ]
     in
         div [ class "notification follow" ]
