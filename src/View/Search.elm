@@ -7,7 +7,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
 import View.Formatter exposing (formatContent)
-import View.Timeline exposing (contextualTimelineMenu, topScrollableColumn)
+import View.Timeline exposing (contextualTimelineMenu)
 
 
 accountListView : List Account -> Html Msg
