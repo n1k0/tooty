@@ -32,6 +32,7 @@ module Mastodon.ApiUrl
         , uploadMedia
         , streaming
         , searchAccount
+        , search
         )
 
 
@@ -98,6 +99,11 @@ unblock id =
 userAccount : String
 userAccount =
     accounts ++ "verify_credentials"
+
+
+search : String
+search =
+    apiPrefix ++ "/search"
 
 
 searchAccount : String

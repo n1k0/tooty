@@ -12,6 +12,7 @@ module Mastodon.Decoder
         , tagDecoder
         , reblogDecoder
         , relationshipDecoder
+        , searchResultsDecoder
         , statusDecoder
         , webSocketPayloadDecoder
         , webSocketEventDecoder
@@ -129,6 +130,14 @@ tagDecoder =
 reblogDecoder : Decode.Decoder Reblog
 reblogDecoder =
     Decode.map Reblog (Decode.lazy (\_ -> statusDecoder))
+
+
+searchResultsDecoder : Decode.Decoder SearchResults
+searchResultsDecoder =
+    Pipe.decode SearchResults
+        |> Pipe.required "accounts" (Decode.list accountDecoder)
+        |> Pipe.required "statuses" (Decode.list statusDecoder)
+        |> Pipe.required "hashtags" (Decode.list Decode.string)
 
 
 statusDecoder : Decode.Decoder Status

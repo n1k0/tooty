@@ -18,6 +18,7 @@ type Route
     | HashtagRoute String
     | LocalTimelineRoute
     | MutesRoute
+    | SearchRoute
     | ThreadRoute Int
 
 
@@ -35,6 +36,7 @@ route =
         , map AccountFollowingRoute (s "account" </> int </> s "following")
         , map AccountRoute (s "account" </> int)
         , map AccountSelectorRoute (s "accounts")
+        , map SearchRoute (s "search" </> top)
         ]
 
 
@@ -108,6 +110,9 @@ update ({ accountInfo } as model) =
         Just (ThreadRoute id) ->
             { model | currentView = ThreadView (Thread Nothing Nothing) }
                 ! [ Command.loadThread (List.head model.clients) id ]
+
+        Just SearchRoute ->
+            { model | currentView = SearchView } ! []
 
         _ ->
             { model | currentView = LocalTimelineView } ! []

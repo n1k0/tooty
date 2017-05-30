@@ -12,6 +12,7 @@ import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
+import View.Search exposing (searchView)
 
 
 -- import View.HashTag exposing (hashtagView)
@@ -100,6 +101,9 @@ homepageView model =
                             "tags"
                             currentUser
                             model.hashtagTimeline
+
+                    SearchView ->
+                        searchView model
                 ]
 
 

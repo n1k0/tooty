@@ -41,12 +41,14 @@ module Command
         , scrollColumnToBottom
         , scrollToThreadStatus
         , searchAccounts
+        , search
         )
 
 import Dom
 import Dom.Scroll
 import Json.Encode as Encode
 import Json.Decode as Decode
+import Http
 import HttpBuilder
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
@@ -199,6 +201,20 @@ loadAccountFollowing client accountId url =
                 |> withClient client
                 |> withBodyDecoder (Decode.list accountDecoder)
                 |> send (MastodonEvent << AccountFollowing (url /= Nothing))
+
+        Nothing ->
+            Cmd.none
+
+
+search : Maybe Client -> String -> Cmd Msg
+search client term =
+    case client of
+        Just client ->
+            HttpBuilder.get ApiUrl.search
+                |> withClient client
+                |> withBodyDecoder searchResultsDecoder
+                |> withQueryParams [ ( "q", Http.encodeUri term ) ]
+                |> send (MastodonEvent << SearchResultsReceived)
 
         Nothing ->
             Cmd.none

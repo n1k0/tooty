@@ -80,6 +80,7 @@ contextualTimelineMenu hash =
         Common.justifiedButtonGroup "column-menu"
             [ btnView "#" "th-large" "Local timeline"
             , btnView "#global" "globe" "Global timeline"
+            , btnView "#search" "search" "Search"
             , btnView "#favorites" "star" "Favorites"
             , btnView "#blocks" "ban-circle" "Blocks"
             , btnView "#mutes" "volume-off" "Mutes"

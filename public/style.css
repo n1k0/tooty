@@ -125,7 +125,9 @@ li.load-more {
 }
 
 .follow-profile .status-text {
+  clear: both;
   opacity: .8;
+  font-size: 13px;
 }
 
 .nsfw {
@@ -275,6 +277,16 @@ span.applink {
 .thread-target .status-text {
   font-size: 1.3em;
   cursor: default;
+}
+
+/* Search form */
+
+.panel-body.search-form {
+  padding-bottom: 0;
+}
+
+form.search {
+  padding-bottom: 0;
 }
 
 /* Status actions */
