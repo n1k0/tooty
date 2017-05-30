@@ -112,7 +112,7 @@ li.load-more {
 }
 
 .status, .follow-profile, .current-user {
-  min-height: 50px;
+  min-height: 70px;
   clear: both;
 }
 
@@ -125,11 +125,13 @@ li.load-more {
 }
 
 .follow-profile .status-text {
-  clear: both;
   opacity: .8;
   font-size: 13px;
 }
 
+.follow-profile .status-text > p {
+  margin-bottom: 0;
+}
 .nsfw {
   background: #493438;
 }
