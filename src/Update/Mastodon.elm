@@ -38,10 +38,8 @@ update msg ({ accountInfo } as model) =
                             Client decoded.server decoded.accessToken Nothing
                     in
                         { model | clients = client :: model.clients }
-                            ! [ Command.loadTimelines <| Just client
-                              , Command.saveClients <| client :: model.clients
-                              , Navigation.modifyUrl model.location.pathname
-                              , Navigation.reload
+                            ! [ Command.saveClients <| client :: model.clients
+                              , Navigation.load <| model.location.origin ++ model.location.pathname
                               ]
 
                 Err error ->
