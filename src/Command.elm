@@ -48,7 +48,6 @@ import Dom
 import Dom.Scroll
 import Json.Encode as Encode
 import Json.Decode as Decode
-import Http
 import HttpBuilder
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
@@ -57,6 +56,7 @@ import Mastodon.Http exposing (..)
 import Mastodon.Model exposing (..)
 import Navigation
 import Ports
+import String.Extra exposing (replace)
 import Task
 import Types exposing (..)
 
@@ -210,11 +210,15 @@ search : Maybe Client -> String -> Cmd Msg
 search client term =
     case client of
         Just client ->
-            HttpBuilder.get ApiUrl.search
-                |> withClient client
-                |> withBodyDecoder searchResultsDecoder
-                |> withQueryParams [ ( "q", Http.encodeUri term ) ]
-                |> send (MastodonEvent << SearchResultsReceived)
+            let
+                cleanTerm =
+                    term |> replace "#" ""
+            in
+                HttpBuilder.get ApiUrl.search
+                    |> withClient client
+                    |> withBodyDecoder searchResultsDecoder
+                    |> withQueryParams [ ( "q", cleanTerm ), ( "resolve", "true" ) ]
+                    |> send (MastodonEvent << SearchResultsReceived)
 
         Nothing ->
             Cmd.none
