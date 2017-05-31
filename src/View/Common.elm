@@ -9,8 +9,12 @@ module View.Common
         , justifiedButtonGroup
         , loadMoreBtn
         , confirmView
+        , formatDate
         )
 
+import Date
+import Date.Extra.Config.Config_en_au as DateEn
+import Date.Extra.Format as DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -150,3 +154,10 @@ confirmView { message, onConfirm, onCancel } =
                 ]
             ]
         ]
+
+
+formatDate : String -> String
+formatDate dateString =
+    Date.fromString dateString
+        |> Result.withDefault (Date.fromTime 0)
+        |> DateFormat.format DateEn.config "%d/%m/%Y %H:%M"

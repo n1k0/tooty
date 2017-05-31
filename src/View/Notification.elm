@@ -55,28 +55,29 @@ filterNotifications filter notifications =
             List.filter applyFilter notifications
 
 
-notificationHeading : List Account -> String -> String -> Html Msg
-notificationHeading accounts str iconType =
+notificationHeading : List AccountNotificationDate -> String -> String -> Html Msg
+notificationHeading accountsAndDate str iconType =
     let
         ( firstAccounts, finalStr ) =
-            case accounts of
+            case accountsAndDate of
                 [ a1 ] ->
-                    ( [ a1 ], str )
+                    ( [ a1.account ], str )
 
                 [ a1, a2 ] ->
-                    ( [ a1, a2 ], str )
+                    ( [ a1.account, a2.account ], str )
 
                 [ a1, a2, a3 ] ->
-                    ( [ a1, a2, a3 ], str )
+                    ( [ a1.account, a2.account, a3.account ], str )
 
                 a1 :: a2 :: a3 :: xs ->
-                    ( [ a1, a2, a3 ], " and " ++ (toString <| List.length xs) ++ " others " ++ str )
+                    ( [ a1.account, a2.account, a3.account ], " and " ++ (toString <| List.length xs) ++ " others " ++ str )
 
                 _ ->
                     ( [], "" )
     in
         div [ class "status-info" ]
-            [ div [ class "avatars" ] <| List.map (Common.accountAvatarLink False) accounts
+            [ div [ class "avatars" ] <|
+                List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
             , p [ class "status-info-text" ] <|
                 List.intersperse (text " ")
                     [ Common.icon iconType
@@ -106,16 +107,25 @@ notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
 notificationFollowView : CurrentUser -> NotificationAggregate -> Html Msg
 notificationFollowView currentUser { accounts } =
     let
-        profileView account =
-            div [ class "status follow-profile" ]
-                [ Common.accountAvatarLink False account
-                , div [ class "username" ] [ Common.accountLink False account ]
-                , formatContent account.note []
-                    |> div
-                        [ class "status-text"
-                        , onClick <| Navigate ("#account/" ++ (toString account.id))
+        profileView : AccountNotificationDate -> Html Msg
+        profileView accountAndDate =
+            let
+                account =
+                    accountAndDate.account
+            in
+                div [ class "status follow-profile" ]
+                    [ Common.accountAvatarLink False account
+                    , div [ class "username" ]
+                        [ Common.accountLink False account
+                        , span [ class "btn-sm follow-profile-date" ]
+                            [ Common.icon "time", text <| Common.formatDate accountAndDate.created_at ]
                         ]
-                ]
+                    , formatContent account.note []
+                        |> div
+                            [ class "status-text"
+                            , onClick <| Navigate ("#account/" ++ (toString account.id))
+                            ]
+                    ]
     in
         div [ class "notification follow" ]
             [ notificationHeading accounts "started following you" "user"

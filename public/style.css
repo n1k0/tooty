@@ -270,6 +270,14 @@ span.applink {
   text-overflow: ellipsis;
 }
 
+.follow-profile-date {
+  font-weight: normal;
+}
+
+.follow-profile-date > .glyphicon {
+  margin-right: 5px;
+}
+
 /* Thread */
 
 .thread-target {

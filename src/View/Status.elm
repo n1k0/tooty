@@ -5,9 +5,6 @@ module View.Status
         , statusEntryView
         )
 
-import Date
-import Date.Extra.Config.Config_en_au as DateEn
-import Date.Extra.Format as DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
@@ -108,13 +105,6 @@ statusActionsView status currentUser showApp =
 
                 _ ->
                     ( baseBtnClasses, AddFavorite sourceStatus )
-
-        statusDate =
-            Date.fromString status.created_at
-                |> Result.withDefault (Date.fromTime 0)
-
-        formatDate =
-            text <| DateFormat.format DateEn.config "%d/%m/%Y %H:%M" statusDate
     in
         div [ class "btn-group actions" ]
             [ a
@@ -147,7 +137,7 @@ statusActionsView status currentUser showApp =
                 text ""
             , a
                 [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
-                [ Common.icon "time", formatDate ]
+                [ Common.icon "time", text <| Common.formatDate status.created_at ]
             , if showApp then
                 Common.appLink (baseBtnClasses ++ " applink") status.application
               else

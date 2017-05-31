@@ -3,6 +3,7 @@ module Mastodon.Model
         ( AccessTokenResult
         , AppRegistration
         , Account
+        , AccountNotificationDate
         , Application
         , Attachment
         , Client
@@ -146,11 +147,17 @@ type alias Notification =
     }
 
 
+type alias AccountNotificationDate =
+    { account : Account
+    , created_at : String
+    }
+
+
 type alias NotificationAggregate =
     { id : Int
     , type_ : String
     , status : Maybe Status
-    , accounts : List Account
+    , accounts : List AccountNotificationDate
     , created_at : String
     }
 
