@@ -41,13 +41,24 @@ all =
                                 [ { id = .id Fixtures.notificationNicoMentionVjousse
                                   , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
-                                  , accounts = [ Fixtures.accountNico ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:16:20.973Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
                                 , { id = .id Fixtures.notificationNicoFollowsVjousse
                                   , type_ = "follow"
                                   , status = Nothing
-                                  , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:13:47.431Z"
+                                          }
+                                        , { account = Fixtures.accountSkro
+                                          , created_at = "2017-04-24T19:12:47.431Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
                                   }
                                 ]
@@ -66,13 +77,27 @@ all =
                                 [ { id = .id Fixtures.notificationNicoMentionVjousse
                                   , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
-                                  , accounts = [ Fixtures.accountNico ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:16:20.973Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
                                 , { id = .id Fixtures.notificationNicoFollowsVjousse
                                   , type_ = "follow"
                                   , status = Nothing
-                                  , accounts = [ Fixtures.accountPloum, Fixtures.accountNico, Fixtures.accountSkro ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountPloum
+                                          , created_at = "2017-04-24T18:12:47.431Z"
+                                          }
+                                        , { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:13:47.431Z"
+                                          }
+                                        , { account = Fixtures.accountSkro
+                                          , created_at = "2017-04-24T19:12:47.431Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
                                   }
                                 ]
@@ -85,13 +110,27 @@ all =
                                 [ { id = .id Fixtures.notificationNicoMentionVjousse
                                   , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
-                                  , accounts = [ Fixtures.accountNico, Fixtures.accountNico ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:16:20.973Z"
+                                          }
+                                        , { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:16:20.973Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
                                 , { id = .id Fixtures.notificationNicoFollowsVjousse
                                   , type_ = "follow"
                                   , status = Nothing
-                                  , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:13:47.431Z"
+                                          }
+                                        , { account = Fixtures.accountSkro
+                                          , created_at = "2017-04-24T19:12:47.431Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
                                   }
                                 ]
@@ -104,19 +143,34 @@ all =
                                 [ { id = .id Fixtures.notificationNicoMentionVjousseAgain
                                   , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousseAgain
-                                  , accounts = [ Fixtures.accountNico ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-25T07:41:23.546Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-25T07:41:23.546Z"
                                   }
                                 , { id = .id Fixtures.notificationNicoMentionVjousse
                                   , type_ = "mention"
                                   , status = Just Fixtures.statusNicoToVjousse
-                                  , accounts = [ Fixtures.accountNico ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:16:20.973Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:16:20.973Z"
                                   }
                                 , { id = .id Fixtures.notificationNicoFollowsVjousse
                                   , type_ = "follow"
                                   , status = Nothing
-                                  , accounts = [ Fixtures.accountNico, Fixtures.accountSkro ]
+                                  , accounts =
+                                        [ { account = Fixtures.accountNico
+                                          , created_at = "2017-04-24T20:13:47.431Z"
+                                          }
+                                        , { account = Fixtures.accountSkro
+                                          , created_at = "2017-04-24T19:12:47.431Z"
+                                          }
+                                        ]
                                   , created_at = "2017-04-24T20:13:47.431Z"
                                   }
                                 ]
