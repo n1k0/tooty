@@ -108,24 +108,20 @@ notificationFollowView : CurrentUser -> NotificationAggregate -> Html Msg
 notificationFollowView currentUser { accounts } =
     let
         profileView : AccountNotificationDate -> Html Msg
-        profileView accountAndDate =
-            let
-                account =
-                    accountAndDate.account
-            in
-                div [ class "status follow-profile" ]
-                    [ Common.accountAvatarLink False account
-                    , div [ class "username" ]
-                        [ Common.accountLink False account
-                        , span [ class "btn-sm follow-profile-date" ]
-                            [ Common.icon "time", text <| Common.formatDate accountAndDate.created_at ]
-                        ]
-                    , formatContent account.note []
-                        |> div
-                            [ class "status-text"
-                            , onClick <| Navigate ("#account/" ++ (toString account.id))
-                            ]
+        profileView { account, created_at } =
+            div [ class "status follow-profile" ]
+                [ Common.accountAvatarLink False account
+                , div [ class "username" ]
+                    [ Common.accountLink False account
+                    , span [ class "btn-sm follow-profile-date" ]
+                        [ Common.icon "time", text <| Common.formatDate created_at ]
                     ]
+                , formatContent account.note []
+                    |> div
+                        [ class "status-text"
+                        , onClick <| Navigate ("#account/" ++ (toString account.id))
+                        ]
+                ]
     in
         div [ class "notification follow" ]
             [ notificationHeading accounts "started following you" "user"
