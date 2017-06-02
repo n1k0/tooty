@@ -77,6 +77,26 @@
         .then(response => response.text())
         .then(app.ports.uploadSuccess.send);
     });
+
+    function notify(data) {
+      const notif = new Notification(data.title, {
+        icon: data.icon,
+        body: data.body,
+      });
+      notif.onclick = () => location.hash = data.clickUrl;
+    }
+
+    app.ports.notify.subscribe(data => {
+      if (Notification.permission === "granted") {
+        notify(data);
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission(permission => {
+          if (permission === "granted") {
+            notify(data);
+          }
+        });
+      }
+    });
     </script>
   </body>
 </html>
