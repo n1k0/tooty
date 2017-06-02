@@ -1,10 +1,11 @@
-module View.Formatter exposing (formatContent)
+module View.Formatter exposing (formatContent, textContent)
 
 import Dict
 import Elmoji
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import HtmlParser
+import HtmlParser.Util as ParseUtil
 import Http
 import Mastodon.Model exposing (..)
 import String.Extra exposing (replace, rightOf)
@@ -20,6 +21,11 @@ formatContent content mentions =
         |> replace " :" "&#160;:"
         |> HtmlParser.parse
         |> toVirtualDom mentions
+
+
+textContent : String -> String
+textContent html =
+    html |> HtmlParser.parse |> ParseUtil.textContent
 
 
 {-| Converts nodes to virtual dom nodes.

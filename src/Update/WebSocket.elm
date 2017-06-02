@@ -1,5 +1,6 @@
 module Update.WebSocket exposing (update)
 
+import Command
 import Mastodon.Decoder
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
@@ -52,7 +53,8 @@ update msg model =
                                                 oldNotifications.entries
                                     }
                             in
-                                { model | notifications = newNotifications } ! []
+                                { model | notifications = newNotifications }
+                                    ! [ Command.notifyNotification notification ]
 
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []

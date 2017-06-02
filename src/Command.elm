@@ -42,6 +42,8 @@ module Command
         , scrollToThreadStatus
         , searchAccounts
         , search
+        , notifyStatus
+        , notifyNotification
         )
 
 import Dom
@@ -59,6 +61,7 @@ import Ports
 import String.Extra exposing (replace)
 import Task
 import Types exposing (..)
+import View.Formatter exposing (textContent)
 
 
 initCommands : Maybe AppRegistration -> Maybe Client -> Maybe String -> Cmd Msg
@@ -669,3 +672,59 @@ scrollColumnToBottom column =
 scrollToThreadStatus : String -> Cmd Msg
 scrollToThreadStatus cssId =
     Ports.scrollIntoView <| "thread-status-" ++ cssId
+
+
+notifyStatus : Status -> Cmd Msg
+notifyStatus status =
+    Ports.notify
+        { title = status.account.acct
+        , icon = status.account.avatar
+        , body = status.content |> textContent
+        , clickUrl = "#thread/" ++ (toString status.id)
+        }
+
+
+notifyNotification : Notification -> Cmd Msg
+notifyNotification notification =
+    case notification.status of
+        Just status ->
+            case notification.type_ of
+                "reblog" ->
+                    Ports.notify
+                        { title = notification.account.acct ++ " reboosted"
+                        , icon = notification.account.avatar
+                        , body = status.content |> textContent
+                        , clickUrl = "#thread/" ++ (toString status.id)
+                        }
+
+                "favourite" ->
+                    Ports.notify
+                        { title = notification.account.acct ++ " favorited"
+                        , icon = notification.account.avatar
+                        , body = status.content |> textContent
+                        , clickUrl = "#thread/" ++ (toString status.id)
+                        }
+
+                "mention" ->
+                    Ports.notify
+                        { title = notification.account.acct ++ " mentioned you"
+                        , icon = notification.account.avatar
+                        , body = status.content |> textContent
+                        , clickUrl = "#thread/" ++ (toString status.id)
+                        }
+
+                _ ->
+                    Cmd.none
+
+        Nothing ->
+            case notification.type_ of
+                "follow" ->
+                    Ports.notify
+                        { title = notification.account.acct ++ " follows you"
+                        , icon = notification.account.avatar
+                        , body = notification.account.note
+                        , clickUrl = "#account/" ++ (toString notification.account.id)
+                        }
+
+                _ ->
+                    Cmd.none

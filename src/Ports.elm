@@ -6,6 +6,7 @@ port module Ports
         , saveClients
         , setStatus
         , uploadMedia
+        , notify
         , uploadSuccess
         , uploadError
         )
@@ -29,6 +30,9 @@ port scrollIntoView : String -> Cmd msg
 
 
 port uploadMedia : { id : String, url : String, token : String } -> Cmd msg
+
+
+port notify : { title : String, icon : String, body : String, clickUrl : String } -> Cmd msg
 
 
 
