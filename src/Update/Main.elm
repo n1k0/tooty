@@ -55,6 +55,23 @@ update msg model =
             }
                 ! []
 
+        KeyMsg code ->
+            case ( code, model.viewer ) of
+                ( 27, Just _ ) ->
+                    -- Esc
+                    update (ViewerEvent CloseViewer) model
+
+                ( 37, Just _ ) ->
+                    -- Left arrow
+                    update (ViewerEvent PrevAttachment) model
+
+                ( 39, Just _ ) ->
+                    -- Right arrow
+                    update (ViewerEvent NextAttachment) model
+
+                _ ->
+                    model ! []
+
         ClearError index ->
             { model | errors = removeAt index model.errors } ! []
 

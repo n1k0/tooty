@@ -1,6 +1,7 @@
 module Subscription exposing (subscriptions)
 
 import Autocomplete
+import Keyboard
 import Mastodon.WebSocket
 import Ports
 import Time
@@ -44,6 +45,9 @@ subscriptions { clients, currentView } =
 
         uploadErrorSub =
             Ports.uploadError (DraftEvent << UploadError)
+
+        keyDownsSub =
+            Keyboard.downs KeyMsg
     in
         Sub.batch
             [ timeSub
@@ -52,4 +56,5 @@ subscriptions { clients, currentView } =
             , autoCompleteSub
             , uploadSuccessSub
             , uploadErrorSub
+            , keyDownsSub
             ]

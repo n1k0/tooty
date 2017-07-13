@@ -1,6 +1,7 @@
 module Types exposing (..)
 
 import Autocomplete
+import Keyboard
 import Mastodon.Http exposing (Response, Links)
 import Mastodon.Model exposing (..)
 import Navigation
@@ -34,6 +35,8 @@ type DraftMsg
 type ViewerMsg
     = CloseViewer
     | OpenViewer (List Attachment) Attachment
+    | PrevAttachment
+    | NextAttachment
 
 
 type alias MastodonResult a =
@@ -99,6 +102,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
+    | KeyMsg Keyboard.KeyCode
     | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg

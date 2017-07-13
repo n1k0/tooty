@@ -2,21 +2,18 @@ module View.Viewer exposing (viewerView)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import List.Extra exposing (find, elemIndex, getAt)
 import Types exposing (..)
+import Update.Viewer exposing (getPrevNext)
 import View.Events exposing (..)
 
 
 viewerView : Viewer -> Html Msg
-viewerView { attachments, attachment } =
+viewerView ({ attachments, attachment } as viewer) =
     let
-        index =
-            Maybe.withDefault -1 <| elemIndex attachment attachments
-
         ( prev, next ) =
-            ( getAt (index - 1) attachments, getAt (index + 1) attachments )
+            getPrevNext viewer
 
-        navLink label className target =
+        navLink label className target event =
             case target of
                 Nothing ->
                     text ""
@@ -25,8 +22,7 @@ viewerView { attachments, attachment } =
                     a
                         [ href ""
                         , class className
-                        , onClickWithPreventAndStop <|
-                            ViewerEvent (OpenViewer attachments target)
+                        , onClickWithPreventAndStop event
                         ]
                         [ text label ]
     in
@@ -36,7 +32,7 @@ viewerView { attachments, attachment } =
             , onClickWithPreventAndStop <| ViewerEvent CloseViewer
             ]
             [ span [ class "close" ] [ text "×" ]
-            , navLink "❮" "prev" prev
+            , navLink "❮" "prev" prev <| ViewerEvent NextAttachment
             , case attachment.type_ of
                 "image" ->
                     img [ class "viewer-content", src attachment.url ] []
@@ -49,5 +45,5 @@ viewerView { attachments, attachment } =
                         , loop True
                         ]
                         [ source [ src attachment.url ] [] ]
-            , navLink "❯" "next" next
+            , navLink "❯" "next" next <| ViewerEvent NextAttachment
             ]
