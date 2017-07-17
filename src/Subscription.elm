@@ -47,7 +47,10 @@ subscriptions { clients, currentView } =
             Ports.uploadError (DraftEvent << UploadError)
 
         keyDownsSub =
-            Keyboard.downs KeyMsg
+            Keyboard.downs (KeyMsg KeyDown)
+
+        keyUpsSub =
+            Keyboard.ups (KeyMsg KeyUp)
     in
         Sub.batch
             [ timeSub

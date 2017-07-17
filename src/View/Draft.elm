@@ -139,7 +139,7 @@ visibilitySelector { visibility } =
 
 
 draftView : Model -> Html Msg
-draftView ({ draft, currentUser } as model) =
+draftView ({ draft, currentUser, ctrlPressed } as model) =
     let
         autoMenu =
             if draft.showAutoMenu then
@@ -197,6 +197,8 @@ draftView ({ draft, currentUser } as model) =
                                             Ok NoOp
                                         else if code == 27 then
                                             Ok <| DraftEvent CloseAutocomplete
+                                        else if code == 13 && ctrlPressed then
+                                            Ok SubmitDraft
                                         else
                                             Err "not handling that key"
                                     )

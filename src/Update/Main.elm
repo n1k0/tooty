@@ -55,19 +55,27 @@ update msg model =
             }
                 ! []
 
-        KeyMsg code ->
-            case ( code, model.viewer ) of
-                ( 27, Just _ ) ->
+        KeyMsg event code ->
+            case ( event, code, model.viewer ) of
+                ( KeyDown, 27, Just _ ) ->
                     -- Esc
                     update (ViewerEvent CloseViewer) model
 
-                ( 37, Just _ ) ->
+                ( KeyDown, 37, Just _ ) ->
                     -- Left arrow
                     update (ViewerEvent PrevAttachment) model
 
-                ( 39, Just _ ) ->
+                ( KeyDown, 39, Just _ ) ->
                     -- Right arrow
                     update (ViewerEvent NextAttachment) model
+
+                ( KeyDown, 17, _ ) ->
+                    -- Ctrl key down
+                    { model | ctrlPressed = True } ! []
+
+                ( KeyUp, 17, _ ) ->
+                    -- Ctrl key up
+                    { model | ctrlPressed = False } ! []
 
                 _ ->
                     model ! []

@@ -37,6 +37,7 @@ init { registration, clients } location =
                 , notificationFilter = NotificationAll
                 , confirm = Nothing
                 , search = Search "" Nothing
+                , ctrlPressed = False
                 }
     in
         model

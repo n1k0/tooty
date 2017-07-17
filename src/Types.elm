@@ -90,6 +90,11 @@ type WebSocketMsg
     | NewWebsocketUserMessage String
 
 
+type KeyEvent
+    = KeyUp
+    | KeyDown
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -102,7 +107,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | KeyMsg Keyboard.KeyCode
+    | KeyMsg KeyEvent Keyboard.KeyCode
     | LogoutClient Client
     | TimelineLoadNext String String
     | MastodonEvent MastodonMsg
@@ -255,6 +260,7 @@ type alias Model =
     , notificationFilter : NotificationFilter
     , confirm : Maybe Confirm
     , search : Search
+    , ctrlPressed : Bool
     }
 
 
