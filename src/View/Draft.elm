@@ -197,7 +197,7 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                                             Ok NoOp
                                         else if code == 27 then
                                             Ok <| DraftEvent CloseAutocomplete
-                                        else if code == 13 && ctrlPressed then
+                                        else if ctrlPressed && code == 13 then
                                             Ok SubmitDraft
                                         else
                                             Err "not handling that key"

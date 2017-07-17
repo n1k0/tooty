@@ -60,4 +60,5 @@ subscriptions { clients, currentView } =
             , uploadSuccessSub
             , uploadErrorSub
             , keyDownsSub
+            , keyUpsSub
             ]
