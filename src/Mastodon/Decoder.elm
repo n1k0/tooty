@@ -155,8 +155,12 @@ searchResultsDecoder =
 
 idDecoder : Decode.Decoder String
 idDecoder =
-    -- Note: since v2.0.0 of the Mastodon API, ids are treated as strings.
-    Decode.int |> Decode.map toString
+    -- Note: since v2.0.0 of the Mastodon API, ids are treated as strings, so we
+    -- treat all ids as strings.
+    Decode.oneOf
+        [ Decode.string
+        , Decode.int |> Decode.map toString
+        ]
 
 
 statusDecoder : Decode.Decoder Status
