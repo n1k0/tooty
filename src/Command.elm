@@ -166,7 +166,7 @@ loadUserAccount client =
             Cmd.none
 
 
-loadAccount : Maybe Client -> Int -> Cmd Msg
+loadAccount : Maybe Client -> String -> Cmd Msg
 loadAccount client accountId =
     case client of
         Just client ->
@@ -183,7 +183,7 @@ loadAccount client accountId =
             Cmd.none
 
 
-loadAccountFollowers : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountFollowers : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountFollowers client accountId url =
     case client of
         Just client ->
@@ -196,7 +196,7 @@ loadAccountFollowers client accountId url =
             Cmd.none
 
 
-loadAccountFollowing : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountFollowing : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountFollowing client accountId url =
     case client of
         Just client ->
@@ -256,7 +256,7 @@ searchAccounts client query limit resolve =
                 Cmd.none
 
 
-requestRelationships : Client -> List Int -> Request (List Relationship)
+requestRelationships : Client -> List String -> Request (List Relationship)
 requestRelationships client ids =
     HttpBuilder.get ApiUrl.relationships
         |> withClient client
@@ -265,7 +265,7 @@ requestRelationships client ids =
             (List.map (\id -> ( "id[]", toString id )) ids)
 
 
-loadRelationships : Maybe Client -> List Int -> Cmd Msg
+loadRelationships : Maybe Client -> List String -> Cmd Msg
 loadRelationships client ids =
     if List.length ids > 0 then
         case client of
@@ -279,7 +279,7 @@ loadRelationships client ids =
         Cmd.none
 
 
-loadThread : Maybe Client -> Int -> Cmd Msg
+loadThread : Maybe Client -> String -> Cmd Msg
 loadThread client id =
     case client of
         Just client ->
@@ -340,7 +340,7 @@ loadGlobalTimeline client url =
             Cmd.none
 
 
-loadAccountTimeline : Maybe Client -> Int -> Maybe String -> Cmd Msg
+loadAccountTimeline : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountTimeline client accountId url =
     case client of
         Just client ->
@@ -497,7 +497,7 @@ updateDomStatus statusText =
     Ports.setStatus { id = "status", status = statusText }
 
 
-deleteStatus : Maybe Client -> Int -> Cmd Msg
+deleteStatus : Maybe Client -> String -> Cmd Msg
 deleteStatus client id =
     case client of
         Just client ->
@@ -510,7 +510,7 @@ deleteStatus client id =
             Cmd.none
 
 
-reblogStatus : Maybe Client -> Int -> Cmd Msg
+reblogStatus : Maybe Client -> String -> Cmd Msg
 reblogStatus client statusId =
     case client of
         Just client ->
@@ -523,7 +523,7 @@ reblogStatus client statusId =
             Cmd.none
 
 
-unreblogStatus : Maybe Client -> Int -> Cmd Msg
+unreblogStatus : Maybe Client -> String -> Cmd Msg
 unreblogStatus client statusId =
     case client of
         Just client ->
@@ -536,7 +536,7 @@ unreblogStatus client statusId =
             Cmd.none
 
 
-favouriteStatus : Maybe Client -> Int -> Cmd Msg
+favouriteStatus : Maybe Client -> String -> Cmd Msg
 favouriteStatus client statusId =
     case client of
         Just client ->
@@ -549,7 +549,7 @@ favouriteStatus client statusId =
             Cmd.none
 
 
-unfavouriteStatus : Maybe Client -> Int -> Cmd Msg
+unfavouriteStatus : Maybe Client -> String -> Cmd Msg
 unfavouriteStatus client statusId =
     case client of
         Just client ->

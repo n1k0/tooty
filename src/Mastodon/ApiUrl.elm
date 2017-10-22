@@ -61,39 +61,39 @@ accounts =
     apiPrefix ++ "/accounts/"
 
 
-account : Int -> String
+account : String -> String
 account id =
-    accounts ++ (toString id)
+    accounts ++ id
 
 
-follow : Int -> String
+follow : String -> String
 follow id =
-    accounts ++ (toString id) ++ "/follow"
+    accounts ++ id ++ "/follow"
 
 
-unfollow : Int -> String
+unfollow : String -> String
 unfollow id =
-    accounts ++ (toString id) ++ "/unfollow"
+    accounts ++ id ++ "/unfollow"
 
 
-mute : Int -> String
+mute : String -> String
 mute id =
-    accounts ++ (toString id) ++ "/mute"
+    accounts ++ id ++ "/mute"
 
 
-unmute : Int -> String
+unmute : String -> String
 unmute id =
-    accounts ++ (toString id) ++ "/unmute"
+    accounts ++ id ++ "/unmute"
 
 
-block : Int -> String
+block : String -> String
 block id =
-    accounts ++ (toString id) ++ "/block"
+    accounts ++ id ++ "/block"
 
 
-unblock : Int -> String
+unblock : String -> String
 unblock id =
-    accounts ++ (toString id) ++ "/unblock"
+    accounts ++ id ++ "/unblock"
 
 
 userAccount : String
@@ -116,14 +116,14 @@ relationships =
     accounts ++ "relationships"
 
 
-followers : Int -> String
+followers : String -> String
 followers id =
-    (account id) ++ "/followers"
+    id ++ "/followers"
 
 
-following : Int -> String
+following : String -> String
 following id =
-    (account id) ++ "/following"
+    id ++ "/following"
 
 
 homeTimeline : String
@@ -136,9 +136,9 @@ publicTimeline =
     apiPrefix ++ "/timelines/public"
 
 
-accountTimeline : Int -> String
+accountTimeline : String -> String
 accountTimeline id =
-    (account id) ++ "/statuses"
+    id ++ "/statuses"
 
 
 favouriteTimeline : String
@@ -171,34 +171,34 @@ statuses =
     apiPrefix ++ "/statuses"
 
 
-context : Int -> String
+context : String -> String
 context id =
-    statuses ++ "/" ++ (toString id) ++ "/context"
+    statuses ++ "/" ++ id ++ "/context"
 
 
-reblog : Int -> String
+reblog : String -> String
 reblog id =
-    statuses ++ "/" ++ (toString id) ++ "/reblog"
+    statuses ++ "/" ++ id ++ "/reblog"
 
 
-status : Int -> String
+status : String -> String
 status id =
-    statuses ++ "/" ++ (toString id)
+    statuses ++ "/" ++ id
 
 
-unreblog : Int -> String
+unreblog : String -> String
 unreblog id =
-    statuses ++ "/" ++ (toString id) ++ "/unreblog"
+    statuses ++ "/" ++ id ++ "/unreblog"
 
 
-favourite : Int -> String
+favourite : String -> String
 favourite id =
-    statuses ++ "/" ++ (toString id) ++ "/favourite"
+    statuses ++ "/" ++ id ++ "/favourite"
 
 
-unfavourite : Int -> String
+unfavourite : String -> String
 unfavourite id =
-    statuses ++ "/" ++ (toString id) ++ "/unfavourite"
+    statuses ++ "/" ++ id ++ "/unfavourite"
 
 
 streaming : String

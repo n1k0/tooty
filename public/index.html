@@ -30,7 +30,7 @@
       });
 
     const app = Elm.Main.fullscreen({
-      clients: clients,
+      clients: localStorage.getItem("tooty.clients"),
       registration: JSON.parse(localStorage.getItem("tooty.registration"))
     });
 

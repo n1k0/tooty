@@ -8,9 +8,9 @@ import UrlParser exposing (..)
 
 
 type Route
-    = AccountFollowersRoute Int
-    | AccountFollowingRoute Int
-    | AccountRoute Int
+    = AccountFollowersRoute String
+    | AccountFollowingRoute String
+    | AccountRoute String
     | AccountSelectorRoute
     | BlocksRoute
     | FavoriteTimelineRoute
@@ -19,7 +19,7 @@ type Route
     | LocalTimelineRoute
     | MutesRoute
     | SearchRoute
-    | ThreadRoute Int
+    | ThreadRoute String
 
 
 route : Parser (Route -> a) a
@@ -29,12 +29,12 @@ route =
         , map GlobalTimelineRoute (s "global" </> top)
         , map FavoriteTimelineRoute (s "favorites" </> top)
         , map HashtagRoute (s "hashtag" </> string)
-        , map ThreadRoute (s "thread" </> int)
+        , map ThreadRoute (s "thread" </> string)
         , map BlocksRoute (s "blocks" </> top)
         , map MutesRoute (s "mutes" </> top)
-        , map AccountFollowersRoute (s "account" </> int </> s "followers")
-        , map AccountFollowingRoute (s "account" </> int </> s "following")
-        , map AccountRoute (s "account" </> int)
+        , map AccountFollowersRoute (s "account" </> string </> s "followers")
+        , map AccountFollowingRoute (s "account" </> string </> s "following")
+        , map AccountRoute (s "account" </> string)
         , map AccountSelectorRoute (s "accounts")
         , map SearchRoute (s "search" </> top)
         ]

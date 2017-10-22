@@ -9,7 +9,7 @@ import Time exposing (Time)
 
 
 type alias Flags =
-    { clients : List Client
+    { clients : String
     , registration : Maybe AppRegistration
     }
 
@@ -17,7 +17,7 @@ type alias Flags =
 type DraftMsg
     = ClearDraft
     | CloseAutocomplete
-    | RemoveMedia Int
+    | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
     | SetAutoState Autocomplete.Msg
@@ -72,10 +72,10 @@ type MastodonMsg
     | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | SearchResultsReceived (MastodonResult SearchResults)
-    | StatusDeleted (MastodonResult Int)
+    | StatusDeleted (MastodonResult String)
     | StatusPosted (MastodonResult Status)
-    | ThreadStatusLoaded Int (MastodonResult Status)
-    | ThreadContextLoaded Int (MastodonResult Context)
+    | ThreadStatusLoaded String (MastodonResult Status)
+    | ThreadContextLoaded String (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
 
 
@@ -103,7 +103,7 @@ type Msg
     | ClearError Int
     | ConfirmCancelled Msg
     | Confirmed Msg
-    | DeleteStatus Int
+    | DeleteStatus String
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
