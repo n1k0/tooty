@@ -187,6 +187,6 @@ sameAccount { id, acct, username } account =
     id == account.id && acct == account.acct && username == account.username
 
 
-statusReferenced : String -> Status -> Bool
+statusReferenced : StatusId -> Status -> Bool
 statusReferenced id status =
     status.id == id || (extractReblog status).id == id

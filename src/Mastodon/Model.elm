@@ -17,6 +17,7 @@ module Mastodon.Model
         , Tag
         , SearchResults
         , Status
+        , StatusId(..)
         , StatusRequestBody
         )
 
@@ -39,6 +40,10 @@ type alias ClientSecret =
 
 type alias Server =
     String
+
+
+type StatusId
+    = StatusId String
 
 
 type alias StatusCode =
@@ -190,9 +195,9 @@ type alias Status =
     , created_at : String
     , favourited : Maybe Bool
     , favourites_count : Int
-    , id : String
+    , id : StatusId
     , in_reply_to_account_id : Maybe String
-    , in_reply_to_id : Maybe String
+    , in_reply_to_id : Maybe StatusId
     , media_attachments : List Attachment
     , mentions : List Mention
     , reblog : Maybe Reblog
@@ -214,7 +219,7 @@ type alias StatusRequestBody =
     -- spoiler_text: text to be shown as a warning before the actual content
     -- visibility: either "direct", "private", "unlisted" or "public"
     { status : String
-    , in_reply_to_id : Maybe String
+    , in_reply_to_id : Maybe StatusId
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String

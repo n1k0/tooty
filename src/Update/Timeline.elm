@@ -47,7 +47,7 @@ cleanUnfollow account currentUser timeline =
         { timeline | entries = List.filter keep timeline.entries }
 
 
-deleteStatusFromCurrentView : String -> Model -> CurrentView
+deleteStatusFromCurrentView : StatusId -> Model -> CurrentView
 deleteStatusFromCurrentView id model =
     -- Note: account timeline is already cleaned in deleteStatusFromAllTimelines
     case model.currentView of
@@ -78,7 +78,7 @@ deleteStatusFromCurrentView id model =
             currentView
 
 
-deleteStatusFromAllTimelines : String -> Model -> Model
+deleteStatusFromAllTimelines : StatusId -> Model -> Model
 deleteStatusFromAllTimelines id ({ accountInfo } as model) =
     let
         accountTimeline =
@@ -95,7 +95,7 @@ deleteStatusFromAllTimelines id ({ accountInfo } as model) =
         }
 
 
-deleteStatusFromNotifications : String -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+deleteStatusFromNotifications : StatusId -> Timeline NotificationAggregate -> Timeline NotificationAggregate
 deleteStatusFromNotifications statusId notifications =
     let
         update notification =
@@ -109,7 +109,7 @@ deleteStatusFromNotifications statusId notifications =
         { notifications | entries = List.filter update notifications.entries }
 
 
-deleteStatus : String -> Timeline Status -> Timeline Status
+deleteStatus : StatusId -> Timeline Status -> Timeline Status
 deleteStatus statusId ({ entries } as timeline) =
     { timeline
         | entries = List.filter (not << Mastodon.Helper.statusReferenced statusId) entries
@@ -283,7 +283,7 @@ update append entries links timeline =
         }
 
 
-updateWithBoolFlag : String -> Bool -> (Status -> Status) -> Model -> Model
+updateWithBoolFlag : StatusId -> Bool -> (Status -> Status) -> Model -> Model
 updateWithBoolFlag statusId flag statusUpdater ({ accountInfo } as model) =
     let
         updateStatus status =

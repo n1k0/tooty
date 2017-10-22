@@ -279,7 +279,7 @@ loadRelationships client ids =
         Cmd.none
 
 
-loadThread : Maybe Client -> String -> Cmd Msg
+loadThread : Maybe Client -> StatusId -> Cmd Msg
 loadThread client id =
     case client of
         Just client ->
@@ -497,7 +497,7 @@ updateDomStatus statusText =
     Ports.setStatus { id = "status", status = statusText }
 
 
-deleteStatus : Maybe Client -> String -> Cmd Msg
+deleteStatus : Maybe Client -> StatusId -> Cmd Msg
 deleteStatus client id =
     case client of
         Just client ->
@@ -510,7 +510,7 @@ deleteStatus client id =
             Cmd.none
 
 
-reblogStatus : Maybe Client -> String -> Cmd Msg
+reblogStatus : Maybe Client -> StatusId -> Cmd Msg
 reblogStatus client statusId =
     case client of
         Just client ->
@@ -523,7 +523,7 @@ reblogStatus client statusId =
             Cmd.none
 
 
-unreblogStatus : Maybe Client -> String -> Cmd Msg
+unreblogStatus : Maybe Client -> StatusId -> Cmd Msg
 unreblogStatus client statusId =
     case client of
         Just client ->
@@ -536,7 +536,7 @@ unreblogStatus client statusId =
             Cmd.none
 
 
-favouriteStatus : Maybe Client -> String -> Cmd Msg
+favouriteStatus : Maybe Client -> StatusId -> Cmd Msg
 favouriteStatus client statusId =
     case client of
         Just client ->
@@ -549,7 +549,7 @@ favouriteStatus client statusId =
             Cmd.none
 
 
-unfavouriteStatus : Maybe Client -> String -> Cmd Msg
+unfavouriteStatus : Maybe Client -> StatusId -> Cmd Msg
 unfavouriteStatus client statusId =
     case client of
         Just client ->

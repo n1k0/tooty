@@ -1,6 +1,7 @@
 module Update.Route exposing (update)
 
 import Command
+import Mastodon.Model exposing (StatusId(..))
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Timeline
@@ -19,7 +20,12 @@ type Route
     | LocalTimelineRoute
     | MutesRoute
     | SearchRoute
-    | ThreadRoute String
+    | ThreadRoute StatusId
+
+
+statusIdParser : Parser (StatusId -> a) a
+statusIdParser =
+    custom "id" (Ok << StatusId)
 
 
 route : Parser (Route -> a) a
@@ -29,7 +35,7 @@ route =
         , map GlobalTimelineRoute (s "global" </> top)
         , map FavoriteTimelineRoute (s "favorites" </> top)
         , map HashtagRoute (s "hashtag" </> string)
-        , map ThreadRoute (s "thread" </> string)
+        , map ThreadRoute (s "thread" </> statusIdParser)
         , map BlocksRoute (s "blocks" </> top)
         , map MutesRoute (s "mutes" </> top)
         , map AccountFollowersRoute (s "account" </> string </> s "followers")

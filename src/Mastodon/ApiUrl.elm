@@ -35,6 +35,8 @@ module Mastodon.ApiUrl
         , search
         )
 
+import Mastodon.Model exposing (StatusId(..))
+
 
 apiPrefix : String
 apiPrefix =
@@ -171,33 +173,33 @@ statuses =
     apiPrefix ++ "/statuses"
 
 
-context : String -> String
-context id =
+context : StatusId -> String
+context (StatusId id) =
     statuses ++ "/" ++ id ++ "/context"
 
 
-reblog : String -> String
-reblog id =
+reblog : StatusId -> String
+reblog (StatusId id) =
     statuses ++ "/" ++ id ++ "/reblog"
 
 
-status : String -> String
-status id =
+status : StatusId -> String
+status (StatusId id) =
     statuses ++ "/" ++ id
 
 
-unreblog : String -> String
-unreblog id =
+unreblog : StatusId -> String
+unreblog (StatusId id) =
     statuses ++ "/" ++ id ++ "/unreblog"
 
 
-favourite : String -> String
-favourite id =
+favourite : StatusId -> String
+favourite (StatusId id) =
     statuses ++ "/" ++ id ++ "/favourite"
 
 
-unfavourite : String -> String
-unfavourite id =
+unfavourite : StatusId -> String
+unfavourite (StatusId id) =
     statuses ++ "/" ++ id ++ "/unfavourite"
 
 

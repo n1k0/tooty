@@ -72,10 +72,10 @@ type MastodonMsg
     | Notifications Bool (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | SearchResultsReceived (MastodonResult SearchResults)
-    | StatusDeleted (MastodonResult String)
+    | StatusDeleted (MastodonResult StatusId)
     | StatusPosted (MastodonResult Status)
-    | ThreadStatusLoaded String (MastodonResult Status)
-    | ThreadContextLoaded String (MastodonResult Context)
+    | ThreadStatusLoaded StatusId (MastodonResult Status)
+    | ThreadContextLoaded StatusId (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
 
 
@@ -103,7 +103,7 @@ type Msg
     | ClearError Int
     | ConfirmCancelled Msg
     | Confirmed Msg
-    | DeleteStatus String
+    | DeleteStatus StatusId
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account

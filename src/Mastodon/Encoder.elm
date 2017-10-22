@@ -91,11 +91,16 @@ registrationEncoder registration =
         ]
 
 
+encodeStatusId : StatusId -> Encode.Value
+encodeStatusId (StatusId id) =
+    Encode.string id
+
+
 statusRequestBodyEncoder : StatusRequestBody -> Encode.Value
 statusRequestBodyEncoder statusData =
     Encode.object
         [ ( "status", Encode.string statusData.status )
-        , ( "in_reply_to_id", encodeMaybe Encode.string statusData.in_reply_to_id )
+        , ( "in_reply_to_id", encodeMaybe encodeStatusId statusData.in_reply_to_id )
         , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
         , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "visibility", Encode.string statusData.visibility )

@@ -163,6 +163,11 @@ idDecoder =
         ]
 
 
+statusIdDecoder : Decode.Decoder StatusId
+statusIdDecoder =
+    idDecoder |> Decode.map StatusId
+
+
 statusDecoder : Decode.Decoder Status
 statusDecoder =
     Pipe.decode Status
@@ -172,9 +177,9 @@ statusDecoder =
         |> Pipe.required "created_at" Decode.string
         |> Pipe.optional "favourited" (Decode.nullable Decode.bool) Nothing
         |> Pipe.required "favourites_count" Decode.int
-        |> Pipe.required "id" idDecoder
+        |> Pipe.required "id" statusIdDecoder
         |> Pipe.required "in_reply_to_account_id" (Decode.nullable idDecoder)
-        |> Pipe.required "in_reply_to_id" (Decode.nullable idDecoder)
+        |> Pipe.required "in_reply_to_id" (Decode.nullable statusIdDecoder)
         |> Pipe.required "media_attachments" (Decode.list attachmentDecoder)
         |> Pipe.required "mentions" (Decode.list mentionDecoder)
         |> Pipe.optional "reblog" (Decode.lazy (\_ -> Decode.nullable reblogDecoder)) Nothing
@@ -192,7 +197,15 @@ webSocketEventDecoder : Decode.Decoder WebSocketMessage
 webSocketEventDecoder =
     Pipe.decode WebSocketMessage
         |> Pipe.required "event" Decode.string
-        |> Pipe.required "payload" Decode.string
+        |> Pipe.required "payload"
+            -- NOTE: as of the Mastodon API v2.0.0, ids may be either ints or
+            -- strings. If we receive an int (most likely for the delete event),
+            -- we cast it to a string.
+            (Decode.oneOf
+                [ Decode.string
+                , Decode.int |> Decode.map toString
+                ]
+            )
 
 
 decodeWebSocketMessage : String -> WebSocketEvent
@@ -204,7 +217,7 @@ decodeWebSocketMessage message =
                     StatusUpdateEvent (Decode.decodeString statusDecoder payload)
 
                 "delete" ->
-                    StatusDeleteEvent payload
+                    StatusDeleteEvent (StatusId payload)
 
                 "notification" ->
                     NotificationEvent (Decode.decodeString notificationDecoder payload)
