@@ -15,12 +15,7 @@ init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init { registration, clients } location =
     let
         decodedClients =
-            case decodeClients clients of
-                Ok clients ->
-                    clients
-
-                Err _ ->
-                    []
+            Result.withDefault [] <| decodeClients clients
 
         ( model, commands ) =
             Update.Route.update
