@@ -204,7 +204,7 @@ decodeWebSocketMessage message =
                     StatusUpdateEvent (Decode.decodeString statusDecoder payload)
 
                 "delete" ->
-                    StatusUpdateEvent (Decode.decodeString statusDecoder payload)
+                    StatusDeleteEvent payload
 
                 "notification" ->
                     NotificationEvent (Decode.decodeString notificationDecoder payload)

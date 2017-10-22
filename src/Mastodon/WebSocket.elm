@@ -22,7 +22,7 @@ type StreamType
 type WebSocketEvent
     = StatusUpdateEvent (Result String Status)
     | NotificationEvent (Result String Notification)
-    | StatusDeleteEvent (Result String String)
+    | StatusDeleteEvent String
     | ErrorEvent String
 
 

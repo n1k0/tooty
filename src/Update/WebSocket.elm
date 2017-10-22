@@ -30,13 +30,8 @@ update msg model =
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
 
-                Mastodon.WebSocket.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            Update.Timeline.deleteStatusFromAllTimelines id model ! []
-
-                        Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                Mastodon.WebSocket.StatusDeleteEvent id ->
+                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
 
                 Mastodon.WebSocket.NotificationEvent result ->
                     case result of
@@ -76,13 +71,8 @@ update msg model =
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
 
-                Mastodon.WebSocket.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            Update.Timeline.deleteStatusFromAllTimelines id model ! []
-
-                        Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                Mastodon.WebSocket.StatusDeleteEvent id ->
+                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
 
                 _ ->
                     model ! []
@@ -104,13 +94,8 @@ update msg model =
                         Err error ->
                             { model | errors = addErrorNotification error model } ! []
 
-                Mastodon.WebSocket.StatusDeleteEvent result ->
-                    case result of
-                        Ok id ->
-                            Update.Timeline.deleteStatusFromAllTimelines id model ! []
-
-                        Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                Mastodon.WebSocket.StatusDeleteEvent id ->
+                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
 
                 _ ->
                     model ! []
