@@ -9,7 +9,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
-import Mastodon.Helper
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
@@ -33,7 +33,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
                     False
 
         attId =
-            "att" ++ (toString attachment.id) ++ context
+            "att" ++ attachment.id ++ context
 
         media =
             a
@@ -68,7 +68,7 @@ attachmentListView : String -> Status -> Html Msg
 attachmentListView context { media_attachments, sensitive } =
     let
         keyedEntry attachments attachment =
-            ( toString attachment.id
+            ( attachment.id
             , attachmentPreview context sensitive attachments attachment
             )
     in
@@ -158,7 +158,7 @@ statusContentView context status =
             -- Note: Spoilers are dealt with using pure CSS.
             let
                 statusId =
-                    "spoiler" ++ (toString status.id) ++ context
+                    "spoiler" ++ extractStatusId status.id ++ context
             in
                 div [ class "status-text spoiled" ]
                     [ div
@@ -189,7 +189,7 @@ statusEntryView context className currentUser status =
         liAttributes =
             [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
                 ++ if context == "thread" then
-                    [ id <| "thread-status-" ++ (toString status.id) ]
+                    [ id <| "thread-status-" ++ extractStatusId status.id ]
                    else
                     []
     in
@@ -203,7 +203,7 @@ statusView : String -> Status -> Html Msg
 statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
     let
         accountLinkAttributes =
-            [ href <| "#account/" ++ (toString account.id) ]
+            [ href <| "#account/" ++ account.id ]
     in
         case reblog of
             Just (Reblog reblog) ->

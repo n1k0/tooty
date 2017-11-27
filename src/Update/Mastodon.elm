@@ -2,7 +2,7 @@ module Update.Mastodon exposing (update)
 
 import Command
 import Navigation
-import Mastodon.Helper
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Task
 import Types exposing (..)
@@ -116,7 +116,7 @@ update msg ({ accountInfo, search } as model) =
                                 _ ->
                                     model.currentView
                     }
-                        ! [ Command.scrollToThreadStatus <| toString id ]
+                        ! [ Command.scrollToThreadStatus <| extractStatusId id ]
 
                 Err error ->
                     { model
@@ -137,7 +137,7 @@ update msg ({ accountInfo, search } as model) =
                                 _ ->
                                     model.currentView
                     }
-                        ! [ Command.scrollToThreadStatus <| toString id ]
+                        ! [ Command.scrollToThreadStatus <| extractStatusId id ]
 
                 Err error ->
                     { model

@@ -20,7 +20,7 @@ import Util
 autocompleteUpdateConfig : Autocomplete.UpdateConfig Msg Account
 autocompleteUpdateConfig =
     Autocomplete.updateConfig
-        { toId = .id >> toString
+        { toId = .id
         , onKeyDown =
             \code maybeId ->
                 if code == 38 || code == 40 then
@@ -173,7 +173,7 @@ update draftMsg currentUser ({ draft } as model) =
         SelectAccount id ->
             let
                 account =
-                    List.filter (\account -> toString account.id == id) draft.autoAccounts
+                    List.filter (\account -> account.id == id) draft.autoAccounts
                         |> List.head
 
                 stringToAtPos =

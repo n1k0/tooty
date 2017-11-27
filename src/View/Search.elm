@@ -20,7 +20,7 @@ accountListView accounts =
                 , formatContent account.note []
                     |> div
                         [ class "status-text"
-                        , onClick <| Navigate ("#account/" ++ (toString account.id))
+                        , onClick <| Navigate ("#account/" ++ account.id)
                         ]
                 ]
     in

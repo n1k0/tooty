@@ -3,6 +3,7 @@ module Mastodon.Helper
         ( extractReblog
         , aggregateNotifications
         , addNotificationToAggregates
+        , extractStatusId
         , getReplyPrefix
         , notificationToAggregate
         , sameAccount
@@ -190,3 +191,8 @@ sameAccount { id, acct, username } account =
 statusReferenced : StatusId -> Status -> Bool
 statusReferenced id status =
     status.id == id || (extractReblog status).id == id
+
+
+extractStatusId : StatusId -> String
+extractStatusId (StatusId id) =
+    id

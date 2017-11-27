@@ -65,7 +65,7 @@ viewConfig =
             }
     in
         Autocomplete.viewConfig
-            { toId = .id >> toString
+            { toId = .id
             , ul = [ class "list-group autocomplete-list" ]
             , li = customizedLi
             }

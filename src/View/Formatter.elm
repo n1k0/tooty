@@ -47,7 +47,7 @@ createLinkNode attrs children mentions =
     case (getMentionForLink attrs mentions) of
         Just mention ->
             Html.node "a"
-                (replaceHref ("#account/" ++ (toString mention.id)) attrs)
+                (replaceHref ("#account/" ++ mention.id) attrs)
                 (toVirtualDom mentions children)
 
         Nothing ->

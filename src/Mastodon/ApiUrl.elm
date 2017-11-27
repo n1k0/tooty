@@ -120,12 +120,12 @@ relationships =
 
 followers : String -> String
 followers id =
-    id ++ "/followers"
+    account id ++ "/followers"
 
 
 following : String -> String
 following id =
-    id ++ "/following"
+    account id ++ "/following"
 
 
 homeTimeline : String
@@ -140,7 +140,7 @@ publicTimeline =
 
 accountTimeline : String -> String
 accountTimeline id =
-    id ++ "/statuses"
+    account id ++ "/statuses"
 
 
 favouriteTimeline : String

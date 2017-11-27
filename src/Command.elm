@@ -54,6 +54,7 @@ import HttpBuilder
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Http exposing (..)
 import Mastodon.Model exposing (..)
 import Navigation
@@ -262,7 +263,7 @@ requestRelationships client ids =
         |> withClient client
         |> withBodyDecoder (Decode.list relationshipDecoder)
         |> withQueryParams
-            (List.map (\id -> ( "id[]", toString id )) ids)
+            (List.map (\id -> ( "id[]", id )) ids)
 
 
 loadRelationships : Maybe Client -> List String -> Cmd Msg
@@ -680,7 +681,7 @@ notifyStatus status =
         { title = status.account.acct
         , icon = status.account.avatar
         , body = status.content |> textContent
-        , clickUrl = "#thread/" ++ (toString status.id)
+        , clickUrl = "#thread/" ++ extractStatusId status.id
         }
 
 
@@ -694,7 +695,7 @@ notifyNotification notification =
                         { title = notification.account.acct ++ " reboosted"
                         , icon = notification.account.avatar
                         , body = status.content |> textContent
-                        , clickUrl = "#thread/" ++ (toString status.id)
+                        , clickUrl = "#thread/" ++ extractStatusId status.id
                         }
 
                 "favourite" ->
@@ -702,7 +703,7 @@ notifyNotification notification =
                         { title = notification.account.acct ++ " favorited"
                         , icon = notification.account.avatar
                         , body = status.content |> textContent
-                        , clickUrl = "#thread/" ++ (toString status.id)
+                        , clickUrl = "#thread/" ++ extractStatusId status.id
                         }
 
                 "mention" ->
@@ -710,7 +711,7 @@ notifyNotification notification =
                         { title = notification.account.acct ++ " mentioned you"
                         , icon = notification.account.avatar
                         , body = status.content |> textContent
-                        , clickUrl = "#thread/" ++ (toString status.id)
+                        , clickUrl = "#thread/" ++ extractStatusId status.id
                         }
 
                 _ ->
@@ -723,7 +724,7 @@ notifyNotification notification =
                         { title = notification.account.acct ++ " follows you"
                         , icon = notification.account.avatar
                         , body = notification.account.note
-                        , clickUrl = "#account/" ++ (toString notification.account.id)
+                        , clickUrl = "#account/" ++ notification.account.id
                         }
 
                 _ ->
