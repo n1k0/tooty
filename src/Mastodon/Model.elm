@@ -17,12 +17,13 @@ module Mastodon.Model
         , Tag
         , SearchResults
         , Status
+        , StatusId(..)
         , StatusRequestBody
         )
 
 
 type alias AccountId =
-    Int
+    String
 
 
 type alias AuthCode =
@@ -39,6 +40,10 @@ type alias ClientSecret =
 
 type alias Server =
     String
+
+
+type StatusId
+    = StatusId String
 
 
 type alias StatusCode =
@@ -71,7 +76,7 @@ type alias AppRegistration =
     , scope : String
     , client_id : ClientId
     , client_secret : ClientSecret
-    , id : Int
+    , id : String
     , redirect_uri : String
     }
 
@@ -101,7 +106,7 @@ type alias Application =
 
 type alias Attachment =
     -- type_: -- "image", "video", "gifv"
-    { id : Int
+    { id : String
     , type_ : String
     , url : String
     , remote_url : String
@@ -139,7 +144,7 @@ type alias Notification =
        - account: The Account sending the notification to the user
        - status: The Status associated with the notification, if applicable
     -}
-    { id : Int
+    { id : String
     , type_ : String
     , created_at : String
     , account : Account
@@ -154,7 +159,7 @@ type alias AccountNotificationDate =
 
 
 type alias NotificationAggregate =
-    { id : Int
+    { id : String
     , type_ : String
     , status : Maybe Status
     , accounts : List AccountNotificationDate
@@ -167,7 +172,7 @@ type Reblog
 
 
 type alias Relationship =
-    { id : Int
+    { id : String
     , blocking : Bool
     , followed_by : Bool
     , following : Bool
@@ -190,9 +195,9 @@ type alias Status =
     , created_at : String
     , favourited : Maybe Bool
     , favourites_count : Int
-    , id : Int
-    , in_reply_to_account_id : Maybe Int
-    , in_reply_to_id : Maybe Int
+    , id : StatusId
+    , in_reply_to_account_id : Maybe String
+    , in_reply_to_id : Maybe StatusId
     , media_attachments : List Attachment
     , mentions : List Mention
     , reblog : Maybe Reblog
@@ -214,11 +219,11 @@ type alias StatusRequestBody =
     -- spoiler_text: text to be shown as a warning before the actual content
     -- visibility: either "direct", "private", "unlisted" or "public"
     { status : String
-    , in_reply_to_id : Maybe Int
+    , in_reply_to_id : Maybe StatusId
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String
-    , media_ids : List Int
+    , media_ids : List String
     }
 
 

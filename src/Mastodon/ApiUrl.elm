@@ -35,6 +35,8 @@ module Mastodon.ApiUrl
         , search
         )
 
+import Mastodon.Model exposing (StatusId(..))
+
 
 apiPrefix : String
 apiPrefix =
@@ -61,39 +63,39 @@ accounts =
     apiPrefix ++ "/accounts/"
 
 
-account : Int -> String
+account : String -> String
 account id =
-    accounts ++ (toString id)
+    accounts ++ id
 
 
-follow : Int -> String
+follow : String -> String
 follow id =
-    accounts ++ (toString id) ++ "/follow"
+    accounts ++ id ++ "/follow"
 
 
-unfollow : Int -> String
+unfollow : String -> String
 unfollow id =
-    accounts ++ (toString id) ++ "/unfollow"
+    accounts ++ id ++ "/unfollow"
 
 
-mute : Int -> String
+mute : String -> String
 mute id =
-    accounts ++ (toString id) ++ "/mute"
+    accounts ++ id ++ "/mute"
 
 
-unmute : Int -> String
+unmute : String -> String
 unmute id =
-    accounts ++ (toString id) ++ "/unmute"
+    accounts ++ id ++ "/unmute"
 
 
-block : Int -> String
+block : String -> String
 block id =
-    accounts ++ (toString id) ++ "/block"
+    accounts ++ id ++ "/block"
 
 
-unblock : Int -> String
+unblock : String -> String
 unblock id =
-    accounts ++ (toString id) ++ "/unblock"
+    accounts ++ id ++ "/unblock"
 
 
 userAccount : String
@@ -116,14 +118,14 @@ relationships =
     accounts ++ "relationships"
 
 
-followers : Int -> String
+followers : String -> String
 followers id =
-    (account id) ++ "/followers"
+    account id ++ "/followers"
 
 
-following : Int -> String
+following : String -> String
 following id =
-    (account id) ++ "/following"
+    account id ++ "/following"
 
 
 homeTimeline : String
@@ -136,9 +138,9 @@ publicTimeline =
     apiPrefix ++ "/timelines/public"
 
 
-accountTimeline : Int -> String
+accountTimeline : String -> String
 accountTimeline id =
-    (account id) ++ "/statuses"
+    account id ++ "/statuses"
 
 
 favouriteTimeline : String
@@ -171,34 +173,34 @@ statuses =
     apiPrefix ++ "/statuses"
 
 
-context : Int -> String
-context id =
-    statuses ++ "/" ++ (toString id) ++ "/context"
+context : StatusId -> String
+context (StatusId id) =
+    statuses ++ "/" ++ id ++ "/context"
 
 
-reblog : Int -> String
-reblog id =
-    statuses ++ "/" ++ (toString id) ++ "/reblog"
+reblog : StatusId -> String
+reblog (StatusId id) =
+    statuses ++ "/" ++ id ++ "/reblog"
 
 
-status : Int -> String
-status id =
-    statuses ++ "/" ++ (toString id)
+status : StatusId -> String
+status (StatusId id) =
+    statuses ++ "/" ++ id
 
 
-unreblog : Int -> String
-unreblog id =
-    statuses ++ "/" ++ (toString id) ++ "/unreblog"
+unreblog : StatusId -> String
+unreblog (StatusId id) =
+    statuses ++ "/" ++ id ++ "/unreblog"
 
 
-favourite : Int -> String
-favourite id =
-    statuses ++ "/" ++ (toString id) ++ "/favourite"
+favourite : StatusId -> String
+favourite (StatusId id) =
+    statuses ++ "/" ++ id ++ "/favourite"
 
 
-unfavourite : Int -> String
-unfavourite id =
-    statuses ++ "/" ++ (toString id) ++ "/unfavourite"
+unfavourite : StatusId -> String
+unfavourite (StatusId id) =
+    statuses ++ "/" ++ id ++ "/unfavourite"
 
 
 streaming : String

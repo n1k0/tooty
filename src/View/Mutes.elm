@@ -35,7 +35,7 @@ muteView currentUser account =
                 , div [ class "userinfo" ]
                     [ strong []
                         [ a
-                            [ href <| "#account/" ++ (toString account.id) ]
+                            [ href <| "#account/" ++ account.id ]
                             [ text <|
                                 if account.display_name /= "" then
                                     account.display_name
@@ -60,7 +60,7 @@ mutesView : Model -> Html Msg
 mutesView { currentUser, currentView, mutes, location } =
     let
         keyedEntry account =
-            ( toString account.id
+            ( account.id
             , muteView currentUser account
             )
 

@@ -2,6 +2,7 @@ module Update.Main exposing (update)
 
 import Command
 import List.Extra exposing (removeAt)
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Navigation
 import Types exposing (..)
@@ -155,7 +156,7 @@ update msg model =
 
         OpenThread status ->
             { model | currentView = ThreadView (Thread Nothing Nothing) }
-                ! [ Navigation.newUrl <| "#thread/" ++ (toString status.id) ]
+                ! [ Navigation.newUrl <| "#thread/" ++ extractStatusId status.id ]
 
         FollowAccount account ->
             model ! [ Command.follow (List.head model.clients) account ]

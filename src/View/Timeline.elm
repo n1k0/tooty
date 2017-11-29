@@ -11,6 +11,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
@@ -52,7 +53,7 @@ timelineView : CurrentUser -> Timeline Status -> Html Msg
 timelineView currentUser timeline =
     let
         keyedEntry status =
-            ( toString id, statusEntryView timeline.id "" currentUser status )
+            ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
 
         entries =
             List.map keyedEntry timeline.entries

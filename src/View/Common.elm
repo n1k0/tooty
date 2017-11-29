@@ -36,7 +36,7 @@ accountLink external account =
             if external then
                 target "_blank"
             else
-                href <| "#account/" ++ (toString account.id)
+                href <| "#account/" ++ account.id
     in
         a
             [ href account.url
@@ -52,7 +52,7 @@ accountAvatarLink external account =
             if external then
                 target "_blank"
             else
-                href <| "#account/" ++ (toString account.id)
+                href <| "#account/" ++ account.id
 
         avatarClass =
             if external then

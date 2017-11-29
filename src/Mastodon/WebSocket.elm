@@ -3,7 +3,6 @@ module Mastodon.WebSocket
         ( StreamType(..)
         , WebSocketEvent(..)
         , WebSocketMessage
-        , WebSocketPayload(..)
         , subscribeToWebSockets
         )
 
@@ -23,18 +22,13 @@ type StreamType
 type WebSocketEvent
     = StatusUpdateEvent (Result String Status)
     | NotificationEvent (Result String Notification)
-    | StatusDeleteEvent (Result String Int)
+    | StatusDeleteEvent StatusId
     | ErrorEvent String
-
-
-type WebSocketPayload
-    = StringPayload String
-    | IntPayload Int
 
 
 type alias WebSocketMessage =
     { event : String
-    , payload : WebSocketPayload
+    , payload : String
     }
 
 

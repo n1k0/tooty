@@ -35,7 +35,7 @@ blockView currentUser account =
                 , div [ class "userinfo" ]
                     [ strong []
                         [ a
-                            [ href <| "#account/" ++ (toString account.id) ]
+                            [ href <| "#account/" ++ account.id ]
                             [ text <|
                                 if account.display_name /= "" then
                                     account.display_name
@@ -60,7 +60,7 @@ blocksView : Model -> Html Msg
 blocksView { currentUser, currentView, blocks, location } =
     let
         keyedEntry account =
-            ( toString account.id
+            ( account.id
             , blockView currentUser account
             )
 

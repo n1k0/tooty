@@ -4,6 +4,7 @@ import View.Common as Common
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Status exposing (statusEntryView)
@@ -36,7 +37,7 @@ threadStatuses currentUser thread =
                         status
 
                 keyedEntry status =
-                    ( toString status.id, threadEntry status )
+                    ( extractStatusId status.id, threadEntry status )
             in
                 Keyed.ul [ id "thread", class "list-group timeline" ] <|
                     List.map keyedEntry statuses

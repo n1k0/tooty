@@ -6,6 +6,7 @@ module Mastodon.Decoder
         , attachmentDecoder
         , contextDecoder
         , decodeWebSocketMessage
+        , decodeClients
         , mastodonErrorDecoder
         , mentionDecoder
         , notificationDecoder
@@ -14,7 +15,6 @@ module Mastodon.Decoder
         , relationshipDecoder
         , searchResultsDecoder
         , statusDecoder
-        , webSocketPayloadDecoder
         , webSocketEventDecoder
         )
 
@@ -31,7 +31,7 @@ appRegistrationDecoder server scope =
         |> Pipe.hardcoded scope
         |> Pipe.required "client_id" Decode.string
         |> Pipe.required "client_secret" Decode.string
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "redirect_uri" Decode.string
 
 
@@ -52,7 +52,7 @@ accountDecoder =
         |> Pipe.required "followers_count" Decode.int
         |> Pipe.required "following_count" Decode.int
         |> Pipe.required "header" Decode.string
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "locked" Decode.bool
         |> Pipe.required "note" Decode.string
         |> Pipe.required "statuses_count" Decode.int
@@ -70,7 +70,7 @@ applicationDecoder =
 attachmentDecoder : Decode.Decoder Attachment
 attachmentDecoder =
     Pipe.decode Attachment
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "type" Decode.string
         |> Pipe.required "url" Decode.string
         |> Pipe.optional "remote_url" Decode.string ""
@@ -85,6 +85,19 @@ contextDecoder =
         |> Pipe.required "descendants" (Decode.list statusDecoder)
 
 
+clientDecoder : Decode.Decoder Client
+clientDecoder =
+    Pipe.decode Client
+        |> Pipe.required "server" Decode.string
+        |> Pipe.required "token" Decode.string
+        |> Pipe.required "account" (Decode.maybe accountDecoder)
+
+
+decodeClients : String -> Result String (List Client)
+decodeClients json =
+    Decode.decodeString (Decode.list clientDecoder) json
+
+
 mastodonErrorDecoder : Decode.Decoder String
 mastodonErrorDecoder =
     Decode.field "error" Decode.string
@@ -93,7 +106,7 @@ mastodonErrorDecoder =
 mentionDecoder : Decode.Decoder Mention
 mentionDecoder =
     Pipe.decode Mention
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "url" Decode.string
         |> Pipe.required "username" Decode.string
         |> Pipe.required "acct" Decode.string
@@ -102,7 +115,7 @@ mentionDecoder =
 notificationDecoder : Decode.Decoder Notification
 notificationDecoder =
     Pipe.decode Notification
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "type" Decode.string
         |> Pipe.required "created_at" Decode.string
         |> Pipe.required "account" accountDecoder
@@ -112,7 +125,7 @@ notificationDecoder =
 relationshipDecoder : Decode.Decoder Relationship
 relationshipDecoder =
     Pipe.decode Relationship
-        |> Pipe.required "id" Decode.int
+        |> Pipe.required "id" idDecoder
         |> Pipe.required "blocking" Decode.bool
         |> Pipe.required "followed_by" Decode.bool
         |> Pipe.required "following" Decode.bool
@@ -140,6 +153,21 @@ searchResultsDecoder =
         |> Pipe.required "hashtags" (Decode.list Decode.string)
 
 
+idDecoder : Decode.Decoder String
+idDecoder =
+    -- Note: since v2.0.0 of the Mastodon API, ids are treated as strings, so we
+    -- treat all ids as strings.
+    Decode.oneOf
+        [ Decode.string
+        , Decode.int |> Decode.map toString
+        ]
+
+
+statusIdDecoder : Decode.Decoder StatusId
+statusIdDecoder =
+    idDecoder |> Decode.map StatusId
+
+
 statusDecoder : Decode.Decoder Status
 statusDecoder =
     Pipe.decode Status
@@ -149,9 +177,9 @@ statusDecoder =
         |> Pipe.required "created_at" Decode.string
         |> Pipe.optional "favourited" (Decode.nullable Decode.bool) Nothing
         |> Pipe.required "favourites_count" Decode.int
-        |> Pipe.required "id" Decode.int
-        |> Pipe.required "in_reply_to_account_id" (Decode.nullable Decode.int)
-        |> Pipe.required "in_reply_to_id" (Decode.nullable Decode.int)
+        |> Pipe.required "id" statusIdDecoder
+        |> Pipe.required "in_reply_to_account_id" (Decode.nullable idDecoder)
+        |> Pipe.required "in_reply_to_id" (Decode.nullable statusIdDecoder)
         |> Pipe.required "media_attachments" (Decode.list attachmentDecoder)
         |> Pipe.required "mentions" (Decode.list mentionDecoder)
         |> Pipe.optional "reblog" (Decode.lazy (\_ -> Decode.nullable reblogDecoder)) Nothing
@@ -165,49 +193,34 @@ statusDecoder =
         |> Pipe.required "visibility" Decode.string
 
 
-webSocketPayloadDecoder : Decode.Decoder WebSocketPayload
-webSocketPayloadDecoder =
-    Decode.oneOf
-        [ Decode.map StringPayload Decode.string
-        , Decode.map IntPayload Decode.int
-        ]
-
-
 webSocketEventDecoder : Decode.Decoder WebSocketMessage
 webSocketEventDecoder =
     Pipe.decode WebSocketMessage
         |> Pipe.required "event" Decode.string
-        |> Pipe.required "payload" webSocketPayloadDecoder
+        |> Pipe.required "payload"
+            -- NOTE: as of the Mastodon API v2.0.0, ids may be either ints or
+            -- strings. If we receive an int (most likely for the delete event),
+            -- we cast it to a string.
+            (Decode.oneOf
+                [ Decode.string
+                , Decode.int |> Decode.map toString
+                ]
+            )
 
 
 decodeWebSocketMessage : String -> WebSocketEvent
 decodeWebSocketMessage message =
     case (Decode.decodeString webSocketEventDecoder message) of
-        Ok message ->
-            case message.event of
+        Ok { event, payload } ->
+            case event of
                 "update" ->
-                    case message.payload of
-                        StringPayload payload ->
-                            StatusUpdateEvent (Decode.decodeString statusDecoder payload)
-
-                        _ ->
-                            ErrorEvent "WS status update event payload must be a string"
+                    StatusUpdateEvent (Decode.decodeString statusDecoder payload)
 
                 "delete" ->
-                    case message.payload of
-                        IntPayload payload ->
-                            StatusDeleteEvent <| Ok payload
-
-                        _ ->
-                            ErrorEvent "WS status delete event payload must be an int"
+                    StatusDeleteEvent (StatusId payload)
 
                 "notification" ->
-                    case message.payload of
-                        StringPayload payload ->
-                            NotificationEvent (Decode.decodeString notificationDecoder payload)
-
-                        _ ->
-                            ErrorEvent "WS notification event payload must be an string"
+                    NotificationEvent (Decode.decodeString notificationDecoder payload)
 
                 event ->
                     ErrorEvent <| "Unknown WS event " ++ event

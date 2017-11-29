@@ -1,6 +1,7 @@
 module Init exposing (init)
 
 import Command
+import Mastodon.Decoder exposing (decodeClients)
 import Navigation
 import Types exposing (..)
 import Update.AccountInfo
@@ -13,12 +14,15 @@ import Util
 init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
 init { registration, clients } location =
     let
+        decodedClients =
+            Result.withDefault [] <| decodeClients clients
+
         ( model, commands ) =
             Update.Route.update
                 { server = ""
                 , currentTime = 0
                 , registration = registration
-                , clients = clients
+                , clients = decodedClients
                 , homeTimeline = Update.Timeline.empty "home-timeline"
                 , localTimeline = Update.Timeline.empty "local-timeline"
                 , globalTimeline = Update.Timeline.empty "global-timeline"
@@ -41,4 +45,4 @@ init { registration, clients } location =
                 }
     in
         model
-            ! [ commands, Command.initCommands registration (List.head clients) (Util.extractAuthCode location) ]
+            ! [ commands, Command.initCommands registration (List.head decodedClients) (Util.extractAuthCode location) ]

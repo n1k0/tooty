@@ -6,7 +6,7 @@ import Html.Events exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
 import List.Extra exposing (find)
-import Mastodon.Helper
+import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
@@ -62,7 +62,7 @@ followView currentUser relationship account =
         , div [ class "userinfo" ]
             [ strong []
                 [ a
-                    [ href <| "#account/" ++ (toString account.id) ]
+                    [ href <| "#account/" ++ account.id ]
                     [ text <|
                         if account.display_name /= "" then
                             account.display_name
@@ -148,7 +148,7 @@ accountFollowView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
 accountFollowView view currentUser accountInfo =
     let
         keyedEntry account =
-            ( toString account.id
+            ( account.id
             , li [ class "list-group-item status" ]
                 [ followView
                     currentUser
@@ -179,7 +179,7 @@ accountTimelineView : CurrentUser -> AccountInfo -> Html Msg
 accountTimelineView currentUser accountInfo =
     let
         keyedEntry status =
-            ( toString status.id
+            ( extractStatusId status.id
             , Lazy.lazy (statusEntryView "account" "status" currentUser) status
             )
 
@@ -221,17 +221,17 @@ counterLinks subView account =
     in
         div [ class "row account-infos" ]
             [ counterLink
-                ("#account/" ++ (toString account.id))
+                ("#account/" ++ account.id)
                 "Statuses"
                 statuses_count
                 (subView == AccountStatusesView)
             , counterLink
-                ("#account/" ++ (toString account.id) ++ "/following")
+                ("#account/" ++ account.id ++ "/following")
                 "Following"
                 following_count
                 (subView == AccountFollowingView)
             , counterLink
-                ("#account/" ++ (toString account.id) ++ "/followers")
+                ("#account/" ++ account.id ++ "/followers")
                 "Followers"
                 followers_count
                 (subView == AccountFollowersView)

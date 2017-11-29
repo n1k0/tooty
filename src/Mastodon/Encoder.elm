@@ -61,7 +61,7 @@ accountEncoder account =
         , ( "followers_count", Encode.int account.followers_count )
         , ( "following_count", Encode.int account.following_count )
         , ( "header", Encode.string account.header )
-        , ( "id", Encode.int account.id )
+        , ( "id", Encode.string account.id )
         , ( "locked", Encode.bool account.locked )
         , ( "note", Encode.string account.note )
         , ( "statuses_count", Encode.int account.statuses_count )
@@ -86,18 +86,23 @@ registrationEncoder registration =
         , ( "scope", Encode.string registration.scope )
         , ( "client_id", Encode.string registration.client_id )
         , ( "client_secret", Encode.string registration.client_secret )
-        , ( "id", Encode.int registration.id )
+        , ( "id", Encode.string registration.id )
         , ( "redirect_uri", Encode.string registration.redirect_uri )
         ]
+
+
+encodeStatusId : StatusId -> Encode.Value
+encodeStatusId (StatusId id) =
+    Encode.string id
 
 
 statusRequestBodyEncoder : StatusRequestBody -> Encode.Value
 statusRequestBodyEncoder statusData =
     Encode.object
         [ ( "status", Encode.string statusData.status )
-        , ( "in_reply_to_id", encodeMaybe Encode.int statusData.in_reply_to_id )
+        , ( "in_reply_to_id", encodeMaybe encodeStatusId statusData.in_reply_to_id )
         , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
         , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "visibility", Encode.string statusData.visibility )
-        , ( "media_ids", Encode.list (List.map Encode.int statusData.media_ids) )
+        , ( "media_ids", Encode.list (List.map Encode.string statusData.media_ids) )
         ]

@@ -17,20 +17,8 @@
   <body>
     <script src="app.js"></script>
     <script>
-    // Note: this is a transitional upgrade to new client storage format, which
-    // is now now a list of clients, which all require an "account" property set.
-    const oldClient = JSON.parse(localStorage.getItem("tooty.client"));
-    const defaultClients = oldClient ? [oldClient] : [];
-    const clients = (JSON.parse(localStorage.getItem("tooty.clients")) || defaultClients)
-      .map(client => {
-        if (!client.hasOwnProperty("account")) {
-          client.account = null;
-        }
-        return client;
-      });
-
     const app = Elm.Main.fullscreen({
-      clients: clients,
+      clients: localStorage.getItem("tooty.clients") || "[]",
       registration: JSON.parse(localStorage.getItem("tooty.registration"))
     });
 

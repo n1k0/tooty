@@ -119,7 +119,7 @@ notificationFollowView currentUser { accounts } =
                 , formatContent account.note []
                     |> div
                         [ class "status-text"
-                        , onClick <| Navigate ("#account/" ++ (toString account.id))
+                        , onClick <| Navigate ("#account/" ++ account.id)
                         ]
                 ]
     in
@@ -170,7 +170,7 @@ notificationListView : CurrentUser -> NotificationFilter -> Timeline Notificatio
 notificationListView currentUser filter notifications =
     let
         keyedEntry notification =
-            ( toString notification.id
+            ( notification.id
             , Lazy.lazy2 notificationEntryView currentUser notification
             )
 
