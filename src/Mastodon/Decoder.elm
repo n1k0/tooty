@@ -1,22 +1,21 @@
-module Mastodon.Decoder
-    exposing
-        ( appRegistrationDecoder
-        , accessTokenDecoder
-        , accountDecoder
-        , attachmentDecoder
-        , contextDecoder
-        , decodeWebSocketMessage
-        , decodeClients
-        , mastodonErrorDecoder
-        , mentionDecoder
-        , notificationDecoder
-        , tagDecoder
-        , reblogDecoder
-        , relationshipDecoder
-        , searchResultsDecoder
-        , statusDecoder
-        , webSocketEventDecoder
-        )
+module Mastodon.Decoder exposing
+    ( accessTokenDecoder
+    , accountDecoder
+    , appRegistrationDecoder
+    , attachmentDecoder
+    , contextDecoder
+    , decodeClients
+    , decodeWebSocketMessage
+    , mastodonErrorDecoder
+    , mentionDecoder
+    , notificationDecoder
+    , reblogDecoder
+    , relationshipDecoder
+    , searchResultsDecoder
+    , statusDecoder
+    , tagDecoder
+    , webSocketEventDecoder
+    )
 
 import Json.Decode as Decode
 import Json.Decode.Pipeline as Pipe
@@ -210,7 +209,7 @@ webSocketEventDecoder =
 
 decodeWebSocketMessage : String -> WebSocketEvent
 decodeWebSocketMessage message =
-    case (Decode.decodeString webSocketEventDecoder message) of
+    case Decode.decodeString webSocketEventDecoder message of
         Ok { event, payload } ->
             case event of
                 "update" ->

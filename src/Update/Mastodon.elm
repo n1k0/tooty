@@ -1,9 +1,9 @@
 module Update.Mastodon exposing (update)
 
 import Command
-import Navigation
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
+import Navigation
 import Task
 import Types exposing (..)
 import Update.Draft
@@ -15,10 +15,10 @@ errorText : Error -> String
 errorText error =
     case error of
         MastodonError statusCode statusMsg errorMsg ->
-            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+            "HTTP " ++ toString statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
         ServerError statusCode statusMsg errorMsg ->
-            "HTTP " ++ (toString statusCode) ++ " " ++ statusMsg ++ ": " ++ errorMsg
+            "HTTP " ++ toString statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
         TimeoutError ->
             "Request timed out."
@@ -37,77 +37,109 @@ update msg ({ accountInfo, search } as model) =
                         client =
                             Client decoded.server decoded.accessToken Nothing
                     in
-                        { model | clients = client :: model.clients }
-                            ! [ Command.saveClients <| client :: model.clients
-                              , Navigation.load <| model.location.origin ++ model.location.pathname
-                              ]
+                    ( { model | clients = client :: model.clients }
+                    , Cmd.batch
+                        [ Command.saveClients <| client :: model.clients
+                        , Navigation.load <| model.location.origin ++ model.location.pathname
+                        ]
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountFollowed _ result ->
             case result of
                 Ok { decoded } ->
-                    processFollowEvent decoded model ! []
+                    ( processFollowEvent decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountUnfollowed account result ->
             case result of
                 Ok { decoded } ->
-                    processUnfollowEvent account decoded model ! []
+                    ( processUnfollowEvent account decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountMuted account result ->
             case result of
                 Ok { decoded } ->
-                    processMuteEvent account decoded model ! []
+                    ( processMuteEvent account decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountUnmuted account result ->
             case result of
                 Ok { decoded } ->
-                    processMuteEvent account decoded model ! []
+                    ( processMuteEvent account decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountBlocked account result ->
             case result of
                 Ok { decoded } ->
-                    processBlockEvent account decoded model ! []
+                    ( processBlockEvent account decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountUnblocked account result ->
             case result of
                 Ok { decoded } ->
-                    processBlockEvent account decoded model ! []
+                    ( processBlockEvent account decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AppRegistered result ->
             case result of
                 Ok { decoded } ->
-                    { model | registration = Just decoded }
-                        ! [ Command.saveRegistration decoded
-                          , Command.navigateToAuthUrl decoded
-                          ]
+                    ( { model | registration = Just decoded }
+                    , Cmd.batch
+                        [ Command.saveRegistration decoded
+                        , Command.navigateToAuthUrl decoded
+                        ]
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         ThreadStatusLoaded id result ->
             case result of
                 Ok { decoded } ->
-                    { model
+                    ( { model
                         | currentView =
                             case model.currentView of
                                 ThreadView thread ->
@@ -115,20 +147,22 @@ update msg ({ accountInfo, search } as model) =
 
                                 _ ->
                                     model.currentView
-                    }
-                        ! [ Command.scrollToThreadStatus <| extractStatusId id ]
+                      }
+                    , Command.scrollToThreadStatus <| extractStatusId id
+                    )
 
                 Err error ->
-                    { model
+                    ( { model
                         | currentView = LocalTimelineView
                         , errors = addErrorNotification (errorText error) model
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
         ThreadContextLoaded id result ->
             case result of
                 Ok { decoded } ->
-                    { model
+                    ( { model
                         | currentView =
                             case model.currentView of
                                 ThreadView thread ->
@@ -136,15 +170,17 @@ update msg ({ accountInfo, search } as model) =
 
                                 _ ->
                                     model.currentView
-                    }
-                        ! [ Command.scrollToThreadStatus <| extractStatusId id ]
+                      }
+                    , Command.scrollToThreadStatus <| extractStatusId id
+                    )
 
                 Err error ->
-                    { model
+                    ( { model
                         | currentView = LocalTimelineView
                         , errors = addErrorNotification (errorText error) model
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
         CurrentUser result ->
             case result of
@@ -153,48 +189,67 @@ update msg ({ accountInfo, search } as model) =
                         updatedClients =
                             case model.clients of
                                 client :: xs ->
-                                    ({ client | account = Just decoded }) :: xs
+                                    { client | account = Just decoded } :: xs
 
                                 _ ->
                                     model.clients
                     in
-                        { model | currentUser = Just decoded, clients = updatedClients }
-                            ! [ Command.saveClients updatedClients ]
+                    ( { model | currentUser = Just decoded, clients = updatedClients }
+                    , Command.saveClients updatedClients
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         FavoriteAdded result ->
             case result of
                 Ok _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         FavoriteRemoved result ->
             case result of
                 Ok _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         HashtagTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | hashtagTimeline = Update.Timeline.update append decoded links model.hashtagTimeline } ! []
+                    ( { model | hashtagTimeline = Update.Timeline.update append decoded links model.hashtagTimeline }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         LocalTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | localTimeline = Update.Timeline.update append decoded links model.localTimeline } ! []
+                    ( { model | localTimeline = Update.Timeline.update append decoded links model.localTimeline }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         Notifications append result ->
             case result of
@@ -203,50 +258,74 @@ update msg ({ accountInfo, search } as model) =
                         aggregated =
                             Mastodon.Helper.aggregateNotifications decoded
                     in
-                        { model | notifications = Update.Timeline.update append aggregated links model.notifications } ! []
+                    ( { model | notifications = Update.Timeline.update append aggregated links model.notifications }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         GlobalTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | globalTimeline = Update.Timeline.update append decoded links model.globalTimeline } ! []
+                    ( { model | globalTimeline = Update.Timeline.update append decoded links model.globalTimeline }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         FavoriteTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | favoriteTimeline = Update.Timeline.update append decoded links model.favoriteTimeline } ! []
+                    ( { model | favoriteTimeline = Update.Timeline.update append decoded links model.favoriteTimeline }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         Mutes append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | mutes = Update.Timeline.update append decoded links model.mutes } ! []
+                    ( { model | mutes = Update.Timeline.update append decoded links model.mutes }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         Blocks append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | blocks = Update.Timeline.update append decoded links model.blocks } ! []
+                    ( { model | blocks = Update.Timeline.update append decoded links model.blocks }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         Reblogged result ->
             case result of
                 Ok _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         StatusPosted _ ->
             -- FIXME: here we should rather send a ClearDraft command, and update the
@@ -255,140 +334,182 @@ update msg ({ accountInfo, search } as model) =
                 draft =
                     Update.Draft.empty
             in
-                { model | draft = draft } ! [ Command.updateDomStatus draft.status ]
+            ( { model | draft = draft }
+            , Command.updateDomStatus draft.status
+            )
 
         StatusDeleted result ->
             case result of
                 Ok { decoded } ->
-                    Update.Timeline.deleteStatusFromAllTimelines decoded model ! []
+                    ( Update.Timeline.deleteStatusFromAllTimelines decoded model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         Unreblogged result ->
             case result of
                 Ok _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountReceived result ->
             case result of
                 Ok { decoded } ->
-                    { model | accountInfo = { accountInfo | account = Just decoded, relationships = [] } } ! []
+                    ( { model | accountInfo = { accountInfo | account = Just decoded, relationships = [] } }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model
+                    ( { model
                         | accountInfo =
                             { accountInfo
                                 | timeline = Update.Timeline.update append decoded links accountInfo.timeline
                             }
-                    }
-                        ! []
+                      }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountFollowers append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model
+                    ( { model
                         | accountInfo =
                             { accountInfo
                                 | followers = Update.Timeline.update append decoded links accountInfo.followers
                             }
-                    }
-                        ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
+                      }
+                    , Command.loadRelationships (List.head model.clients) <| List.map .id decoded
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountFollowing append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model
+                    ( { model
                         | accountInfo =
                             { accountInfo
                                 | following = Update.Timeline.update append decoded links accountInfo.following
                             }
-                    }
-                        ! [ Command.loadRelationships (List.head model.clients) <| List.map .id decoded ]
+                      }
+                    , Command.loadRelationships (List.head model.clients) <| List.map .id decoded
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountRelationship result ->
             case result of
                 Ok { decoded } ->
                     case decoded of
                         [ relationship ] ->
-                            { model | accountInfo = { accountInfo | relationship = Just relationship } } ! []
+                            ( { model | accountInfo = { accountInfo | relationship = Just relationship } }
+                            , Cmd.none
+                            )
 
                         _ ->
-                            model ! []
+                            ( model
+                            , Cmd.none
+                            )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AccountRelationships result ->
             case result of
                 Ok { decoded } ->
-                    { model | accountInfo = { accountInfo | relationships = accountInfo.relationships ++ decoded } }
-                        ! []
+                    ( { model | accountInfo = { accountInfo | relationships = accountInfo.relationships ++ decoded } }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         HomeTimeline append result ->
             case result of
                 Ok { decoded, links } ->
-                    { model | homeTimeline = Update.Timeline.update append decoded links model.homeTimeline } ! []
+                    ( { model | homeTimeline = Update.Timeline.update append decoded links model.homeTimeline }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         SearchResultsReceived result ->
             case result of
                 Ok { decoded } ->
-                    { model | search = { search | term = model.search.term, results = Just decoded } } ! []
+                    ( { model | search = { search | term = model.search.term, results = Just decoded } }
+                    , Cmd.none
+                    )
 
                 Err error ->
-                    { model | errors = addErrorNotification (errorText error) model } ! []
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
 
         AutoSearch result ->
             let
                 draft =
                     model.draft
             in
-                case result of
-                    Ok { decoded } ->
-                        { model
-                            | draft =
-                                { draft
-                                    | showAutoMenu =
-                                        Update.Draft.showAutoMenu
-                                            decoded
-                                            draft.autoAtPosition
-                                            draft.autoQuery
-                                    , autoAccounts = decoded
-                                }
-                        }
-                            -- Force selection of the first item after each
-                            -- Successfull request
-                            ! [ Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True)) ]
+            case result of
+                Ok { decoded } ->
+                    ( { model
+                        | draft =
+                            { draft
+                                | showAutoMenu =
+                                    Update.Draft.showAutoMenu
+                                        decoded
+                                        draft.autoAtPosition
+                                        draft.autoQuery
+                                , autoAccounts = decoded
+                            }
+                      }
+                      -- Force selection of the first item after each
+                      -- Successfull request
+                    , Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
+                    )
 
-                    Err error ->
-                        { model
-                            | draft = { draft | showAutoMenu = False }
-                            , errors = addErrorNotification (errorText error) model
-                        }
-                            ! []
+                Err error ->
+                    ( { model
+                        | draft = { draft | showAutoMenu = False }
+                        , errors = addErrorNotification (errorText error) model
+                      }
+                    , Cmd.none
+                    )
 
 
 {-| Update viewed account relationships as well as the relationship with the
@@ -400,6 +521,7 @@ processFollowEvent relationship ({ accountInfo } as model) =
         updateRelationship r =
             if r.id == relationship.id then
                 { r | following = relationship.following }
+
             else
                 r
 
@@ -411,19 +533,20 @@ processFollowEvent relationship ({ accountInfo } as model) =
                 Just accountRelationship ->
                     if accountRelationship.id == relationship.id then
                         Just { relationship | following = relationship.following }
+
                     else
                         accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
-        { model
-            | accountInfo =
-                { accountInfo
-                    | relationships = accountRelationships
-                    , relationship = accountRelationship
-                }
-        }
+    { model
+        | accountInfo =
+            { accountInfo
+                | relationships = accountRelationships
+                , relationship = accountRelationship
+            }
+    }
 
 
 processUnfollowEvent : Account -> Relationship -> Model -> Model
@@ -432,14 +555,14 @@ processUnfollowEvent account relationship model =
         newModel =
             processFollowEvent relationship model
     in
-        case model.currentUser of
-            Just currentUser ->
-                { newModel
-                    | homeTimeline = Update.Timeline.cleanUnfollow account currentUser model.homeTimeline
-                }
+    case model.currentUser of
+        Just currentUser ->
+            { newModel
+                | homeTimeline = Update.Timeline.cleanUnfollow account currentUser model.homeTimeline
+            }
 
-            Nothing ->
-                newModel
+        Nothing ->
+            newModel
 
 
 {-| Update viewed account relationships as well as the relationship with the
@@ -451,6 +574,7 @@ processMuteEvent account relationship ({ accountInfo } as model) =
         updateRelationship r =
             if r.id == relationship.id then
                 { r | muting = relationship.muting }
+
             else
                 r
 
@@ -462,23 +586,24 @@ processMuteEvent account relationship ({ accountInfo } as model) =
                 Just accountRelationship ->
                     if accountRelationship.id == relationship.id then
                         Just { relationship | muting = relationship.muting }
+
                     else
                         accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
-        { model
-            | accountInfo =
-                { accountInfo
-                    | relationship = accountRelationship
-                    , relationships = accountRelationships
-                }
-            , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
-            , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
-            , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
-            , mutes = Update.Timeline.removeMute account model.mutes
-        }
+    { model
+        | accountInfo =
+            { accountInfo
+                | relationship = accountRelationship
+                , relationships = accountRelationships
+            }
+        , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
+        , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
+        , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
+        , mutes = Update.Timeline.removeMute account model.mutes
+    }
 
 
 {-| Update viewed account relationships as well as the relationship with the
@@ -490,6 +615,7 @@ processBlockEvent account relationship ({ accountInfo } as model) =
         updateRelationship r =
             if r.id == relationship.id then
                 { r | blocking = relationship.blocking }
+
             else
                 r
 
@@ -501,21 +627,22 @@ processBlockEvent account relationship ({ accountInfo } as model) =
                 Just accountRelationship ->
                     if accountRelationship.id == relationship.id then
                         Just { relationship | blocking = relationship.blocking }
+
                     else
                         accountInfo.relationship
 
                 Nothing ->
                     Nothing
     in
-        { model
-            | accountInfo =
-                { accountInfo
-                    | relationship = accountRelationship
-                    , relationships = accountRelationships
-                }
-            , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
-            , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
-            , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
-            , blocks = Update.Timeline.removeBlock account model.blocks
-            , notifications = Update.Timeline.dropNotificationsFromAccount account model.notifications
-        }
+    { model
+        | accountInfo =
+            { accountInfo
+                | relationship = accountRelationship
+                , relationships = accountRelationships
+            }
+        , homeTimeline = Update.Timeline.dropAccountStatuses account model.homeTimeline
+        , localTimeline = Update.Timeline.dropAccountStatuses account model.localTimeline
+        , globalTimeline = Update.Timeline.dropAccountStatuses account model.globalTimeline
+        , blocks = Update.Timeline.removeBlock account model.blocks
+        , notifications = Update.Timeline.dropNotificationsFromAccount account model.notifications
+    }

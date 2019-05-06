@@ -28,12 +28,14 @@ subscriptions { clients, currentView } =
                     Mastodon.WebSocket.GlobalPublicStream
                     NewWebsocketGlobalMessage
                     |> Sub.map WebSocketEvent
+
             else if currentView == LocalTimelineView then
                 Mastodon.WebSocket.subscribeToWebSockets
                     (List.head clients)
                     Mastodon.WebSocket.LocalPublicStream
                     NewWebsocketLocalMessage
                     |> Sub.map WebSocketEvent
+
             else
                 Sub.none
 
@@ -52,13 +54,13 @@ subscriptions { clients, currentView } =
         keyUpsSub =
             Keyboard.ups (KeyMsg KeyUp)
     in
-        Sub.batch
-            [ timeSub
-            , userWsSub
-            , otherWsSub
-            , autoCompleteSub
-            , uploadSuccessSub
-            , uploadErrorSub
-            , keyDownsSub
-            , keyUpsSub
-            ]
+    Sub.batch
+        [ timeSub
+        , userWsSub
+        , otherWsSub
+        , autoCompleteSub
+        , uploadSuccessSub
+        , uploadErrorSub
+        , keyDownsSub
+        , keyUpsSub
+        ]

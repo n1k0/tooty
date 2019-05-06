@@ -1,12 +1,11 @@
-module View.Events
-    exposing
-        ( onClickInformation
-        , onInputInformation
-        , decodePositionInformation
-        , onClickWithPreventAndStop
-        , onClickWithPrevent
-        , onClickWithStop
-        )
+module View.Events exposing
+    ( decodePositionInformation
+    , onClickInformation
+    , onClickWithPrevent
+    , onClickWithPreventAndStop
+    , onClickWithStop
+    , onInputInformation
+    )
 
 import Html exposing (..)
 import Html.Events exposing (on, onWithOptions)

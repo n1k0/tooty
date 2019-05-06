@@ -1,11 +1,10 @@
 module View.Formatter exposing (formatContent, textContent)
 
 import Dict
-import Elmoji
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import HtmlParser
-import HtmlParser.Util as ParseUtil
+import Html.Parser
+import Html.Parser.Util as ParseUtil
 import Http
 import Mastodon.Model exposing (..)
 import String.Extra exposing (replace, rightOf)
@@ -44,7 +43,7 @@ replaceHref newHref attrs =
 
 createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mention -> Html Msg
 createLinkNode attrs children mentions =
-    case (getMentionForLink attrs mentions) of
+    case getMentionForLink attrs mentions of
         Just mention ->
             Html.node "a"
                 (replaceHref ("#account/" ++ mention.id) attrs)
@@ -59,7 +58,7 @@ createLinkNode attrs children mentions =
 
                 Nothing ->
                     Html.node "a"
-                        ((List.map toAttribute attrs)
+                        (List.map toAttribute attrs
                             ++ [ onClickWithStop NoOp, target "_blank" ]
                         )
                         (toVirtualDom mentions children)
@@ -85,10 +84,11 @@ getHashtagForLink attrs =
                 |> Http.decodeUri
                 |> Maybe.withDefault ""
     in
-        if hashtag /= "" then
-            Just hashtag
-        else
-            Nothing
+    if hashtag /= "" then
+        Just hashtag
+
+    else
+        Nothing
 
 
 getMentionForLink : List ( String, String ) -> List Mention -> Maybe Mention
@@ -112,9 +112,10 @@ toVirtualDomEach mentions node =
         HtmlParser.Element name attrs children ->
             Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
 
-        HtmlParser.Text s ->
-            Elmoji.text_ s
-
+        {-
+           HtmlParser.Text s ->
+               Elmoji.text_ s
+        -}
         HtmlParser.Comment _ ->
             text ""
 

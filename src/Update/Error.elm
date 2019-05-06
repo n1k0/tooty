@@ -10,7 +10,7 @@ addErrorNotification message model =
         error =
             { message = message, time = model.currentTime }
     in
-        error :: model.errors
+    error :: model.errors
 
 
 cleanErrors : Time -> List ErrorNotification -> List ErrorNotification

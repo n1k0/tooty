@@ -1,8 +1,7 @@
-module Util
-    exposing
-        ( acceptableAccounts
-        , extractAuthCode
-        )
+module Util exposing
+    ( acceptableAccounts
+    , extractAuthCode
+    )
 
 import Mastodon.Model exposing (..)
 import Navigation
@@ -14,15 +13,16 @@ acceptableAccounts query accounts =
         lowerQuery =
             String.toLower query
     in
-        if query == "" then
-            []
-        else
-            List.filter (String.contains lowerQuery << String.toLower << .username) accounts
+    if query == "" then
+        []
+
+    else
+        List.filter (String.contains lowerQuery << String.toLower << .username) accounts
 
 
 extractAuthCode : Navigation.Location -> Maybe String
 extractAuthCode { search } =
-    case (String.split "?code=" search) of
+    case String.split "?code=" search of
         [ _, authCode ] ->
             Just authCode
 

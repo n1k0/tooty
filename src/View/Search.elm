@@ -24,9 +24,9 @@ accountListView accounts =
                         ]
                 ]
     in
-        ul [ class "list-group notification follow" ]
-            [ div [ class "" ] <| List.map profileView (List.take 3 accounts)
-            ]
+    ul [ class "list-group notification follow" ]
+        [ div [ class "" ] <| List.map profileView (List.take 3 accounts)
+        ]
 
 
 searchResultsView : SearchResults -> Html Msg
@@ -50,12 +50,12 @@ searchResultsView results =
                         |> List.map (\h -> a [ class "list-group-item", href <| "#hashtag/" ++ h ] [ text <| "#" ++ h ])
                         |> div [ class "list-group" ]
     in
-        div [ class "timeline" ]
-            [ div [ class "panel-heading" ] [ text "Accounts" ]
-            , accountList
-            , div [ class "panel-heading" ] [ text "Hashtags" ]
-            , hashtagList
-            ]
+    div [ class "timeline" ]
+        [ div [ class "panel-heading" ] [ text "Accounts" ]
+        , accountList
+        , div [ class "panel-heading" ] [ text "Hashtags" ]
+        , hashtagList
+        ]
 
 
 searchView : Model -> Html Msg

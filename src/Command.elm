@@ -1,56 +1,55 @@
-module Command
-    exposing
-        ( initCommands
-        , navigateToAuthUrl
-        , registerApp
-        , saveClients
-        , saveRegistration
-        , loadNotifications
-        , loadUserAccount
-        , loadAccount
-        , loadAccountFollowers
-        , loadAccountFollowing
-        , loadHomeTimeline
-        , loadLocalTimeline
-        , loadGlobalTimeline
-        , loadAccountTimeline
-        , loadFavoriteTimeline
-        , loadHashtagTimeline
-        , loadMutes
-        , loadBlocks
-        , loadNextTimeline
-        , loadRelationships
-        , loadThread
-        , loadTimelines
-        , postStatus
-        , updateDomStatus
-        , deleteStatus
-        , reblogStatus
-        , unreblogStatus
-        , favouriteStatus
-        , unfavouriteStatus
-        , follow
-        , unfollow
-        , mute
-        , unmute
-        , block
-        , unblock
-        , uploadMedia
-        , focusId
-        , scrollColumnToTop
-        , scrollColumnToBottom
-        , scrollToThreadStatus
-        , searchAccounts
-        , search
-        , notifyStatus
-        , notifyNotification
-        )
+module Command exposing
+    ( block
+    , deleteStatus
+    , favouriteStatus
+    , focusId
+    , follow
+    , initCommands
+    , loadAccount
+    , loadAccountFollowers
+    , loadAccountFollowing
+    , loadAccountTimeline
+    , loadBlocks
+    , loadFavoriteTimeline
+    , loadGlobalTimeline
+    , loadHashtagTimeline
+    , loadHomeTimeline
+    , loadLocalTimeline
+    , loadMutes
+    , loadNextTimeline
+    , loadNotifications
+    , loadRelationships
+    , loadThread
+    , loadTimelines
+    , loadUserAccount
+    , mute
+    , navigateToAuthUrl
+    , notifyNotification
+    , notifyStatus
+    , postStatus
+    , reblogStatus
+    , registerApp
+    , saveClients
+    , saveRegistration
+    , scrollColumnToBottom
+    , scrollColumnToTop
+    , scrollToThreadStatus
+    , search
+    , searchAccounts
+    , unblock
+    , unfavouriteStatus
+    , unfollow
+    , unmute
+    , unreblogStatus
+    , updateDomStatus
+    , uploadMedia
+    )
 
 import Dom
 import Dom.Scroll
-import Json.Encode as Encode
-import Json.Decode as Decode
 import HttpBuilder
+import Json.Decode as Decode
+import Json.Encode as Encode
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
@@ -105,6 +104,7 @@ registerApp { server, location } =
         cleanServer =
             if String.endsWith "/" server then
                 String.dropRight 1 server
+
             else
                 server
 
@@ -117,11 +117,11 @@ registerApp { server, location } =
         website =
             "https://github.com/n1k0/tooty"
     in
-        HttpBuilder.post (cleanServer ++ ApiUrl.apps)
-            |> withBodyDecoder (appRegistrationDecoder cleanServer scope)
-            |> HttpBuilder.withJsonBody
-                (appRegistrationEncoder clientName redirectUri scope website)
-            |> send (MastodonEvent << AppRegistered)
+    HttpBuilder.post (cleanServer ++ ApiUrl.apps)
+        |> withBodyDecoder (appRegistrationDecoder cleanServer scope)
+        |> HttpBuilder.withJsonBody
+            (appRegistrationEncoder clientName redirectUri scope website)
+        |> send (MastodonEvent << AppRegistered)
 
 
 saveClients : List Client -> Cmd Msg
@@ -218,11 +218,11 @@ search client term =
                 cleanTerm =
                     term |> replace "#" ""
             in
-                HttpBuilder.get ApiUrl.search
-                    |> withClient client
-                    |> withBodyDecoder searchResultsDecoder
-                    |> withQueryParams [ ( "q", cleanTerm ), ( "resolve", "true" ) ]
-                    |> send (MastodonEvent << SearchResultsReceived)
+            HttpBuilder.get ApiUrl.search
+                |> withClient client
+                |> withBodyDecoder searchResultsDecoder
+                |> withQueryParams [ ( "q", cleanTerm ), ( "resolve", "true" ) ]
+                |> send (MastodonEvent << SearchResultsReceived)
 
         Nothing ->
             Cmd.none
@@ -232,6 +232,7 @@ searchAccounts : Maybe Client -> String -> Int -> Bool -> Cmd Msg
 searchAccounts client query limit resolve =
     if query == "" then
         Cmd.none
+
     else
         case client of
             Just client ->
@@ -242,16 +243,17 @@ searchAccounts client query limit resolve =
                         , ( "resolve"
                           , if resolve then
                                 "true"
+
                             else
                                 "false"
                           )
                         ]
                 in
-                    HttpBuilder.get ApiUrl.searchAccount
-                        |> withClient client
-                        |> withBodyDecoder (Decode.list accountDecoder)
-                        |> withQueryParams qs
-                        |> send (MastodonEvent << AutoSearch)
+                HttpBuilder.get ApiUrl.searchAccount
+                    |> withClient client
+                    |> withBodyDecoder (Decode.list accountDecoder)
+                    |> withQueryParams qs
+                    |> send (MastodonEvent << AutoSearch)
 
             Nothing ->
                 Cmd.none
@@ -276,6 +278,7 @@ loadRelationships client ids =
 
             Nothing ->
                 Cmd.none
+
     else
         Cmd.none
 
@@ -288,11 +291,11 @@ loadThread client id =
                 [ HttpBuilder.get (ApiUrl.status id)
                     |> withClient client
                     |> withBodyDecoder statusDecoder
-                    |> send (MastodonEvent << (ThreadStatusLoaded id))
+                    |> send (MastodonEvent << ThreadStatusLoaded id)
                 , HttpBuilder.get (ApiUrl.context id)
                     |> withClient client
                     |> withBodyDecoder contextDecoder
-                    |> send (MastodonEvent << (ThreadContextLoaded id))
+                    |> send (MastodonEvent << ThreadContextLoaded id)
                 ]
 
         Nothing ->
@@ -427,56 +430,56 @@ loadNextTimeline { clients, currentView, accountInfo } id next =
         client =
             List.head clients
     in
-        case id of
-            "notifications" ->
-                loadNotifications client (Just next)
+    case id of
+        "notifications" ->
+            loadNotifications client (Just next)
 
-            "home-timeline" ->
-                loadHomeTimeline client (Just next)
+        "home-timeline" ->
+            loadHomeTimeline client (Just next)
 
-            "local-timeline" ->
-                loadLocalTimeline client (Just next)
+        "local-timeline" ->
+            loadLocalTimeline client (Just next)
 
-            "global-timeline" ->
-                loadGlobalTimeline client (Just next)
+        "global-timeline" ->
+            loadGlobalTimeline client (Just next)
 
-            "favorite-timeline" ->
-                loadFavoriteTimeline client (Just next)
+        "favorite-timeline" ->
+            loadFavoriteTimeline client (Just next)
 
-            "hashtag-timeline" ->
-                case currentView of
-                    HashtagView hashtag ->
-                        loadHashtagTimeline client hashtag (Just next)
+        "hashtag-timeline" ->
+            case currentView of
+                HashtagView hashtag ->
+                    loadHashtagTimeline client hashtag (Just next)
 
-                    _ ->
-                        Cmd.none
+                _ ->
+                    Cmd.none
 
-            "account-timeline" ->
-                case accountInfo.account of
-                    Just account ->
-                        loadAccountTimeline client account.id (Just next)
+        "account-timeline" ->
+            case accountInfo.account of
+                Just account ->
+                    loadAccountTimeline client account.id (Just next)
 
-                    _ ->
-                        Cmd.none
+                _ ->
+                    Cmd.none
 
-            "account-followers" ->
-                case accountInfo.account of
-                    Just account ->
-                        loadAccountFollowers client account.id (Just next)
+        "account-followers" ->
+            case accountInfo.account of
+                Just account ->
+                    loadAccountFollowers client account.id (Just next)
 
-                    _ ->
-                        Cmd.none
+                _ ->
+                    Cmd.none
 
-            "account-following" ->
-                case accountInfo.account of
-                    Just account ->
-                        loadAccountFollowing client account.id (Just next)
+        "account-following" ->
+            case accountInfo.account of
+                Just account ->
+                    loadAccountFollowing client account.id (Just next)
 
-                    _ ->
-                        Cmd.none
+                _ ->
+                    Cmd.none
 
-            _ ->
-                Cmd.none
+        _ ->
+            Cmd.none
 
 
 postStatus : Maybe Client -> StatusRequestBody -> Cmd Msg
@@ -570,7 +573,7 @@ follow client account =
             HttpBuilder.post (ApiUrl.follow account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountFollowed account))
+                |> send (MastodonEvent << AccountFollowed account)
 
         Nothing ->
             Cmd.none
@@ -583,7 +586,7 @@ unfollow client account =
             HttpBuilder.post (ApiUrl.unfollow account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountUnfollowed account))
+                |> send (MastodonEvent << AccountUnfollowed account)
 
         Nothing ->
             Cmd.none
@@ -596,7 +599,7 @@ mute client account =
             HttpBuilder.post (ApiUrl.mute account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountMuted account))
+                |> send (MastodonEvent << AccountMuted account)
 
         Nothing ->
             Cmd.none
@@ -609,7 +612,7 @@ unmute client account =
             HttpBuilder.post (ApiUrl.unmute account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountUnmuted account))
+                |> send (MastodonEvent << AccountUnmuted account)
 
         Nothing ->
             Cmd.none
@@ -622,7 +625,7 @@ block client account =
             HttpBuilder.post (ApiUrl.block account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountBlocked account))
+                |> send (MastodonEvent << AccountBlocked account)
 
         Nothing ->
             Cmd.none
@@ -635,7 +638,7 @@ unblock client account =
             HttpBuilder.post (ApiUrl.unblock account.id)
                 |> withClient client
                 |> withBodyDecoder relationshipDecoder
-                |> send (MastodonEvent << (AccountUnblocked account))
+                |> send (MastodonEvent << AccountUnblocked account)
 
         Nothing ->
             Cmd.none

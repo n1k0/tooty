@@ -12,11 +12,11 @@ import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
-import View.Search exposing (searchView)
 import View.Mutes exposing (mutesView)
 import View.Notification exposing (notificationListView)
+import View.Search exposing (searchView)
 import View.Thread exposing (threadView)
-import View.Timeline exposing (contextualTimelineView, homeTimelineView, hashtagTimelineView)
+import View.Timeline exposing (contextualTimelineView, hashtagTimelineView, homeTimelineView)
 import View.Viewer exposing (viewerView)
 
 
@@ -102,7 +102,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container-fluid" ]
         [ errorsListView model
-        , case (List.head model.clients) of
+        , case List.head model.clients of
             Just client ->
                 homepageView model
 

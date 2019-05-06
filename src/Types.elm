@@ -1,8 +1,8 @@
-module Types exposing (..)
+module Types exposing (AccountInfo, Confirm, CurrentAccountView(..), CurrentView(..), Draft, DraftMsg(..), ErrorNotification, Flags, InputInformation, KeyEvent(..), MastodonMsg(..), MastodonResult, Model, Msg(..), NotificationFilter(..), ScrollDirection(..), Search, SearchMsg(..), Thread, Timeline, Viewer, ViewerMsg(..), WebSocketMsg(..))
 
 import Autocomplete
 import Keyboard
-import Mastodon.Http exposing (Response, Links)
+import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import Navigation
 import Time exposing (Time)

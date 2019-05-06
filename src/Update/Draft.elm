@@ -1,9 +1,8 @@
-module Update.Draft
-    exposing
-        ( empty
-        , showAutoMenu
-        , update
-        )
+module Update.Draft exposing
+    ( empty
+    , showAutoMenu
+    , update
+    )
 
 import Autocomplete
 import Command
@@ -12,8 +11,8 @@ import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import String.Extra
-import Update.Error exposing (addErrorNotification)
 import Types exposing (..)
+import Update.Error exposing (addErrorNotification)
 import Util
 
 
@@ -25,8 +24,10 @@ autocompleteUpdateConfig =
             \code maybeId ->
                 if code == 38 || code == 40 then
                     Nothing
+
                 else if code == 13 then
                     Maybe.map (DraftEvent << SelectAccount) maybeId
+
                 else
                     Just <| (DraftEvent << ResetAutocomplete) False
         , onTooLow = Just <| (DraftEvent << ResetAutocomplete) True
@@ -78,8 +79,9 @@ update : DraftMsg -> Account -> Model -> ( Model, Cmd Msg )
 update draftMsg currentUser ({ draft } as model) =
     case draftMsg of
         ClearDraft ->
-            { model | draft = empty }
-                ! [ Command.updateDomStatus empty.status ]
+            ( { model | draft = empty }
+            , Command.updateDomStatus empty.status
+            )
 
         ToggleSpoiler enabled ->
             let
@@ -88,43 +90,55 @@ update draftMsg currentUser ({ draft } as model) =
                         | spoilerText =
                             if enabled then
                                 Just ""
+
                             else
                                 Nothing
                     }
             in
-                { model | draft = newDraft } ! []
+            ( { model | draft = newDraft }
+            , Cmd.none
+            )
 
         UpdateSensitive sensitive ->
-            { model | draft = { draft | sensitive = sensitive } } ! []
+            ( { model | draft = { draft | sensitive = sensitive } }
+            , Cmd.none
+            )
 
         UpdateSpoiler spoilerText ->
-            { model | draft = { draft | spoilerText = Just spoilerText } } ! []
+            ( { model | draft = { draft | spoilerText = Just spoilerText } }
+            , Cmd.none
+            )
 
         UpdateVisibility visibility ->
-            { model | draft = { draft | visibility = visibility } } ! []
+            ( { model | draft = { draft | visibility = visibility } }
+            , Cmd.none
+            )
 
         UpdateReplyTo status ->
             let
                 newStatus =
                     Mastodon.Helper.getReplyPrefix currentUser status
             in
-                { model
-                    | draft =
-                        { draft
-                            | inReplyTo = Just status
-                            , status = newStatus
-                            , sensitive = Maybe.withDefault False status.sensitive
-                            , spoilerText =
-                                if status.spoiler_text == "" then
-                                    Nothing
-                                else
-                                    Just status.spoiler_text
-                            , visibility = status.visibility
-                        }
-                }
-                    ! [ Command.focusId "status"
-                      , Command.updateDomStatus newStatus
-                      ]
+            ( { model
+                | draft =
+                    { draft
+                        | inReplyTo = Just status
+                        , status = newStatus
+                        , sensitive = Maybe.withDefault False status.sensitive
+                        , spoilerText =
+                            if status.spoiler_text == "" then
+                                Nothing
+
+                            else
+                                Just status.spoiler_text
+                        , visibility = status.visibility
+                    }
+              }
+            , Cmd.batch
+                [ Command.focusId "status"
+                , Command.updateDomStatus newStatus
+                ]
+            )
 
         UpdateInputInformation { status, selectionStart } ->
             let
@@ -132,7 +146,7 @@ update draftMsg currentUser ({ draft } as model) =
                     String.slice 0 selectionStart status
 
                 atPosition =
-                    case (String.right 1 stringToPos) of
+                    case String.right 1 stringToPos of
                         "@" ->
                             Just selectionStart
 
@@ -164,11 +178,15 @@ update draftMsg currentUser ({ draft } as model) =
                                 draft.autoQuery
                     }
             in
-                { model | draft = newDraft }
-                    ! if query /= "" && atPosition /= Nothing then
-                        [ Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False ]
-                      else
-                        []
+            ( { model | draft = newDraft }
+            , Cmd.batch
+                (if query /= "" && atPosition /= Nothing then
+                    [ Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False ]
+
+                 else
+                    []
+                )
+            )
 
         SelectAccount id ->
             let
@@ -199,7 +217,7 @@ update draftMsg currentUser ({ draft } as model) =
                                         ""
                                 )
                                 atPosition
-                                ((String.length draft.autoQuery) + atPosition)
+                                (String.length draft.autoQuery + atPosition)
                                 draft.status
 
                         _ ->
@@ -215,10 +233,11 @@ update draftMsg currentUser ({ draft } as model) =
                         , showAutoMenu = False
                     }
             in
-                { model | draft = newDraft }
-                    -- As we are using defaultValue, we need to update the textarea
-                    -- using a port.
-                    ! [ Command.updateDomStatus newStatus ]
+            ( { model | draft = newDraft }
+              -- As we are using defaultValue, we need to update the textarea
+              -- using a port.
+            , Command.updateDomStatus newStatus
+            )
 
         SetAutoState autoMsg ->
             let
@@ -233,12 +252,14 @@ update draftMsg currentUser ({ draft } as model) =
                 newModel =
                     { model | draft = { draft | autoState = newState } }
             in
-                case maybeMsg of
-                    Just (DraftEvent updateMsg) ->
-                        update updateMsg currentUser newModel
+            case maybeMsg of
+                Just (DraftEvent updateMsg) ->
+                    update updateMsg currentUser newModel
 
-                    _ ->
-                        newModel ! []
+                _ ->
+                    ( newModel
+                    , Cmd.none
+                    )
 
         CloseAutocomplete ->
             let
@@ -248,7 +269,9 @@ update draftMsg currentUser ({ draft } as model) =
                         , autoState = Autocomplete.reset autocompleteUpdateConfig draft.autoState
                     }
             in
-                { model | draft = newDraft } ! []
+            ( { model | draft = newDraft }
+            , Cmd.none
+            )
 
         ResetAutocomplete toTop ->
             let
@@ -261,6 +284,7 @@ update draftMsg currentUser ({ draft } as model) =
                                     (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
                                     draft.autoMaxResults
                                     draft.autoState
+
                             else
                                 Autocomplete.resetToLastItem
                                     autocompleteUpdateConfig
@@ -269,49 +293,60 @@ update draftMsg currentUser ({ draft } as model) =
                                     draft.autoState
                     }
             in
-                { model | draft = newDraft } ! []
+            ( { model | draft = newDraft }
+            , Cmd.none
+            )
 
         RemoveMedia id ->
             let
                 newDraft =
                     { draft | attachments = List.filter (\a -> a.id /= id) draft.attachments }
             in
-                { model | draft = newDraft } ! []
+            ( { model | draft = newDraft }
+            , Cmd.none
+            )
 
         UploadMedia id ->
-            { model | draft = { draft | mediaUploading = True } }
-                ! [ Command.uploadMedia (List.head model.clients) id ]
+            ( { model | draft = { draft | mediaUploading = True } }
+            , Command.uploadMedia (List.head model.clients) id
+            )
 
         UploadError error ->
-            { model
+            ( { model
                 | draft = { draft | mediaUploading = False }
                 , errors = addErrorNotification error model
-            }
-                ! []
+              }
+            , Cmd.none
+            )
 
         UploadResult encoded ->
             if encoded == "" then
                 -- user has likely pressed "Cancel" in the file input dialog
-                model ! []
+                ( model
+                , Cmd.none
+                )
+
             else
                 let
                     decodedAttachment =
                         Decode.decodeString attachmentDecoder encoded
                 in
-                    case decodedAttachment of
-                        Ok attachment ->
-                            { model
-                                | draft =
-                                    { draft
-                                        | mediaUploading = False
-                                        , attachments = List.append draft.attachments [ attachment ]
-                                    }
-                            }
-                                ! []
+                case decodedAttachment of
+                    Ok attachment ->
+                        ( { model
+                            | draft =
+                                { draft
+                                    | mediaUploading = False
+                                    , attachments = List.append draft.attachments [ attachment ]
+                                }
+                          }
+                        , Cmd.none
+                        )
 
-                        Err error ->
-                            { model
-                                | draft = { draft | mediaUploading = False }
-                                , errors = addErrorNotification error model
-                            }
-                                ! []
+                    Err error ->
+                        ( { model
+                            | draft = { draft | mediaUploading = False }
+                            , errors = addErrorNotification error model
+                          }
+                        , Cmd.none
+                        )

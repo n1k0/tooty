@@ -1,12 +1,11 @@
-module Mastodon.Encoder
-    exposing
-        ( encodeUrl
-        , appRegistrationEncoder
-        , authorizationCodeEncoder
-        , clientEncoder
-        , registrationEncoder
-        , statusRequestBodyEncoder
-        )
+module Mastodon.Encoder exposing
+    ( appRegistrationEncoder
+    , authorizationCodeEncoder
+    , clientEncoder
+    , encodeUrl
+    , registrationEncoder
+    , statusRequestBodyEncoder
+    )
 
 import Http
 import Json.Encode as Encode

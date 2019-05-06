@@ -30,29 +30,30 @@ filterNotifications filter notifications =
                         Nothing ->
                             ""
             in
-                case filter of
-                    NotificationAll ->
-                        True
+            case filter of
+                NotificationAll ->
+                    True
 
-                    NotificationOnlyMentions ->
-                        type_ == "mention" && visibility /= "direct"
+                NotificationOnlyMentions ->
+                    type_ == "mention" && visibility /= "direct"
 
-                    NotificationOnlyDirect ->
-                        type_ == "mention" && visibility == "direct"
+                NotificationOnlyDirect ->
+                    type_ == "mention" && visibility == "direct"
 
-                    NotificationOnlyBoosts ->
-                        type_ == "reblog"
+                NotificationOnlyBoosts ->
+                    type_ == "reblog"
 
-                    NotificationOnlyFavourites ->
-                        type_ == "favourite"
+                NotificationOnlyFavourites ->
+                    type_ == "favourite"
 
-                    NotificationOnlyFollows ->
-                        type_ == "follow"
+                NotificationOnlyFollows ->
+                    type_ == "follow"
     in
-        if filter == NotificationAll then
-            notifications
-        else
-            List.filter applyFilter notifications
+    if filter == NotificationAll then
+        notifications
+
+    else
+        List.filter applyFilter notifications
 
 
 notificationHeading : List AccountNotificationDate -> String -> String -> Html Msg
@@ -75,16 +76,16 @@ notificationHeading accountsAndDate str iconType =
                 _ ->
                     ( [], "" )
     in
-        div [ class "status-info" ]
-            [ div [ class "avatars" ] <|
-                List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
-            , p [ class "status-info-text" ] <|
-                List.intersperse (text " ")
-                    [ Common.icon iconType
-                    , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) firstAccounts)
-                    , text finalStr
-                    ]
-            ]
+    div [ class "status-info" ]
+        [ div [ class "avatars" ] <|
+            List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
+        , p [ class "status-info-text" ] <|
+            List.intersperse (text " ")
+                [ Common.icon iconType
+                , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) firstAccounts)
+                , text finalStr
+                ]
+        ]
 
 
 notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
@@ -123,10 +124,10 @@ notificationFollowView currentUser { accounts } =
                         ]
                 ]
     in
-        div [ class "notification follow" ]
-            [ notificationHeading accounts "started following you" "user"
-            , div [ class "" ] <| List.map profileView (List.take 3 accounts)
-            ]
+    div [ class "notification follow" ]
+        [ notificationHeading accounts "started following you" "user"
+        , div [ class "" ] <| List.map profileView (List.take 3 accounts)
+        ]
 
 
 notificationEntryView : CurrentUser -> NotificationAggregate -> Html Msg
@@ -149,6 +150,7 @@ notificationFilterView filter =
                 [ class <|
                     if filter == event then
                         "btn btn-primary active"
+
                     else
                         "btn btn-default"
                 , title tooltip
@@ -156,14 +158,14 @@ notificationFilterView filter =
                 ]
                 [ Common.icon iconName ]
     in
-        Common.justifiedButtonGroup "column-menu notification-filters"
-            [ filterBtn "All notifications" "asterisk" NotificationAll
-            , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
-            , filterBtn "Direct" "envelope" NotificationOnlyDirect
-            , filterBtn "Boosts" "fire" NotificationOnlyBoosts
-            , filterBtn "Favorites" "star" NotificationOnlyFavourites
-            , filterBtn "Follows" "user" NotificationOnlyFollows
-            ]
+    Common.justifiedButtonGroup "column-menu notification-filters"
+        [ filterBtn "All notifications" "asterisk" NotificationAll
+        , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
+        , filterBtn "Direct" "envelope" NotificationOnlyDirect
+        , filterBtn "Boosts" "fire" NotificationOnlyBoosts
+        , filterBtn "Favorites" "star" NotificationOnlyFavourites
+        , filterBtn "Follows" "user" NotificationOnlyFollows
+        ]
 
 
 notificationListView : CurrentUser -> NotificationFilter -> Timeline NotificationAggregate -> Html Msg
@@ -179,13 +181,13 @@ notificationListView currentUser filter notifications =
                 |> filterNotifications filter
                 |> List.map keyedEntry
     in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default notifications-panel" ]
-                [ a
-                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
-                    [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
-                , notificationFilterView filter
-                , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
-                    (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
-                ]
+    div [ class "col-md-3 column" ]
+        [ div [ class "panel panel-default notifications-panel" ]
+            [ a
+                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
+                [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
+            , notificationFilterView filter
+            , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
+                (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
             ]
+        ]

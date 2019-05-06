@@ -10,8 +10,8 @@ import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Status exposing (statusEntryView)
 import View.Formatter exposing (formatContent)
+import View.Status exposing (statusEntryView)
 
 
 type alias CurrentUser =
@@ -26,6 +26,7 @@ followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 followButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
         text ""
+
     else
         let
             ( followEvent, btnClasses, iconName, tooltip ) =
@@ -44,6 +45,7 @@ followButton currentUser relationship account =
                             , "eye-close"
                             , "Unfollow"
                             )
+
                         else
                             ( FollowAccount account
                             , "btn btn-default btn-follow"
@@ -51,8 +53,8 @@ followButton currentUser relationship account =
                             , "Follow"
                             )
         in
-            button [ class btnClasses, title tooltip, onClick followEvent ]
-                [ Common.icon iconName ]
+        button [ class btnClasses, title tooltip, onClick followEvent ]
+            [ Common.icon iconName ]
 
 
 followView : CurrentUser -> Maybe Relationship -> Account -> Html Msg
@@ -66,6 +68,7 @@ followView currentUser relationship account =
                     [ text <|
                         if account.display_name /= "" then
                             account.display_name
+
                         else
                             account.username
                     ]
@@ -82,6 +85,7 @@ muteButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 muteButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
         text ""
+
     else
         let
             ( muteEvent, btnClasses, iconName, tooltip ) =
@@ -100,6 +104,7 @@ muteButton currentUser relationship account =
                             , "volume-up"
                             , "Unmute"
                             )
+
                         else
                             ( Mute account
                             , "btn btn-default btn-mute"
@@ -107,14 +112,15 @@ muteButton currentUser relationship account =
                             , "Mute"
                             )
         in
-            button [ class btnClasses, title tooltip, onClick muteEvent ]
-                [ Common.icon iconName ]
+        button [ class btnClasses, title tooltip, onClick muteEvent ]
+            [ Common.icon iconName ]
 
 
 blockButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 blockButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
         text ""
+
     else
         let
             ( blockEvent, btnClasses, iconName, tooltip ) =
@@ -133,6 +139,7 @@ blockButton currentUser relationship account =
                             , "ok-circle"
                             , "Unblock"
                             )
+
                         else
                             ( Block account
                             , "btn btn-default btn-block"
@@ -140,8 +147,8 @@ blockButton currentUser relationship account =
                             , "Block"
                             )
         in
-            button [ class btnClasses, title tooltip, onClick blockEvent ]
-                [ Common.icon iconName ]
+        button [ class btnClasses, title tooltip, onClick blockEvent ]
+            [ Common.icon iconName ]
 
 
 accountFollowView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
@@ -160,19 +167,20 @@ accountFollowView view currentUser accountInfo =
         timeline =
             if view == AccountFollowersView then
                 accountInfo.followers
+
             else
                 accountInfo.following
 
         entries =
             List.map keyedEntry timeline.entries
     in
-        case accountInfo.account of
-            Just account ->
-                Keyed.ul [ class "list-group" ] <|
-                    (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+    case accountInfo.account of
+        Just account ->
+            Keyed.ul [ class "list-group" ] <|
+                (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
-            Nothing ->
-                text ""
+        Nothing ->
+            text ""
 
 
 accountTimelineView : CurrentUser -> AccountInfo -> Html Msg
@@ -186,13 +194,13 @@ accountTimelineView currentUser accountInfo =
         entries =
             List.map keyedEntry accountInfo.timeline.entries
     in
-        case accountInfo.account of
-            Just account ->
-                Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
-                    (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
+    case accountInfo.account of
+        Just account ->
+            Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
+                (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
 
-            Nothing ->
-                text ""
+        Nothing ->
+            text ""
 
 
 counterLink : String -> String -> Int -> Bool -> Html Msg
@@ -203,6 +211,7 @@ counterLink href_ label count active =
             "col-md-4"
                 ++ (if active then
                         " active"
+
                     else
                         ""
                    )
@@ -219,23 +228,23 @@ counterLinks subView account =
         { statuses_count, following_count, followers_count } =
             account
     in
-        div [ class "row account-infos" ]
-            [ counterLink
-                ("#account/" ++ account.id)
-                "Statuses"
-                statuses_count
-                (subView == AccountStatusesView)
-            , counterLink
-                ("#account/" ++ account.id ++ "/following")
-                "Following"
-                following_count
-                (subView == AccountFollowingView)
-            , counterLink
-                ("#account/" ++ account.id ++ "/followers")
-                "Followers"
-                followers_count
-                (subView == AccountFollowersView)
-            ]
+    div [ class "row account-infos" ]
+        [ counterLink
+            ("#account/" ++ account.id)
+            "Statuses"
+            statuses_count
+            (subView == AccountStatusesView)
+        , counterLink
+            ("#account/" ++ account.id ++ "/following")
+            "Following"
+            following_count
+            (subView == AccountFollowingView)
+        , counterLink
+            ("#account/" ++ account.id ++ "/followers")
+            "Followers"
+            followers_count
+            (subView == AccountFollowersView)
+        ]
 
 
 accountView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
@@ -251,7 +260,7 @@ accountView subView currentUser accountInfo =
                     , div [ id "account", class "timeline" ]
                         [ div
                             [ class "account-detail"
-                            , style [ ( "background-image", "url('" ++ account.header ++ "')" ) ]
+                            , style "background-image" ("url('" ++ account.header ++ "')")
                             ]
                             [ div [ class "opacity-layer" ]
                                 [ followButton currentUser accountInfo.relationship account
@@ -266,16 +275,19 @@ accountView subView currentUser accountInfo =
                                             span []
                                                 [ if relationship.followed_by then
                                                     span [ class "badge followed-by" ] [ text "Follows you" ]
+
                                                   else
                                                     text ""
                                                 , text " "
                                                 , if relationship.muting then
                                                     span [ class "badge muting" ] [ text "Muted" ]
+
                                                   else
                                                     text ""
                                                 , text " "
                                                 , if relationship.blocking then
                                                     span [ class "badge blocking" ] [ text "Blocked" ]
+
                                                   else
                                                     text ""
                                                 ]

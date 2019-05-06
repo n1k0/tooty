@@ -1,0 +1,2 @@
+- Check emoji rendering. Either update https://github.com/teepark/elmoji to 0.19 or use https://github.com/Holmusk/elmoji
+- Add useful date formatting back for `formatDate` function

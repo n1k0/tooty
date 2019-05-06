@@ -1,14 +1,13 @@
-module Mastodon.Helper
-    exposing
-        ( extractReblog
-        , aggregateNotifications
-        , addNotificationToAggregates
-        , extractStatusId
-        , getReplyPrefix
-        , notificationToAggregate
-        , sameAccount
-        , statusReferenced
-        )
+module Mastodon.Helper exposing
+    ( addNotificationToAggregates
+    , aggregateNotifications
+    , extractReblog
+    , extractStatusId
+    , getReplyPrefix
+    , notificationToAggregate
+    , sameAccount
+    , statusReferenced
+    )
 
 import List.Extra exposing (groupWhile, uniqueBy)
 import Mastodon.Model exposing (..)
@@ -35,15 +34,15 @@ getReplyPrefix replier status =
                     [ reblog.account, status.account ] |> List.map toMention
 
                 Nothing ->
-                    (toMention status.account) :: status.mentions
+                    toMention status.account :: status.mentions
 
         finalPosters =
             posters
                 |> uniqueBy .acct
-                |> List.filter (\m -> m /= (toMention replier))
+                |> List.filter (\m -> m /= toMention replier)
                 |> List.map (\m -> "@" ++ m.acct)
     in
-        (String.join " " finalPosters) ++ " "
+    String.join " " finalPosters ++ " "
 
 
 toMention : Account -> Mention
@@ -76,6 +75,7 @@ addNotificationToAggregates notification aggregates =
                                 }
                                     :: aggregate.accounts
                         }
+
                     else
                         aggregate
 
@@ -120,19 +120,21 @@ addNotificationToAggregates notification aggregates =
                             ( aggregateType, notificationType ) ->
                                 if aggregateType == notificationType then
                                     addNewAccountToSameStatus aggregate notification
+
                                 else
                                     aggregate
                     )
     in
-        {-
-           If we did no modification to the old aggregates it's
-           because we didn't found any match. So we have to create
-           a new aggregate
-        -}
-        if newAggregates == aggregates then
-            notificationToAggregate (notification) :: aggregates
-        else
-            newAggregates
+    {-
+       If we did no modification to the old aggregates it's
+       because we didn't found any match. So we have to create
+       a new aggregate
+    -}
+    if newAggregates == aggregates then
+        notificationToAggregate notification :: aggregates
+
+    else
+        newAggregates
 
 
 aggregateNotifications : List Notification -> List NotificationAggregate
@@ -156,30 +158,30 @@ aggregateNotifications notifications =
                         |> List.map (\s -> { account = s.account, created_at = s.created_at })
                         |> uniqueBy (.account >> .id)
             in
-                case statusGroup of
-                    notification :: _ ->
-                        [ NotificationAggregate
-                            notification.id
-                            notification.type_
-                            notification.status
-                            accounts
-                            notification.created_at
-                        ]
+            case statusGroup of
+                notification :: _ ->
+                    [ NotificationAggregate
+                        notification.id
+                        notification.type_
+                        notification.status
+                        accounts
+                        notification.created_at
+                    ]
 
-                    [] ->
-                        []
+                [] ->
+                    []
 
         aggregate statusGroups =
             List.map extractAggregate statusGroups |> List.concat
     in
-        [ notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
-        , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
-        , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
-        , notifications |> only "follow" |> groupWhile (\_ _ -> True) |> aggregate
-        ]
-            |> List.concat
-            |> List.sortBy .created_at
-            |> List.reverse
+    [ notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
+    , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
+    , notifications |> only "mention" |> groupWhile sameStatus |> aggregate
+    , notifications |> only "follow" |> groupWhile (\_ _ -> True) |> aggregate
+    ]
+        |> List.concat
+        |> List.sortBy .created_at
+        |> List.reverse
 
 
 sameAccount : Mastodon.Model.Account -> Mastodon.Model.Account -> Bool

@@ -1,16 +1,15 @@
-module Mastodon.WebSocket
-    exposing
-        ( StreamType(..)
-        , WebSocketEvent(..)
-        , WebSocketMessage
-        , subscribeToWebSockets
-        )
+module Mastodon.WebSocket exposing
+    ( StreamType(..)
+    , WebSocketEvent(..)
+    , WebSocketMessage
+    , subscribeToWebSockets
+    )
 
-import String.Extra exposing (replaceSlice)
-import WebSocket
 import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Encoder exposing (encodeUrl)
 import Mastodon.Model exposing (..)
+import String.Extra exposing (replaceSlice)
+import WebSocket
 
 
 type StreamType
@@ -55,7 +54,7 @@ subscribeToWebSockets client streamType message =
                         , ( "stream", type_ )
                         ]
             in
-                WebSocket.listen url message
+            WebSocket.listen url message
 
         Nothing ->
             Sub.none

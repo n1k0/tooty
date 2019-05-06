@@ -1,8 +1,7 @@
-module View.Error
-    exposing
-        ( errorView
-        , errorsListView
-        )
+module View.Error exposing
+    ( errorView
+    , errorsListView
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)

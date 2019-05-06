@@ -1,20 +1,16 @@
-module View.Common
-    exposing
-        ( accountAvatar
-        , accountAvatarLink
-        , accountLink
-        , appLink
-        , closeablePanelheading
-        , icon
-        , justifiedButtonGroup
-        , loadMoreBtn
-        , confirmView
-        , formatDate
-        )
+module View.Common exposing
+    ( accountAvatar
+    , accountAvatarLink
+    , accountLink
+    , appLink
+    , closeablePanelheading
+    , confirmView
+    , formatDate
+    , icon
+    , justifiedButtonGroup
+    , loadMoreBtn
+    )
 
-import Date
-import Date.Extra.Config.Config_en_au as DateEn
-import Date.Extra.Format as DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -35,14 +31,15 @@ accountLink external account =
         accountHref =
             if external then
                 target "_blank"
+
             else
                 href <| "#account/" ++ account.id
     in
-        a
-            [ href account.url
-            , accountHref
-            ]
-            [ text <| "@" ++ account.username ]
+    a
+        [ href account.url
+        , accountHref
+        ]
+        [ text <| "@" ++ account.username ]
 
 
 accountAvatarLink : Bool -> Account -> Html Msg
@@ -51,21 +48,23 @@ accountAvatarLink external account =
         accountHref =
             if external then
                 target "_blank"
+
             else
                 href <| "#account/" ++ account.id
 
         avatarClass =
             if external then
                 ""
+
             else
                 "avatar"
     in
-        a
-            [ href account.url
-            , accountHref
-            , title <| "@" ++ account.username
-            ]
-            [ accountAvatar avatarClass account ]
+    a
+        [ href account.url
+        , accountHref
+        , title <| "@" ++ account.username
+        ]
+        [ accountAvatar avatarClass account ]
 
 
 appLink : String -> Maybe Application -> Html Msg
@@ -115,6 +114,7 @@ loadMoreBtn { id, links, loading } =
     if loading then
         li [ class "list-group-item load-more text-center" ]
             [ text "Loading..." ]
+
     else
         case links.next of
             Just next ->
@@ -134,7 +134,7 @@ confirmView { message, onConfirm, onCancel } =
     div []
         [ div [ class "modal-backdrop" ] []
         , div
-            [ class "modal fade in", style [ ( "display", "block" ) ], tabindex -1 ]
+            [ class "modal fade in", style "display" "block", tabindex -1 ]
             [ div
                 [ class "modal-dialog" ]
                 [ div
@@ -158,6 +158,13 @@ confirmView { message, onConfirm, onCancel } =
 
 formatDate : String -> String
 formatDate dateString =
-    Date.fromString dateString
-        |> Result.withDefault (Date.fromTime 0)
-        |> DateFormat.format DateEn.config "%d/%m/%Y %H:%M"
+    dateString
+
+
+
+{-
+   TODO: Fix me
+   Date.fromString dateString
+       |> Result.withDefault (Date.fromTime 0)
+       |> DateFormat.format DateEn.config "%d/%m/%Y %H:%M"
+-}

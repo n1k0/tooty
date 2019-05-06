@@ -44,5 +44,6 @@ init { registration, clients } location =
                 , ctrlPressed = False
                 }
     in
-        model
-            ! [ commands, Command.initCommands registration (List.head decodedClients) (Util.extractAuthCode location) ]
+    ( model
+    , Cmd.batch [ commands, Command.initCommands registration (List.head decodedClients) (Util.extractAuthCode location) ]
+    )
