@@ -45,8 +45,10 @@ module Command exposing
     , uploadMedia
     )
 
-import Dom
-import Dom.Scroll
+--TODO
+--import Dom.Scroll
+--import Dom
+
 import HttpBuilder
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -56,7 +58,6 @@ import Mastodon.Encoder exposing (..)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Http exposing (..)
 import Mastodon.Model exposing (..)
-import Navigation
 import Ports
 import String.Extra exposing (replace)
 import Task
@@ -665,12 +666,14 @@ focusId id =
 
 scrollColumnToTop : String -> Cmd Msg
 scrollColumnToTop column =
-    Task.attempt (always NoOp) <| Dom.Scroll.toTop column
+    --Task.attempt (always NoOp) <| Dom.Scroll.toTop column
+    Cmd.none
 
 
 scrollColumnToBottom : String -> Cmd Msg
 scrollColumnToBottom column =
-    Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
+    --Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
+    Cmd.none
 
 
 scrollToThreadStatus : String -> Cmd Msg

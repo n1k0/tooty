@@ -4,7 +4,9 @@ module Update.Draft exposing
     , update
     )
 
-import Autocomplete
+--TODO
+--import Autocomplete
+
 import Command
 import Json.Decode as Decode
 import Mastodon.Decoder exposing (attachmentDecoder)

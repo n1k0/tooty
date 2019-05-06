@@ -4,7 +4,6 @@ import Command
 import List.Extra exposing (removeAt)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
-import Navigation
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Draft

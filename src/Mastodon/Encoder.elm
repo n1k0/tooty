@@ -2,7 +2,6 @@ module Mastodon.Encoder exposing
     ( appRegistrationEncoder
     , authorizationCodeEncoder
     , clientEncoder
-    , encodeUrl
     , registrationEncoder
     , statusRequestBodyEncoder
     )
@@ -20,13 +19,6 @@ encodeMaybe encode thing =
 
         Just value ->
             encode value
-
-
-encodeUrl : String -> List ( String, String ) -> String
-encodeUrl base params =
-    List.map (\( k, v ) -> k ++ "=" ++ Http.encodeUri v) params
-        |> String.join "&"
-        |> (++) (base ++ "?")
 
 
 appRegistrationEncoder : String -> String -> String -> String -> Encode.Value
@@ -103,5 +95,5 @@ statusRequestBodyEncoder statusData =
         , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
         , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "visibility", Encode.string statusData.visibility )
-        , ( "media_ids", Encode.list (List.map Encode.string statusData.media_ids) )
+        , ( "media_ids", Encode.list Encode.string statusData.media_ids )
         ]

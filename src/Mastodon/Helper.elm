@@ -64,14 +64,14 @@ addNotificationToAggregates : Notification -> List NotificationAggregate -> List
 addNotificationToAggregates notification aggregates =
     let
         addNewAccountToSameStatus : NotificationAggregate -> Notification -> NotificationAggregate
-        addNewAccountToSameStatus aggregate notification =
-            case ( aggregate.status, notification.status ) of
+        addNewAccountToSameStatus aggregate newNotification =
+            case ( aggregate.status, newNotification.status ) of
                 ( Just aggregateStatus, Just notificationStatus ) ->
                     if aggregateStatus.id == notificationStatus.id then
                         { aggregate
                             | accounts =
-                                { account = notification.account
-                                , created_at = notification.created_at
+                                { account = newNotification.account
+                                , created_at = newNotification.created_at
                                 }
                                     :: aggregate.accounts
                         }
@@ -140,8 +140,8 @@ addNotificationToAggregates notification aggregates =
 aggregateNotifications : List Notification -> List NotificationAggregate
 aggregateNotifications notifications =
     let
-        only type_ notifications =
-            List.filter (\n -> n.type_ == type_) notifications
+        only type_ allNotifications =
+            List.filter (\n -> n.type_ == type_) allNotifications
 
         sameStatus n1 n2 =
             case ( n1.status, n2.status ) of

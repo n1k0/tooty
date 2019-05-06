@@ -1,2 +1,4 @@
 - Check emoji rendering. Either update https://github.com/teepark/elmoji to 0.19 or use https://github.com/Holmusk/elmoji
 - Add useful date formatting back for `formatDate` function
+- Add scrolling behavior back to `src/Command.elm`
+- Add Keyboard behavior in  `src/Subscription.elm` using https://package.elm-lang.org/packages/elm/browser/latest/Browser-Events

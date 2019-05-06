@@ -5,7 +5,7 @@ import Mastodon.Model exposing (StatusId(..))
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Timeline
-import UrlParser exposing (..)
+import Url.Parser exposing (..)
 
 
 type Route

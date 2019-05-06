@@ -3,7 +3,6 @@ module Update.Mastodon exposing (update)
 import Command
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
-import Navigation
 import Task
 import Types exposing (..)
 import Update.Draft

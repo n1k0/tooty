@@ -1,7 +1,9 @@
 module Subscription exposing (subscriptions)
 
-import Autocomplete
-import Keyboard
+-- TODO
+--import Keyboard
+--import Autocomplete
+
 import Mastodon.WebSocket
 import Ports
 import Time

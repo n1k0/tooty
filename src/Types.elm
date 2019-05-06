@@ -1,11 +1,14 @@
 module Types exposing (AccountInfo, Confirm, CurrentAccountView(..), CurrentView(..), Draft, DraftMsg(..), ErrorNotification, Flags, InputInformation, KeyEvent(..), MastodonMsg(..), MastodonResult, Model, Msg(..), NotificationFilter(..), ScrollDirection(..), Search, SearchMsg(..), Thread, Timeline, Viewer, ViewerMsg(..), WebSocketMsg(..))
 
-import Autocomplete
-import Keyboard
+--TODO
+--import Keyboard
+--import Autocomplete
+
+import Browser
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
-import Navigation
 import Time exposing (Time)
+import Url
 
 
 type alias Flags =
@@ -110,6 +113,7 @@ type Msg
     | KeyMsg KeyEvent Keyboard.KeyCode
     | LogoutClient Client
     | TimelineLoadNext String String
+    | LinkClicked Browser.UrlRequest
     | MastodonEvent MastodonMsg
     | Mute Account
     | Navigate String
@@ -128,7 +132,7 @@ type Msg
     | Unblock Account
     | Unmute Account
     | UnreblogStatus Status
-    | UrlChange Navigation.Location
+    | UrlChanged Url.Url
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
 
