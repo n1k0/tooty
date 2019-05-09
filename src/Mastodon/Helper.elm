@@ -140,9 +140,11 @@ addNotificationToAggregates notification aggregates =
 aggregateNotifications : List Notification -> List NotificationAggregate
 aggregateNotifications notifications =
     let
+        only : String -> List Notification -> List Notification
         only type_ allNotifications =
             List.filter (\n -> n.type_ == type_) allNotifications
 
+        sameStatus : Notification -> Notification -> Bool
         sameStatus n1 n2 =
             case ( n1.status, n2.status ) of
                 ( Just r1, Just r2 ) ->
@@ -151,28 +153,24 @@ aggregateNotifications notifications =
                 _ ->
                     False
 
-        extractAggregate statusGroup =
+        extractAggregate : ( Notification, List Notification ) -> NotificationAggregate
+        extractAggregate ( headNotification, tailNotification ) =
             let
                 accounts =
-                    statusGroup
+                    (headNotification :: tailNotification)
                         |> List.map (\s -> { account = s.account, created_at = s.created_at })
                         |> uniqueBy (.account >> .id)
             in
-            case statusGroup of
-                notification :: _ ->
-                    [ NotificationAggregate
-                        notification.id
-                        notification.type_
-                        notification.status
-                        accounts
-                        notification.created_at
-                    ]
+            NotificationAggregate
+                headNotification.id
+                headNotification.type_
+                headNotification.status
+                accounts
+                headNotification.created_at
 
-                [] ->
-                    []
-
+        aggregate : List ( Notification, List Notification ) -> List NotificationAggregate
         aggregate statusGroups =
-            List.map extractAggregate statusGroups |> List.concat
+            List.map extractAggregate statusGroups
     in
     [ notifications |> only "reblog" |> groupWhile sameStatus |> aggregate
     , notifications |> only "favourite" |> groupWhile sameStatus |> aggregate
