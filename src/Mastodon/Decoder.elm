@@ -25,7 +25,7 @@ import Mastodon.WebSocket exposing (..)
 
 appRegistrationDecoder : String -> String -> Decode.Decoder AppRegistration
 appRegistrationDecoder server scope =
-    Pipe.decode AppRegistration
+    Decode.succeed AppRegistration
         |> Pipe.hardcoded server
         |> Pipe.hardcoded scope
         |> Pipe.required "client_id" Decode.string
@@ -36,14 +36,14 @@ appRegistrationDecoder server scope =
 
 accessTokenDecoder : AppRegistration -> Decode.Decoder AccessTokenResult
 accessTokenDecoder registration =
-    Pipe.decode AccessTokenResult
+    Decode.succeed AccessTokenResult
         |> Pipe.hardcoded registration.server
         |> Pipe.required "access_token" Decode.string
 
 
 accountDecoder : Decode.Decoder Account
 accountDecoder =
-    Pipe.decode Account
+    Decode.succeed Account
         |> Pipe.required "acct" Decode.string
         |> Pipe.required "avatar" Decode.string
         |> Pipe.required "created_at" Decode.string
@@ -61,14 +61,14 @@ accountDecoder =
 
 applicationDecoder : Decode.Decoder Application
 applicationDecoder =
-    Pipe.decode Application
+    Decode.succeed Application
         |> Pipe.required "name" Decode.string
         |> Pipe.required "website" (Decode.nullable Decode.string)
 
 
 attachmentDecoder : Decode.Decoder Attachment
 attachmentDecoder =
-    Pipe.decode Attachment
+    Decode.succeed Attachment
         |> Pipe.required "id" idDecoder
         |> Pipe.required "type" Decode.string
         |> Pipe.required "url" Decode.string
@@ -79,14 +79,14 @@ attachmentDecoder =
 
 contextDecoder : Decode.Decoder Context
 contextDecoder =
-    Pipe.decode Context
+    Decode.succeed Context
         |> Pipe.required "ancestors" (Decode.list statusDecoder)
         |> Pipe.required "descendants" (Decode.list statusDecoder)
 
 
 clientDecoder : Decode.Decoder Client
 clientDecoder =
-    Pipe.decode Client
+    Decode.succeed Client
         |> Pipe.required "server" Decode.string
         |> Pipe.required "token" Decode.string
         |> Pipe.required "account" (Decode.maybe accountDecoder)
@@ -104,7 +104,7 @@ mastodonErrorDecoder =
 
 mentionDecoder : Decode.Decoder Mention
 mentionDecoder =
-    Pipe.decode Mention
+    Decode.succeed Mention
         |> Pipe.required "id" idDecoder
         |> Pipe.required "url" Decode.string
         |> Pipe.required "username" Decode.string
@@ -113,7 +113,7 @@ mentionDecoder =
 
 notificationDecoder : Decode.Decoder Notification
 notificationDecoder =
-    Pipe.decode Notification
+    Decode.succeed Notification
         |> Pipe.required "id" idDecoder
         |> Pipe.required "type" Decode.string
         |> Pipe.required "created_at" Decode.string
@@ -123,7 +123,7 @@ notificationDecoder =
 
 relationshipDecoder : Decode.Decoder Relationship
 relationshipDecoder =
-    Pipe.decode Relationship
+    Decode.succeed Relationship
         |> Pipe.required "id" idDecoder
         |> Pipe.required "blocking" Decode.bool
         |> Pipe.required "followed_by" Decode.bool
@@ -134,7 +134,7 @@ relationshipDecoder =
 
 tagDecoder : Decode.Decoder Tag
 tagDecoder =
-    Pipe.decode Tag
+    Decode.succeed Tag
         |> Pipe.required "name" Decode.string
         |> Pipe.required "url" Decode.string
 
@@ -146,7 +146,7 @@ reblogDecoder =
 
 searchResultsDecoder : Decode.Decoder SearchResults
 searchResultsDecoder =
-    Pipe.decode SearchResults
+    Decode.succeed SearchResults
         |> Pipe.required "accounts" (Decode.list accountDecoder)
         |> Pipe.required "statuses" (Decode.list statusDecoder)
         |> Pipe.required "hashtags" (Decode.list Decode.string)
@@ -158,7 +158,7 @@ idDecoder =
     -- treat all ids as strings.
     Decode.oneOf
         [ Decode.string
-        , Decode.int |> Decode.map toString
+        , Decode.int |> Decode.map String.fromInt
         ]
 
 
@@ -169,7 +169,7 @@ statusIdDecoder =
 
 statusDecoder : Decode.Decoder Status
 statusDecoder =
-    Pipe.decode Status
+    Decode.succeed Status
         |> Pipe.required "account" accountDecoder
         |> Pipe.required "application" (Decode.nullable applicationDecoder)
         |> Pipe.required "content" Decode.string
@@ -194,7 +194,7 @@ statusDecoder =
 
 webSocketEventDecoder : Decode.Decoder WebSocketMessage
 webSocketEventDecoder =
-    Pipe.decode WebSocketMessage
+    Decode.succeed WebSocketMessage
         |> Pipe.required "event" Decode.string
         |> Pipe.required "payload"
             -- NOTE: as of the Mastodon API v2.0.0, ids may be either ints or
@@ -202,7 +202,7 @@ webSocketEventDecoder =
             -- we cast it to a string.
             (Decode.oneOf
                 [ Decode.string
-                , Decode.int |> Decode.map toString
+                , Decode.int |> Decode.map String.fromInt
                 ]
             )
 
@@ -221,8 +221,8 @@ decodeWebSocketMessage message =
                 "notification" ->
                     NotificationEvent (Decode.decodeString notificationDecoder payload)
 
-                event ->
-                    ErrorEvent <| "Unknown WS event " ++ event
+                e ->
+                    ErrorEvent <| "Unknown WS event " ++ e
 
         Err error ->
             ErrorEvent error

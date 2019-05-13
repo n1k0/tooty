@@ -36,29 +36,31 @@ type alias WebSocketMessage =
 
 subscribeToWebSockets : Maybe Client -> StreamType -> (String -> a) -> Sub a
 subscribeToWebSockets client streamType message =
-    case client of
-        Just aClient ->
-            let
-                type_ =
-                    case streamType of
-                        GlobalPublicStream ->
-                            "public"
+    {-
+       case client of
+           Just aClient ->
+               let
+                   type_ =
+                       case streamType of
+                           GlobalPublicStream ->
+                               "public"
 
-                        LocalPublicStream ->
-                            "public:local"
+                           LocalPublicStream ->
+                               "public:local"
 
-                        UserStream ->
-                            "user"
+                           UserStream ->
+                               "user"
 
-                url =
-                    Url.Builder.crossOrigin
-                        (replaceSlice "wss" 0 5 <| aClient.server ++ ApiUrl.streaming)
-                        []
-                        [ Url.Builder.string "access_token" aClient.token
-                        , Url.Builder.string "stream" type_
-                        ]
-            in
-            WebSocket.listen url message
+                   url =
+                       Url.Builder.crossOrigin
+                           (replaceSlice "wss" 0 5 <| aClient.server ++ ApiUrl.streaming)
+                           []
+                           [ Url.Builder.string "access_token" aClient.token
+                           , Url.Builder.string "stream" type_
+                           ]
+               in
+               WebSocket.listen url message
 
-        Nothing ->
-            Sub.none
+           Nothing ->
+    -}
+    Sub.none
