@@ -8,7 +8,7 @@ import Browser
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import PortFunnels exposing (State)
-import Time exposing (Time)
+import Time exposing (Posix)
 import Url
 
 
@@ -239,13 +239,13 @@ type alias Timeline a =
 
 type alias ErrorNotification =
     { message : String
-    , time : Time
+    , time : Posix
     }
 
 
 type alias Model =
     { server : String
-    , currentTime : Time
+    , currentTime : Posix
     , registration : Maybe AppRegistration
     , clients : List Client
     , homeTimeline : Timeline Status
