@@ -16,30 +16,34 @@ subscriptions { clients, currentView } =
         timeSub =
             Time.every Time.second Tick
 
-        userWsSub =
-            Mastodon.WebSocket.subscribeToWebSockets
-                (List.head clients)
-                Mastodon.WebSocket.UserStream
-                NewWebsocketUserMessage
-                |> Sub.map WebSocketEvent
+        {-
+           userWsSub =
+               Mastodon.WebSocket.subscribeToWebSockets
+                   (List.head clients)
+                   Mastodon.WebSocket.UserStream
+                   NewWebsocketUserMessage
+                   |> Sub.map WebSocketEvent
 
-        otherWsSub =
-            if currentView == GlobalTimelineView then
-                Mastodon.WebSocket.subscribeToWebSockets
-                    (List.head clients)
-                    Mastodon.WebSocket.GlobalPublicStream
-                    NewWebsocketGlobalMessage
-                    |> Sub.map WebSocketEvent
+           otherWsSub =
+               if currentView == GlobalTimelineView then
+                   Mastodon.WebSocket.subscribeToWebSockets
+                       (List.head clients)
+                       Mastodon.WebSocket.GlobalPublicStream
+                       NewWebsocketGlobalMessage
+                       |> Sub.map WebSocketEvent
 
-            else if currentView == LocalTimelineView then
-                Mastodon.WebSocket.subscribeToWebSockets
-                    (List.head clients)
-                    Mastodon.WebSocket.LocalPublicStream
-                    NewWebsocketLocalMessage
-                    |> Sub.map WebSocketEvent
+               else if currentView == LocalTimelineView then
+                   Mastodon.WebSocket.subscribeToWebSockets
+                       (List.head clients)
+                       Mastodon.WebSocket.LocalPublicStream
+                       NewWebsocketLocalMessage
+                       |> Sub.map WebSocketEvent
 
-            else
-                Sub.none
+               else
+                   Sub.none
+        -}
+        portFunnelsSub =
+            PortFunnels.subscriptions WsProcess
 
         autoCompleteSub =
             Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
@@ -58,8 +62,9 @@ subscriptions { clients, currentView } =
     in
     Sub.batch
         [ timeSub
-        , userWsSub
-        , otherWsSub
+
+        --, userWsSub
+        --, otherWsSub
         , autoCompleteSub
         , uploadSuccessSub
         , uploadErrorSub

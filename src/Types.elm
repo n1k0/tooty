@@ -7,6 +7,7 @@ module Types exposing (AccountInfo, Confirm, CurrentAccountView(..), CurrentView
 import Browser
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
+import PortFunnels exposing (State)
 import Time exposing (Time)
 import Url
 
@@ -91,6 +92,7 @@ type WebSocketMsg
     = NewWebsocketGlobalMessage String
     | NewWebsocketLocalMessage String
     | NewWebsocketUserMessage String
+    | WsProcess Value
 
 
 type KeyEvent
@@ -265,6 +267,7 @@ type alias Model =
     , confirm : Maybe Confirm
     , search : Search
     , ctrlPressed : Bool
+    , portsFunnels : State
     }
 
 
