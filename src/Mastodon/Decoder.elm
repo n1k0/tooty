@@ -92,7 +92,7 @@ clientDecoder =
         |> Pipe.required "account" (Decode.maybe accountDecoder)
 
 
-decodeClients : String -> Result String (List Client)
+decodeClients : String -> Result Decode.Error (List Client)
 decodeClients json =
     Decode.decodeString (Decode.list clientDecoder) json
 
@@ -213,16 +213,16 @@ decodeWebSocketMessage message =
         Ok { event, payload } ->
             case event of
                 "update" ->
-                    StatusUpdateEvent (Decode.decodeString statusDecoder payload)
+                    StatusUpdateEvent (Decode.decodeString statusDecoder payload |> Result.mapError Decode.errorToString)
 
                 "delete" ->
                     StatusDeleteEvent (StatusId payload)
 
                 "notification" ->
-                    NotificationEvent (Decode.decodeString notificationDecoder payload)
+                    NotificationEvent (Decode.decodeString notificationDecoder payload |> Result.mapError Decode.errorToString)
 
                 e ->
                     ErrorEvent <| "Unknown WS event " ++ e
 
         Err error ->
-            ErrorEvent error
+            ErrorEvent <| Decode.errorToString error
