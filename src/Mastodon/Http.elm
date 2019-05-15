@@ -20,6 +20,7 @@ import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
 import Mastodon.Model exposing (..)
+import Url.Builder
 
 
 type Action
@@ -136,13 +137,13 @@ extractLinks headers =
 decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String (Response a)
 decodeResponse decoder response =
     let
-        decoded =
+        decodedResponse =
             Decode.decodeString decoder response.body
 
         links =
             extractLinks response.headers
     in
-    case decoded of
+    case decodedResponse of
         Ok decoded ->
             Ok <| Response decoded links
 
@@ -152,11 +153,13 @@ decodeResponse decoder response =
 
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
-    encodeUrl (registration.server ++ ApiUrl.oauthAuthorize)
-        [ ( "response_type", "code" )
-        , ( "client_id", registration.client_id )
-        , ( "scope", registration.scope )
-        , ( "redirect_uri", registration.redirect_uri )
+    Url.Builder.crossOrigin
+        (registration.server ++ ApiUrl.oauthAuthorize)
+        []
+        [ Url.Builder.string "response_type" "code"
+        , Url.Builder.string "client_id" registration.client_id
+        , Url.Builder.string "scope" registration.scope
+        , Url.Builder.string "redirect_uri" registration.redirect_uri
         ]
 
 
