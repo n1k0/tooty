@@ -172,7 +172,7 @@ statusDecoder : Decode.Decoder Status
 statusDecoder =
     Pipe.decode Status
         |> Pipe.required "account" accountDecoder
-        |> Pipe.required "application" (Decode.nullable applicationDecoder)
+        |> Pipe.optional "application" (Decode.nullable applicationDecoder) Nothing
         |> Pipe.required "content" Decode.string
         |> Pipe.required "created_at" Decode.string
         |> Pipe.optional "favourited" (Decode.nullable Decode.bool) Nothing
