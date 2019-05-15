@@ -58,7 +58,7 @@ extractMastodonError statusCode statusMsg body =
             MastodonError statusCode statusMsg errRecord
 
         Err err ->
-            ServerError statusCode statusMsg err
+            ServerError statusCode statusMsg <| Decode.errorToString err
 
 
 extractError : Http.Error -> Error
@@ -148,7 +148,7 @@ decodeResponse decoder response =
             Ok <| Response decoded links
 
         Err error ->
-            Err error
+            Err <| Decode.errorToString error
 
 
 getAuthorizationUrl : AppRegistration -> String
