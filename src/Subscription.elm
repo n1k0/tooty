@@ -14,7 +14,7 @@ subscriptions : Model -> Sub Msg
 subscriptions { clients, currentView } =
     let
         timeSub =
-            Time.every Time.second Tick
+            Time.every 1000 Tick
 
         {-
            userWsSub =

@@ -1,6 +1,6 @@
 module Update.Error exposing (addErrorNotification, cleanErrors)
 
-import Time exposing (Time)
+import Time exposing (Posix)
 import Types exposing (..)
 
 
@@ -13,6 +13,10 @@ addErrorNotification message model =
     error :: model.errors
 
 
-cleanErrors : Time -> List ErrorNotification -> List ErrorNotification
+cleanErrors : Posix -> List ErrorNotification -> List ErrorNotification
 cleanErrors currentTime errors =
-    List.filter (\{ time } -> currentTime - time <= 10000) errors
+    errors
+
+
+
+--List.filter (\{ time } -> currentTime - time <= 10000) errors

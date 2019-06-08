@@ -24,7 +24,7 @@ type DraftMsg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
-    | SetAutoState Autocomplete.Msg
+      --| SetAutoState Autocomplete.Msg
     | ToggleSpoiler Bool
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
@@ -92,7 +92,10 @@ type WebSocketMsg
     = NewWebsocketGlobalMessage String
     | NewWebsocketLocalMessage String
     | NewWebsocketUserMessage String
-    | WsProcess Value
+
+
+
+--| WsProcess Value
 
 
 type KeyEvent
@@ -112,7 +115,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | KeyMsg KeyEvent Keyboard.KeyCode
+      --| KeyMsg KeyEvent Keyboard.KeyCode
     | LogoutClient Client
     | TimelineLoadNext String String
     | LinkClicked Browser.UrlRequest
@@ -129,7 +132,7 @@ type Msg
     | ServerChange String
     | SubmitDraft
     | SwitchClient Client
-    | Tick Time
+    | Tick Posix
     | UnfollowAccount Account
     | Unblock Account
     | Unmute Account
@@ -187,7 +190,7 @@ type alias Draft =
     , statusLength : Int
 
     -- Autocomplete values
-    , autoState : Autocomplete.State
+    --, autoState : Autocomplete.State
     , autoCursorPosition : Int
     , autoAtPosition : Maybe Int
     , autoQuery : String
@@ -259,7 +262,7 @@ type alias Model =
     , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List ErrorNotification
-    , location : Navigation.Location
+    , location : Url.Url
     , viewer : Maybe Viewer
     , currentUser : Maybe Account
     , currentView : CurrentView

@@ -2,3 +2,5 @@
 - Add useful date formatting back for `formatDate` function
 - Add scrolling behavior back to `src/Command.elm`
 - Add Keyboard behavior in  `src/Subscription.elm` using https://package.elm-lang.org/packages/elm/browser/latest/Browser-Events
+- Replace Autocomplete with https://github.com/ContaSystemer/elm-menu/tree/1.0.2
+- Update `cleanErrors` in `src/Update/Error.elm`

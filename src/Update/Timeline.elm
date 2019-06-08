@@ -60,15 +60,15 @@ deleteStatusFromCurrentView id model =
 
                     else
                         let
-                            update statuses =
+                            updateStatuses statuses =
                                 List.filter (\s -> s.id /= id) statuses
                         in
                         ThreadView
                             { thread
                                 | context =
                                     Just <|
-                                        { ancestors = update context.ancestors
-                                        , descendants = update context.descendants
+                                        { ancestors = updateStatuses context.ancestors
+                                        , descendants = updateStatuses context.descendants
                                         }
                             }
 
@@ -99,7 +99,7 @@ deleteStatusFromAllTimelines id ({ accountInfo } as model) =
 deleteStatusFromNotifications : StatusId -> Timeline NotificationAggregate -> Timeline NotificationAggregate
 deleteStatusFromNotifications statusId notifications =
     let
-        update notification =
+        updateNotification notification =
             case notification.status of
                 Just status ->
                     not <| Mastodon.Helper.statusReferenced statusId status
@@ -107,7 +107,7 @@ deleteStatusFromNotifications statusId notifications =
                 Nothing ->
                     True
     in
-    { notifications | entries = List.filter update notifications.entries }
+    { notifications | entries = List.filter updateNotification notifications.entries }
 
 
 deleteStatus : StatusId -> Timeline Status -> Timeline Status

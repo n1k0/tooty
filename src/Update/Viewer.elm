@@ -29,15 +29,15 @@ update viewerMsg viewer =
 
         PrevAttachment ->
             case viewer of
-                Just viewer ->
-                    case getPrevNext viewer of
+                Just v ->
+                    case getPrevNext v of
                         ( Just prev, _ ) ->
-                            ( Just <| Viewer viewer.attachments prev
+                            ( Just <| Viewer v.attachments prev
                             , Cmd.none
                             )
 
                         _ ->
-                            ( Just viewer
+                            ( Just v
                             , Cmd.none
                             )
 
@@ -48,15 +48,15 @@ update viewerMsg viewer =
 
         NextAttachment ->
             case viewer of
-                Just viewer ->
-                    case getPrevNext viewer of
+                Just v ->
+                    case getPrevNext v of
                         ( _, Just next ) ->
-                            ( Just <| Viewer viewer.attachments next
+                            ( Just <| Viewer v.attachments next
                             , Cmd.none
                             )
 
                         _ ->
-                            ( Just viewer
+                            ( Just v
                             , Cmd.none
                             )
 
