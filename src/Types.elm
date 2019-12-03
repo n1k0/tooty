@@ -5,6 +5,7 @@ module Types exposing (AccountInfo, Confirm, CurrentAccountView(..), CurrentView
 --import Autocomplete
 
 import Browser
+import Browser.Navigation as Nav
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import PortFunnels exposing (State)
@@ -262,6 +263,7 @@ type alias Model =
     , confirm : Maybe Confirm
     , search : Search
     , ctrlPressed : Bool
+    , key : Nav.Key
 
     --, portsFunnels : State
     }

@@ -44,6 +44,7 @@ init { registration, clients } location key =
                 , confirm = Nothing
                 , search = Search "" Nothing
                 , ctrlPressed = False
+                , key = key
                 }
     in
     ( model

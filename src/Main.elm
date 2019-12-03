@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Init exposing (init)
 import Subscription exposing (subscriptions)
-import Types exposing (..)
+import Types exposing (Flags, Model, Msg(..))
 import Update.Main exposing (update)
 import View.App exposing (view)
 
