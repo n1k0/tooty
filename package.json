@@ -5,7 +5,7 @@
   "scripts": {
     "build": "npm run copy-assets && node_modules/.bin/elm make src/Main.elm --output=build/app.js",
     "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
-    "debug": "node_modules/.bin/elm-live src/Main.elm --warn --dir=public/ --output=public/app.js --debug",
+    "debug": "elm-live src/Main.elm --warn --dir=public/ --port=3000 -- --output=public/app.js --debug",
     "deploy": "npm run build && npm run optimize && node_modules/.bin/gh-pages --dist build/",
     "optimize": "node_modules/.bin/uglifyjs build/app.js -c -m -o build/app.js",
     "live": "elm-live src/Main.elm --port=3000 --dir=public/ -- --output=public/app.js",
