@@ -59,7 +59,6 @@ import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Http exposing (..)
 import Mastodon.Model exposing (..)
 import Ports
-import String.Extra exposing (replace)
 import Task
 import Types exposing (..)
 import View.Formatter exposing (textContent)
@@ -69,10 +68,10 @@ initCommands : Maybe AppRegistration -> Maybe Client -> Maybe String -> Cmd Msg
 initCommands registration client authCode =
     Cmd.batch <|
         case authCode of
-            Just authCode ->
+            Just code ->
                 case registration of
-                    Just registration ->
-                        [ getAccessToken registration authCode
+                    Just reg ->
+                        [ getAccessToken reg code
                         , Ports.deleteRegistration ""
                         ]
 
@@ -93,14 +92,21 @@ getAccessToken registration authCode =
 
 navigateToAuthUrl : AppRegistration -> Cmd Msg
 navigateToAuthUrl registration =
-    Navigation.load <| getAuthorizationUrl registration
+    -- @TODO: add it again
+    --Navigation.load <| getAuthorizationUrl registration
+    Cmd.none
 
 
 registerApp : Model -> Cmd Msg
 registerApp { server, location } =
     let
+        {-
+           @TODO : add it again
+           redirectUri =
+               location.origin ++ location.pathname
+        -}
         redirectUri =
-            location.origin ++ location.pathname
+            ""
 
         cleanServer =
             if String.endsWith "/" server then
@@ -128,8 +134,7 @@ registerApp { server, location } =
 saveClients : List Client -> Cmd Msg
 saveClients clients =
     clients
-        |> List.map clientEncoder
-        |> Encode.list
+        |> Encode.list clientEncoder
         |> Encode.encode 0
         |> Ports.saveClients
 
@@ -144,9 +149,9 @@ saveRegistration registration =
 loadNotifications : Maybe Client -> Maybe String -> Cmd Msg
 loadNotifications client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.notifications url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list notificationDecoder)
                 |> withQueryParams [ ( "limit", "30" ) ]
                 |> send (MastodonEvent << Notifications (url /= Nothing))
@@ -158,9 +163,9 @@ loadNotifications client url =
 loadUserAccount : Maybe Client -> Cmd Msg
 loadUserAccount client =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get ApiUrl.userAccount
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder accountDecoder
                 |> send (MastodonEvent << CurrentUser)
 
@@ -171,13 +176,13 @@ loadUserAccount client =
 loadAccount : Maybe Client -> String -> Cmd Msg
 loadAccount client accountId =
     case client of
-        Just client ->
+        Just c ->
             Cmd.batch
                 [ HttpBuilder.get (ApiUrl.account accountId)
-                    |> withClient client
+                    |> withClient c
                     |> withBodyDecoder accountDecoder
                     |> send (MastodonEvent << AccountReceived)
-                , requestRelationships client [ accountId ]
+                , requestRelationships c [ accountId ]
                     |> send (MastodonEvent << AccountRelationship)
                 ]
 
@@ -188,9 +193,9 @@ loadAccount client accountId =
 loadAccountFollowers : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountFollowers client accountId url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.followers accountId) url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list accountDecoder)
                 |> send (MastodonEvent << AccountFollowers (url /= Nothing))
 
@@ -201,9 +206,9 @@ loadAccountFollowers client accountId url =
 loadAccountFollowing : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountFollowing client accountId url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.following accountId) url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list accountDecoder)
                 |> send (MastodonEvent << AccountFollowing (url /= Nothing))
 
@@ -214,13 +219,13 @@ loadAccountFollowing client accountId url =
 search : Maybe Client -> String -> Cmd Msg
 search client term =
     case client of
-        Just client ->
+        Just c ->
             let
                 cleanTerm =
-                    term |> replace "#" ""
+                    term |> String.replace "#" ""
             in
             HttpBuilder.get ApiUrl.search
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder searchResultsDecoder
                 |> withQueryParams [ ( "q", cleanTerm ), ( "resolve", "true" ) ]
                 |> send (MastodonEvent << SearchResultsReceived)
@@ -236,11 +241,11 @@ searchAccounts client query limit resolve =
 
     else
         case client of
-            Just client ->
+            Just c ->
                 let
                     qs =
                         [ ( "q", query )
-                        , ( "limit", toString limit )
+                        , ( "limit", String.fromInt limit )
                         , ( "resolve"
                           , if resolve then
                                 "true"
@@ -251,7 +256,7 @@ searchAccounts client query limit resolve =
                         ]
                 in
                 HttpBuilder.get ApiUrl.searchAccount
-                    |> withClient client
+                    |> withClient c
                     |> withBodyDecoder (Decode.list accountDecoder)
                     |> withQueryParams qs
                     |> send (MastodonEvent << AutoSearch)
@@ -273,8 +278,8 @@ loadRelationships : Maybe Client -> List String -> Cmd Msg
 loadRelationships client ids =
     if List.length ids > 0 then
         case client of
-            Just client ->
-                requestRelationships client ids
+            Just c ->
+                requestRelationships c ids
                     |> send (MastodonEvent << AccountRelationships)
 
             Nothing ->
@@ -287,14 +292,14 @@ loadRelationships client ids =
 loadThread : Maybe Client -> StatusId -> Cmd Msg
 loadThread client id =
     case client of
-        Just client ->
+        Just c ->
             Cmd.batch
                 [ HttpBuilder.get (ApiUrl.status id)
-                    |> withClient client
+                    |> withClient c
                     |> withBodyDecoder statusDecoder
                     |> send (MastodonEvent << ThreadStatusLoaded id)
                 , HttpBuilder.get (ApiUrl.context id)
-                    |> withClient client
+                    |> withClient c
                     |> withBodyDecoder contextDecoder
                     |> send (MastodonEvent << ThreadContextLoaded id)
                 ]
@@ -306,9 +311,9 @@ loadThread client id =
 loadHomeTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadHomeTimeline client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << HomeTimeline (url /= Nothing))
@@ -320,9 +325,9 @@ loadHomeTimeline client url =
 loadLocalTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadLocalTimeline client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "local", "true" ), ( "limit", "60" ) ]
                 |> send (MastodonEvent << LocalTimeline (url /= Nothing))
@@ -334,9 +339,9 @@ loadLocalTimeline client url =
 loadGlobalTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadGlobalTimeline client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << GlobalTimeline (url /= Nothing))
@@ -348,9 +353,9 @@ loadGlobalTimeline client url =
 loadAccountTimeline : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadAccountTimeline client accountId url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << AccountTimeline (url /= Nothing))
@@ -362,9 +367,9 @@ loadAccountTimeline client accountId url =
 loadFavoriteTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadFavoriteTimeline client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.favouriteTimeline url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << FavoriteTimeline (url /= Nothing))
@@ -376,9 +381,9 @@ loadFavoriteTimeline client url =
 loadHashtagTimeline : Maybe Client -> String -> Maybe String -> Cmd Msg
 loadHashtagTimeline client hashtag url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.hashtag hashtag) url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << HashtagTimeline (url /= Nothing))
@@ -390,9 +395,9 @@ loadHashtagTimeline client hashtag url =
 loadMutes : Maybe Client -> Maybe String -> Cmd Msg
 loadMutes client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.mutes url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list accountDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << Mutes (url /= Nothing))
@@ -404,9 +409,9 @@ loadMutes client url =
 loadBlocks : Maybe Client -> Maybe String -> Cmd Msg
 loadBlocks client url =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.blocks url)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.list accountDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send (MastodonEvent << Blocks (url /= Nothing))
@@ -486,9 +491,9 @@ loadNextTimeline { clients, currentView, accountInfo } id next =
 postStatus : Maybe Client -> StatusRequestBody -> Cmd Msg
 postStatus client draft =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post ApiUrl.statuses
-                |> withClient client
+                |> withClient c
                 |> HttpBuilder.withJsonBody (statusRequestBodyEncoder draft)
                 |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << StatusPosted)
@@ -505,9 +510,9 @@ updateDomStatus statusText =
 deleteStatus : Maybe Client -> StatusId -> Cmd Msg
 deleteStatus client id =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.delete (ApiUrl.status id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder (Decode.succeed id)
                 |> send (MastodonEvent << StatusDeleted)
 
@@ -518,9 +523,9 @@ deleteStatus client id =
 reblogStatus : Maybe Client -> StatusId -> Cmd Msg
 reblogStatus client statusId =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.reblog statusId)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << Reblogged)
 
@@ -531,9 +536,9 @@ reblogStatus client statusId =
 unreblogStatus : Maybe Client -> StatusId -> Cmd Msg
 unreblogStatus client statusId =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.unreblog statusId)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << Unreblogged)
 
@@ -544,9 +549,9 @@ unreblogStatus client statusId =
 favouriteStatus : Maybe Client -> StatusId -> Cmd Msg
 favouriteStatus client statusId =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.favourite statusId)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << FavoriteAdded)
 
@@ -557,9 +562,9 @@ favouriteStatus client statusId =
 unfavouriteStatus : Maybe Client -> StatusId -> Cmd Msg
 unfavouriteStatus client statusId =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.unfavourite statusId)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder statusDecoder
                 |> send (MastodonEvent << FavoriteRemoved)
 
@@ -570,9 +575,9 @@ unfavouriteStatus client statusId =
 follow : Maybe Client -> Account -> Cmd Msg
 follow client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.follow account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountFollowed account)
 
@@ -583,9 +588,9 @@ follow client account =
 unfollow : Maybe Client -> Account -> Cmd Msg
 unfollow client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.unfollow account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountUnfollowed account)
 
@@ -596,9 +601,9 @@ unfollow client account =
 mute : Maybe Client -> Account -> Cmd Msg
 mute client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.mute account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountMuted account)
 
@@ -609,9 +614,9 @@ mute client account =
 unmute : Maybe Client -> Account -> Cmd Msg
 unmute client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.unmute account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountUnmuted account)
 
@@ -622,9 +627,9 @@ unmute client account =
 block : Maybe Client -> Account -> Cmd Msg
 block client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.block account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountBlocked account)
 
@@ -635,9 +640,9 @@ block client account =
 unblock : Maybe Client -> Account -> Cmd Msg
 unblock client account =
     case client of
-        Just client ->
+        Just c ->
             HttpBuilder.post (ApiUrl.unblock account.id)
-                |> withClient client
+                |> withClient c
                 |> withBodyDecoder relationshipDecoder
                 |> send (MastodonEvent << AccountUnblocked account)
 
@@ -661,7 +666,9 @@ uploadMedia client fileInputId =
 
 focusId : String -> Cmd Msg
 focusId id =
-    Dom.focus id |> Task.attempt (always NoOp)
+    -- @TODO: add it again
+    --  Dom.focus id |> Task.attempt (always NoOp)
+    Cmd.none
 
 
 scrollColumnToTop : String -> Cmd Msg

@@ -22,73 +22,88 @@ type alias CurrentUser =
     Account
 
 
-visibilities : List ( String, String, String, String )
+type alias Visibilities =
+    { slug : String
+    , name : String
+    , description : String
+    , icon : String
+    }
+
+
+visibilities : List Visibilities
 visibilities =
-    [ ( "direct", "Mentioned", "Visible to mentioned users only", "envelope" )
-    , ( "private", "Followers", "Visible to followers only", "lock" )
-    , ( "unlisted", "Unlisted", "Do not show in public timelines", "eye-close" )
-    , ( "public", "Public", "Visible in public timelines", "globe" )
+    [ { slug = "direct", name = "Mentioned", description = "Visible to mentioned users only", icon = "envelope" }
+    , { slug = "private", name = "Followers", description = "Visible to followers only", icon = "lock" }
+    , { slug = "unlisted", name = "Unlisted", description = "Do not show in public timelines", icon = "eye-close" }
+    , { slug = "public", name = "Public", description = "Visible in public timelines", icon = "globe" }
     ]
 
 
 viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
-        [ Html.map (DraftEvent << SetAutoState)
-            (Autocomplete.view viewConfig
-                draft.autoMaxResults
-                draft.autoState
-                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-            )
+        [-- @TODO: add it again
+         {-
+            Html.map (DraftEvent << SetAutoState)
+              (Autocomplete.view viewConfig
+                  draft.autoMaxResults
+                  draft.autoState
+                  (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+              )
+         -}
         ]
 
 
-viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
-viewConfig =
-    let
-        customizedLi keySelected mouseSelected account =
-            { attributes =
-                [ classList
-                    [ ( "list-group-item autocomplete-item", True )
-                    , ( "active", keySelected || mouseSelected )
-                    ]
-                ]
-            , children =
-                [ img [ src account.avatar ] []
-                , strong []
-                    [ text <|
-                        if account.display_name /= "" then
-                            account.display_name
 
-                        else
-                            account.acct
-                    ]
-                , span [] [ text <| " @" ++ account.acct ]
-                ]
-            }
-    in
-    Autocomplete.viewConfig
-        { toId = .id
-        , ul = [ class "list-group autocomplete-list" ]
-        , li = customizedLi
-        }
+{-
+   viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
+   viewConfig =
+       let
+           customizedLi keySelected mouseSelected account =
+               { attributes =
+                   [ classList
+                       [ ( "list-group-item autocomplete-item", True )
+                       , ( "active", keySelected || mouseSelected )
+                       ]
+                   ]
+               , children =
+                   [ img [ src account.avatar ] []
+                   , strong []
+                       [ text <|
+                           if account.display_name /= "" then
+                               account.display_name
+
+                           else
+                               account.acct
+                       ]
+                   , span [] [ text <| " @" ++ account.acct ]
+                   ]
+               }
+       in
+       Autocomplete.viewConfig
+           { toId = .id
+           , ul = [ class "list-group autocomplete-list" ]
+           , li = customizedLi
+           }
+
+-}
 
 
 currentUserView : Maybe CurrentUser -> Html Msg
 currentUserView currentUser =
     case currentUser of
-        Just currentUser ->
+        Just user ->
             div [ class "current-user" ]
-                [ Common.accountAvatarLink False currentUser
+                [ Common.accountAvatarLink False user
                 , div [ class "username" ]
-                    [ Common.accountLink False currentUser
+                    [ Common.accountLink False user
                     , span []
                         [ text " ("
                         , a [ href "#accounts" ] [ text "switch account" ]
                         , text ")"
                         ]
                     ]
-                , p [ class "status-text" ] <| formatContent currentUser.note []
+                , p [ class "status-text" ] <| formatContent user.note []
                 ]
 
         Nothing ->
@@ -130,14 +145,14 @@ visibilitySelector { visibility } =
     in
     visibilities
         |> List.map
-            (\( v, d, t, i ) ->
+            (\{ slug, name, description, icon } ->
                 a
                     [ href ""
-                    , class <| btnClass v
-                    , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility v)
-                    , title t
+                    , class <| btnClass slug
+                    , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility slug)
+                    , title description
                     ]
-                    [ Common.icon i, span [] [ text d ] ]
+                    [ Common.icon icon, span [] [ text name ] ]
             )
         |> Common.justifiedButtonGroup "draft-visibilities"
 
@@ -215,16 +230,15 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                                 keyCode
                                 |> Decode.andThen fromResult
 
-                        options =
-                            { preventDefault = draft.showAutoMenu
-                            , stopPropagation = False
-                            }
-
-                        fromResult : Result String a -> Decode.Decoder a
+                        fromResult : Result String a -> Decode.Decoder { message : a, preventDefault : Bool, stopPropagation : Bool }
                         fromResult result =
                             case result of
                                 Ok val ->
-                                    Decode.succeed val
+                                    Decode.succeed
+                                        { message = val
+                                        , preventDefault = draft.showAutoMenu
+                                        , stopPropagation = False
+                                        }
 
                                 Err reason ->
                                     Decode.fail reason
@@ -243,7 +257,7 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                         , onInputInformation <| DraftEvent << UpdateInputInformation
                         , onClickInformation <| DraftEvent << UpdateInputInformation
                         , property "defaultValue" (Encode.string draft.status)
-                        , onWithOptions "keydown" options dec
+                        , Html.Events.custom "keydown" dec
                         ]
                         []
                     , autoMenu
@@ -293,12 +307,12 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                     , if limitExceeded then
                         div
                             [ class "draft-actions-charcount text-center exceed" ]
-                            [ text <| toString (500 - charCount) ]
+                            [ text <| String.fromInt (500 - charCount) ]
 
                       else
                         div
                             [ class "draft-actions-charcount text-center" ]
-                            [ text <| toString charCount ]
+                            [ text <| String.fromInt charCount ]
                     , button
                         [ type_ "submit"
                         , class "draft-actions-submit btn btn-warning btn-toot"

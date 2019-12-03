@@ -17,6 +17,14 @@ type alias CurrentUser =
     Account
 
 
+type alias NotificationStatusData =
+    { context : String
+    , currentUser : CurrentUser
+    , status : Status
+    , notificationAggregate : NotificationAggregate
+    }
+
+
 filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
 filterNotifications filter notifications =
     let
@@ -24,8 +32,8 @@ filterNotifications filter notifications =
             let
                 visibility =
                     case status of
-                        Just status ->
-                            status.visibility
+                        Just s ->
+                            s.visibility
 
                         Nothing ->
                             ""
@@ -71,7 +79,7 @@ notificationHeading accountsAndDate str iconType =
                     ( [ a1.account, a2.account, a3.account ], str )
 
                 a1 :: a2 :: a3 :: xs ->
-                    ( [ a1.account, a2.account, a3.account ], " and " ++ (toString <| List.length xs) ++ " others " ++ str )
+                    ( [ a1.account, a2.account, a3.account ], " and " ++ (String.fromInt <| List.length xs) ++ " others " ++ str )
 
                 _ ->
                     ( [], "" )
@@ -88,15 +96,15 @@ notificationHeading accountsAndDate str iconType =
         ]
 
 
-notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
-notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
-    div [ class <| "notification " ++ type_ ]
-        [ case type_ of
+notificationStatusView : NotificationStatusData -> Html Msg
+notificationStatusView { context, currentUser, status, notificationAggregate } =
+    div [ class <| "notification " ++ notificationAggregate.type_ ]
+        [ case notificationAggregate.type_ of
             "reblog" ->
-                notificationHeading accounts "boosted your toot" "fire"
+                notificationHeading notificationAggregate.accounts "boosted your toot" "fire"
 
             "favourite" ->
-                notificationHeading accounts "favourited your toot" "star"
+                notificationHeading notificationAggregate.accounts "favourited your toot" "star"
 
             _ ->
                 text ""
@@ -135,7 +143,12 @@ notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                Lazy.lazy notificationStatusView ( "notification", currentUser, status, notification )
+                Lazy.lazy notificationStatusView
+                    { context = "notification"
+                    , currentUser = currentUser
+                    , status = status
+                    , notificationAggregate = notification
+                    }
 
             Nothing ->
                 notificationFollowView currentUser notification

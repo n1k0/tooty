@@ -22,6 +22,14 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
+type alias CustomButton =
+    { event : Msg
+    , btnClasses : String
+    , iconName : String
+    , tooltip : String
+    }
+
+
 followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 followButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
@@ -29,32 +37,32 @@ followButton currentUser relationship account =
 
     else
         let
-            ( followEvent, btnClasses, iconName, tooltip ) =
+            customButton =
                 case relationship of
                     Nothing ->
-                        ( NoOp
-                        , "btn btn-default btn-follow btn-disabled"
-                        , "question-sign"
-                        , "Unknown relationship"
-                        )
+                        { event = NoOp
+                        , btnClasses = "btn btn-default btn-follow btn-disabled"
+                        , iconName = "question-sign"
+                        , tooltip = "Unknown relationship"
+                        }
 
-                    Just relationship ->
-                        if relationship.following then
-                            ( UnfollowAccount account
-                            , "btn btn-default btn-follow btn-primary"
-                            , "eye-close"
-                            , "Unfollow"
-                            )
+                    Just r ->
+                        if r.following then
+                            { event = UnfollowAccount account
+                            , btnClasses = "btn btn-default btn-follow btn-primary"
+                            , iconName = "eye-close"
+                            , tooltip = "Unfollow"
+                            }
 
                         else
-                            ( FollowAccount account
-                            , "btn btn-default btn-follow"
-                            , "eye-open"
-                            , "Follow"
-                            )
+                            { event = FollowAccount account
+                            , btnClasses = "btn btn-default btn-follow"
+                            , iconName = "eye-open"
+                            , tooltip = "Follow"
+                            }
         in
-        button [ class btnClasses, title tooltip, onClick followEvent ]
-            [ Common.icon iconName ]
+        button [ class customButton.btnClasses, title customButton.tooltip, onClick customButton.event ]
+            [ Common.icon customButton.iconName ]
 
 
 followView : CurrentUser -> Maybe Relationship -> Account -> Html Msg
@@ -88,32 +96,32 @@ muteButton currentUser relationship account =
 
     else
         let
-            ( muteEvent, btnClasses, iconName, tooltip ) =
+            customButton =
                 case relationship of
                     Nothing ->
-                        ( NoOp
-                        , "btn btn-default btn-mute btn-disabled"
-                        , "question-sign"
-                        , "Unknown relationship"
-                        )
+                        { event = NoOp
+                        , btnClasses = "btn btn-default btn-mute btn-disabled"
+                        , iconName = "question-sign"
+                        , tooltip = "Unknown relationship"
+                        }
 
-                    Just relationship ->
-                        if relationship.muting then
-                            ( Unmute account
-                            , "btn btn-default btn-mute btn-primary"
-                            , "volume-up"
-                            , "Unmute"
-                            )
+                    Just r ->
+                        if r.muting then
+                            { event = Unmute account
+                            , btnClasses = "btn btn-default btn-mute btn-primary"
+                            , iconName = "volume-up"
+                            , tooltip = "Unmute"
+                            }
 
                         else
-                            ( Mute account
-                            , "btn btn-default btn-mute"
-                            , "volume-off"
-                            , "Mute"
-                            )
+                            { event = Mute account
+                            , btnClasses = "btn btn-default btn-mute"
+                            , iconName = "volume-off"
+                            , tooltip = "Mute"
+                            }
         in
-        button [ class btnClasses, title tooltip, onClick muteEvent ]
-            [ Common.icon iconName ]
+        button [ class customButton.btnClasses, title customButton.tooltip, onClick customButton.event ]
+            [ Common.icon customButton.iconName ]
 
 
 blockButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
@@ -123,32 +131,32 @@ blockButton currentUser relationship account =
 
     else
         let
-            ( blockEvent, btnClasses, iconName, tooltip ) =
+            customButton =
                 case relationship of
                     Nothing ->
-                        ( NoOp
-                        , "btn btn-default btn-block btn-disabled"
-                        , "question-sign"
-                        , "Unknown relationship"
-                        )
+                        { event = NoOp
+                        , btnClasses = "btn btn-default btn-block btn-disabled"
+                        , iconName = "question-sign"
+                        , tooltip = "Unknown relationship"
+                        }
 
-                    Just relationship ->
-                        if relationship.blocking then
-                            ( Unblock account
-                            , "btn btn-default btn-block btn-primary"
-                            , "ok-circle"
-                            , "Unblock"
-                            )
+                    Just r ->
+                        if r.blocking then
+                            { event = Unblock account
+                            , btnClasses = "btn btn-default btn-block btn-primary"
+                            , iconName = "ok-circle"
+                            , tooltip = "Unblock"
+                            }
 
                         else
-                            ( Block account
-                            , "btn btn-default btn-block"
-                            , "ban-circle"
-                            , "Block"
-                            )
+                            { event = Block account
+                            , btnClasses = "btn btn-default btn-block"
+                            , iconName = "ban-circle"
+                            , tooltip = "Block"
+                            }
         in
-        button [ class btnClasses, title tooltip, onClick blockEvent ]
-            [ Common.icon iconName ]
+        button [ class customButton.btnClasses, title customButton.tooltip, onClick customButton.event ]
+            [ Common.icon customButton.iconName ]
 
 
 accountFollowView : CurrentAccountView -> CurrentUser -> AccountInfo -> Html Msg
@@ -218,7 +226,7 @@ counterLink href_ label count active =
         ]
         [ text label
         , br [] []
-        , text <| toString count
+        , text <| String.fromInt count
         ]
 
 

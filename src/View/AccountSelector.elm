@@ -5,7 +5,6 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
-import String.Extra exposing (replace)
 import Types exposing (..)
 import View.Auth exposing (authForm)
 import View.Common exposing (..)
@@ -23,8 +22,8 @@ accountIdentityView currentUser client =
             let
                 ( isCurrentUser, entryClass ) =
                     case currentUser of
-                        Just currentUser ->
-                            if sameAccount account currentUser then
+                        Just user ->
+                            if sameAccount account user then
                                 ( True, "active" )
 
                             else
@@ -46,8 +45,8 @@ accountIdentityView currentUser client =
                         ]
                     , br [] []
                     , account.url
-                        |> replace "https://" "@"
-                        |> replace "/@" "@"
+                        |> String.replace "https://" "@"
+                        |> String.replace "/@" "@"
                         |> text
                     ]
                 , button
@@ -84,7 +83,9 @@ accountSelectorView model =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ div [] [ div [ class "panel-heading" ] [ icon "user", text "Accounts" ] ]
-            , contextualTimelineMenu model.location.hash
+
+            -- @TODO: add it again
+            -- , contextualTimelineMenu model.location.hash
             , ul [ class "list-group " ] <|
                 List.map (accountIdentityView model.currentUser) model.clients
             , div [ class "panel-body" ]

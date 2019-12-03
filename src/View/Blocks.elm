@@ -20,8 +20,8 @@ blockView currentUser account =
     let
         ( isCurrentUser, entryClass ) =
             case currentUser of
-                Just currentUser ->
-                    if sameAccount account currentUser then
+                Just user ->
+                    if sameAccount account user then
                         ( True, "active" )
 
                     else
@@ -71,8 +71,9 @@ blocksView { currentUser, currentView, blocks, location } =
     in
     topScrollableColumn ( "Blocks", "ban-circle", blocks.id ) <|
         div []
-            [ contextualTimelineMenu location.hash
-            , if not blocks.loading && List.length blocks.entries == 0 then
+            [ -- @TODO: add it again
+              -- contextualTimelineMenu location.hash,
+              if not blocks.loading && List.length blocks.entries == 0 then
                 p [ class "empty-timeline-text" ] [ text "Nobody's blocked yet." ]
 
               else

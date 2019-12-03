@@ -68,7 +68,9 @@ homepageView model =
 
                     LocalTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            -- @TODO: add it again
+                            -- model.location.hash
+                            ""
                             "Local timeline"
                             "th-large"
                             currentUser
@@ -76,7 +78,9 @@ homepageView model =
 
                     GlobalTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            -- @TODO: add it again
+                            -- model.location.hash
+                            ""
                             "Global timeline"
                             "globe"
                             currentUser
@@ -84,7 +88,9 @@ homepageView model =
 
                     FavoriteTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            -- @TODO: add it again
+                            -- model.location.hash
+                            ""
                             "Favorites"
                             "star"
                             currentUser

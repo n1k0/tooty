@@ -20,8 +20,8 @@ muteView currentUser account =
     let
         ( isCurrentUser, entryClass ) =
             case currentUser of
-                Just currentUser ->
-                    if sameAccount account currentUser then
+                Just user ->
+                    if sameAccount account user then
                         ( True, "active" )
 
                     else
@@ -71,8 +71,9 @@ mutesView { currentUser, currentView, mutes, location } =
     in
     topScrollableColumn ( "Mutes", "volume-off", mutes.id ) <|
         div []
-            [ contextualTimelineMenu location.hash
-            , if not mutes.loading && List.length mutes.entries == 0 then
+            [ -- @TODO: Add it again
+              -- contextualTimelineMenu location.hash,
+              if not mutes.loading && List.length mutes.entries == 0 then
                 p [ class "empty-timeline-text" ] [ text "Nobody's muted yet." ]
 
               else
