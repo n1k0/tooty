@@ -49,6 +49,7 @@ module Command exposing
 --import Dom.Scroll
 --import Dom
 
+import Browser.Navigation as Nav
 import HttpBuilder
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -61,6 +62,7 @@ import Mastodon.Model exposing (..)
 import Ports
 import Task
 import Types exposing (..)
+import Url
 import View.Formatter exposing (textContent)
 
 
@@ -92,21 +94,14 @@ getAccessToken registration authCode =
 
 navigateToAuthUrl : AppRegistration -> Cmd Msg
 navigateToAuthUrl registration =
-    -- @TODO: add it again
-    --Navigation.load <| getAuthorizationUrl registration
-    Cmd.none
+    Nav.load <| getAuthorizationUrl registration
 
 
 registerApp : Model -> Cmd Msg
 registerApp { server, location } =
     let
-        {-
-           @TODO : add it again
-           redirectUri =
-               location.origin ++ location.pathname
-        -}
         redirectUri =
-            ""
+            Url.toString location
 
         cleanServer =
             if String.endsWith "/" server then
