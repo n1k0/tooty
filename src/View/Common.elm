@@ -78,8 +78,8 @@ appLink classes app =
                 Nothing ->
                     span [ class classes ] [ text name ]
 
-                Just website ->
-                    a [ href website, target "_blank", class classes ] [ text name ]
+                Just w ->
+                    a [ href w, target "_blank", class classes ] [ text name ]
 
 
 closeablePanelheading : String -> String -> String -> Html Msg

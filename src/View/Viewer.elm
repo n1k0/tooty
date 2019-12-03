@@ -18,7 +18,7 @@ viewerView ({ attachments, attachment } as viewer) =
                 Nothing ->
                     text ""
 
-                Just target ->
+                Just _ ->
                     a
                         [ href ""
                         , class className
