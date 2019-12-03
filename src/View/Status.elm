@@ -23,14 +23,6 @@ type alias CurrentUser =
 attachmentPreview : String -> Maybe Bool -> List Attachment -> Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
-        nsfw =
-            case sensitive of
-                Just sensitive ->
-                    sensitive
-
-                Nothing ->
-                    False
-
         attId =
             "att" ++ attachment.id ++ context
 
@@ -45,7 +37,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
                 []
     in
     li [ class "attachment-entry" ] <|
-        if nsfw then
+        if Maybe.withDefault False sensitive then
             [ input [ type_ "radio", id attId ] []
             , label [ for attId ]
                 [ text "Sensitive content"
@@ -119,10 +111,10 @@ statusActionsView status currentUser showApp =
           else
             a
                 [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
-                [ Common.icon "fire", text (toString sourceStatus.reblogs_count) ]
+                [ Common.icon "fire", text (String.fromInt sourceStatus.reblogs_count) ]
         , a
             [ class favClasses, onClickWithPreventAndStop favEvent ]
-            [ Common.icon "star", text (toString sourceStatus.favourites_count) ]
+            [ Common.icon "star", text (String.fromInt sourceStatus.favourites_count) ]
         , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
             a
                 [ class <| baseBtnClasses ++ " btn-delete"
@@ -208,7 +200,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
             [ href <| "#account/" ++ account.id ]
     in
     case reblog of
-        Just (Reblog reblog) ->
+        Just (Reblog r) ->
             div [ class "reblog" ]
                 [ p [ class "status-info" ]
                     [ Common.icon "fire"
@@ -216,7 +208,7 @@ statusView context ({ account, content, media_attachments, reblog, mentions } as
                         [ text <| " @" ++ account.username ]
                     , text " boosted"
                     ]
-                , Lazy.lazy2 statusView context reblog
+                , Lazy.lazy2 statusView context r
                 ]
 
         Nothing ->
