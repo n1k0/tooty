@@ -104,26 +104,36 @@ homepageView model =
                 ]
 
 
-view : Model -> Html Msg
+type alias Document msg =
+    { title : String
+    , body : List (Html msg)
+    }
+
+
+view : Model -> Document Msg
 view model =
-    div [ class "container-fluid" ]
-        [ errorsListView model
-        , case List.head model.clients of
-            Just client ->
-                homepageView model
+    { title = "Tooty"
+    , body =
+        [ div [ class "container-fluid" ]
+            [ errorsListView model
+            , case List.head model.clients of
+                Just client ->
+                    homepageView model
 
-            Nothing ->
-                authView model
-        , case model.viewer of
-            Just viewer ->
-                viewerView viewer
+                Nothing ->
+                    authView model
+            , case model.viewer of
+                Just viewer ->
+                    viewerView viewer
 
-            Nothing ->
-                text ""
-        , case model.confirm of
-            Nothing ->
-                text ""
+                Nothing ->
+                    text ""
+            , case model.confirm of
+                Nothing ->
+                    text ""
 
-            Just confirm ->
-                Common.confirmView confirm
+                Just confirm ->
+                    Common.confirmView confirm
+            ]
         ]
+    }

@@ -5,6 +5,7 @@ import Mastodon.Model exposing (StatusId(..))
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Timeline
+import Url
 import Url.Parser exposing (..)
 
 
@@ -23,9 +24,12 @@ type Route
     | ThreadRoute StatusId
 
 
-statusIdParser : Parser (StatusId -> a) a
-statusIdParser =
-    custom "id" (Ok << StatusId)
+
+{-
+   statusIdParser : Parser (StatusId -> a) a
+   statusIdParser =
+       custom "id" (Ok << StatusId)
+-}
 
 
 route : Parser (Route -> a) a
@@ -35,7 +39,8 @@ route =
         , map GlobalTimelineRoute (s "global" </> top)
         , map FavoriteTimelineRoute (s "favorites" </> top)
         , map HashtagRoute (s "hashtag" </> string)
-        , map ThreadRoute (s "thread" </> statusIdParser)
+
+        --, map ThreadRoute (s "thread" </> statusIdParser)
         , map BlocksRoute (s "blocks" </> top)
         , map MutesRoute (s "mutes" </> top)
         , map AccountFollowersRoute (s "account" </> string </> s "followers")
@@ -44,6 +49,11 @@ route =
         , map AccountSelectorRoute (s "accounts")
         , map SearchRoute (s "search" </> top)
         ]
+
+
+parseHash : Parser (Route -> a) a -> Url.Url -> Maybe Route
+parseHash _ _ =
+    Nothing
 
 
 update : Model -> ( Model, Cmd Msg )

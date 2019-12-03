@@ -41,17 +41,21 @@ update msg model =
             , Cmd.none
             )
 
-        UrlChange location ->
+        UrlChanged location ->
             Update.Route.update { model | location = location }
 
         Back ->
             ( model
-            , Navigation.back 1
+            , Cmd.none
+              -- @TODO: add it again
+              --, Navigation.back 1
             )
 
         Navigate href ->
             ( model
-            , Navigation.newUrl href
+            , -- @TODO: add it again?
+              --, Navigation.newUrl href
+              Cmd.none
             )
 
         Tick newTime ->
@@ -62,37 +66,39 @@ update msg model =
             , Cmd.none
             )
 
-        KeyMsg event code ->
-            case ( event, code, model.viewer ) of
-                ( KeyDown, 27, Just _ ) ->
-                    -- Esc
-                    update (ViewerEvent CloseViewer) model
+        {-
+           @TODO: add it again?
+           KeyMsg event code ->
+               case ( event, code, model.viewer ) of
+                   ( KeyDown, 27, Just _ ) ->
+                       -- Esc
+                       update (ViewerEvent CloseViewer) model
 
-                ( KeyDown, 37, Just _ ) ->
-                    -- Left arrow
-                    update (ViewerEvent PrevAttachment) model
+                   ( KeyDown, 37, Just _ ) ->
+                       -- Left arrow
+                       update (ViewerEvent PrevAttachment) model
 
-                ( KeyDown, 39, Just _ ) ->
-                    -- Right arrow
-                    update (ViewerEvent NextAttachment) model
+                   ( KeyDown, 39, Just _ ) ->
+                       -- Right arrow
+                       update (ViewerEvent NextAttachment) model
 
-                ( KeyDown, 17, _ ) ->
-                    -- Ctrl key down
-                    ( { model | ctrlPressed = True }
-                    , Cmd.none
-                    )
+                   ( KeyDown, 17, _ ) ->
+                       -- Ctrl key down
+                       ( { model | ctrlPressed = True }
+                       , Cmd.none
+                       )
 
-                ( KeyUp, 17, _ ) ->
-                    -- Ctrl key up
-                    ( { model | ctrlPressed = False }
-                    , Cmd.none
-                    )
+                   ( KeyUp, 17, _ ) ->
+                       -- Ctrl key up
+                       ( { model | ctrlPressed = False }
+                       , Cmd.none
+                       )
 
-                _ ->
-                    ( model
-                    , Cmd.none
-                    )
-
+                   _ ->
+                       ( model
+                       , Cmd.none
+                       )
+        -}
         ClearError index ->
             ( { model | errors = removeAt index model.errors }
             , Cmd.none
@@ -151,22 +157,22 @@ update msg model =
                 ]
             )
 
-        MastodonEvent msg ->
+        MastodonEvent mMsg ->
             let
                 ( newModel, commands ) =
-                    Update.Mastodon.update msg model
+                    Update.Mastodon.update mMsg model
             in
             ( newModel
             , commands
             )
 
-        SearchEvent msg ->
-            Update.Search.update msg model
+        SearchEvent sMsg ->
+            Update.Search.update sMsg model
 
-        WebSocketEvent msg ->
+        WebSocketEvent wMsg ->
             let
                 ( newModel, commands ) =
-                    Update.WebSocket.update msg model
+                    Update.WebSocket.update wMsg model
             in
             ( newModel
             , commands
@@ -184,7 +190,9 @@ update msg model =
 
         OpenThread status ->
             ( { model | currentView = ThreadView (Thread Nothing Nothing) }
-            , Navigation.newUrl <| "#thread/" ++ extractStatusId status.id
+              -- @TODO: add it again?
+              --, Navigation.newUrl <| "#thread/" ++ extractStatusId status.id
+            , Cmd.none
             )
 
         FollowAccount account ->
@@ -285,4 +293,9 @@ update msg model =
         ScrollColumn ScrollBottom column ->
             ( model
             , Command.scrollColumnToBottom column
+            )
+
+        LinkClicked _ ->
+            ( model
+            , Cmd.none
             )

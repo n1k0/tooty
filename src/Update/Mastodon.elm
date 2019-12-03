@@ -14,10 +14,10 @@ errorText : Error -> String
 errorText error =
     case error of
         MastodonError statusCode statusMsg errorMsg ->
-            "HTTP " ++ toString statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
+            "HTTP " ++ String.fromInt statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
         ServerError statusCode statusMsg errorMsg ->
-            "HTTP " ++ toString statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
+            "HTTP " ++ String.fromInt statusCode ++ " " ++ statusMsg ++ ": " ++ errorMsg
 
         TimeoutError ->
             "Request timed out."
@@ -39,7 +39,9 @@ update msg ({ accountInfo, search } as model) =
                     ( { model | clients = client :: model.clients }
                     , Cmd.batch
                         [ Command.saveClients <| client :: model.clients
-                        , Navigation.load <| model.location.origin ++ model.location.pathname
+
+                        --@TODO: add it again
+                        -- , Navigation.load <| model.location.origin ++ model.location.pathname
                         ]
                     )
 
@@ -480,35 +482,7 @@ update msg ({ accountInfo, search } as model) =
                     )
 
         AutoSearch result ->
-            let
-                draft =
-                    model.draft
-            in
-            case result of
-                Ok { decoded } ->
-                    ( { model
-                        | draft =
-                            { draft
-                                | showAutoMenu =
-                                    Update.Draft.showAutoMenu
-                                        decoded
-                                        draft.autoAtPosition
-                                        draft.autoQuery
-                                , autoAccounts = decoded
-                            }
-                      }
-                      -- Force selection of the first item after each
-                      -- Successfull request
-                    , Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
-                    )
-
-                Err error ->
-                    ( { model
-                        | draft = { draft | showAutoMenu = False }
-                        , errors = addErrorNotification (errorText error) model
-                      }
-                    , Cmd.none
-                    )
+            ( model, Cmd.none )
 
 
 {-| Update viewed account relationships as well as the relationship with the
@@ -529,8 +503,8 @@ processFollowEvent relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+                Just ar ->
+                    if ar.id == relationship.id then
                         Just { relationship | following = relationship.following }
 
                     else
@@ -582,8 +556,8 @@ processMuteEvent account relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+                Just ar ->
+                    if ar.id == relationship.id then
                         Just { relationship | muting = relationship.muting }
 
                     else
@@ -623,8 +597,8 @@ processBlockEvent account relationship ({ accountInfo } as model) =
 
         accountRelationship =
             case accountInfo.relationship of
-                Just accountRelationship ->
-                    if accountRelationship.id == relationship.id then
+                Just ar ->
+                    if ar.id == relationship.id then
                         Just { relationship | blocking = relationship.blocking }
 
                     else

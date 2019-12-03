@@ -188,14 +188,6 @@ type alias Draft =
     , attachments : List Attachment
     , mediaUploading : Bool
     , statusLength : Int
-
-    -- Autocomplete values
-    --, autoState : Autocomplete.State
-    , autoCursorPosition : Int
-    , autoAtPosition : Maybe Int
-    , autoQuery : String
-    , autoMaxResults : Int
-    , autoAccounts : List Account
     , showAutoMenu : Bool
     }
 
@@ -270,7 +262,8 @@ type alias Model =
     , confirm : Maybe Confirm
     , search : Search
     , ctrlPressed : Bool
-    , portsFunnels : State
+
+    --, portsFunnels : State
     }
 
 

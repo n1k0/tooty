@@ -152,10 +152,10 @@ isThreadMember thread status =
 appendToThreadDescendants : Thread -> Status -> Thread
 appendToThreadDescendants ({ context } as thread) status =
     case context of
-        Just context ->
+        Just c ->
             { thread
                 | context =
-                    Just { context | descendants = List.append context.descendants [ status ] }
+                    Just { c | descendants = List.append c.descendants [ status ] }
             }
 
         _ ->

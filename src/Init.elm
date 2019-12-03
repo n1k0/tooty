@@ -3,6 +3,7 @@ module Init exposing (init)
 import Browser.Navigation as Nav
 import Command
 import Mastodon.Decoder exposing (decodeClients)
+import Time
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Draft
@@ -13,7 +14,7 @@ import Util
 
 
 init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init { registration, clients } location =
+init { registration, clients } location key =
     let
         decodedClients =
             Result.withDefault [] <| decodeClients clients
@@ -21,7 +22,7 @@ init { registration, clients } location =
         ( model, commands ) =
             Update.Route.update
                 { server = ""
-                , currentTime = 0
+                , currentTime = Time.millisToPosix 0
                 , registration = registration
                 , clients = decodedClients
                 , homeTimeline = Update.Timeline.empty "home-timeline"
