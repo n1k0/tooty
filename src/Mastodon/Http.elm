@@ -58,7 +58,8 @@ extractMastodonError statusCode statusMsg body =
             MastodonError statusCode statusMsg errRecord
 
         Err err ->
-            ServerError statusCode statusMsg <| Decode.errorToString err
+            Decode.errorToString err
+                |> ServerError statusCode statusMsg
 
 
 extractError : Http.Error -> Error
@@ -154,8 +155,8 @@ decodeResponse decoder response =
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
     Url.Builder.crossOrigin
-        (registration.server ++ ApiUrl.oauthAuthorize)
-        []
+        registration.server
+        [ ApiUrl.oauthAuthorize ]
         [ Url.Builder.string "response_type" "code"
         , Url.Builder.string "client_id" registration.client_id
         , Url.Builder.string "scope" registration.scope

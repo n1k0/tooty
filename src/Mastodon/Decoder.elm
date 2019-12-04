@@ -213,13 +213,19 @@ decodeWebSocketMessage message =
         Ok { event, payload } ->
             case event of
                 "update" ->
-                    StatusUpdateEvent (Decode.decodeString statusDecoder payload |> Result.mapError Decode.errorToString)
+                    StatusUpdateEvent
+                        (Decode.decodeString statusDecoder payload
+                            |> Result.mapError Decode.errorToString
+                        )
 
                 "delete" ->
                     StatusDeleteEvent (StatusId payload)
 
                 "notification" ->
-                    NotificationEvent (Decode.decodeString notificationDecoder payload |> Result.mapError Decode.errorToString)
+                    NotificationEvent
+                        (Decode.decodeString notificationDecoder payload
+                            |> Result.mapError Decode.errorToString
+                        )
 
                 e ->
                     ErrorEvent <| "Unknown WS event " ++ e

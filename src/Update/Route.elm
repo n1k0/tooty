@@ -6,7 +6,7 @@ import Types exposing (..)
 import Update.AccountInfo
 import Update.Timeline
 import Url
-import Url.Parser exposing (..)
+import Url.Parser as Parser exposing (..)
 
 
 type Route
@@ -24,12 +24,9 @@ type Route
     | ThreadRoute StatusId
 
 
-
-{-
-   statusIdParser : Parser (StatusId -> a) a
-   statusIdParser =
-       custom "id" (Ok << StatusId)
--}
+statusIdParser : Parser (StatusId -> a) a
+statusIdParser =
+    custom "id" (Just << StatusId)
 
 
 route : Parser (Route -> a) a
@@ -39,8 +36,7 @@ route =
         , map GlobalTimelineRoute (s "global" </> top)
         , map FavoriteTimelineRoute (s "favorites" </> top)
         , map HashtagRoute (s "hashtag" </> string)
-
-        --, map ThreadRoute (s "thread" </> statusIdParser)
+        , map ThreadRoute (s "thread" </> statusIdParser)
         , map BlocksRoute (s "blocks" </> top)
         , map MutesRoute (s "mutes" </> top)
         , map AccountFollowersRoute (s "account" </> string </> s "followers")
@@ -51,14 +47,27 @@ route =
         ]
 
 
-parseHash : Parser (Route -> a) a -> Url.Url -> Maybe Route
-parseHash _ _ =
-    Nothing
+parseHash : Url.Url -> Maybe Route
+parseHash url =
+    let
+        ( path, query ) =
+            case url.fragment |> Maybe.map (String.split "?") of
+                Just [ path_, query_ ] ->
+                    ( path_, Just query_ )
+
+                Just [ path_ ] ->
+                    ( path_, Nothing )
+
+                _ ->
+                    ( "", Nothing )
+    in
+    { url | path = path, query = query, fragment = Nothing }
+        |> Parser.parse route
 
 
 update : Model -> ( Model, Cmd Msg )
 update ({ accountInfo } as model) =
-    case parseHash route model.location of
+    case parseHash model.location of
         Just LocalTimelineRoute ->
             ( { model | currentView = LocalTimelineView }
             , Cmd.none

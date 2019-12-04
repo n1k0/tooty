@@ -1,4 +1,28 @@
-module Types exposing (AccountInfo, Confirm, CurrentAccountView(..), CurrentView(..), Draft, DraftMsg(..), ErrorNotification, Flags, InputInformation, KeyEvent(..), MastodonMsg(..), MastodonResult, Model, Msg(..), NotificationFilter(..), ScrollDirection(..), Search, SearchMsg(..), Thread, Timeline, Viewer, ViewerMsg(..), WebSocketMsg(..))
+module Types exposing
+    ( AccountInfo
+    , Confirm
+    , CurrentAccountView(..)
+    , CurrentView(..)
+    , Draft
+    , DraftMsg(..)
+    , ErrorNotification
+    , Flags
+    , InputInformation
+    , KeyEvent(..)
+    , MastodonMsg(..)
+    , MastodonResult
+    , Model
+    , Msg(..)
+    , NotificationFilter(..)
+    , ScrollDirection(..)
+    , Search
+    , SearchMsg(..)
+    , Thread
+    , Timeline
+    , Viewer
+    , ViewerMsg(..)
+    , WebSocketMsg(..)
+    )
 
 --TODO
 --import Keyboard

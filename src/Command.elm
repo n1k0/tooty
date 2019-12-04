@@ -47,8 +47,8 @@ module Command exposing
 
 --TODO
 --import Dom.Scroll
---import Dom
 
+import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import HttpBuilder
 import Json.Decode as Decode
@@ -661,20 +661,18 @@ uploadMedia client fileInputId =
 
 focusId : String -> Cmd Msg
 focusId id =
-    -- @TODO: add it again
-    --  Dom.focus id |> Task.attempt (always NoOp)
-    Cmd.none
+    Dom.focus id |> Task.attempt (\_ -> NoOp)
 
 
 scrollColumnToTop : String -> Cmd Msg
 scrollColumnToTop column =
-    --Task.attempt (always NoOp) <| Dom.Scroll.toTop column
+    -- @TODO: Task.attempt (always NoOp) <| Dom.Scroll.toTop column
     Cmd.none
 
 
 scrollColumnToBottom : String -> Cmd Msg
 scrollColumnToBottom column =
-    --Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
+    -- @TODO: Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
     Cmd.none
 
 

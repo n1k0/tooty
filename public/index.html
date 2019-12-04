@@ -52,6 +52,7 @@
       });
     });
 
+    // @TODO : Port this to elm/http@2.0.0
     app.ports.uploadMedia.subscribe(data => {
       const files = Array.from(document.getElementById(data.id).files);
       const formData = new FormData();
