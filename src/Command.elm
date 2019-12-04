@@ -45,9 +45,6 @@ module Command exposing
     , uploadMedia
     )
 
---TODO
---import Dom.Scroll
-
 import Browser.Dom as Dom
 import Browser.Navigation as Nav
 import HttpBuilder
@@ -666,14 +663,16 @@ focusId id =
 
 scrollColumnToTop : String -> Cmd Msg
 scrollColumnToTop column =
-    -- @TODO: Task.attempt (always NoOp) <| Dom.Scroll.toTop column
-    Cmd.none
+    Dom.getViewportOf column
+        |> Task.andThen (\info -> Dom.setViewportOf column 0 0)
+        |> Task.attempt (\_ -> NoOp)
 
 
 scrollColumnToBottom : String -> Cmd Msg
 scrollColumnToBottom column =
-    -- @TODO: Task.attempt (always NoOp) <| Dom.Scroll.toBottom column
-    Cmd.none
+    Dom.getViewportOf column
+        |> Task.andThen (\info -> Dom.setViewportOf column 0 info.scene.height)
+        |> Task.attempt (\_ -> NoOp)
 
 
 scrollToThreadStatus : String -> Cmd Msg

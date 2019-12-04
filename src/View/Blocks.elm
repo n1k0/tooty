@@ -71,9 +71,8 @@ blocksView { currentUser, currentView, blocks, location } =
     in
     topScrollableColumn ( "Blocks", "ban-circle", blocks.id ) <|
         div []
-            [ -- @TODO: add it again
-              -- contextualTimelineMenu location.hash,
-              if not blocks.loading && List.length blocks.entries == 0 then
+            [ Maybe.withDefault "" location.fragment |> contextualTimelineMenu
+            , if not blocks.loading && List.length blocks.entries == 0 then
                 p [ class "empty-timeline-text" ] [ text "Nobody's blocked yet." ]
 
               else

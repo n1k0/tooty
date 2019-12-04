@@ -63,9 +63,7 @@ searchView ({ search } as model) =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ div [ class "panel-heading" ] [ Common.icon "search", text " Search" ]
-
-            -- @TODO : add it agin
-            --, contextualTimelineMenu model.location.hash
+            , model.location.fragment |> Maybe.withDefault "" |> contextualTimelineMenu
             , div [ class "panel-body search-form" ]
                 [ Html.form [ class "search", onSubmit <| SearchEvent SubmitSearch ]
                     [ div [ class "form-group" ]

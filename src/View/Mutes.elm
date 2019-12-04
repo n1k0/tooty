@@ -71,9 +71,8 @@ mutesView { currentUser, currentView, mutes, location } =
     in
     topScrollableColumn ( "Mutes", "volume-off", mutes.id ) <|
         div []
-            [ -- @TODO: Add it again
-              -- contextualTimelineMenu location.hash,
-              if not mutes.loading && List.length mutes.entries == 0 then
+            [ Maybe.withDefault "" location.fragment |> contextualTimelineMenu
+            , if not mutes.loading && List.length mutes.entries == 0 then
                 p [ class "empty-timeline-text" ] [ text "Nobody's muted yet." ]
 
               else
