@@ -83,9 +83,8 @@ accountSelectorView model =
     div [ class "col-md-3 column" ]
         [ div [ class "panel panel-default" ]
             [ div [] [ div [ class "panel-heading" ] [ icon "user", text "Accounts" ] ]
-
-            -- @TODO: add it again
-            -- , contextualTimelineMenu model.location.hash
+            , Maybe.withDefault "" model.location.fragment
+                |> contextualTimelineMenu
             , ul [ class "list-group " ] <|
                 List.map (accountIdentityView model.currentUser) model.clients
             , div [ class "panel-body" ]

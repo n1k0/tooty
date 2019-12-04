@@ -42,6 +42,10 @@ homepageView model =
             text ""
 
         Just currentUser ->
+            let
+                fragment =
+                    Maybe.withDefault "" model.location.fragment
+            in
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
                 , homeTimelineView currentUser model.homeTimeline
@@ -68,9 +72,7 @@ homepageView model =
 
                     LocalTimelineView ->
                         contextualTimelineView
-                            -- @TODO: add it again
-                            -- model.location.hash
-                            ""
+                            fragment
                             "Local timeline"
                             "th-large"
                             currentUser
@@ -78,9 +80,7 @@ homepageView model =
 
                     GlobalTimelineView ->
                         contextualTimelineView
-                            -- @TODO: add it again
-                            -- model.location.hash
-                            ""
+                            fragment
                             "Global timeline"
                             "globe"
                             currentUser
@@ -88,9 +88,7 @@ homepageView model =
 
                     FavoriteTimelineView ->
                         contextualTimelineView
-                            -- @TODO: add it again
-                            -- model.location.hash
-                            ""
+                            fragment
                             "Favorites"
                             "star"
                             currentUser
