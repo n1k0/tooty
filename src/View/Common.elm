@@ -11,11 +11,14 @@ module View.Common exposing
     , loadMoreBtn
     )
 
+import DateFormat
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Iso8601
 import Mastodon.Http exposing (Links)
 import Mastodon.Model exposing (..)
+import Time exposing (Posix, Zone, utc)
 import Types exposing (..)
 import View.Events exposing (..)
 
@@ -156,15 +159,23 @@ confirmView { message, onConfirm, onCancel } =
         ]
 
 
+dateFormatter : Zone -> Posix -> String
+dateFormatter =
+    DateFormat.format
+        [ DateFormat.monthNameFull
+        , DateFormat.text " "
+        , DateFormat.dayOfMonthSuffix
+        , DateFormat.text ", "
+        , DateFormat.yearNumber
+        , DateFormat.text " - "
+        , DateFormat.hourMilitaryFromOneFixed
+        , DateFormat.text ":"
+        , DateFormat.minuteFixed
+        ]
+
+
 formatDate : String -> String
 formatDate dateString =
-    dateString
-
-
-
-{-
-   TODO: Fix me
-   Date.fromString dateString
-       |> Result.withDefault (Date.fromTime 0)
-       |> DateFormat.format DateEn.config "%d/%m/%Y %H:%M"
--}
+    Iso8601.toTime dateString
+        |> Result.withDefault (Time.millisToPosix 0)
+        |> dateFormatter utc
