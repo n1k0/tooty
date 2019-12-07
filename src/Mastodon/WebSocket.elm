@@ -1,16 +1,18 @@
-module Mastodon.WebSocket
-    exposing
-        ( StreamType(..)
-        , WebSocketEvent(..)
-        , WebSocketMessage
-        , subscribeToWebSockets
-        )
+module Mastodon.WebSocket exposing
+    ( StreamType(..)
+    , WebSocketEvent(..)
+    , WebSocketMessage
+    , subscribeToWebSockets
+    )
 
-import String.Extra exposing (replaceSlice)
-import WebSocket
 import Mastodon.ApiUrl as ApiUrl
-import Mastodon.Encoder exposing (encodeUrl)
 import Mastodon.Model exposing (..)
+import String.Extra exposing (replaceSlice)
+import Url.Builder
+
+
+
+--import WebSocket
 
 
 type StreamType
@@ -34,28 +36,31 @@ type alias WebSocketMessage =
 
 subscribeToWebSockets : Maybe Client -> StreamType -> (String -> a) -> Sub a
 subscribeToWebSockets client streamType message =
-    case client of
-        Just client ->
-            let
-                type_ =
-                    case streamType of
-                        GlobalPublicStream ->
-                            "public"
+    {-
+       case client of
+           Just aClient ->
+               let
+                   type_ =
+                       case streamType of
+                           GlobalPublicStream ->
+                               "public"
 
-                        LocalPublicStream ->
-                            "public:local"
+                           LocalPublicStream ->
+                               "public:local"
 
-                        UserStream ->
-                            "user"
+                           UserStream ->
+                               "user"
 
-                url =
-                    encodeUrl
-                        (replaceSlice "wss" 0 5 <| client.server ++ ApiUrl.streaming)
-                        [ ( "access_token", client.token )
-                        , ( "stream", type_ )
-                        ]
-            in
-                WebSocket.listen url message
+                   url =
+                       Url.Builder.crossOrigin
+                           (replaceSlice "wss" 0 5 <| aClient.server ++ ApiUrl.streaming)
+                           []
+                           [ Url.Builder.string "access_token" aClient.token
+                           , Url.Builder.string "stream" type_
+                           ]
+               in
+               WebSocket.listen url message
 
-        Nothing ->
-            Sub.none
+           Nothing ->
+    -}
+    Sub.none

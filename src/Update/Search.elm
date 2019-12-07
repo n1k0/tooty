@@ -8,7 +8,11 @@ update : SearchMsg -> Model -> ( Model, Cmd Msg )
 update msg ({ search } as model) =
     case msg of
         SubmitSearch ->
-            model ! [ Command.search (List.head model.clients) model.search.term ]
+            ( model
+            , Command.search (List.head model.clients) model.search.term
+            )
 
         UpdateSearch term ->
-            { model | search = { search | term = term } } ! []
+            ( { model | search = { search | term = term } }
+            , Cmd.none
+            )

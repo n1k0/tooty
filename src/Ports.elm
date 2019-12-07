@@ -1,15 +1,14 @@
-port module Ports
-    exposing
-        ( saveRegistration
-        , deleteRegistration
-        , scrollIntoView
-        , saveClients
-        , setStatus
-        , uploadMedia
-        , notify
-        , uploadSuccess
-        , uploadError
-        )
+port module Ports exposing
+    ( deleteRegistration
+    , notify
+    , saveClients
+    , saveRegistration
+    , scrollIntoView
+    , setStatus
+    , uploadError
+    , uploadMedia
+    , uploadSuccess
+    )
 
 -- Outgoing ports
 

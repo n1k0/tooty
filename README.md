@@ -11,11 +11,10 @@ If you want to self host Tooty, just [grab a build](https://github.com/n1k0/toot
 ### Setting up the development environment
 
     $ npm i
-    $ ./node_modules/.bin/elm-package install
 
 ### Starting the dev server
 
-    $ npm start
+    $ npm run live
 
 ### Starting the dev server in live debug mode
 

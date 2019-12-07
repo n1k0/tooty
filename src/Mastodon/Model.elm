@@ -1,25 +1,24 @@
-module Mastodon.Model
-    exposing
-        ( AccessTokenResult
-        , AppRegistration
-        , Account
-        , AccountNotificationDate
-        , Application
-        , Attachment
-        , Client
-        , Context
-        , Error(..)
-        , Mention
-        , Notification
-        , NotificationAggregate
-        , Reblog(..)
-        , Relationship
-        , Tag
-        , SearchResults
-        , Status
-        , StatusId(..)
-        , StatusRequestBody
-        )
+module Mastodon.Model exposing
+    ( AccessTokenResult
+    , Account
+    , AccountNotificationDate
+    , AppRegistration
+    , Application
+    , Attachment
+    , Client
+    , Context
+    , Error(..)
+    , Mention
+    , Notification
+    , NotificationAggregate
+    , Reblog(..)
+    , Relationship
+    , SearchResults
+    , Status
+    , StatusId(..)
+    , StatusRequestBody
+    , Tag
+    )
 
 
 type alias AccountId =

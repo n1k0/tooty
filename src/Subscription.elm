@@ -1,7 +1,9 @@
 module Subscription exposing (subscriptions)
 
-import Autocomplete
-import Keyboard
+-- TODO
+--import Keyboard
+--import Autocomplete
+
 import Mastodon.WebSocket
 import Ports
 import Time
@@ -12,53 +14,58 @@ subscriptions : Model -> Sub Msg
 subscriptions { clients, currentView } =
     let
         timeSub =
-            Time.every Time.second Tick
+            Time.every 1000 Tick
 
-        userWsSub =
-            Mastodon.WebSocket.subscribeToWebSockets
-                (List.head clients)
-                Mastodon.WebSocket.UserStream
-                NewWebsocketUserMessage
-                |> Sub.map WebSocketEvent
+        {-
+                 userWsSub =
+                     Mastodon.WebSocket.subscribeToWebSockets
+                         (List.head clients)
+                         Mastodon.WebSocket.UserStream
+                         NewWebsocketUserMessage
+                         |> Sub.map WebSocketEvent
 
-        otherWsSub =
-            if currentView == GlobalTimelineView then
-                Mastodon.WebSocket.subscribeToWebSockets
-                    (List.head clients)
-                    Mastodon.WebSocket.GlobalPublicStream
-                    NewWebsocketGlobalMessage
-                    |> Sub.map WebSocketEvent
-            else if currentView == LocalTimelineView then
-                Mastodon.WebSocket.subscribeToWebSockets
-                    (List.head clients)
-                    Mastodon.WebSocket.LocalPublicStream
-                    NewWebsocketLocalMessage
-                    |> Sub.map WebSocketEvent
-            else
-                Sub.none
+                 otherWsSub =
+                     if currentView == GlobalTimelineView then
+                         Mastodon.WebSocket.subscribeToWebSockets
+                             (List.head clients)
+                             Mastodon.WebSocket.GlobalPublicStream
+                             NewWebsocketGlobalMessage
+                             |> Sub.map WebSocketEvent
 
-        autoCompleteSub =
-            Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
+                     else if currentView == LocalTimelineView then
+                         Mastodon.WebSocket.subscribeToWebSockets
+                             (List.head clients)
+                             Mastodon.WebSocket.LocalPublicStream
+                             NewWebsocketLocalMessage
+                             |> Sub.map WebSocketEvent
 
+                     else
+                         Sub.none
+              portFunnelsSub =
+                  PortFunnels.subscriptions WsProcess
+           autoCompleteSub =
+               Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
+        -}
         uploadSuccessSub =
             Ports.uploadSuccess (DraftEvent << UploadResult)
 
         uploadErrorSub =
             Ports.uploadError (DraftEvent << UploadError)
 
-        keyDownsSub =
-            Keyboard.downs (KeyMsg KeyDown)
-
-        keyUpsSub =
-            Keyboard.ups (KeyMsg KeyUp)
+        -- keyDownsSub =
+        --     Keyboard.downs (KeyMsg KeyDown)
+        -- keyUpsSub =
+        --     Keyboard.ups (KeyMsg KeyUp)
     in
-        Sub.batch
-            [ timeSub
-            , userWsSub
-            , otherWsSub
-            , autoCompleteSub
-            , uploadSuccessSub
-            , uploadErrorSub
-            , keyDownsSub
-            , keyUpsSub
-            ]
+    Sub.batch
+        [ timeSub
+
+        --, userWsSub
+        --, otherWsSub
+        -- , autoCompleteSub
+        , uploadSuccessSub
+        , uploadErrorSub
+
+        -- , keyDownsSub
+        -- , keyUpsSub
+        ]

@@ -17,10 +17,10 @@
   <body>
     <script src="app.js"></script>
     <script>
-    const app = Elm.Main.fullscreen({
-      clients: localStorage.getItem("tooty.clients") || "[]",
-      registration: JSON.parse(localStorage.getItem("tooty.registration"))
-    });
+      const app = Elm.Main.init({flags: {
+        clients: localStorage.getItem("tooty.clients") || "[]",
+        registration: JSON.parse(localStorage.getItem("tooty.registration"))
+      }});
 
     app.ports.saveClients.subscribe(json => {
       localStorage.setItem("tooty.clients", json);
@@ -52,6 +52,7 @@
       });
     });
 
+    // @TODO : Port this to elm/http@2.0.0
     app.ports.uploadMedia.subscribe(data => {
       const files = Array.from(document.getElementById(data.id).files);
       const formData = new FormData();

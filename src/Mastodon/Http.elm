@@ -1,16 +1,15 @@
-module Mastodon.Http
-    exposing
-        ( Links
-        , Action(..)
-        , Request
-        , Response
-        , extractLinks
-        , getAuthorizationUrl
-        , send
-        , withClient
-        , withBodyDecoder
-        , withQueryParams
-        )
+module Mastodon.Http exposing
+    ( Action(..)
+    , Links
+    , Request
+    , Response
+    , extractLinks
+    , getAuthorizationUrl
+    , send
+    , withBodyDecoder
+    , withClient
+    , withQueryParams
+    )
 
 import Dict
 import Dict.Extra exposing (mapKeys)
@@ -21,6 +20,7 @@ import Mastodon.ApiUrl as ApiUrl
 import Mastodon.Decoder exposing (..)
 import Mastodon.Encoder exposing (..)
 import Mastodon.Model exposing (..)
+import Url.Builder
 
 
 type Action
@@ -58,7 +58,8 @@ extractMastodonError statusCode statusMsg body =
             MastodonError statusCode statusMsg errRecord
 
         Err err ->
-            ServerError statusCode statusMsg err
+            Decode.errorToString err
+                |> ServerError statusCode statusMsg
 
 
 extractError : Http.Error -> Error
@@ -93,7 +94,7 @@ extractLinks headers =
     -- will use "Link" when Chrome uses "link"; that's why we lowercase them.
     let
         crop =
-            (String.dropLeft 1) >> (String.dropRight 1)
+            String.dropLeft 1 >> String.dropRight 1
 
         parseDef parts =
             case parts of
@@ -120,44 +121,46 @@ extractLinks headers =
                 |> List.concat
                 |> Dict.fromList
     in
-        case (headers |> mapKeys String.toLower |> Dict.get "link") of
-            Nothing ->
-                { prev = Nothing, next = Nothing }
+    case headers |> mapKeys String.toLower |> Dict.get "link" of
+        Nothing ->
+            { prev = Nothing, next = Nothing }
 
-            Just content ->
-                let
-                    links =
-                        parseLinks content
-                in
-                    { prev = (Dict.get "prev" links)
-                    , next = (Dict.get "next" links)
-                    }
+        Just content ->
+            let
+                links =
+                    parseLinks content
+            in
+            { prev = Dict.get "prev" links
+            , next = Dict.get "next" links
+            }
 
 
 decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String (Response a)
 decodeResponse decoder response =
     let
-        decoded =
+        decodedResponse =
             Decode.decodeString decoder response.body
 
         links =
             extractLinks response.headers
     in
-        case decoded of
-            Ok decoded ->
-                Ok <| Response decoded links
+    case decodedResponse of
+        Ok decoded ->
+            Ok <| Response decoded links
 
-            Err error ->
-                Err error
+        Err error ->
+            Err <| Decode.errorToString error
 
 
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
-    encodeUrl (registration.server ++ ApiUrl.oauthAuthorize)
-        [ ( "response_type", "code" )
-        , ( "client_id", registration.client_id )
-        , ( "scope", registration.scope )
-        , ( "redirect_uri", registration.redirect_uri )
+    Url.Builder.crossOrigin
+        registration.server
+        [ ApiUrl.oauthAuthorize ]
+        [ Url.Builder.string "response_type" "code"
+        , Url.Builder.string "client_id" registration.client_id
+        , Url.Builder.string "scope" registration.scope
+        , Url.Builder.string "redirect_uri" registration.redirect_uri
         ]
 
 
@@ -177,11 +180,12 @@ withClient { server, token } builder =
         finalUrl =
             if isLinkUrl builder.url then
                 builder.url
+
             else
                 server ++ builder.url
     in
-        { builder | url = finalUrl }
-            |> Build.withHeader "Authorization" ("Bearer " ++ token)
+    { builder | url = finalUrl }
+        |> Build.withHeader "Authorization" ("Bearer " ++ token)
 
 
 withBodyDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
@@ -194,5 +198,6 @@ withQueryParams params builder =
     if isLinkUrl builder.url then
         -- that's a link url, don't append any query string
         builder
+
     else
         Build.withQueryParams params builder

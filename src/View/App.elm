@@ -12,11 +12,11 @@ import View.Blocks exposing (blocksView)
 import View.Common as Common
 import View.Draft exposing (draftView)
 import View.Error exposing (errorsListView)
-import View.Search exposing (searchView)
 import View.Mutes exposing (mutesView)
 import View.Notification exposing (notificationListView)
+import View.Search exposing (searchView)
 import View.Thread exposing (threadView)
-import View.Timeline exposing (contextualTimelineView, homeTimelineView, hashtagTimelineView)
+import View.Timeline exposing (contextualTimelineView, hashtagTimelineView, homeTimelineView)
 import View.Viewer exposing (viewerView)
 
 
@@ -42,6 +42,10 @@ homepageView model =
             text ""
 
         Just currentUser ->
+            let
+                fragment =
+                    Maybe.withDefault "" model.location.fragment
+            in
             div [ class "row" ]
                 [ Lazy.lazy sidebarView model
                 , homeTimelineView currentUser model.homeTimeline
@@ -68,7 +72,7 @@ homepageView model =
 
                     LocalTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            fragment
                             "Local timeline"
                             "th-large"
                             currentUser
@@ -76,7 +80,7 @@ homepageView model =
 
                     GlobalTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            fragment
                             "Global timeline"
                             "globe"
                             currentUser
@@ -84,7 +88,7 @@ homepageView model =
 
                     FavoriteTimelineView ->
                         contextualTimelineView
-                            model.location.hash
+                            fragment
                             "Favorites"
                             "star"
                             currentUser
@@ -98,26 +102,36 @@ homepageView model =
                 ]
 
 
-view : Model -> Html Msg
+type alias Document msg =
+    { title : String
+    , body : List (Html msg)
+    }
+
+
+view : Model -> Document Msg
 view model =
-    div [ class "container-fluid" ]
-        [ errorsListView model
-        , case (List.head model.clients) of
-            Just client ->
-                homepageView model
+    { title = "Tooty"
+    , body =
+        [ div [ class "container-fluid" ]
+            [ errorsListView model
+            , case List.head model.clients of
+                Just client ->
+                    homepageView model
 
-            Nothing ->
-                authView model
-        , case model.viewer of
-            Just viewer ->
-                viewerView viewer
+                Nothing ->
+                    authView model
+            , case model.viewer of
+                Just viewer ->
+                    viewerView viewer
 
-            Nothing ->
-                text ""
-        , case model.confirm of
-            Nothing ->
-                text ""
+                Nothing ->
+                    text ""
+            , case model.confirm of
+                Nothing ->
+                    text ""
 
-            Just confirm ->
-                Common.confirmView confirm
+                Just confirm ->
+                    Common.confirmView confirm
+            ]
         ]
+    }
