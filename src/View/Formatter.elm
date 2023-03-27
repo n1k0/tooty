@@ -3,7 +3,7 @@ module View.Formatter exposing (formatContent, textContent)
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Parser
+import Html.Parser exposing (Node(..))
 import Html.Parser.Util as ParseUtil
 import Http
 import Mastodon.Model exposing (..)
@@ -27,14 +27,42 @@ formatContent content mentions =
         |> toVirtualDom mentions
 
 
+
+{- https://github.com/jinjor/elm-html-parser/blob/master/src/HtmlParser/Util.elm#L352 -}
+
+
+{-| Returns the text content of a node and its descendants.
+-}
+textContentFromNodes : List Node -> String
+textContentFromNodes nodes =
+    String.join "" (List.map textContentEach nodes)
+
+
+textContentEach : Node -> String
+textContentEach node =
+    case node of
+        Element _ _ children ->
+            textContentFromNodes children
+
+        Text s ->
+            s
+
+        Comment _ ->
+            ""
+
+
 textContent : String -> String
 textContent html =
     html
+        |> Html.Parser.run
+        |> (\result ->
+                case result of
+                    Ok nodes ->
+                        textContentFromNodes nodes
 
-
-
--- @TODO: Fix
---  html |> Html.Parser.run |> ParseUtil.textContent
+                    Err _ ->
+                        ""
+           )
 
 
 {-| Converts nodes to virtual dom nodes.
