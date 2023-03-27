@@ -46,7 +46,7 @@ module Command exposing
     )
 
 import Browser.Dom as Dom
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import HttpBuilder
 import Json.Decode as Decode
 import Json.Encode as Encode
@@ -91,7 +91,7 @@ getAccessToken registration authCode =
 
 navigateToAuthUrl : AppRegistration -> Cmd Msg
 navigateToAuthUrl registration =
-    Nav.load <| getAuthorizationUrl registration
+    Navigation.load <| getAuthorizationUrl registration
 
 
 registerApp : Model -> Cmd Msg
@@ -664,7 +664,7 @@ focusId id =
 scrollColumnToTop : String -> Cmd Msg
 scrollColumnToTop column =
     Dom.getViewportOf column
-        |> Task.andThen (\info -> Dom.setViewportOf column 0 0)
+        |> Task.andThen (\_ -> Dom.setViewportOf column 0 0)
         |> Task.attempt (\_ -> NoOp)
 
 

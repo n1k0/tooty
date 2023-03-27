@@ -1,10 +1,9 @@
 module Update.Mastodon exposing (update)
 
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import Command
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
-import Task
 import Types exposing (..)
 import Update.Draft
 import Update.Error exposing (..)
@@ -41,7 +40,7 @@ update msg ({ accountInfo, search } as model) =
                     ( { model | clients = client :: model.clients }
                     , Cmd.batch
                         [ Command.saveClients <| client :: model.clients
-                        , Nav.load <| Url.toString model.location
+                        , Navigation.load <| Url.toString model.location
                         ]
                     )
 

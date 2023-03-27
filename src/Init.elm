@@ -1,6 +1,6 @@
 module Init exposing (init)
 
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import Command
 import Mastodon.Decoder exposing (decodeClients)
 import Time
@@ -13,7 +13,7 @@ import Url
 import Util
 
 
-init : Flags -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
 init { registration, clients } location key =
     let
         decodedClients =

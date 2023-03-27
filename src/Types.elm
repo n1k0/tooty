@@ -29,7 +29,7 @@ module Types exposing
 --import Autocomplete
 
 import Browser
-import Browser.Navigation as Nav
+import Browser.Navigation as Navigation
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import PortFunnels exposing (State)
@@ -287,7 +287,7 @@ type alias Model =
     , confirm : Maybe Confirm
     , search : Search
     , ctrlPressed : Bool
-    , key : Nav.Key
+    , key : Navigation.Key
 
     --, portsFunnels : State
     }
