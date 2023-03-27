@@ -1,5 +1,6 @@
 module Update.Main exposing (update)
 
+import Browser.Navigation as Navigation
 import Command
 import List.Extra exposing (removeAt)
 import Mastodon.Helper exposing (extractStatusId)
@@ -19,13 +20,7 @@ import Update.WebSocket
 toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
-    , in_reply_to_id =
-        case draft.inReplyTo of
-            Just status ->
-                Just status.id
-
-            Nothing ->
-                Nothing
+    , in_reply_to_id = Maybe.map (\s -> s.id) draft.inReplyTo
     , spoiler_text = draft.spoilerText
     , sensitive = draft.sensitive
     , visibility = draft.visibility
@@ -46,16 +41,12 @@ update msg model =
 
         Back ->
             ( model
-            , Cmd.none
-              -- @TODO: add it again
-              --, Navigation.back 1
+            , Navigation.back model.key 1
             )
 
         Navigate href ->
             ( model
-            , -- @TODO: add it again?
-              --, Navigation.newUrl href
-              Cmd.none
+            , Navigation.pushUrl model.key href
             )
 
         Tick newTime ->
@@ -190,9 +181,7 @@ update msg model =
 
         OpenThread status ->
             ( { model | currentView = ThreadView (Thread Nothing Nothing) }
-              -- @TODO: add it again?
-              --, Navigation.newUrl <| "#thread/" ++ extractStatusId status.id
-            , Cmd.none
+            , Navigation.pushUrl model.key ("#thread/" ++ extractStatusId status.id)
             )
 
         FollowAccount account ->
