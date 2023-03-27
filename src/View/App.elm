@@ -115,7 +115,7 @@ view model =
         [ div [ class "container-fluid" ]
             [ errorsListView model
             , case List.head model.clients of
-                Just client ->
+                Just _ ->
                     homepageView model
 
                 Nothing ->
