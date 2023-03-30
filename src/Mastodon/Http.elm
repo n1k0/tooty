@@ -29,12 +29,6 @@ type Action
     | DELETE String
 
 
-type Link
-    = Prev
-    | Next
-    | None
-
-
 type alias Links =
     { prev : Maybe String
     , next : Maybe String
@@ -60,30 +54,6 @@ extractMastodonError statusCode statusMsg body =
         Err err ->
             Decode.errorToString err
                 |> ServerError statusCode statusMsg
-
-
-extractError : Http.Error -> Error
-extractError error =
-    case error of
-        Http.BadStatus { status, body } ->
-            extractMastodonError status.code status.message body
-
-        Http.BadPayload str { status } ->
-            ServerError
-                status.code
-                status.message
-                ("Failed decoding JSON: " ++ str)
-
-        Http.Timeout ->
-            TimeoutError
-
-        _ ->
-            NetworkError
-
-
-toResponse : Result Http.Error a -> Result Error a
-toResponse result =
-    Result.mapError extractError result
 
 
 extractLinks : Dict.Dict String String -> Links
@@ -135,23 +105,6 @@ extractLinks headers =
             }
 
 
-decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result String (Response a)
-decodeResponse decoder response =
-    let
-        decodedResponse =
-            Decode.decodeString decoder response.body
-
-        links =
-            extractLinks response.headers
-    in
-    case decodedResponse of
-        Ok decoded ->
-            Ok <| Response decoded links
-
-        Err error ->
-            Err <| Decode.errorToString error
-
-
 getAuthorizationUrl : AppRegistration -> String
 getAuthorizationUrl registration =
     Url.Builder.crossOrigin
@@ -164,9 +117,9 @@ getAuthorizationUrl registration =
         ]
 
 
-send : (Result Error a -> msg) -> Build.RequestBuilder a -> Cmd msg
-send tagger request =
-    Build.send (toResponse >> tagger) request
+send : Build.RequestBuilder msg -> Cmd msg
+send request =
+    Build.request request
 
 
 isLinkUrl : String -> Bool
@@ -188,9 +141,52 @@ withClient { server, token } builder =
         |> Build.withHeader "Authorization" ("Bearer " ++ token)
 
 
-withBodyDecoder : Decode.Decoder b -> Build.RequestBuilder a -> Request b
-withBodyDecoder decoder builder =
-    Build.withExpect (Http.expectStringResponse (decodeResponse decoder)) builder
+decodeResponse : Decode.Decoder a -> Http.Response String -> Result Error a
+decodeResponse decoder response =
+    --@TODO: uncomment and redo everything
+    -- let
+    --     decodedResponse =
+    --         Decode.decodeString decoder response.body
+    --
+    --     links =
+    --         extractLinks response.headers
+    -- in
+    case response of
+        Http.BadUrl_ _ ->
+            Err NetworkError
+
+        Http.Timeout_ ->
+            Err TimeoutError
+
+        Http.NetworkError_ ->
+            Err NetworkError
+
+        Http.BadStatus_ metadata body ->
+            Err (extractMastodonError metadata.statusCode metadata.statusText body)
+
+        --Err (Http.BadStatus metadata.statusCode)
+        Http.GoodStatus_ metadata body ->
+            case Decode.decodeString decoder body of
+                Ok value ->
+                    Ok value
+
+                Err _ ->
+                    Err (ServerError metadata.statusCode metadata.statusText ("Failed decoding JSON: " ++ body))
+
+
+
+--@TODO: uncomment and redo everything
+-- case decodedResponse of
+--     Ok decoded ->
+--         Ok <| Response decoded links
+--
+--     Err error ->
+--         Err <| Decode.errorToString error
+
+
+withBodyDecoder : (Result Error a -> msg) -> Decode.Decoder a -> Build.RequestBuilder msg -> Build.RequestBuilder msg
+withBodyDecoder toMsg decoder builder =
+    Build.withExpect (Http.expectStringResponse toMsg (decodeResponse decoder)) builder
 
 
 withQueryParams : List ( String, String ) -> Build.RequestBuilder a -> Build.RequestBuilder a
@@ -200,4 +196,12 @@ withQueryParams params builder =
         builder
 
     else
-        Build.withQueryParams params builder
+        { builder
+            | url =
+                builder.url
+                    ++ "?"
+                    ++ (params
+                            |> List.map (\( param, value ) -> Url.Builder.string param value)
+                            |> Url.Builder.toQuery
+                       )
+        }

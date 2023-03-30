@@ -117,10 +117,10 @@ registerApp { server, location } =
             "https://github.com/n1k0/tooty"
     in
     HttpBuilder.post (cleanServer ++ ApiUrl.apps)
-        |> withBodyDecoder (appRegistrationDecoder cleanServer scope)
+        |> withBodyDecoder ((MastodonEvent << AppRegistered) (appRegistrationDecoder cleanServer scope))
         |> HttpBuilder.withJsonBody
             (appRegistrationEncoder clientName redirectUri scope website)
-        |> send (MastodonEvent << AppRegistered)
+        |> send
 
 
 saveClients : List Client -> Cmd Msg
