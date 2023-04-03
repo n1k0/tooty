@@ -141,16 +141,8 @@ withClient { server, token } builder =
         |> Build.withHeader "Authorization" ("Bearer " ++ token)
 
 
-decodeResponse : Decode.Decoder a -> Http.Response String -> Result Error a
+decodeResponse : Decode.Decoder a -> Http.Response String -> Result.Result Error (Response a)
 decodeResponse decoder response =
-    --@TODO: uncomment and redo everything
-    -- let
-    --     decodedResponse =
-    --         Decode.decodeString decoder response.body
-    --
-    --     links =
-    --         extractLinks response.headers
-    -- in
     case response of
         Http.BadUrl_ _ ->
             Err NetworkError
@@ -164,27 +156,20 @@ decodeResponse decoder response =
         Http.BadStatus_ metadata body ->
             Err (extractMastodonError metadata.statusCode metadata.statusText body)
 
-        --Err (Http.BadStatus metadata.statusCode)
         Http.GoodStatus_ metadata body ->
             case Decode.decodeString decoder body of
                 Ok value ->
-                    Ok value
+                    let
+                        links =
+                            extractLinks metadata.headers
+                    in
+                    Ok <| Response value links
 
-                Err _ ->
-                    Err (ServerError metadata.statusCode metadata.statusText ("Failed decoding JSON: " ++ body))
-
-
-
---@TODO: uncomment and redo everything
--- case decodedResponse of
---     Ok decoded ->
---         Ok <| Response decoded links
---
---     Err error ->
---         Err <| Decode.errorToString error
+                Err e ->
+                    Err (ServerError metadata.statusCode metadata.statusText ("Failed decoding JSON: " ++ body ++ ", error: " ++ Decode.errorToString e))
 
 
-withBodyDecoder : (Result Error a -> msg) -> Decode.Decoder a -> Build.RequestBuilder msg -> Build.RequestBuilder msg
+withBodyDecoder : (Result Error (Response a) -> msg) -> Decode.Decoder a -> Build.RequestBuilder b -> Build.RequestBuilder msg
 withBodyDecoder toMsg decoder builder =
     Build.withExpect (Http.expectStringResponse toMsg (decodeResponse decoder)) builder
 

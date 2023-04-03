@@ -30,6 +30,7 @@ module Types exposing
 
 import Browser
 import Browser.Navigation as Navigation
+import Http
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import PortFunnels exposing (State)
