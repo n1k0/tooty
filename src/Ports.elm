@@ -1,5 +1,6 @@
 port module Ports exposing
-    ( deleteRegistration
+    ( connectToWsServer
+    , deleteRegistration
     , notify
     , saveClients
     , saveRegistration
@@ -8,6 +9,7 @@ port module Ports exposing
     , uploadError
     , uploadMedia
     , uploadSuccess
+    , wsEvent
     )
 
 -- Outgoing ports
@@ -34,6 +36,9 @@ port uploadMedia : { id : String, url : String, token : String } -> Cmd msg
 port notify : { title : String, icon : String, body : String, clickUrl : String } -> Cmd msg
 
 
+port connectToWsServer : { server : String, token : String, streamType : String, apiUrl : String } -> Cmd msg
+
+
 
 -- Incoming ports
 
@@ -42,3 +47,6 @@ port uploadError : (String -> msg) -> Sub msg
 
 
 port uploadSuccess : (String -> msg) -> Sub msg
+
+
+port wsEvent : (String -> msg) -> Sub msg

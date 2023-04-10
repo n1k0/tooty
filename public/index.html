@@ -22,6 +22,27 @@
         registration: JSON.parse(localStorage.getItem("tooty.registration"))
       }});
 
+    app.ports.connectToWsServer.subscribe(data => {
+        console.log("I would like to connect to ", data);
+
+        url = data.server.replace('https', 'wss') + data.apiUrl + "?access_token=" + data.token + "&stream=" + data.streamType;
+
+        console.log(url);
+
+
+        let socket = new WebSocket(url);
+
+        socket.onopen = function(e) {
+          console.log("[open] Connection established");
+        };
+
+
+        socket.onmessage = function(event) {
+          console.log(`[message] Data received from server: ${event.data}`);
+        };
+    });
+
+
     app.ports.saveClients.subscribe(json => {
       localStorage.setItem("tooty.clients", json);
     });
@@ -86,6 +107,7 @@
         });
       }
     });
+
     </script>
   </body>
 </html>

@@ -56,6 +56,7 @@ import Mastodon.Encoder exposing (..)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Http exposing (..)
 import Mastodon.Model exposing (..)
+import Mastodon.WebSocket exposing (StreamType(..))
 import Ports
 import Task
 import Types exposing (..)
@@ -78,7 +79,7 @@ initCommands registration client authCode =
                         []
 
             Nothing ->
-                [ loadUserAccount client, loadTimelines client ]
+                [ loadUserAccount client, loadTimelines client, subscribeToWs client GlobalPublicStream ]
 
 
 getAccessToken : AppRegistration -> String -> Cmd Msg
@@ -420,6 +421,33 @@ loadTimelines client =
         , loadGlobalTimeline client Nothing
         , loadNotifications client Nothing
         ]
+
+
+subscribeToWs : Maybe Client -> StreamType -> Cmd Msg
+subscribeToWs client streamType =
+    let
+        type_ =
+            case streamType of
+                GlobalPublicStream ->
+                    "public"
+
+                LocalPublicStream ->
+                    "public:local"
+
+                UserStream ->
+                    "user"
+    in
+    client
+        |> Maybe.map
+            (\c ->
+                Ports.connectToWsServer
+                    { server = c.server
+                    , token = c.token
+                    , streamType = type_
+                    , apiUrl = ApiUrl.streaming
+                    }
+            )
+        |> Maybe.withDefault Cmd.none
 
 
 loadNextTimeline : Model -> String -> String -> Cmd Msg
