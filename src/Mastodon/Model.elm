@@ -25,10 +25,6 @@ type alias AccountId =
     String
 
 
-type alias AuthCode =
-    String
-
-
 type alias ClientId =
     String
 

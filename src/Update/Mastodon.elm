@@ -480,7 +480,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AutoSearch result ->
+        AutoSearch _ ->
             ( model, Cmd.none )
 
 

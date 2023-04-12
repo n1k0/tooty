@@ -6,7 +6,6 @@ module Mastodon.Encoder exposing
     , statusRequestBodyEncoder
     )
 
-import Http
 import Json.Encode as Encode
 import Mastodon.Model exposing (..)
 
