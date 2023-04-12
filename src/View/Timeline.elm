@@ -89,7 +89,7 @@ contextualTimelineMenu hash =
                 [ href href_
                 , class <|
                     "btn "
-                        ++ (if hash == href_ || (hash == "" && href_ == "#") then
+                        ++ (if ("#" ++ hash == href_) || (hash == "" && href_ == "#") then
                                 "btn-primary active"
 
                             else
