@@ -79,7 +79,7 @@ initCommands registration client authCode =
                         []
 
             Nothing ->
-                [ loadUserAccount client, loadTimelines client, subscribeToWs client GlobalPublicStream ]
+                [ loadUserAccount client, loadTimelines client, subscribeToWs client UserStream ]
 
 
 getAccessToken : AppRegistration -> String -> Cmd Msg
@@ -319,11 +319,14 @@ loadLocalTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadLocalTimeline client url =
     case client of
         Just c ->
-            HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
-                |> withClient c
-                |> withBodyDecoder (MastodonEvent << LocalTimeline (url /= Nothing)) (Decode.list statusDecoder)
-                |> withQueryParams [ ( "local", "true" ), ( "limit", "60" ) ]
-                |> send
+            Cmd.batch
+                [ HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
+                    |> withClient c
+                    |> withBodyDecoder (MastodonEvent << LocalTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                    |> withQueryParams [ ( "local", "true" ), ( "limit", "60" ) ]
+                    |> send
+                , subscribeToWs client LocalPublicStream
+                ]
 
         Nothing ->
             Cmd.none
@@ -333,11 +336,14 @@ loadGlobalTimeline : Maybe Client -> Maybe String -> Cmd Msg
 loadGlobalTimeline client url =
     case client of
         Just c ->
-            HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
-                |> withClient c
-                |> withBodyDecoder (MastodonEvent << GlobalTimeline (url /= Nothing)) (Decode.list statusDecoder)
-                |> withQueryParams [ ( "limit", "60" ) ]
-                |> send
+            Cmd.batch
+                [ HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
+                    |> withClient c
+                    |> withBodyDecoder (MastodonEvent << GlobalTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                    |> withQueryParams [ ( "limit", "60" ) ]
+                    |> send
+                , subscribeToWs client GlobalPublicStream
+                ]
 
         Nothing ->
             Cmd.none

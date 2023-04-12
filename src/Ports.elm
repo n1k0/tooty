@@ -9,7 +9,9 @@ port module Ports exposing
     , uploadError
     , uploadMedia
     , uploadSuccess
-    , wsEvent
+    , wsGlobalEvent
+    , wsLocalEvent
+    , wsUserEvent
     )
 
 -- Outgoing ports
@@ -49,4 +51,10 @@ port uploadError : (String -> msg) -> Sub msg
 port uploadSuccess : (String -> msg) -> Sub msg
 
 
-port wsEvent : (String -> msg) -> Sub msg
+port wsGlobalEvent : (String -> msg) -> Sub msg
+
+
+port wsLocalEvent : (String -> msg) -> Sub msg
+
+
+port wsUserEvent : (String -> msg) -> Sub msg

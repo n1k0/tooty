@@ -166,7 +166,15 @@ decodeResponse decoder response =
                     Ok <| Response value links
 
                 Err e ->
-                    Err (ServerError metadata.statusCode metadata.statusText ("Failed decoding JSON: " ++ body ++ ", error: " ++ Decode.errorToString e))
+                    Err
+                        (ServerError metadata.statusCode
+                            metadata.statusText
+                            ("Failed decoding JSON: "
+                                ++ body
+                                ++ ", error: "
+                                ++ Debug.log "JSON Error" (Decode.errorToString e)
+                            )
+                        )
 
 
 withBodyDecoder : (Result Error (Response a) -> msg) -> Decode.Decoder a -> Build.RequestBuilder b -> Build.RequestBuilder msg
@@ -184,7 +192,6 @@ withQueryParams params builder =
         { builder
             | url =
                 builder.url
-                    ++ "?"
                     ++ (params
                             |> List.map (\( param, value ) -> Url.Builder.string param value)
                             |> Url.Builder.toQuery

@@ -52,6 +52,19 @@ subscriptions { clients, currentView } =
         uploadErrorSub =
             Ports.uploadError (DraftEvent << UploadError)
 
+        otherWsSub =
+            if currentView == GlobalTimelineView then
+                Ports.wsGlobalEvent (WebSocketEvent << NewWebsocketGlobalMessage)
+
+            else if currentView == LocalTimelineView then
+                Ports.wsLocalEvent (WebSocketEvent << NewWebsocketLocalMessage)
+
+            else
+                Sub.none
+
+        userWsSub =
+            Ports.wsUserEvent (WebSocketEvent << NewWebsocketUserMessage)
+
         -- keyDownsSub =
         --     Keyboard.downs (KeyMsg KeyDown)
         -- keyUpsSub =
@@ -59,12 +72,13 @@ subscriptions { clients, currentView } =
     in
     Sub.batch
         [ timeSub
-
-        --, userWsSub
-        --, otherWsSub
-        -- , autoCompleteSub
-        , uploadSuccessSub
+        , --, userWsSub
+          --, otherWsSub
+          -- , autoCompleteSub
+          uploadSuccessSub
         , uploadErrorSub
+        , userWsSub
+        , otherWsSub
 
         -- , keyDownsSub
         -- , keyUpsSub
