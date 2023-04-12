@@ -1,5 +1,6 @@
 module Update.Main exposing (update)
 
+import Browser
 import Browser.Navigation as Navigation
 import Command
 import List.Extra exposing (removeAt)
@@ -15,6 +16,7 @@ import Update.Search
 import Update.Timeline
 import Update.Viewer
 import Update.WebSocket
+import Url
 
 
 toStatusRequestBody : Draft -> StatusRequestBody
@@ -284,7 +286,19 @@ update msg model =
             , Command.scrollColumnToBottom column
             )
 
-        LinkClicked _ ->
-            ( model
-            , Cmd.none
-            )
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    case url.fragment of
+                        Nothing ->
+                            ( model, Cmd.none )
+
+                        Just _ ->
+                            ( model
+                            , Navigation.pushUrl model.key (Url.toString url)
+                            )
+
+                Browser.External href ->
+                    ( model
+                    , Navigation.load href
+                    )
