@@ -213,7 +213,7 @@ decodeWebSocketMessage message =
         Ok { event, payload } ->
             case event of
                 "update" ->
-                    StatusUpdateEvent
+                    StatusNewEvent
                         (Decode.decodeString statusDecoder payload
                             |> Result.mapError Decode.errorToString
                         )
@@ -224,6 +224,12 @@ decodeWebSocketMessage message =
                 "notification" ->
                     NotificationEvent
                         (Decode.decodeString notificationDecoder payload
+                            |> Result.mapError Decode.errorToString
+                        )
+
+                "status.update" ->
+                    StatusUpdateEvent
+                        (Decode.decodeString statusDecoder payload
                             |> Result.mapError Decode.errorToString
                         )
 
