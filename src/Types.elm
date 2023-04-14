@@ -9,6 +9,7 @@ module Types exposing
     , Flags
     , InputInformation
     , KeyEvent(..)
+    , KeyType(..)
     , MastodonMsg(..)
     , MastodonResult
     , Model
@@ -25,15 +26,12 @@ module Types exposing
     )
 
 --TODO
---import Keyboard
 --import Autocomplete
 
 import Browser
 import Browser.Navigation as Navigation
-import Http
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
-import PortFunnels exposing (State)
 import Time exposing (Posix)
 import Url
 
@@ -120,13 +118,14 @@ type WebSocketMsg
     | NewWebsocketUserMessage String
 
 
-
---| WsProcess Value
-
-
 type KeyEvent
     = KeyUp
     | KeyDown
+
+
+type KeyType
+    = KeyCharacter Char
+    | KeyControl String
 
 
 type Msg
@@ -141,7 +140,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-      --| KeyMsg KeyEvent Keyboard.KeyCode
+    | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | TimelineLoadNext String String
     | LinkClicked Browser.UrlRequest

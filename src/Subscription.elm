@@ -1,48 +1,37 @@
 module Subscription exposing (subscriptions)
 
 -- TODO
---import Keyboard
 --import Autocomplete
 
-import Mastodon.WebSocket
+import Browser.Events
+import Json.Decode as Decode
 import Ports
 import Time
 import Types exposing (..)
 
 
+keyDecoder : KeyEvent -> Decode.Decoder Msg
+keyDecoder keyEvent =
+    Decode.map (toKey keyEvent) (Decode.field "key" Decode.string)
+
+
+toKey : KeyEvent -> String -> Msg
+toKey keyEvent string =
+    case String.uncons string of
+        Just ( char, "" ) ->
+            KeyMsg keyEvent <| KeyCharacter char
+
+        _ ->
+            KeyMsg keyEvent <| KeyControl string
+
+
 subscriptions : Model -> Sub Msg
-subscriptions { clients, currentView } =
+subscriptions { currentView } =
     let
         timeSub =
             Time.every 1000 Tick
 
         {-
-                 userWsSub =
-                     Mastodon.WebSocket.subscribeToWebSockets
-                         (List.head clients)
-                         Mastodon.WebSocket.UserStream
-                         NewWebsocketUserMessage
-                         |> Sub.map WebSocketEvent
-
-                 otherWsSub =
-                     if currentView == GlobalTimelineView then
-                         Mastodon.WebSocket.subscribeToWebSockets
-                             (List.head clients)
-                             Mastodon.WebSocket.GlobalPublicStream
-                             NewWebsocketGlobalMessage
-                             |> Sub.map WebSocketEvent
-
-                     else if currentView == LocalTimelineView then
-                         Mastodon.WebSocket.subscribeToWebSockets
-                             (List.head clients)
-                             Mastodon.WebSocket.LocalPublicStream
-                             NewWebsocketLocalMessage
-                             |> Sub.map WebSocketEvent
-
-                     else
-                         Sub.none
-              portFunnelsSub =
-                  PortFunnels.subscriptions WsProcess
            autoCompleteSub =
                Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
         -}
@@ -65,21 +54,19 @@ subscriptions { clients, currentView } =
         userWsSub =
             Ports.wsUserEvent (WebSocketEvent << NewWebsocketUserMessage)
 
-        -- keyDownsSub =
-        --     Keyboard.downs (KeyMsg KeyDown)
-        -- keyUpsSub =
-        --     Keyboard.ups (KeyMsg KeyUp)
+        keyDownsSub =
+            Browser.Events.onKeyDown (keyDecoder KeyDown)
+
+        keyUpsSub =
+            Browser.Events.onKeyDown (keyDecoder KeyUp)
     in
     Sub.batch
         [ timeSub
-        , --, userWsSub
-          --, otherWsSub
-          -- , autoCompleteSub
+        , -- , autoCompleteSub
           uploadSuccessSub
         , uploadErrorSub
         , userWsSub
         , otherWsSub
-
-        -- , keyDownsSub
-        -- , keyUpsSub
+        , keyDownsSub
+        , keyUpsSub
         ]
