@@ -150,8 +150,11 @@ update draftMsg currentUser ({ draft } as model) =
                         "@" ->
                             Just selectionStart
 
-                        _ ->
+                        " " ->
                             Nothing
+
+                        _ ->
+                            model.draft.autoAtPosition
 
                 query =
                     case atPosition of
@@ -165,16 +168,22 @@ update draftMsg currentUser ({ draft } as model) =
                     { draft
                         | status = status
                         , statusLength = String.length status
+                        , autoCursorPosition = selectionStart
+                        , autoAtPosition = atPosition
+                        , autoQuery = query
+                        , showAutoMenu =
+                            showAutoMenu
+                                draft.autoAccounts
+                                draft.autoAtPosition
+                                draft.autoQuery
                     }
             in
             ( { model | draft = newDraft }
-            , Cmd.batch
-                (if query /= "" && atPosition /= Nothing then
-                    [ Command.searchAccounts (List.head model.clients) query 3 False ]
+            , if query /= "" && atPosition /= Nothing then
+                Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False
 
-                 else
-                    []
-                )
+              else
+                Cmd.none
             )
 
         SelectAccount id ->
@@ -217,7 +226,6 @@ update draftMsg currentUser ({ draft } as model) =
               Command.updateDomStatus newStatus
             )
 
-        -- @TODO: add it again?
         SetAutoState autoMsg ->
             let
                 ( newState, maybeMsg ) =
@@ -241,7 +249,6 @@ update draftMsg currentUser ({ draft } as model) =
                     )
 
         CloseAutocomplete ->
-            -- @TODO: add it again?
             let
                 newDraft =
                     { draft
@@ -254,7 +261,6 @@ update draftMsg currentUser ({ draft } as model) =
             )
 
         ResetAutocomplete toTop ->
-            -- @TODO: add it again?
             let
                 newDraft =
                     { draft

@@ -480,8 +480,37 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AutoSearch _ ->
-            ( model, Cmd.none )
+        AutoSearch result ->
+            let
+                draft =
+                    model.draft
+            in
+            case result of
+                Ok { decoded } ->
+                    ( { model
+                        | draft =
+                            { draft
+                                | showAutoMenu =
+                                    Update.Draft.showAutoMenu
+                                        decoded
+                                        draft.autoAtPosition
+                                        draft.autoQuery
+                                , autoAccounts = decoded
+                            }
+                      }
+                    , -- Force selection of the first item after each
+                      -- Successfull request
+                      --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
+                      Cmd.none
+                    )
+
+                Err error ->
+                    ( { model
+                        | draft = { draft | showAutoMenu = False }
+                        , errors = addErrorNotification (errorText error) model
+                      }
+                    , Cmd.none
+                    )
 
 
 {-| Update viewed account relationships as well as the relationship with the
