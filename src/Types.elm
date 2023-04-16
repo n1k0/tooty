@@ -25,13 +25,11 @@ module Types exposing
     , WebSocketMsg(..)
     )
 
---TODO
---import Autocomplete
-
 import Browser
 import Browser.Navigation as Navigation
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
+import Menu
 import Time exposing (Posix)
 import Url
 
@@ -48,7 +46,7 @@ type DraftMsg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
-      --| SetAutoState Autocomplete.Msg
+    | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
@@ -213,6 +211,14 @@ type alias Draft =
     , attachments : List Attachment
     , mediaUploading : Bool
     , statusLength : Int
+
+    -- Autocomplete values
+    , autoState : Menu.State
+    , autoCursorPosition : Int
+    , autoAtPosition : Maybe Int
+    , autoQuery : String
+    , autoMaxResults : Int
+    , autoAccounts : List Account
     , showAutoMenu : Bool
     }
 

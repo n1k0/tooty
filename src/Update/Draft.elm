@@ -4,18 +4,39 @@ module Update.Draft exposing
     , update
     )
 
---TODO
---import Autocomplete
-
 import Command
 import Json.Decode as Decode
 import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
+import Menu
 import String.Extra
 import Types exposing (..)
 import Update.Error exposing (addErrorNotification)
 import Util
+
+
+autocompleteUpdateConfig : Menu.UpdateConfig Msg Account
+autocompleteUpdateConfig =
+    Menu.updateConfig
+        { toId = .id
+        , onKeyDown =
+            \code maybeId ->
+                if code == 38 || code == 40 then
+                    Nothing
+
+                else if code == 13 then
+                    Maybe.map (DraftEvent << SelectAccount) maybeId
+
+                else
+                    Just <| (DraftEvent << ResetAutocomplete) False
+        , onTooLow = Just <| (DraftEvent << ResetAutocomplete) True
+        , onTooHigh = Just <| (DraftEvent << ResetAutocomplete) False
+        , onMouseEnter = \_ -> Nothing
+        , onMouseLeave = \_ -> Nothing
+        , onMouseClick = \id -> Just <| (DraftEvent << SelectAccount) id
+        , separateSelections = False
+        }
 
 
 empty : Draft
@@ -28,6 +49,12 @@ empty =
     , attachments = []
     , mediaUploading = False
     , statusLength = 0
+    , autoState = Menu.empty
+    , autoAtPosition = Nothing
+    , autoQuery = ""
+    , autoCursorPosition = 0
+    , autoMaxResults = 4
+    , autoAccounts = []
     , showAutoMenu = False
     }
 
@@ -153,121 +180,101 @@ update draftMsg currentUser ({ draft } as model) =
         SelectAccount id ->
             let
                 account =
-                    List.filter (\acc -> acc.id == id) []
+                    List.filter (\a -> a.id == id) draft.autoAccounts
                         |> List.head
 
-                stringToAtPos =
-                    ""
-
-                stringToPos =
-                    ""
-
-                -- @TODO: add it again ?
-                --String.slice 0 draft.autoCursorPosition draft.status
                 newStatus =
-                    draft.status
+                    case draft.autoAtPosition of
+                        Just atPosition ->
+                            String.Extra.replaceSlice
+                                (case account of
+                                    Just a ->
+                                        a.acct ++ " "
 
-                -- @TODO: add it again ?
-                {-
-                   case draft.autoAtPosition of
-                       Just atPosition ->
-                           String.Extra.replaceSlice
-                               (case account of
-                                   Just a ->
-                                       a.acct ++ " "
+                                    Nothing ->
+                                        ""
+                                )
+                                atPosition
+                                (String.length draft.autoQuery + atPosition)
+                                draft.status
 
-                                   Nothing ->
-                                       ""
-                               )
-                               atPosition
-                               (String.length draft.autoQuery + atPosition)
-                               draft.status
+                        _ ->
+                            ""
 
-                       _ ->
-                           ""
-                -}
                 newDraft =
                     { draft
                         | status = newStatus
+                        , autoAtPosition = Nothing
+                        , autoQuery = ""
+                        , autoState = Menu.empty
+                        , autoAccounts = []
                         , showAutoMenu = False
                     }
             in
             ( { model | draft = newDraft }
-              -- As we are using defaultValue, we need to update the textarea
+            , -- As we are using defaultValue, we need to update the textarea
               -- using a port.
-            , Command.updateDomStatus newStatus
+              Command.updateDomStatus newStatus
             )
 
         -- @TODO: add it again?
-        {-
-           SetAutoState autoMsg ->
-              let
-                  ( newState, maybeMsg ) =
-                      Autocomplete.update
-                          autocompleteUpdateConfig
-                          autoMsg
-                          draft.autoMaxResults
-                          draft.autoState
-                          (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+        SetAutoState autoMsg ->
+            let
+                ( newState, maybeMsg ) =
+                    Menu.update
+                        autocompleteUpdateConfig
+                        autoMsg
+                        draft.autoMaxResults
+                        draft.autoState
+                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
 
-                  newModel =
-                      { model | draft = { draft | autoState = newState } }
-              in
-              case maybeMsg of
-                  Just (DraftEvent updateMsg) ->
-                      update updateMsg currentUser newModel
+                newModel =
+                    { model | draft = { draft | autoState = newState } }
+            in
+            case maybeMsg of
+                Just (DraftEvent updateMsg) ->
+                    update updateMsg currentUser newModel
 
-                  _ ->
-                      ( newModel
-                      , Cmd.none
-                      )
-        -}
+                _ ->
+                    ( newModel
+                    , Cmd.none
+                    )
+
         CloseAutocomplete ->
             -- @TODO: add it again?
-            {-
-               let
-                   newDraft =
-                       { draft
-                           | showAutoMenu = False
-                           , autoState = Autocomplete.reset autocompleteUpdateConfig draft.autoState
-                       }
-               in
-               ( { model | draft = newDraft }
-               , Cmd.none
-               )
-            -}
-            ( model
+            let
+                newDraft =
+                    { draft
+                        | showAutoMenu = False
+                        , autoState = Menu.reset autocompleteUpdateConfig draft.autoState
+                    }
+            in
+            ( { model | draft = newDraft }
             , Cmd.none
             )
 
         ResetAutocomplete toTop ->
             -- @TODO: add it again?
-            {-
-                let
-                    newDraft =
-                        { draft
-                            | autoState =
-                                if toTop then
-                                    Autocomplete.resetToFirstItem
-                                        autocompleteUpdateConfig
-                                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-                                        draft.autoMaxResults
-                                        draft.autoState
+            let
+                newDraft =
+                    { draft
+                        | autoState =
+                            if toTop then
+                                Menu.resetToFirstItem
+                                    autocompleteUpdateConfig
+                                    (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                    draft.autoMaxResults
+                                    draft.autoState
 
-                                else
-                                    Autocomplete.resetToLastItem
-                                        autocompleteUpdateConfig
-                                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-                                        draft.autoMaxResults
-                                        draft.autoState
-                        }
-                in
-
-               ( { model | draft = newDraft }
-               , Cmd.none
-               )
-            -}
-            ( model
+                            else
+                                Menu.resetToLastItem
+                                    autocompleteUpdateConfig
+                                    (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                    draft.autoMaxResults
+                                    draft.autoState
+                    }
+            in
+            ( { model | draft = newDraft }
             , Cmd.none
             )
 

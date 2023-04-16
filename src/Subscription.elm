@@ -1,10 +1,8 @@
 module Subscription exposing (subscriptions)
 
--- TODO
---import Autocomplete
-
 import Browser.Events
 import Json.Decode as Decode
+import Menu
 import Ports
 import Time
 import Types exposing (..)
@@ -31,10 +29,9 @@ subscriptions { currentView } =
         timeSub =
             Time.every 1000 Tick
 
-        {-
-           autoCompleteSub =
-               Sub.map (DraftEvent << SetAutoState) Autocomplete.subscription
-        -}
+        autoCompleteSub =
+            Sub.map (DraftEvent << SetAutoState) Menu.subscription
+
         uploadSuccessSub =
             Ports.uploadSuccess (DraftEvent << UploadResult)
 
@@ -62,8 +59,8 @@ subscriptions { currentView } =
     in
     Sub.batch
         [ timeSub
-        , -- , autoCompleteSub
-          uploadSuccessSub
+        , autoCompleteSub
+        , uploadSuccessSub
         , uploadErrorSub
         , userWsSub
         , otherWsSub

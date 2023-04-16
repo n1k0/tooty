@@ -1,8 +1,5 @@
 module View.Draft exposing (draftView)
 
---TODO
---import Autocomplete
-
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -10,6 +7,7 @@ import Html.Lazy as Lazy
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Mastodon.Model exposing (..)
+import Menu
 import Types exposing (..)
 import Util
 import View.Common as Common
@@ -42,51 +40,44 @@ visibilities =
 viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
-        [-- @TODO: add it again
-         {-
-            Html.map (DraftEvent << SetAutoState)
-              (Autocomplete.view viewConfig
-                  draft.autoMaxResults
-                  draft.autoState
-                  (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-              )
-         -}
+        [ Html.map (DraftEvent << SetAutoState)
+            (Menu.view viewConfig
+                draft.autoMaxResults
+                draft.autoState
+                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+            )
         ]
 
 
+viewConfig : Menu.ViewConfig Mastodon.Model.Account
+viewConfig =
+    let
+        customizedLi keySelected mouseSelected account =
+            { attributes =
+                [ classList
+                    [ ( "list-group-item autocomplete-item", True )
+                    , ( "active", keySelected || mouseSelected )
+                    ]
+                ]
+            , children =
+                [ img [ src account.avatar ] []
+                , strong []
+                    [ text <|
+                        if account.display_name /= "" then
+                            account.display_name
 
-{-
-   viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
-   viewConfig =
-       let
-           customizedLi keySelected mouseSelected account =
-               { attributes =
-                   [ classList
-                       [ ( "list-group-item autocomplete-item", True )
-                       , ( "active", keySelected || mouseSelected )
-                       ]
-                   ]
-               , children =
-                   [ img [ src account.avatar ] []
-                   , strong []
-                       [ text <|
-                           if account.display_name /= "" then
-                               account.display_name
-
-                           else
-                               account.acct
-                       ]
-                   , span [] [ text <| " @" ++ account.acct ]
-                   ]
-               }
-       in
-       Autocomplete.viewConfig
-           { toId = .id
-           , ul = [ class "list-group autocomplete-list" ]
-           , li = customizedLi
-           }
-
--}
+                        else
+                            account.acct
+                    ]
+                , span [] [ text <| " @" ++ account.acct ]
+                ]
+            }
+    in
+    Menu.viewConfig
+        { toId = .id
+        , ul = [ class "list-group autocomplete-list" ]
+        , li = customizedLi
+        }
 
 
 currentUserView : Maybe CurrentUser -> Html Msg
