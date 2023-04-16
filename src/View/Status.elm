@@ -95,7 +95,7 @@ statusActionsView status currentUser showApp =
                     ( baseBtnClasses, AddFavorite sourceStatus )
     in
     div [ class "btn-group actions" ]
-        [ a
+        [ span
             [ class baseBtnClasses
             , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
             ]
@@ -109,10 +109,10 @@ statusActionsView status currentUser showApp =
                 [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
 
           else
-            a
+            span
                 [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
                 [ Common.icon "fire", text (String.fromInt sourceStatus.reblogs_count) ]
-        , a
+        , span
             [ class favClasses, onClickWithPreventAndStop favEvent ]
             [ Common.icon "star", text (String.fromInt sourceStatus.favourites_count) ]
         , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
@@ -126,7 +126,7 @@ statusActionsView status currentUser showApp =
 
           else
             text ""
-        , a
+        , span
             [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
             [ Common.icon "time", text <| Common.formatDate status.created_at ]
         , if showApp then
