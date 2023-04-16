@@ -8,7 +8,7 @@ module View.Events exposing
     )
 
 import Html exposing (..)
-import Html.Events exposing (custom, on)
+import Html.Events exposing (custom, on, preventDefaultOn, stopPropagationOn)
 import Json.Decode as Decode
 import Types exposing (..)
 
@@ -39,13 +39,9 @@ onClickWithPreventAndStop msg =
 
 onClickWithPrevent : msg -> Attribute msg
 onClickWithPrevent msg =
-    custom
-        "click"
-        (Decode.succeed { message = msg, preventDefault = True, stopPropagation = False })
+    preventDefaultOn "click" <| Decode.succeed ( msg, True )
 
 
 onClickWithStop : msg -> Attribute msg
 onClickWithStop msg =
-    custom
-        "click"
-        (Decode.succeed { message = msg, preventDefault = False, stopPropagation = True })
+    stopPropagationOn "click" <| Decode.succeed ( msg, True )
