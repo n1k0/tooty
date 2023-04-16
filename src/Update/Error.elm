@@ -15,8 +15,4 @@ addErrorNotification message model =
 
 cleanErrors : Posix -> List ErrorNotification -> List ErrorNotification
 cleanErrors currentTime errors =
-    errors
-
-
-
---List.filter (\{ time } -> currentTime - time <= 10000) errors
+    List.filter (\{ time } -> Time.posixToMillis currentTime - Time.posixToMillis time <= 10000) errors
