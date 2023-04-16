@@ -27,7 +27,7 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
             "att" ++ attachment.id ++ context
 
         media =
-            a
+            span
                 [ class "attachment-image"
                 , href url
                 , onClickWithPreventAndStop <|
