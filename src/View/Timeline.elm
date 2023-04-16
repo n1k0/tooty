@@ -15,7 +15,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
 import View.Events exposing (..)
-import View.Status exposing (statusActionsView, statusEntryView, statusView)
+import View.Status exposing (statusEntryView)
 
 
 type alias CurrentUser =
