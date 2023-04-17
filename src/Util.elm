@@ -3,7 +3,9 @@ module Util exposing
     , extractAuthCode
     )
 
+import Dict
 import Mastodon.Model exposing (..)
+import QS
 import Url
 
 
@@ -20,19 +22,13 @@ acceptableAccounts query accounts =
         List.filter (String.contains lowerQuery << String.toLower << .username) accounts
 
 
-
-{-
-   TODO: refactor this code smell
--}
-
-
 extractAuthCode : Url.Url -> Maybe String
 extractAuthCode { query } =
     case query of
         Just q ->
-            case String.split "code=" q of
-                [ _, authCode ] ->
-                    Just authCode
+            case Dict.get "code" (QS.parse QS.config q) of
+                Just (QS.One value) ->
+                    Just value
 
                 _ ->
                     Nothing
