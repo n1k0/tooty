@@ -1,1 +1,0 @@
-- Manage `StatusUpdateEvent` message update https://docs.joinmastodon.org/methods/streaming/#events
