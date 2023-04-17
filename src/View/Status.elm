@@ -95,7 +95,7 @@ statusActionsView status currentUser showApp =
                     ( baseBtnClasses, AddFavorite sourceStatus )
     in
     div [ class "btn-group actions" ]
-        [ span
+        [ button
             [ class baseBtnClasses
             , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
             ]
@@ -109,14 +109,14 @@ statusActionsView status currentUser showApp =
                 [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
 
           else
-            span
+            button
                 [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
                 [ Common.icon "fire", text (String.fromInt sourceStatus.reblogs_count) ]
-        , span
+        , button
             [ class favClasses, onClickWithPreventAndStop favEvent ]
             [ Common.icon "star", text (String.fromInt sourceStatus.favourites_count) ]
         , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
-            a
+            button
                 [ class <| baseBtnClasses ++ " btn-delete"
                 , href ""
                 , onClickWithPreventAndStop <|
@@ -126,7 +126,7 @@ statusActionsView status currentUser showApp =
 
           else
             text ""
-        , span
+        , button
             [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
             [ Common.icon "time", text <| Common.formatDate status.created_at ]
         , if showApp then
@@ -146,7 +146,7 @@ statusContentView context status =
                 , attachmentListView context status
                 ]
 
-        spoiler ->
+        _ ->
             -- Note: Spoilers are dealt with using pure CSS.
             let
                 statusId =
