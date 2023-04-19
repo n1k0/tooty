@@ -76,7 +76,7 @@ initCommands registration client authCode =
                         ]
 
                     Nothing ->
-                        []
+                        [ Navigation.load "/" ]
 
             Nothing ->
                 [ loadUserAccount client, loadTimelines client, subscribeToWs client UserStream ]
