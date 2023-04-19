@@ -172,7 +172,7 @@ decodeResponse decoder response =
                             ("Failed decoding JSON: "
                                 ++ body
                                 ++ ", error: "
-                                ++ Debug.log "JSON Error" (Decode.errorToString e)
+                                ++ Decode.errorToString e
                             )
                         )
 
