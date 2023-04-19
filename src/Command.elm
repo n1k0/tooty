@@ -61,11 +61,26 @@ import Ports
 import Task
 import Types exposing (..)
 import Url
+import Util
 import View.Formatter exposing (textContent)
 
 
-initCommands : Maybe AppRegistration -> Maybe Client -> Maybe String -> Cmd Msg
-initCommands registration client authCode =
+initCommands : Maybe AppRegistration -> Maybe Client -> Url.Url -> Cmd Msg
+initCommands registration client location =
+    let
+        authCode =
+            Util.extractAuthCode location
+
+        rootLocation =
+            Url.toString
+                { protocol = location.protocol
+                , host = location.host
+                , port_ = location.port_
+                , path = location.path
+                , query = Nothing
+                , fragment = Nothing
+                }
+    in
     Cmd.batch <|
         case authCode of
             Just code ->
@@ -76,7 +91,7 @@ initCommands registration client authCode =
                         ]
 
                     Nothing ->
-                        [ Navigation.load "/" ]
+                        [ Navigation.load rootLocation ]
 
             Nothing ->
                 [ loadUserAccount client, loadTimelines client, subscribeToWs client UserStream ]

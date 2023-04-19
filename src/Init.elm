@@ -48,5 +48,5 @@ init { registration, clients } location key =
                 }
     in
     ( model
-    , Cmd.batch [ commands, Command.initCommands registration (List.head decodedClients) (Util.extractAuthCode location) ]
+    , Cmd.batch [ commands, Command.initCommands registration (List.head decodedClients) location ]
     )
