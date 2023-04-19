@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
-    "build": "npm run copy-assets && elm make src/Main.elm --output=build/app.js",
-    "copy-assets": "rimraf build && mkdir build && cp -r public/* build",
+    "build": "npm run copy-assets && elm make src/Main.elm --optimize --output=build/v2/app.js",
+    "copy-assets": "rimraf build && mkdir -p build/v2 && cp -r public/* build/v2",
     "debug": "elm-live src/Main.elm --warn --dir=public/ --port=3000 -- --output=public/app.js --debug",
-    "deploy": "npm run build && npm run optimize && gh-pages --dist build/",
-    "optimize": "uglifyjs build/app.js -c -m -o build/app.js",
+    "deploy": "npm run build && npm run optimize && gh-pages --add --dist build/",
+    "optimize": "uglifyjs build/v2/app.js -c -m -o build/v2/app.js",
     "live": "elm-live src/Main.elm --port=3000 --dir=public/ -- --output=public/app.js",
     "test": "elm-test"
   },
