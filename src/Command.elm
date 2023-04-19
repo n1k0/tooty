@@ -98,8 +98,19 @@ navigateToAuthUrl registration =
 registerApp : Model -> Cmd Msg
 registerApp { server, location } =
     let
+        -- The redirect URI should not have a fragment or Mastodon will not accept it
+        locationWithoutFragment =
+            Url.toString
+                { protocol = location.protocol
+                , host = location.host
+                , port_ = location.port_
+                , path = location.path
+                , query = location.fragment
+                , fragment = Nothing
+                }
+
         redirectUri =
-            Url.toString location
+            locationWithoutFragment
 
         cleanServer =
             if String.endsWith "/" server then
