@@ -128,7 +128,7 @@ statusActionsView status currentUser showApp =
             text ""
         , case status.edited_at of
             Just edited_at ->
-                button
+                a
                     [ class baseBtnClasses
                     , href (Maybe.withDefault "#" status.url)
                     , target "_blank"
@@ -137,7 +137,7 @@ statusActionsView status currentUser showApp =
                     [ Common.icon "time", text <| Common.formatDate status.created_at ++ " *" ]
 
             _ ->
-                button
+                a
                     [ class baseBtnClasses
                     , href (Maybe.withDefault "#" status.url)
                     , target "_blank"
