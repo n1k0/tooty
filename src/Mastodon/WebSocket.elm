@@ -7,10 +7,6 @@ module Mastodon.WebSocket exposing
 import Mastodon.Model exposing (..)
 
 
-
---import WebSocket
-
-
 type StreamType
     = UserStream
     | LocalPublicStream

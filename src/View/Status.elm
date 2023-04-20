@@ -179,8 +179,8 @@ statusEntryView context className currentUser status =
                     ""
 
         liAttributes =
-            [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
-                ++ (if context == "thread" then
+            (class <| "list-group-item " ++ className ++ " " ++ nsfwClass)
+                :: (if context == "thread" then
                         [ id <| "thread-status-" ++ extractStatusId status.id ]
 
                     else
@@ -194,7 +194,7 @@ statusEntryView context className currentUser status =
 
 
 statusView : String -> Status -> Html Msg
-statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
+statusView context ({ account, reblog } as status) =
     let
         accountLinkAttributes =
             [ href <| "#account/" ++ account.id ]

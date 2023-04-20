@@ -8,7 +8,7 @@ import View.Events exposing (..)
 
 
 viewerView : Viewer -> Html Msg
-viewerView ({ attachments, attachment } as viewer) =
+viewerView ({ attachment } as viewer) =
     let
         ( prev, next ) =
             getPrevNext viewer

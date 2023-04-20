@@ -10,7 +10,6 @@ import Update.Draft
 import Update.Route
 import Update.Timeline
 import Url
-import Util
 
 
 init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )

@@ -4,8 +4,6 @@ import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Parser exposing (Node(..))
-import Html.Parser.Util as ParseUtil
-import Http
 import Mastodon.Model exposing (..)
 import String.Extra exposing (rightOf)
 import Types exposing (..)
@@ -14,10 +12,6 @@ import View.Events exposing (..)
 
 formatContent : String -> List Mention -> List (Html Msg)
 formatContent content mentions =
-    let
-        contentSize =
-            String.length content
-    in
     content
         |> String.replace " ?" "&#160;?"
         |> String.replace " !" "&#160;!"
@@ -133,14 +127,13 @@ getHashtagForLink attrs =
 
 getMentionForLink : List ( String, String ) -> List Mention -> Maybe Mention
 getMentionForLink attrs mentions =
-    case getHrefLink attrs of
-        Just href ->
-            mentions
-                |> List.filter (\m -> m.url == href)
-                |> List.head
-
-        Nothing ->
-            Nothing
+    getHrefLink attrs
+        |> Maybe.andThen
+            (\href ->
+                mentions
+                    |> List.filter (\m -> m.url == href)
+                    |> List.head
+            )
 
 
 toVirtualDomEach : List Mention -> Html.Parser.Node -> Html Msg
@@ -152,11 +145,6 @@ toVirtualDomEach mentions node =
         Html.Parser.Element name attrs children ->
             Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
 
-        {-
-           @TODO
-           HtmlParser.Text s ->
-               Elmoji.text_ s
-        -}
         Html.Parser.Text s ->
             text s
 

@@ -114,7 +114,7 @@ notificationStatusView { context, currentUser, status, notificationAggregate } =
 
 
 notificationFollowView : CurrentUser -> NotificationAggregate -> Html Msg
-notificationFollowView currentUser { accounts } =
+notificationFollowView _ { accounts } =
     let
         profileView : AccountNotificationDate -> Html Msg
         profileView { account, created_at } =

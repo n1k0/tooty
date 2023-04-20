@@ -530,16 +530,15 @@ processFollowEvent relationship ({ accountInfo } as model) =
             accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case accountInfo.relationship of
-                Just ar ->
-                    if ar.id == relationship.id then
-                        Just { relationship | following = relationship.following }
+            accountInfo.relationship
+                |> Maybe.map
+                    (\ar ->
+                        if ar.id == relationship.id then
+                            { relationship | following = relationship.following }
 
-                    else
-                        accountInfo.relationship
-
-                Nothing ->
-                    Nothing
+                        else
+                            ar
+                    )
     in
     { model
         | accountInfo =
@@ -583,16 +582,15 @@ processMuteEvent account relationship ({ accountInfo } as model) =
             accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case accountInfo.relationship of
-                Just ar ->
-                    if ar.id == relationship.id then
-                        Just { relationship | muting = relationship.muting }
+            accountInfo.relationship
+                |> Maybe.map
+                    (\ar ->
+                        if ar.id == relationship.id then
+                            { relationship | muting = relationship.muting }
 
-                    else
-                        accountInfo.relationship
-
-                Nothing ->
-                    Nothing
+                        else
+                            ar
+                    )
     in
     { model
         | accountInfo =
@@ -624,16 +622,15 @@ processBlockEvent account relationship ({ accountInfo } as model) =
             accountInfo.relationships |> List.map updateRelationship
 
         accountRelationship =
-            case accountInfo.relationship of
-                Just ar ->
-                    if ar.id == relationship.id then
-                        Just { relationship | blocking = relationship.blocking }
+            accountInfo.relationship
+                |> Maybe.map
+                    (\ar ->
+                        if ar.id == relationship.id then
+                            { relationship | blocking = relationship.blocking }
 
-                    else
-                        accountInfo.relationship
-
-                Nothing ->
-                    Nothing
+                        else
+                            ar
+                    )
     in
     { model
         | accountInfo =

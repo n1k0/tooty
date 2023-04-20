@@ -30,4 +30,4 @@ errorsListView model =
 
         errors ->
             div [ class "error-list" ] <|
-                List.indexedMap errorView model.errors
+                List.indexedMap errorView errors

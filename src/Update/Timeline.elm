@@ -182,7 +182,7 @@ markAsLoading loading id ({ accountInfo } as model) =
 
         "account-timeline" ->
             case model.currentView of
-                AccountView account ->
+                AccountView _ ->
                     { model | accountInfo = { accountInfo | timeline = mark accountInfo.timeline } }
 
                 _ ->
@@ -291,7 +291,7 @@ update append entries links timeline =
 
 
 updateWithBoolFlag : StatusId -> Bool -> (Status -> Status) -> Model -> Model
-updateWithBoolFlag statusId flag statusUpdater ({ accountInfo } as model) =
+updateWithBoolFlag statusId _ statusUpdater ({ accountInfo } as model) =
     let
         updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then

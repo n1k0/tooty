@@ -20,14 +20,6 @@ import View.Timeline exposing (contextualTimelineView, hashtagTimelineView, home
 import View.Viewer exposing (viewerView)
 
 
-type alias CurrentUser =
-    Account
-
-
-type alias CurrentUserRelation =
-    Maybe Relationship
-
-
 sidebarView : Model -> Html Msg
 sidebarView model =
     div [ class "col-md-3 column" ]

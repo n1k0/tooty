@@ -22,14 +22,6 @@ type alias CurrentUserRelation =
     Maybe Relationship
 
 
-type alias CustomButton =
-    { event : Msg
-    , btnClasses : String
-    , iconName : String
-    , tooltip : String
-    }
-
-
 followButton : CurrentUser -> CurrentUserRelation -> Account -> Html Msg
 followButton currentUser relationship account =
     if Mastodon.Helper.sameAccount account currentUser then
@@ -183,7 +175,7 @@ accountFollowView view currentUser accountInfo =
             List.map keyedEntry timeline.entries
     in
     case accountInfo.account of
-        Just account ->
+        Just _ ->
             Keyed.ul [ class "list-group" ] <|
                 (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
@@ -203,7 +195,7 @@ accountTimelineView currentUser accountInfo =
             List.map keyedEntry accountInfo.timeline.entries
     in
     case accountInfo.account of
-        Just account ->
+        Just _ ->
             Keyed.ul [ id accountInfo.timeline.id, class "list-group" ] <|
                 (entries ++ [ ( "load-more", Common.loadMoreBtn accountInfo.timeline ) ])
 

@@ -22,10 +22,6 @@ type alias CurrentUser =
     Account
 
 
-type alias CurrentUserRelation =
-    Maybe Relationship
-
-
 topScrollableColumn : ( String, String, String ) -> Html Msg -> Html Msg
 topScrollableColumn ( label, iconName, timelineId ) content =
     div [ class "col-md-3 column" ]
