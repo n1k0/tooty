@@ -126,9 +126,23 @@ statusActionsView status currentUser showApp =
 
           else
             text ""
-        , button
-            [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
-            [ Common.icon "time", text <| Common.formatDate status.created_at ]
+        , case status.edited_at of
+            Just edited_at ->
+                button
+                    [ class baseBtnClasses
+                    , href (Maybe.withDefault "#" status.url)
+                    , target "_blank"
+                    , title <| "Edited - " ++ Common.formatDate edited_at
+                    ]
+                    [ Common.icon "time", text <| Common.formatDate status.created_at ++ " *" ]
+
+            _ ->
+                button
+                    [ class baseBtnClasses
+                    , href (Maybe.withDefault "#" status.url)
+                    , target "_blank"
+                    ]
+                    [ Common.icon "time", text <| Common.formatDate status.created_at ]
         , if showApp then
             Common.appLink (baseBtnClasses ++ " applink") status.application
 
