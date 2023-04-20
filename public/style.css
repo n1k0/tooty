@@ -71,6 +71,11 @@ body {
   padding: 8px 12px;
 }
 
+
+.timeline button.list-group-item {
+  text-align: center;
+}
+
 .empty-timeline-text {
   font-size: 30px;
   font-weight: bold;

@@ -121,7 +121,7 @@ loadMoreBtn { id, links, loading } =
     else
         case links.next of
             Just next ->
-                a
+                button
                     [ class "list-group-item load-more text-center"
                     , href next
                     , onClickWithPreventAndStop <| TimelineLoadNext id next
