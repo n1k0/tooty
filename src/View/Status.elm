@@ -126,23 +126,23 @@ statusActionsView status currentUser showApp =
 
           else
             text ""
+        , a
+            [ class baseBtnClasses
+            , href (Maybe.withDefault "#" status.url)
+            , target "_blank"
+            , title (status.edited_at |> Maybe.map (\edited_at -> "Edited - " ++ Common.formatDate edited_at) |> Maybe.withDefault "")
+            ]
+            [ Common.icon "time", text <| Common.formatDate status.created_at ]
         , case status.edited_at of
             Just edited_at ->
-                a
+                em
                     [ class baseBtnClasses
-                    , href (Maybe.withDefault "#" status.url)
-                    , target "_blank"
                     , title <| "Edited - " ++ Common.formatDate edited_at
                     ]
-                    [ Common.icon "time", text <| Common.formatDate status.created_at ++ " *" ]
+                    [ text "Edited *" ]
 
             _ ->
-                a
-                    [ class baseBtnClasses
-                    , href (Maybe.withDefault "#" status.url)
-                    , target "_blank"
-                    ]
-                    [ Common.icon "time", text <| Common.formatDate status.created_at ]
+                text ""
         , if showApp then
             Common.appLink (baseBtnClasses ++ " applink") status.application
 
