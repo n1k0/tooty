@@ -17,6 +17,14 @@ type alias CurrentUser =
     Account
 
 
+type alias NotificationStatusData =
+    { context : String
+    , currentUser : CurrentUser
+    , status : Status
+    , notificationAggregate : NotificationAggregate
+    }
+
+
 filterNotifications : NotificationFilter -> List NotificationAggregate -> List NotificationAggregate
 filterNotifications filter notifications =
     let
@@ -24,35 +32,36 @@ filterNotifications filter notifications =
             let
                 visibility =
                     case status of
-                        Just status ->
-                            status.visibility
+                        Just s ->
+                            s.visibility
 
                         Nothing ->
                             ""
             in
-                case filter of
-                    NotificationAll ->
-                        True
+            case filter of
+                NotificationAll ->
+                    True
 
-                    NotificationOnlyMentions ->
-                        type_ == "mention" && visibility /= "direct"
+                NotificationOnlyMentions ->
+                    type_ == "mention" && visibility /= "direct"
 
-                    NotificationOnlyDirect ->
-                        type_ == "mention" && visibility == "direct"
+                NotificationOnlyDirect ->
+                    type_ == "mention" && visibility == "direct"
 
-                    NotificationOnlyBoosts ->
-                        type_ == "reblog"
+                NotificationOnlyBoosts ->
+                    type_ == "reblog"
 
-                    NotificationOnlyFavourites ->
-                        type_ == "favourite"
+                NotificationOnlyFavourites ->
+                    type_ == "favourite"
 
-                    NotificationOnlyFollows ->
-                        type_ == "follow"
+                NotificationOnlyFollows ->
+                    type_ == "follow"
     in
-        if filter == NotificationAll then
-            notifications
-        else
-            List.filter applyFilter notifications
+    if filter == NotificationAll then
+        notifications
+
+    else
+        List.filter applyFilter notifications
 
 
 notificationHeading : List AccountNotificationDate -> String -> String -> Html Msg
@@ -70,32 +79,32 @@ notificationHeading accountsAndDate str iconType =
                     ( [ a1.account, a2.account, a3.account ], str )
 
                 a1 :: a2 :: a3 :: xs ->
-                    ( [ a1.account, a2.account, a3.account ], " and " ++ (toString <| List.length xs) ++ " others " ++ str )
+                    ( [ a1.account, a2.account, a3.account ], " and " ++ (String.fromInt <| List.length xs) ++ " others " ++ str )
 
                 _ ->
                     ( [], "" )
     in
-        div [ class "status-info" ]
-            [ div [ class "avatars" ] <|
-                List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
-            , p [ class "status-info-text" ] <|
-                List.intersperse (text " ")
-                    [ Common.icon iconType
-                    , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) firstAccounts)
-                    , text finalStr
-                    ]
-            ]
+    div [ class "status-info" ]
+        [ div [ class "avatars" ] <|
+            List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
+        , p [ class "status-info-text" ] <|
+            List.intersperse (text " ")
+                [ Common.icon iconType
+                , span [] <| List.intersperse (text ", ") (List.map (Common.accountLink False) firstAccounts)
+                , text finalStr
+                ]
+        ]
 
 
-notificationStatusView : ( String, CurrentUser, Status, NotificationAggregate ) -> Html Msg
-notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
-    div [ class <| "notification " ++ type_ ]
-        [ case type_ of
+notificationStatusView : NotificationStatusData -> Html Msg
+notificationStatusView { context, currentUser, status, notificationAggregate } =
+    div [ class <| "notification " ++ notificationAggregate.type_ ]
+        [ case notificationAggregate.type_ of
             "reblog" ->
-                notificationHeading accounts "boosted your toot" "fire"
+                notificationHeading notificationAggregate.accounts "boosted your toot" "fire"
 
             "favourite" ->
-                notificationHeading accounts "favourited your toot" "star"
+                notificationHeading notificationAggregate.accounts "favourited your toot" "star"
 
             _ ->
                 text ""
@@ -105,7 +114,7 @@ notificationStatusView ( context, currentUser, status, { type_, accounts } ) =
 
 
 notificationFollowView : CurrentUser -> NotificationAggregate -> Html Msg
-notificationFollowView currentUser { accounts } =
+notificationFollowView _ { accounts } =
     let
         profileView : AccountNotificationDate -> Html Msg
         profileView { account, created_at } =
@@ -123,10 +132,10 @@ notificationFollowView currentUser { accounts } =
                         ]
                 ]
     in
-        div [ class "notification follow" ]
-            [ notificationHeading accounts "started following you" "user"
-            , div [ class "" ] <| List.map profileView (List.take 3 accounts)
-            ]
+    div [ class "notification follow" ]
+        [ notificationHeading accounts "started following you" "user"
+        , div [ class "" ] <| List.map profileView (List.take 3 accounts)
+        ]
 
 
 notificationEntryView : CurrentUser -> NotificationAggregate -> Html Msg
@@ -134,7 +143,12 @@ notificationEntryView currentUser notification =
     li [ class "list-group-item" ]
         [ case notification.status of
             Just status ->
-                Lazy.lazy notificationStatusView ( "notification", currentUser, status, notification )
+                Lazy.lazy notificationStatusView
+                    { context = "notification"
+                    , currentUser = currentUser
+                    , status = status
+                    , notificationAggregate = notification
+                    }
 
             Nothing ->
                 notificationFollowView currentUser notification
@@ -149,6 +163,7 @@ notificationFilterView filter =
                 [ class <|
                     if filter == event then
                         "btn btn-primary active"
+
                     else
                         "btn btn-default"
                 , title tooltip
@@ -156,14 +171,14 @@ notificationFilterView filter =
                 ]
                 [ Common.icon iconName ]
     in
-        Common.justifiedButtonGroup "column-menu notification-filters"
-            [ filterBtn "All notifications" "asterisk" NotificationAll
-            , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
-            , filterBtn "Direct" "envelope" NotificationOnlyDirect
-            , filterBtn "Boosts" "fire" NotificationOnlyBoosts
-            , filterBtn "Favorites" "star" NotificationOnlyFavourites
-            , filterBtn "Follows" "user" NotificationOnlyFollows
-            ]
+    Common.justifiedButtonGroup "column-menu notification-filters"
+        [ filterBtn "All notifications" "asterisk" NotificationAll
+        , filterBtn "Mentions" "share-alt" NotificationOnlyMentions
+        , filterBtn "Direct" "envelope" NotificationOnlyDirect
+        , filterBtn "Boosts" "fire" NotificationOnlyBoosts
+        , filterBtn "Favorites" "star" NotificationOnlyFavourites
+        , filterBtn "Follows" "user" NotificationOnlyFollows
+        ]
 
 
 notificationListView : CurrentUser -> NotificationFilter -> Timeline NotificationAggregate -> Html Msg
@@ -179,13 +194,13 @@ notificationListView currentUser filter notifications =
                 |> filterNotifications filter
                 |> List.map keyedEntry
     in
-        div [ class "col-md-3 column" ]
-            [ div [ class "panel panel-default notifications-panel" ]
-                [ a
-                    [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
-                    [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
-                , notificationFilterView filter
-                , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
-                    (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
-                ]
+    div [ class "col-md-3 column" ]
+        [ div [ class "panel panel-default notifications-panel" ]
+            [ a
+                [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
+                [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
+            , notificationFilterView filter
+            , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
+                (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
             ]
+        ]

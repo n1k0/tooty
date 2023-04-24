@@ -17,74 +17,106 @@
   <body>
     <script src="app.js"></script>
     <script>
-    const app = Elm.Main.fullscreen({
-      clients: localStorage.getItem("tooty.clients") || "[]",
-      registration: JSON.parse(localStorage.getItem("tooty.registration"))
-    });
+      const app = Elm.Main.init({flags: {
+        clients: localStorage.getItem("tooty.clients") || "[]",
+        registration: JSON.parse(localStorage.getItem("tooty.registration"))
+      }});
 
-    app.ports.saveClients.subscribe(json => {
-      localStorage.setItem("tooty.clients", json);
-    });
 
-    app.ports.saveRegistration.subscribe(json => {
-      localStorage.setItem("tooty.registration", json);
-    });
+      let globalPublicWs;
+      let localPublicWs;
+      let userWs;
 
-    app.ports.deleteRegistration.subscribe(json => {
-      localStorage.removeItem("tooty.registration");
-    });
+      app.ports.connectToWsServer.subscribe(data => {
+          url = data.server.replace('https', 'wss') + data.apiUrl + "?access_token=" + data.token + "&stream=" + data.streamType;
 
-    app.ports.setStatus.subscribe(function(data) {
-      var element = document.getElementById(data.id);
-      if (element) {
-        element.value = data.status;
-        // Reset cursor at the end
-        element.focus();
-      }
-    });
+          if (data.streamType == 'public') {
+            globalPublicWs = new WebSocket(url);
+            globalPublicWs.onmessage = function(event) {
+              app.ports.wsGlobalEvent.send(event.data);
+            }
 
-    app.ports.scrollIntoView.subscribe(function(id) {
-      requestAnimationFrame(function() {
-        var element = document.getElementById(id);
+          } else if (data.streamType == 'public:local') {
+            localPublicWs = new WebSocket(url);
+            localPublicWs.onmessage = function(event) {
+              app.ports.wsLocalEvent.send(event.data);
+            }
+          } else if (data.streamType == 'user') {
+            userWs = new WebSocket(url);
+            userWs.onmessage = function(event) {
+              app.ports.wsUserEvent.send(event.data);
+            }
+          } else {
+            console.log("Unknown streamType", data.streamType)
+          }
+      });
+
+
+      app.ports.saveClients.subscribe(json => {
+        localStorage.setItem("tooty.clients", json);
+      });
+
+      app.ports.saveRegistration.subscribe(json => {
+        localStorage.setItem("tooty.registration", json);
+      });
+
+      app.ports.deleteRegistration.subscribe(json => {
+        localStorage.removeItem("tooty.registration");
+      });
+
+      app.ports.setStatus.subscribe(function(data) {
+        var element = document.getElementById(data.id);
         if (element) {
-          element.scrollIntoView(false);
+          element.value = data.status;
+          // Reset cursor at the end
+          element.focus();
         }
       });
-    });
 
-    app.ports.uploadMedia.subscribe(data => {
-      const files = Array.from(document.getElementById(data.id).files);
-      const formData = new FormData();
-      formData.append("file", files[0]);
-      fetch(data.url, {
-        method: "POST",
-        headers: { Authorization: "Bearer " + data.token },
-        body: formData,
-      })
-        .catch(err => app.ports.uploadError.send(err.message))
-        .then(response => response.text())
-        .then(app.ports.uploadSuccess.send);
-    });
-
-    function notify(data) {
-      const notif = new Notification(data.title, {
-        icon: data.icon,
-        body: data.body,
-      });
-      notif.onclick = () => location.hash = data.clickUrl;
-    }
-
-    app.ports.notify.subscribe(data => {
-      if (Notification.permission === "granted") {
-        notify(data);
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission(permission => {
-          if (permission === "granted") {
-            notify(data);
+      app.ports.scrollIntoView.subscribe(function(id) {
+        requestAnimationFrame(function() {
+          var element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView(false);
           }
         });
+      });
+
+      // @TODO : Port this to elm/http@2.0.0
+      app.ports.uploadMedia.subscribe(data => {
+        const files = Array.from(document.getElementById(data.id).files);
+        const formData = new FormData();
+        formData.append("file", files[0]);
+        fetch(data.url, {
+          method: "POST",
+          headers: { Authorization: "Bearer " + data.token },
+          body: formData,
+        })
+          .catch(err => app.ports.uploadError.send(err.message))
+          .then(response => response.text())
+          .then(app.ports.uploadSuccess.send);
+      });
+
+      function notify(data) {
+        const notif = new Notification(data.title, {
+          icon: data.icon,
+          body: data.body,
+        });
+        notif.onclick = () => location.hash = data.clickUrl;
       }
-    });
+
+      app.ports.notify.subscribe(data => {
+        if (Notification.permission === "granted") {
+          notify(data);
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission(permission => {
+            if (permission === "granted") {
+              notify(data);
+            }
+          });
+        }
+      });
+
     </script>
   </body>
 </html>

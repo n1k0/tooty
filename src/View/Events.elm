@@ -1,15 +1,14 @@
-module View.Events
-    exposing
-        ( onClickInformation
-        , onInputInformation
-        , decodePositionInformation
-        , onClickWithPreventAndStop
-        , onClickWithPrevent
-        , onClickWithStop
-        )
+module View.Events exposing
+    ( decodePositionInformation
+    , onClickInformation
+    , onClickWithPrevent
+    , onClickWithPreventAndStop
+    , onClickWithStop
+    , onInputInformation
+    )
 
 import Html exposing (..)
-import Html.Events exposing (on, onWithOptions)
+import Html.Events exposing (custom, on, preventDefaultOn, stopPropagationOn)
 import Json.Decode as Decode
 import Types exposing (..)
 
@@ -33,23 +32,16 @@ decodePositionInformation =
 
 onClickWithPreventAndStop : msg -> Attribute msg
 onClickWithPreventAndStop msg =
-    onWithOptions
+    custom
         "click"
-        { preventDefault = True, stopPropagation = True }
-        (Decode.succeed msg)
+        (Decode.succeed { message = msg, preventDefault = True, stopPropagation = True })
 
 
 onClickWithPrevent : msg -> Attribute msg
 onClickWithPrevent msg =
-    onWithOptions
-        "click"
-        { preventDefault = True, stopPropagation = False }
-        (Decode.succeed msg)
+    preventDefaultOn "click" <| Decode.succeed ( msg, True )
 
 
 onClickWithStop : msg -> Attribute msg
 onClickWithStop msg =
-    onWithOptions
-        "click"
-        { preventDefault = False, stopPropagation = True }
-        (Decode.succeed msg)
+    stopPropagationOn "click" <| Decode.succeed ( msg, True )

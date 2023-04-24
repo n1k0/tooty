@@ -1,15 +1,18 @@
-port module Ports
-    exposing
-        ( saveRegistration
-        , deleteRegistration
-        , scrollIntoView
-        , saveClients
-        , setStatus
-        , uploadMedia
-        , notify
-        , uploadSuccess
-        , uploadError
-        )
+port module Ports exposing
+    ( connectToWsServer
+    , deleteRegistration
+    , notify
+    , saveClients
+    , saveRegistration
+    , scrollIntoView
+    , setStatus
+    , uploadError
+    , uploadMedia
+    , uploadSuccess
+    , wsGlobalEvent
+    , wsLocalEvent
+    , wsUserEvent
+    )
 
 -- Outgoing ports
 
@@ -35,6 +38,9 @@ port uploadMedia : { id : String, url : String, token : String } -> Cmd msg
 port notify : { title : String, icon : String, body : String, clickUrl : String } -> Cmd msg
 
 
+port connectToWsServer : { server : String, token : String, streamType : String, apiUrl : String } -> Cmd msg
+
+
 
 -- Incoming ports
 
@@ -43,3 +49,12 @@ port uploadError : (String -> msg) -> Sub msg
 
 
 port uploadSuccess : (String -> msg) -> Sub msg
+
+
+port wsGlobalEvent : (String -> msg) -> Sub msg
+
+
+port wsLocalEvent : (String -> msg) -> Sub msg
+
+
+port wsUserEvent : (String -> msg) -> Sub msg

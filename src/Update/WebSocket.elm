@@ -14,24 +14,45 @@ update : WebSocketMsg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewWebsocketUserMessage message ->
-            case (Mastodon.Decoder.decodeWebSocketMessage message) of
+            case Mastodon.Decoder.decodeWebSocketMessage message of
                 Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = addErrorNotification error model } ! []
+                    ( { model | errors = addErrorNotification error model }
+                    , Cmd.none
+                    )
+
+                Mastodon.WebSocket.StatusNewEvent result ->
+                    case result of
+                        Ok status ->
+                            ( model
+                                |> (\m -> { m | homeTimeline = Update.Timeline.prepend status m.homeTimeline })
+                                |> updateCurrentViewWithStatus status
+                            , Cmd.none
+                            )
+
+                        Err error ->
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
 
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            (model
-                                |> (\m -> { m | homeTimeline = Update.Timeline.prepend status m.homeTimeline })
-                                |> updateCurrentViewWithStatus status
+                            ( model
+                              --@TODO: update existing status, new since mastodon 3.5.0
+                              --|> (\m -> { m | homeTimeline = Update.Timeline.prepend status m.homeTimeline })
+                              --|> updateCurrentViewWithStatus status
+                            , Cmd.none
                             )
-                                ! []
 
                         Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
 
                 Mastodon.WebSocket.StatusDeleteEvent id ->
-                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
+                    ( Update.Timeline.deleteStatusFromAllTimelines id model
+                    , Cmd.none
+                    )
 
                 Mastodon.WebSocket.NotificationEvent result ->
                     case result of
@@ -48,57 +69,91 @@ update msg model =
                                                 oldNotifications.entries
                                     }
                             in
-                                { model | notifications = newNotifications }
-                                    ! [ Command.notifyNotification notification ]
+                            ( { model | notifications = newNotifications }
+                            , Command.notifyNotification notification
+                            )
 
                         Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
 
         NewWebsocketLocalMessage message ->
-            case (Mastodon.Decoder.decodeWebSocketMessage message) of
+            case Mastodon.Decoder.decodeWebSocketMessage message of
                 Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = addErrorNotification error model } ! []
+                    ( { model | errors = addErrorNotification error model }
+                    , Cmd.none
+                    )
 
-                Mastodon.WebSocket.StatusUpdateEvent result ->
+                Mastodon.WebSocket.StatusNewEvent result ->
                     case result of
                         Ok status ->
-                            (model
+                            ( model
                                 |> (\m -> { m | localTimeline = Update.Timeline.prepend status m.localTimeline })
                                 |> updateCurrentViewWithStatus status
+                            , Cmd.none
                             )
-                                ! []
 
                         Err error ->
-                            { model | errors = addErrorNotification error model } ! []
-
-                Mastodon.WebSocket.StatusDeleteEvent id ->
-                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
-
-                _ ->
-                    model ! []
-
-        NewWebsocketGlobalMessage message ->
-            case (Mastodon.Decoder.decodeWebSocketMessage message) of
-                Mastodon.WebSocket.ErrorEvent error ->
-                    { model | errors = addErrorNotification error model } ! []
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
 
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            (model
-                                |> (\m -> { m | globalTimeline = Update.Timeline.prepend status m.globalTimeline })
-                                |> updateCurrentViewWithStatus status
+                            ( model
+                              --@TODO: update existing status instead of prepending, new since Mastodon 3.5.0
+                              --|> (\m -> { m | localTimeline = Update.Timeline.prepend status m.localTimeline })
+                              --|> updateCurrentViewWithStatus status
+                            , Cmd.none
                             )
-                                ! []
 
                         Err error ->
-                            { model | errors = addErrorNotification error model } ! []
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
 
                 Mastodon.WebSocket.StatusDeleteEvent id ->
-                    Update.Timeline.deleteStatusFromAllTimelines id model ! []
+                    ( Update.Timeline.deleteStatusFromAllTimelines id model
+                    , Cmd.none
+                    )
 
                 _ ->
-                    model ! []
+                    ( model
+                    , Cmd.none
+                    )
+
+        NewWebsocketGlobalMessage message ->
+            case Mastodon.Decoder.decodeWebSocketMessage message of
+                Mastodon.WebSocket.ErrorEvent error ->
+                    ( { model | errors = addErrorNotification error model }
+                    , Cmd.none
+                    )
+
+                Mastodon.WebSocket.StatusNewEvent result ->
+                    case result of
+                        Ok status ->
+                            ( model
+                                |> (\m -> { m | globalTimeline = Update.Timeline.prepend status m.globalTimeline })
+                                |> updateCurrentViewWithStatus status
+                            , Cmd.none
+                            )
+
+                        Err error ->
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
+
+                Mastodon.WebSocket.StatusDeleteEvent id ->
+                    ( Update.Timeline.deleteStatusFromAllTimelines id model
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model
+                    , Cmd.none
+                    )
 
 
 isThreadMember : Thread -> Status -> Bool
@@ -118,7 +173,7 @@ isThreadMember thread status =
                                 , List.map .id context.descendants
                                 ]
                     in
-                        List.member inReplyToId threadStatusIds
+                    List.member inReplyToId threadStatusIds
 
         _ ->
             False
@@ -127,10 +182,10 @@ isThreadMember thread status =
 appendToThreadDescendants : Thread -> Status -> Thread
 appendToThreadDescendants ({ context } as thread) status =
     case context of
-        Just context ->
+        Just c ->
             { thread
                 | context =
-                    Just { context | descendants = List.append context.descendants [ status ] }
+                    Just { c | descendants = List.append c.descendants [ status ] }
             }
 
         _ ->
@@ -143,6 +198,7 @@ updateCurrentViewWithStatus status ({ accountInfo } as model) =
         ThreadView thread ->
             if isThreadMember thread status then
                 { model | currentView = ThreadView (appendToThreadDescendants thread status) }
+
             else
                 model
 
@@ -156,6 +212,7 @@ updateCurrentViewWithStatus status ({ accountInfo } as model) =
                                     | timeline = Update.Timeline.prepend status accountInfo.timeline
                                 }
                         }
+
                     else
                         model
 

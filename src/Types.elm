@@ -1,11 +1,37 @@
-module Types exposing (..)
+module Types exposing
+    ( AccountInfo
+    , Confirm
+    , CurrentAccountView(..)
+    , CurrentView(..)
+    , Draft
+    , DraftMsg(..)
+    , ErrorNotification
+    , Flags
+    , InputInformation
+    , KeyEvent(..)
+    , KeyType(..)
+    , MastodonMsg(..)
+    , MastodonResult
+    , Model
+    , Msg(..)
+    , NotificationFilter(..)
+    , ScrollDirection(..)
+    , Search
+    , SearchMsg(..)
+    , Thread
+    , Timeline
+    , Viewer
+    , ViewerMsg(..)
+    , WebSocketMsg(..)
+    )
 
-import Autocomplete
-import Keyboard
-import Mastodon.Http exposing (Response, Links)
+import Browser
+import Browser.Navigation as Navigation
+import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
-import Navigation
-import Time exposing (Time)
+import Menu
+import Time exposing (Posix)
+import Url
 
 
 type alias Flags =
@@ -20,7 +46,7 @@ type DraftMsg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
-    | SetAutoState Autocomplete.Msg
+    | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
@@ -95,6 +121,11 @@ type KeyEvent
     | KeyDown
 
 
+type KeyType
+    = KeyCharacter Char
+    | KeyControl String
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -107,9 +138,10 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | KeyMsg KeyEvent Keyboard.KeyCode
+    | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | TimelineLoadNext String String
+    | LinkClicked Browser.UrlRequest
     | MastodonEvent MastodonMsg
     | Mute Account
     | Navigate String
@@ -123,12 +155,12 @@ type Msg
     | ServerChange String
     | SubmitDraft
     | SwitchClient Client
-    | Tick Time
+    | Tick Posix
     | UnfollowAccount Account
     | Unblock Account
     | Unmute Account
     | UnreblogStatus Status
-    | UrlChange Navigation.Location
+    | UrlChanged Url.Url
     | ViewerEvent ViewerMsg
     | WebSocketEvent WebSocketMsg
 
@@ -181,7 +213,7 @@ type alias Draft =
     , statusLength : Int
 
     -- Autocomplete values
-    , autoState : Autocomplete.State
+    , autoState : Menu.State
     , autoCursorPosition : Int
     , autoAtPosition : Maybe Int
     , autoQuery : String
@@ -233,13 +265,13 @@ type alias Timeline a =
 
 type alias ErrorNotification =
     { message : String
-    , time : Time
+    , time : Posix
     }
 
 
 type alias Model =
     { server : String
-    , currentTime : Time
+    , currentTime : Posix
     , registration : Maybe AppRegistration
     , clients : List Client
     , homeTimeline : Timeline Status
@@ -253,7 +285,7 @@ type alias Model =
     , notifications : Timeline NotificationAggregate
     , draft : Draft
     , errors : List ErrorNotification
-    , location : Navigation.Location
+    , location : Url.Url
     , viewer : Maybe Viewer
     , currentUser : Maybe Account
     , currentView : CurrentView
@@ -261,6 +293,9 @@ type alias Model =
     , confirm : Maybe Confirm
     , search : Search
     , ctrlPressed : Bool
+    , key : Navigation.Key
+
+    --, portsFunnels : State
     }
 
 

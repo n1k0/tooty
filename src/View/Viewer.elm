@@ -8,7 +8,7 @@ import View.Events exposing (..)
 
 
 viewerView : Viewer -> Html Msg
-viewerView ({ attachments, attachment } as viewer) =
+viewerView ({ attachment } as viewer) =
     let
         ( prev, next ) =
             getPrevNext viewer
@@ -18,7 +18,7 @@ viewerView ({ attachments, attachment } as viewer) =
                 Nothing ->
                     text ""
 
-                Just target ->
+                Just _ ->
                     a
                         [ href ""
                         , class className
@@ -26,24 +26,24 @@ viewerView ({ attachments, attachment } as viewer) =
                         ]
                         [ text label ]
     in
-        div
-            [ class "viewer"
-            , tabindex -1
-            , onClickWithPreventAndStop <| ViewerEvent CloseViewer
-            ]
-            [ span [ class "close" ] [ text "×" ]
-            , navLink "❮" "prev" prev <| ViewerEvent NextAttachment
-            , case attachment.type_ of
-                "image" ->
-                    img [ class "viewer-content", src attachment.url ] []
+    div
+        [ class "viewer"
+        , tabindex -1
+        , onClickWithPreventAndStop <| ViewerEvent CloseViewer
+        ]
+        [ span [ class "close" ] [ text "×" ]
+        , navLink "❮" "prev" prev <| ViewerEvent NextAttachment
+        , case attachment.type_ of
+            "image" ->
+                img [ class "viewer-content", src attachment.url ] []
 
-                _ ->
-                    video
-                        [ class "viewer-content"
-                        , preload "auto"
-                        , autoplay True
-                        , loop True
-                        ]
-                        [ source [ src attachment.url ] [] ]
-            , navLink "❯" "next" next <| ViewerEvent NextAttachment
-            ]
+            _ ->
+                video
+                    [ class "viewer-content"
+                    , preload "auto"
+                    , autoplay True
+                    , loop True
+                    ]
+                    [ source [ src attachment.url ] [] ]
+        , navLink "❯" "next" next <| ViewerEvent NextAttachment
+        ]

@@ -1,21 +1,20 @@
-module Update.Timeline
-    exposing
-        ( cleanUnfollow
-        , deleteStatusFromAllTimelines
-        , deleteStatus
-        , dropAccountStatuses
-        , dropNotificationsFromAccount
-        , empty
-        , markAsLoading
-        , prepend
-        , processReblog
-        , processFavourite
-        , removeBlock
-        , removeMute
-        , setLoading
-        , update
-        , updateWithBoolFlag
-        )
+module Update.Timeline exposing
+    ( cleanUnfollow
+    , deleteStatus
+    , deleteStatusFromAllTimelines
+    , dropAccountStatuses
+    , dropNotificationsFromAccount
+    , empty
+    , markAsLoading
+    , prepend
+    , processFavourite
+    , processReblog
+    , removeBlock
+    , removeMute
+    , setLoading
+    , update
+    , updateWithBoolFlag
+    )
 
 import Mastodon.Helper
 import Mastodon.Http exposing (Links)
@@ -41,10 +40,11 @@ cleanUnfollow account currentUser timeline =
 
                     Nothing ->
                         False
+
             else
                 True
     in
-        { timeline | entries = List.filter keep timeline.entries }
+    { timeline | entries = List.filter keep timeline.entries }
 
 
 deleteStatusFromCurrentView : StatusId -> Model -> CurrentView
@@ -57,19 +57,20 @@ deleteStatusFromCurrentView id model =
                     if status.id == id then
                         -- current thread status has been deleted, close it
                         LocalTimelineView
+
                     else
                         let
-                            update statuses =
+                            updateStatuses statuses =
                                 List.filter (\s -> s.id /= id) statuses
                         in
-                            ThreadView
-                                { thread
-                                    | context =
-                                        Just <|
-                                            { ancestors = update context.ancestors
-                                            , descendants = update context.descendants
-                                            }
-                                }
+                        ThreadView
+                            { thread
+                                | context =
+                                    Just <|
+                                        { ancestors = updateStatuses context.ancestors
+                                        , descendants = updateStatuses context.descendants
+                                        }
+                            }
 
                 _ ->
                     model.currentView
@@ -84,21 +85,21 @@ deleteStatusFromAllTimelines id ({ accountInfo } as model) =
         accountTimeline =
             deleteStatus id accountInfo.timeline
     in
-        { model
-            | homeTimeline = deleteStatus id model.homeTimeline
-            , localTimeline = deleteStatus id model.localTimeline
-            , globalTimeline = deleteStatus id model.globalTimeline
-            , favoriteTimeline = deleteStatus id model.favoriteTimeline
-            , accountInfo = { accountInfo | timeline = accountTimeline }
-            , notifications = deleteStatusFromNotifications id model.notifications
-            , currentView = deleteStatusFromCurrentView id model
-        }
+    { model
+        | homeTimeline = deleteStatus id model.homeTimeline
+        , localTimeline = deleteStatus id model.localTimeline
+        , globalTimeline = deleteStatus id model.globalTimeline
+        , favoriteTimeline = deleteStatus id model.favoriteTimeline
+        , accountInfo = { accountInfo | timeline = accountTimeline }
+        , notifications = deleteStatusFromNotifications id model.notifications
+        , currentView = deleteStatusFromCurrentView id model
+    }
 
 
 deleteStatusFromNotifications : StatusId -> Timeline NotificationAggregate -> Timeline NotificationAggregate
 deleteStatusFromNotifications statusId notifications =
     let
-        update notification =
+        updateNotification notification =
             case notification.status of
                 Just status ->
                     not <| Mastodon.Helper.statusReferenced statusId status
@@ -106,7 +107,7 @@ deleteStatusFromNotifications statusId notifications =
                 Nothing ->
                     True
     in
-        { notifications | entries = List.filter update notifications.entries }
+    { notifications | entries = List.filter updateNotification notifications.entries }
 
 
 deleteStatus : StatusId -> Timeline Status -> Timeline Status
@@ -122,7 +123,7 @@ dropAccountStatuses account timeline =
         keep status =
             not <| Mastodon.Helper.sameAccount account status.account
     in
-        { timeline | entries = List.filter keep timeline.entries }
+    { timeline | entries = List.filter keep timeline.entries }
 
 
 dropNotificationsFromAccount : Account -> Timeline NotificationAggregate -> Timeline NotificationAggregate
@@ -136,7 +137,7 @@ dropNotificationsFromAccount account timeline =
                 Nothing ->
                     True
     in
-        { timeline | entries = List.filter keepNotification timeline.entries }
+    { timeline | entries = List.filter keepNotification timeline.entries }
 
 
 empty : String -> Timeline a
@@ -154,41 +155,41 @@ markAsLoading loading id ({ accountInfo } as model) =
         mark timeline =
             { timeline | loading = loading }
     in
-        case id of
-            "notifications" ->
-                { model | notifications = mark model.notifications }
+    case id of
+        "notifications" ->
+            { model | notifications = mark model.notifications }
 
-            "home-timeline" ->
-                { model | homeTimeline = mark model.homeTimeline }
+        "home-timeline" ->
+            { model | homeTimeline = mark model.homeTimeline }
 
-            "local-timeline" ->
-                { model | localTimeline = mark model.localTimeline }
+        "local-timeline" ->
+            { model | localTimeline = mark model.localTimeline }
 
-            "global-timeline" ->
-                { model | globalTimeline = mark model.globalTimeline }
+        "global-timeline" ->
+            { model | globalTimeline = mark model.globalTimeline }
 
-            "favorite-timeline" ->
-                { model | favoriteTimeline = mark model.favoriteTimeline }
+        "favorite-timeline" ->
+            { model | favoriteTimeline = mark model.favoriteTimeline }
 
-            "hashtag-timeline" ->
-                { model | hashtagTimeline = mark model.hashtagTimeline }
+        "hashtag-timeline" ->
+            { model | hashtagTimeline = mark model.hashtagTimeline }
 
-            "mutes-timeline" ->
-                { model | mutes = mark model.mutes }
+        "mutes-timeline" ->
+            { model | mutes = mark model.mutes }
 
-            "blocks-timeline" ->
-                { model | blocks = mark model.blocks }
+        "blocks-timeline" ->
+            { model | blocks = mark model.blocks }
 
-            "account-timeline" ->
-                case model.currentView of
-                    AccountView account ->
-                        { model | accountInfo = { accountInfo | timeline = mark accountInfo.timeline } }
+        "account-timeline" ->
+            case model.currentView of
+                AccountView _ ->
+                    { model | accountInfo = { accountInfo | timeline = mark accountInfo.timeline } }
 
-                    _ ->
-                        model
+                _ ->
+                    model
 
-            _ ->
-                model
+        _ ->
+            model
 
 
 prepend : a -> Timeline a -> Timeline a
@@ -202,27 +203,30 @@ processFavourite status added model =
         favoriteTimeline =
             if added then
                 prepend status model.favoriteTimeline
+
             else
                 deleteStatus status.id model.favoriteTimeline
 
         newModel =
             { model | favoriteTimeline = favoriteTimeline }
     in
-        updateWithBoolFlag status.id
-            added
-            (\s ->
-                { s
-                    | favourited = Just added
-                    , favourites_count =
-                        if added then
-                            s.favourites_count + 1
-                        else if s.favourites_count > 0 then
-                            s.favourites_count - 1
-                        else
-                            0
-                }
-            )
-            newModel
+    updateWithBoolFlag status.id
+        added
+        (\s ->
+            { s
+                | favourited = Just added
+                , favourites_count =
+                    if added then
+                        s.favourites_count + 1
+
+                    else if s.favourites_count > 0 then
+                        s.favourites_count - 1
+
+                    else
+                        0
+            }
+        )
+        newModel
 
 
 processReblog : Status -> Bool -> Model -> Model
@@ -235,8 +239,10 @@ processReblog status added model =
                 , reblogs_count =
                     if added then
                         s.reblogs_count + 1
+
                     else if s.reblogs_count > 0 then
                         s.reblogs_count - 1
+
                     else
                         0
             }
@@ -250,7 +256,7 @@ removeBlock account timeline =
         keep blockedAccount =
             not <| Mastodon.Helper.sameAccount account blockedAccount
     in
-        { timeline | entries = List.filter keep timeline.entries }
+    { timeline | entries = List.filter keep timeline.entries }
 
 
 removeMute : Account -> Timeline Account -> Timeline Account
@@ -259,7 +265,7 @@ removeMute account timeline =
         keep mutedAccount =
             not <| Mastodon.Helper.sameAccount account mutedAccount
     in
-        { timeline | entries = List.filter keep timeline.entries }
+    { timeline | entries = List.filter keep timeline.entries }
 
 
 setLoading : Bool -> Timeline a -> Timeline a
@@ -273,22 +279,24 @@ update append entries links timeline =
         newEntries =
             if append then
                 List.concat [ timeline.entries, entries ]
+
             else
                 entries
     in
-        { timeline
-            | entries = newEntries
-            , links = links
-            , loading = False
-        }
+    { timeline
+        | entries = newEntries
+        , links = links
+        , loading = False
+    }
 
 
 updateWithBoolFlag : StatusId -> Bool -> (Status -> Status) -> Model -> Model
-updateWithBoolFlag statusId flag statusUpdater ({ accountInfo } as model) =
+updateWithBoolFlag statusId _ statusUpdater ({ accountInfo } as model) =
     let
         updateStatus status =
             if (Mastodon.Helper.extractReblog status).id == statusId then
                 statusUpdater status
+
             else
                 status
 
@@ -303,30 +311,30 @@ updateWithBoolFlag statusId flag statusUpdater ({ accountInfo } as model) =
         updateTimeline updateEntry timeline =
             { timeline | entries = List.map updateEntry timeline.entries }
     in
-        { model
-            | homeTimeline = updateTimeline updateStatus model.homeTimeline
-            , accountInfo = { accountInfo | timeline = updateTimeline updateStatus accountInfo.timeline }
-            , localTimeline = updateTimeline updateStatus model.localTimeline
-            , globalTimeline = updateTimeline updateStatus model.globalTimeline
-            , favoriteTimeline = updateTimeline updateStatus model.favoriteTimeline
-            , notifications = updateTimeline updateNotification model.notifications
-            , currentView =
-                case model.currentView of
-                    ThreadView thread ->
-                        case ( thread.status, thread.context ) of
-                            ( Just status, Just context ) ->
-                                ThreadView
-                                    { status = Just <| updateStatus status
-                                    , context =
-                                        Just <|
-                                            { ancestors = List.map updateStatus context.ancestors
-                                            , descendants = List.map updateStatus context.descendants
-                                            }
-                                    }
+    { model
+        | homeTimeline = updateTimeline updateStatus model.homeTimeline
+        , accountInfo = { accountInfo | timeline = updateTimeline updateStatus accountInfo.timeline }
+        , localTimeline = updateTimeline updateStatus model.localTimeline
+        , globalTimeline = updateTimeline updateStatus model.globalTimeline
+        , favoriteTimeline = updateTimeline updateStatus model.favoriteTimeline
+        , notifications = updateTimeline updateNotification model.notifications
+        , currentView =
+            case model.currentView of
+                ThreadView thread ->
+                    case ( thread.status, thread.context ) of
+                        ( Just status, Just context ) ->
+                            ThreadView
+                                { status = Just <| updateStatus status
+                                , context =
+                                    Just <|
+                                        { ancestors = List.map updateStatus context.ancestors
+                                        , descendants = List.map updateStatus context.descendants
+                                        }
+                                }
 
-                            _ ->
-                                model.currentView
+                        _ ->
+                            model.currentView
 
-                    currentView ->
-                        currentView
-        }
+                currentView ->
+                    currentView
+    }

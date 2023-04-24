@@ -1,12 +1,12 @@
 module View.Thread exposing (threadView)
 
-import View.Common as Common
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
+import View.Common as Common
 import View.Status exposing (statusEntryView)
 
 
@@ -30,6 +30,7 @@ threadStatuses currentUser thread =
                     statusEntryView "thread"
                         (if status == threadStatus then
                             "thread-target"
+
                          else
                             ""
                         )
@@ -39,8 +40,8 @@ threadStatuses currentUser thread =
                 keyedEntry status =
                     ( extractStatusId status.id, threadEntry status )
             in
-                Keyed.ul [ id "thread", class "list-group timeline" ] <|
-                    List.map keyedEntry statuses
+            Keyed.ul [ id "thread", class "list-group timeline" ] <|
+                List.map keyedEntry statuses
 
         _ ->
             text ""

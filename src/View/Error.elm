@@ -1,8 +1,7 @@
-module View.Error
-    exposing
-        ( errorView
-        , errorsListView
-        )
+module View.Error exposing
+    ( errorView
+    , errorsListView
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -31,4 +30,4 @@ errorsListView model =
 
         errors ->
             div [ class "error-list" ] <|
-                List.indexedMap errorView model.errors
+                List.indexedMap errorView errors

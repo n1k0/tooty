@@ -1,14 +1,11 @@
 module View.Formatter exposing (formatContent, textContent)
 
 import Dict
-import Elmoji
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import HtmlParser
-import HtmlParser.Util as ParseUtil
-import Http
+import Html.Parser exposing (Node(..))
 import Mastodon.Model exposing (..)
-import String.Extra exposing (replace, rightOf)
+import String.Extra exposing (rightOf)
 import Types exposing (..)
 import View.Events exposing (..)
 
@@ -16,21 +13,55 @@ import View.Events exposing (..)
 formatContent : String -> List Mention -> List (Html Msg)
 formatContent content mentions =
     content
-        |> replace " ?" "&#160;?"
-        |> replace " !" "&#160;!"
-        |> replace " :" "&#160;:"
-        |> HtmlParser.parse
+        |> String.replace " ?" "&#160;?"
+        |> String.replace " !" "&#160;!"
+        |> String.replace " :" "&#160;:"
+        |> Html.Parser.run
+        |> Result.withDefault []
         |> toVirtualDom mentions
+
+
+
+{- https://github.com/jinjor/elm-html-parser/blob/master/src/HtmlParser/Util.elm#L352 -}
+
+
+{-| Returns the text content of a node and its descendants.
+-}
+textContentFromNodes : List Node -> String
+textContentFromNodes nodes =
+    String.join "" (List.map textContentEach nodes)
+
+
+textContentEach : Node -> String
+textContentEach node =
+    case node of
+        Element _ _ children ->
+            textContentFromNodes children
+
+        Text s ->
+            s
+
+        Comment _ ->
+            ""
 
 
 textContent : String -> String
 textContent html =
-    html |> HtmlParser.parse |> ParseUtil.textContent
+    html
+        |> Html.Parser.run
+        |> (\result ->
+                case result of
+                    Ok nodes ->
+                        textContentFromNodes nodes
+
+                    Err _ ->
+                        ""
+           )
 
 
 {-| Converts nodes to virtual dom nodes.
 -}
-toVirtualDom : List Mention -> List HtmlParser.Node -> List (Html Msg)
+toVirtualDom : List Mention -> List Html.Parser.Node -> List (Html Msg)
 toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
 
@@ -42,9 +73,9 @@ replaceHref newHref attrs =
         |> List.append [ onClickWithPreventAndStop <| Navigate newHref ]
 
 
-createLinkNode : List ( String, String ) -> List HtmlParser.Node -> List Mention -> Html Msg
+createLinkNode : List ( String, String ) -> List Html.Parser.Node -> List Mention -> Html Msg
 createLinkNode attrs children mentions =
-    case (getMentionForLink attrs mentions) of
+    case getMentionForLink attrs mentions of
         Just mention ->
             Html.node "a"
                 (replaceHref ("#account/" ++ mention.id) attrs)
@@ -59,7 +90,7 @@ createLinkNode attrs children mentions =
 
                 Nothing ->
                     Html.node "a"
-                        ((List.map toAttribute attrs)
+                        (List.map toAttribute attrs
                             ++ [ onClickWithStop NoOp, target "_blank" ]
                         )
                         (toVirtualDom mentions children)
@@ -82,40 +113,42 @@ getHashtagForLink attrs =
                 |> Dict.get "href"
                 |> Maybe.withDefault ""
                 |> rightOf "/tags/"
-                |> Http.decodeUri
-                |> Maybe.withDefault ""
+
+        -- @TODO: add it again
+        --|> Http.decodeUri
+        --|> Maybe.withDefault ""
     in
-        if hashtag /= "" then
-            Just hashtag
-        else
-            Nothing
+    if hashtag /= "" then
+        Just hashtag
+
+    else
+        Nothing
 
 
 getMentionForLink : List ( String, String ) -> List Mention -> Maybe Mention
 getMentionForLink attrs mentions =
-    case getHrefLink attrs of
-        Just href ->
-            mentions
-                |> List.filter (\m -> m.url == href)
-                |> List.head
+    getHrefLink attrs
+        |> Maybe.andThen
+            (\href ->
+                mentions
+                    |> List.filter (\m -> m.url == href)
+                    |> List.head
+            )
 
-        Nothing ->
-            Nothing
 
-
-toVirtualDomEach : List Mention -> HtmlParser.Node -> Html Msg
+toVirtualDomEach : List Mention -> Html.Parser.Node -> Html Msg
 toVirtualDomEach mentions node =
     case node of
-        HtmlParser.Element "a" attrs children ->
+        Html.Parser.Element "a" attrs children ->
             createLinkNode attrs children mentions
 
-        HtmlParser.Element name attrs children ->
+        Html.Parser.Element name attrs children ->
             Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
 
-        HtmlParser.Text s ->
-            Elmoji.text_ s
+        Html.Parser.Text s ->
+            text s
 
-        HtmlParser.Comment _ ->
+        Html.Parser.Comment _ ->
             text ""
 
 

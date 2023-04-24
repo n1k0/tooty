@@ -1,9 +1,8 @@
-module View.Status
-    exposing
-        ( statusView
-        , statusActionsView
-        , statusEntryView
-        )
+module View.Status exposing
+    ( statusActionsView
+    , statusEntryView
+    , statusView
+    )
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -24,44 +23,33 @@ type alias CurrentUser =
 attachmentPreview : String -> Maybe Bool -> List Attachment -> Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
     let
-        nsfw =
-            case sensitive of
-                Just sensitive ->
-                    sensitive
-
-                Nothing ->
-                    False
-
         attId =
             "att" ++ attachment.id ++ context
 
         media =
-            a
+            span
                 [ class "attachment-image"
                 , href url
                 , onClickWithPreventAndStop <|
                     ViewerEvent (OpenViewer attachments attachment)
-                , style
-                    [ ( "background"
-                      , "url(" ++ preview_url ++ ") center center / cover no-repeat"
-                      )
-                    ]
+                , style "background" ("url(" ++ preview_url ++ ") center center / cover no-repeat")
                 ]
                 []
     in
-        li [ class "attachment-entry" ] <|
-            if nsfw then
-                [ input [ type_ "radio", id attId ] []
-                , label [ for attId ]
-                    [ text "Sensitive content"
-                    , br [] []
-                    , br [] []
-                    , text "click to show image"
-                    ]
-                , media
+    li [ class "attachment-entry" ] <|
+        if Maybe.withDefault False sensitive then
+            [ input [ type_ "radio", id attId ] []
+            , label [ for attId ]
+                [ text "Sensitive content"
+                , br [] []
+                , br [] []
+                , text "click to show image"
                 ]
-            else
-                [ media ]
+            , media
+            ]
+
+        else
+            [ media ]
 
 
 attachmentListView : String -> Status -> Html Msg
@@ -72,13 +60,13 @@ attachmentListView context { media_attachments, sensitive } =
             , attachmentPreview context sensitive attachments attachment
             )
     in
-        case media_attachments of
-            [] ->
-                text ""
+    case media_attachments of
+        [] ->
+            text ""
 
-            attachments ->
-                Keyed.ul [ class "attachments" ] <|
-                    List.map (keyedEntry attachments) attachments
+        attachments ->
+            Keyed.ul [ class "attachments" ] <|
+                List.map (keyedEntry attachments) attachments
 
 
 statusActionsView : Status -> CurrentUser -> Bool -> Html Msg
@@ -106,43 +94,47 @@ statusActionsView status currentUser showApp =
                 _ ->
                     ( baseBtnClasses, AddFavorite sourceStatus )
     in
-        div [ class "btn-group actions" ]
-            [ a
-                [ class baseBtnClasses
-                , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
-                ]
-                [ Common.icon "share-alt" ]
-            , if status.visibility == "private" then
-                span [ class <| reblogClasses ++ " disabled" ]
-                    [ span [ title "Private" ] [ Common.icon "lock" ] ]
-              else if status.visibility == "direct" then
-                span [ class <| reblogClasses ++ " disabled" ]
-                    [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
-              else
-                a
-                    [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
-                    [ Common.icon "fire", text (toString sourceStatus.reblogs_count) ]
-            , a
-                [ class favClasses, onClickWithPreventAndStop favEvent ]
-                [ Common.icon "star", text (toString sourceStatus.favourites_count) ]
-            , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
-                a
-                    [ class <| baseBtnClasses ++ " btn-delete"
-                    , href ""
-                    , onClickWithPreventAndStop <|
-                        AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
-                    ]
-                    [ Common.icon "trash" ]
-              else
-                text ""
-            , a
-                [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
-                [ Common.icon "time", text <| Common.formatDate status.created_at ]
-            , if showApp then
-                Common.appLink (baseBtnClasses ++ " applink") status.application
-              else
-                text ""
+    div [ class "btn-group actions" ]
+        [ button
+            [ class baseBtnClasses
+            , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
             ]
+            [ Common.icon "share-alt" ]
+        , if status.visibility == "private" then
+            span [ class <| reblogClasses ++ " disabled" ]
+                [ span [ title "Private" ] [ Common.icon "lock" ] ]
+
+          else if status.visibility == "direct" then
+            span [ class <| reblogClasses ++ " disabled" ]
+                [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
+
+          else
+            button
+                [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
+                [ Common.icon "fire", text (String.fromInt sourceStatus.reblogs_count) ]
+        , button
+            [ class favClasses, onClickWithPreventAndStop favEvent ]
+            [ Common.icon "star", text (String.fromInt sourceStatus.favourites_count) ]
+        , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
+            button
+                [ class <| baseBtnClasses ++ " btn-delete"
+                , href ""
+                , onClickWithPreventAndStop <|
+                    AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
+                ]
+                [ Common.icon "trash" ]
+
+          else
+            text ""
+        , button
+            [ class baseBtnClasses, href (Maybe.withDefault "#" status.url), target "_blank" ]
+            [ Common.icon "time", text <| Common.formatDate status.created_at ]
+        , if showApp then
+            Common.appLink (baseBtnClasses ++ " applink") status.application
+
+          else
+            text ""
+        ]
 
 
 statusContentView : String -> Status -> Html Msg
@@ -154,25 +146,25 @@ statusContentView context status =
                 , attachmentListView context status
                 ]
 
-        spoiler ->
+        _ ->
             -- Note: Spoilers are dealt with using pure CSS.
             let
                 statusId =
                     "spoiler" ++ extractStatusId status.id ++ context
             in
-                div [ class "status-text spoiled" ]
-                    [ div
-                        [ class "spoiler"
-                        , onClickWithStop <| OpenThread status
-                        ]
-                        [ text status.spoiler_text ]
-                    , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
-                    , label [ for statusId ] [ text "Reveal content" ]
-                    , div [ class "spoiled-content" ]
-                        [ div [] <| formatContent status.content status.mentions
-                        , attachmentListView context status
-                        ]
+            div [ class "status-text spoiled" ]
+                [ div
+                    [ class "spoiler"
+                    , onClickWithStop <| OpenThread status
                     ]
+                    [ text status.spoiler_text ]
+                , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
+                , label [ for statusId ] [ text "Reveal content" ]
+                , div [ class "spoiled-content" ]
+                    [ div [] <| formatContent status.content status.mentions
+                    , attachmentListView context status
+                    ]
+                ]
 
 
 statusEntryView : String -> String -> CurrentUser -> Status -> Html Msg
@@ -187,44 +179,46 @@ statusEntryView context className currentUser status =
                     ""
 
         liAttributes =
-            [ class <| "list-group-item " ++ className ++ " " ++ nsfwClass ]
-                ++ if context == "thread" then
-                    [ id <| "thread-status-" ++ extractStatusId status.id ]
-                   else
-                    []
+            (class <| "list-group-item " ++ className ++ " " ++ nsfwClass)
+                :: (if context == "thread" then
+                        [ id <| "thread-status-" ++ extractStatusId status.id ]
+
+                    else
+                        []
+                   )
     in
-        li liAttributes
-            [ Lazy.lazy2 statusView context status
-            , Lazy.lazy3 statusActionsView status currentUser (className == "thread-target")
-            ]
+    li liAttributes
+        [ Lazy.lazy2 statusView context status
+        , Lazy.lazy3 statusActionsView status currentUser (className == "thread-target")
+        ]
 
 
 statusView : String -> Status -> Html Msg
-statusView context ({ account, content, media_attachments, reblog, mentions } as status) =
+statusView context ({ account, reblog } as status) =
     let
         accountLinkAttributes =
             [ href <| "#account/" ++ account.id ]
     in
-        case reblog of
-            Just (Reblog reblog) ->
-                div [ class "reblog" ]
-                    [ p [ class "status-info" ]
-                        [ Common.icon "fire"
-                        , a (accountLinkAttributes ++ [ class "reblogger" ])
-                            [ text <| " @" ++ account.username ]
-                        , text " boosted"
-                        ]
-                    , Lazy.lazy2 statusView context reblog
+    case reblog of
+        Just (Reblog r) ->
+            div [ class "reblog" ]
+                [ p [ class "status-info" ]
+                    [ Common.icon "fire"
+                    , a (accountLinkAttributes ++ [ class "reblogger" ])
+                        [ text <| " @" ++ account.username ]
+                    , text " boosted"
                     ]
+                , Lazy.lazy2 statusView context r
+                ]
 
-            Nothing ->
-                div [ class "status" ]
-                    [ Common.accountAvatarLink False account
-                    , div [ class "username" ]
-                        [ a accountLinkAttributes
-                            [ text account.display_name
-                            , span [ class "acct" ] [ text <| " @" ++ account.username ]
-                            ]
+        Nothing ->
+            div [ class "status" ]
+                [ Common.accountAvatarLink False account
+                , div [ class "username" ]
+                    [ a accountLinkAttributes
+                        [ text account.display_name
+                        , span [ class "acct" ] [ text <| " @" ++ account.username ]
                         ]
-                    , Lazy.lazy2 statusContentView context status
                     ]
+                , Lazy.lazy2 statusContentView context status
+                ]

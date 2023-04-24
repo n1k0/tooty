@@ -1,18 +1,19 @@
 module Init exposing (init)
 
+import Browser.Navigation as Navigation
 import Command
 import Mastodon.Decoder exposing (decodeClients)
-import Navigation
+import Time
 import Types exposing (..)
 import Update.AccountInfo
 import Update.Draft
 import Update.Route
 import Update.Timeline
-import Util
+import Url
 
 
-init : Flags -> Navigation.Location -> ( Model, Cmd Msg )
-init { registration, clients } location =
+init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
+init { registration, clients } location key =
     let
         decodedClients =
             Result.withDefault [] <| decodeClients clients
@@ -20,7 +21,7 @@ init { registration, clients } location =
         ( model, commands ) =
             Update.Route.update
                 { server = ""
-                , currentTime = 0
+                , currentTime = Time.millisToPosix 0
                 , registration = registration
                 , clients = decodedClients
                 , homeTimeline = Update.Timeline.empty "home-timeline"
@@ -42,7 +43,9 @@ init { registration, clients } location =
                 , confirm = Nothing
                 , search = Search "" Nothing
                 , ctrlPressed = False
+                , key = key
                 }
     in
-        model
-            ! [ commands, Command.initCommands registration (List.head decodedClients) (Util.extractAuthCode location) ]
+    ( model
+    , Cmd.batch [ commands, Command.initCommands registration (List.head decodedClients) location ]
+    )

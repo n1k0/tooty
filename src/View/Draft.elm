@@ -1,13 +1,13 @@
 module View.Draft exposing (draftView)
 
-import Autocomplete
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Lazy as Lazy
-import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Encode as Encode
 import Mastodon.Model exposing (..)
+import Menu
 import Types exposing (..)
 import Util
 import View.Common as Common
@@ -20,12 +20,20 @@ type alias CurrentUser =
     Account
 
 
-visibilities : List ( String, String, String, String )
+type alias Visibilities =
+    { slug : String
+    , name : String
+    , description : String
+    , icon : String
+    }
+
+
+visibilities : List Visibilities
 visibilities =
-    [ ( "direct", "Mentioned", "Visible to mentioned users only", "envelope" )
-    , ( "private", "Followers", "Visible to followers only", "lock" )
-    , ( "unlisted", "Unlisted", "Do not show in public timelines", "eye-close" )
-    , ( "public", "Public", "Visible in public timelines", "globe" )
+    [ { slug = "direct", name = "Mentioned", description = "Visible to mentioned users only", icon = "envelope" }
+    , { slug = "private", name = "Followers", description = "Visible to followers only", icon = "lock" }
+    , { slug = "unlisted", name = "Unlisted", description = "Do not show in public timelines", icon = "eye-close" }
+    , { slug = "public", name = "Public", description = "Visible in public timelines", icon = "globe" }
     ]
 
 
@@ -33,7 +41,7 @@ viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
         [ Html.map (DraftEvent << SetAutoState)
-            (Autocomplete.view viewConfig
+            (Menu.view viewConfig
                 draft.autoMaxResults
                 draft.autoState
                 (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
@@ -41,7 +49,7 @@ viewAutocompleteMenu draft =
         ]
 
 
-viewConfig : Autocomplete.ViewConfig Mastodon.Model.Account
+viewConfig : Menu.ViewConfig Mastodon.Model.Account
 viewConfig =
     let
         customizedLi keySelected mouseSelected account =
@@ -57,6 +65,7 @@ viewConfig =
                     [ text <|
                         if account.display_name /= "" then
                             account.display_name
+
                         else
                             account.acct
                     ]
@@ -64,28 +73,28 @@ viewConfig =
                 ]
             }
     in
-        Autocomplete.viewConfig
-            { toId = .id
-            , ul = [ class "list-group autocomplete-list" ]
-            , li = customizedLi
-            }
+    Menu.viewConfig
+        { toId = .id
+        , ul = [ class "list-group autocomplete-list" ]
+        , li = customizedLi
+        }
 
 
 currentUserView : Maybe CurrentUser -> Html Msg
 currentUserView currentUser =
     case currentUser of
-        Just currentUser ->
+        Just user ->
             div [ class "current-user" ]
-                [ Common.accountAvatarLink False currentUser
+                [ Common.accountAvatarLink False user
                 , div [ class "username" ]
-                    [ Common.accountLink False currentUser
+                    [ Common.accountLink False user
                     , span []
                         [ text " ("
                         , a [ href "#accounts" ] [ text "switch account" ]
                         , text ")"
                         ]
                     ]
-                , p [ class "status-text" ] <| formatContent currentUser.note []
+                , p [ class "status-text" ] <| formatContent user.note []
                 ]
 
         Nothing ->
@@ -121,21 +130,22 @@ visibilitySelector { visibility } =
         btnClass v =
             if v == visibility then
                 "btn btn-sm btn-vis btn-primary active"
+
             else
                 "btn btn-sm btn-vis btn-default"
     in
-        visibilities
-            |> List.map
-                (\( v, d, t, i ) ->
-                    a
-                        [ href ""
-                        , class <| btnClass v
-                        , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility v)
-                        , title t
-                        ]
-                        [ Common.icon i, span [] [ text d ] ]
-                )
-            |> Common.justifiedButtonGroup "draft-visibilities"
+    visibilities
+        |> List.map
+            (\{ slug, name, description, icon } ->
+                a
+                    [ href ""
+                    , class <| btnClass slug
+                    , onClickWithPreventAndStop <| DraftEvent (UpdateVisibility slug)
+                    , title description
+                    ]
+                    [ Common.icon icon, span [] [ text name ] ]
+            )
+        |> Common.justifiedButtonGroup "draft-visibilities"
 
 
 draftView : Model -> Html Msg
@@ -144,13 +154,14 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
         autoMenu =
             if draft.showAutoMenu then
                 viewAutocompleteMenu model.draft
+
             else
                 text ""
 
         ( hasSpoiler, charCount ) =
             case draft.spoilerText of
                 Just spoilerText ->
-                    ( True, (String.length spoilerText) + draft.statusLength )
+                    ( True, String.length spoilerText + draft.statusLength )
 
                 Nothing ->
                     ( False, draft.statusLength )
@@ -158,144 +169,151 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
         limitExceeded =
             charCount > 500
     in
-        div [ class "panel panel-default draft" ]
-            [ div [ class "panel-heading" ]
-                [ Common.icon "envelope"
-                , text <|
-                    if draft.inReplyTo /= Nothing then
-                        "Post a reply"
-                    else
-                        "Post a message"
-                ]
-            , div [ class "panel-body timeline" ]
-                [ currentUserView currentUser
-                , draftReplyToView draft
-                , Html.form [ class "form", onSubmit SubmitDraft ]
-                    [ if hasSpoiler then
-                        div [ class "form-group" ]
-                            [ label [ for "spoiler" ] [ text "Content Warning (visible part)" ]
-                            , textarea
-                                [ id "spoiler"
-                                , class "form-control"
-                                , rows 4
-                                , placeholder "This text will always be visible."
-                                , onInput <| DraftEvent << UpdateSpoiler
-                                , required True
-                                , value <| Maybe.withDefault "" draft.spoilerText
-                                ]
-                                []
+    div [ class "panel panel-default draft" ]
+        [ div [ class "panel-heading" ]
+            [ Common.icon "envelope"
+            , text <|
+                if draft.inReplyTo /= Nothing then
+                    "Post a reply"
+
+                else
+                    "Post a message"
+            ]
+        , div [ class "panel-body timeline" ]
+            [ currentUserView currentUser
+            , draftReplyToView draft
+            , Html.form [ class "form", onSubmit SubmitDraft ]
+                [ if hasSpoiler then
+                    div [ class "form-group" ]
+                        [ label [ for "spoiler" ] [ text "Content Warning (visible part)" ]
+                        , textarea
+                            [ id "spoiler"
+                            , class "form-control"
+                            , rows 4
+                            , placeholder "This text will always be visible."
+                            , onInput <| DraftEvent << UpdateSpoiler
+                            , required True
+                            , value <| Maybe.withDefault "" draft.spoilerText
                             ]
-                      else
-                        text ""
-                    , visibilitySelector draft
-                    , div [ class "form-group status-field" ]
-                        [ let
-                            dec =
-                                (Decode.map
-                                    (\code ->
-                                        if code == 38 || code == 40 then
-                                            Ok NoOp
-                                        else if code == 27 then
-                                            Ok <| DraftEvent CloseAutocomplete
-                                        else if ctrlPressed && code == 13 then
-                                            Ok SubmitDraft
-                                        else
-                                            Err "not handling that key"
-                                    )
-                                    keyCode
-                                )
-                                    |> Decode.andThen fromResult
+                            []
+                        ]
 
-                            options =
-                                { preventDefault = draft.showAutoMenu
-                                , stopPropagation = False
-                                }
+                  else
+                    text ""
+                , visibilitySelector draft
+                , div [ class "form-group status-field" ]
+                    [ let
+                        dec =
+                            Decode.map
+                                (\code ->
+                                    if code == 38 || code == 40 then
+                                        Ok NoOp
 
-                            fromResult : Result String a -> Decode.Decoder a
-                            fromResult result =
-                                case result of
-                                    Ok val ->
-                                        Decode.succeed val
+                                    else if code == 27 then
+                                        Ok <| DraftEvent CloseAutocomplete
 
-                                    Err reason ->
-                                        Decode.fail reason
-                          in
-                            textarea
-                                [ id "status"
-                                , class "form-control"
-                                , rows 7
-                                , placeholder <|
-                                    if hasSpoiler then
-                                        "This text will be hidden by default, as you have enabled a Content Warning."
+                                    else if ctrlPressed && code == 13 then
+                                        Ok SubmitDraft
+
                                     else
-                                        "Once upon a time..."
-                                , required True
-                                , onInputInformation <| DraftEvent << UpdateInputInformation
-                                , onClickInformation <| DraftEvent << UpdateInputInformation
-                                , property "defaultValue" (Encode.string draft.status)
-                                , onWithOptions "keydown" options dec
-                                ]
-                                []
-                        , autoMenu
+                                        Err "not handling that key"
+                                )
+                                keyCode
+                                |> Decode.andThen fromResult
+
+                        fromResult : Result String a -> Decode.Decoder { message : a, preventDefault : Bool, stopPropagation : Bool }
+                        fromResult result =
+                            case result of
+                                Ok val ->
+                                    Decode.succeed
+                                        { message = val
+                                        , preventDefault = draft.showAutoMenu
+                                        , stopPropagation = False
+                                        }
+
+                                Err reason ->
+                                    Decode.fail reason
+                      in
+                      textarea
+                        [ id "status"
+                        , class "form-control"
+                        , rows 7
+                        , placeholder <|
+                            if hasSpoiler then
+                                "This text will be hidden by default, as you have enabled a Content Warning."
+
+                            else
+                                "Once upon a time..."
+                        , required True
+                        , onInputInformation <| DraftEvent << UpdateInputInformation
+                        , onClickInformation <| DraftEvent << UpdateInputInformation
+                        , property "defaultValue" (Encode.string draft.status)
+                        , Html.Events.custom "keydown" dec
                         ]
-                    , draftAttachments draft.attachments
-                    , div [ class "draft-actions" ]
-                        [ div [ class "draft-actions-btns" ]
-                            [ Common.justifiedButtonGroup ""
-                                [ button
-                                    [ type_ "button"
-                                    , class "btn btn-default btn-clear"
-                                    , title "Clear this draft"
-                                    , onClick (DraftEvent ClearDraft)
-                                    ]
-                                    [ Common.icon "trash" ]
-                                , button
-                                    [ type_ "button"
-                                    , class <|
-                                        "btn btn-default btn-cw "
-                                            ++ (if hasSpoiler then
-                                                    "btn-primary active"
-                                                else
-                                                    ""
-                                               )
-                                    , title "Add a Content Warning"
-                                    , onClick <| DraftEvent (ToggleSpoiler (not hasSpoiler))
-                                    ]
-                                    [ text "CW" ]
-                                , button
-                                    [ type_ "button"
-                                    , class <|
-                                        "btn btn-default btn-nsfw "
-                                            ++ (if draft.sensitive then
-                                                    "btn-primary active"
-                                                else
-                                                    ""
-                                               )
-                                    , title "Mark this post as Not Safe For Work (sensitive content)"
-                                    , onClick <| DraftEvent (UpdateSensitive (not draft.sensitive))
-                                    ]
-                                    [ text "NSFW" ]
-                                , fileUploadField draft
+                        []
+                    , autoMenu
+                    ]
+                , draftAttachments draft.attachments
+                , div [ class "draft-actions" ]
+                    [ div [ class "draft-actions-btns" ]
+                        [ Common.justifiedButtonGroup ""
+                            [ button
+                                [ type_ "button"
+                                , class "btn btn-default btn-clear"
+                                , title "Clear this draft"
+                                , onClick (DraftEvent ClearDraft)
                                 ]
+                                [ Common.icon "trash" ]
+                            , button
+                                [ type_ "button"
+                                , class <|
+                                    "btn btn-default btn-cw "
+                                        ++ (if hasSpoiler then
+                                                "btn-primary active"
+
+                                            else
+                                                ""
+                                           )
+                                , title "Add a Content Warning"
+                                , onClick <| DraftEvent (ToggleSpoiler (not hasSpoiler))
+                                ]
+                                [ text "CW" ]
+                            , button
+                                [ type_ "button"
+                                , class <|
+                                    "btn btn-default btn-nsfw "
+                                        ++ (if draft.sensitive then
+                                                "btn-primary active"
+
+                                            else
+                                                ""
+                                           )
+                                , title "Mark this post as Not Safe For Work (sensitive content)"
+                                , onClick <| DraftEvent (UpdateSensitive (not draft.sensitive))
+                                ]
+                                [ text "NSFW" ]
+                            , fileUploadField draft
                             ]
-                        , if limitExceeded then
-                            div
-                                [ class "draft-actions-charcount text-center exceed" ]
-                                [ text <| toString (500 - charCount) ]
-                          else
-                            div
-                                [ class "draft-actions-charcount text-center" ]
-                                [ text <| toString charCount ]
-                        , button
-                            [ type_ "submit"
-                            , class "draft-actions-submit btn btn-warning btn-toot"
-                            , disabled limitExceeded
-                            ]
-                            [ text "Toot" ]
                         ]
+                    , if limitExceeded then
+                        div
+                            [ class "draft-actions-charcount text-center exceed" ]
+                            [ text <| String.fromInt (500 - charCount) ]
+
+                      else
+                        div
+                            [ class "draft-actions-charcount text-center" ]
+                            [ text <| String.fromInt charCount ]
+                    , button
+                        [ type_ "submit"
+                        , class "draft-actions-submit btn btn-warning btn-toot"
+                        , disabled limitExceeded
+                        ]
+                        [ text "Toot" ]
                     ]
                 ]
             ]
+        ]
 
 
 draftAttachments : List Attachment -> Html Msg
@@ -304,11 +322,7 @@ draftAttachments attachments =
         attachmentPreview attachment =
             li
                 [ class "draft-attachment-entry"
-                , style
-                    [ ( "background"
-                      , "url(" ++ attachment.preview_url ++ ") center center / cover no-repeat"
-                      )
-                    ]
+                , style "background" ("url(" ++ attachment.preview_url ++ ") center center / cover no-repeat")
                 ]
                 [ a
                     [ href ""
@@ -317,13 +331,14 @@ draftAttachments attachments =
                     [ text "×" ]
                 ]
     in
-        div [ class "draft-attachments-field" ]
-            [ if List.length attachments > 0 then
-                ul [ class "draft-attachments" ] <|
-                    List.map attachmentPreview attachments
-              else
-                text ""
-            ]
+    div [ class "draft-attachments-field" ]
+        [ if List.length attachments > 0 then
+            ul [ class "draft-attachments" ] <|
+                List.map attachmentPreview attachments
+
+          else
+            text ""
+        ]
 
 
 fileUploadField : Draft -> Html Msg
@@ -331,6 +346,7 @@ fileUploadField draft =
     if draft.mediaUploading then
         button [ class "btn btn-default btn-loading", disabled True ]
             [ Common.icon "time" ]
+
     else if List.length draft.attachments < 4 then
         label [ class "btn btn-default draft-attachment-input-label" ]
             [ input
@@ -341,5 +357,6 @@ fileUploadField draft =
                 []
             , text ""
             ]
+
     else
         text ""
