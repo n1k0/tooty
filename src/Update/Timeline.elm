@@ -13,6 +13,8 @@ module Update.Timeline exposing
     , removeMute
     , setLoading
     , update
+    , updateStatusFromAllTimelines
+    , updateStatusInTimeline
     , updateWithBoolFlag
     )
 
@@ -45,6 +47,51 @@ cleanUnfollow account currentUser timeline =
                 True
     in
     { timeline | entries = List.filter keep timeline.entries }
+
+
+updateStatusFromCurrentView : Status -> Model -> CurrentView
+updateStatusFromCurrentView status model =
+    -- Note: account timeline is already cleaned in deleteStatusFromAllTimelines
+    let
+        id =
+            status.id
+    in
+    case model.currentView of
+        ThreadView thread ->
+            case ( thread.status, thread.context ) of
+                ( Just threadStatus, Just context ) ->
+                    if threadStatus.id == id then
+                        -- current thread status has been updated
+                        ThreadView { thread | status = Just status }
+
+                    else
+                        let
+                            updateStatuses statuses =
+                                -- If we find the status in the statuses, we update it with the new value
+                                List.map
+                                    (\s ->
+                                        if s.id == id then
+                                            status
+
+                                        else
+                                            s
+                                    )
+                                    statuses
+                        in
+                        ThreadView
+                            { thread
+                                | context =
+                                    Just <|
+                                        { ancestors = updateStatuses context.ancestors
+                                        , descendants = updateStatuses context.descendants
+                                        }
+                            }
+
+                _ ->
+                    model.currentView
+
+        currentView ->
+            currentView
 
 
 deleteStatusFromCurrentView : StatusId -> Model -> CurrentView
@@ -96,6 +143,41 @@ deleteStatusFromAllTimelines id ({ accountInfo } as model) =
     }
 
 
+updateStatusFromAllTimelines : Status -> Model -> Model
+updateStatusFromAllTimelines status ({ accountInfo } as model) =
+    let
+        accountTimeline =
+            updateStatusInTimeline status accountInfo.timeline
+    in
+    { model
+        | homeTimeline = updateStatusInTimeline status model.homeTimeline
+        , localTimeline = updateStatusInTimeline status model.localTimeline
+        , globalTimeline = updateStatusInTimeline status model.globalTimeline
+        , favoriteTimeline = updateStatusInTimeline status model.favoriteTimeline
+        , accountInfo = { accountInfo | timeline = accountTimeline }
+        , notifications = updateStatusFromNotifications status model.notifications
+        , currentView = updateStatusFromCurrentView status model
+    }
+
+
+updateStatusFromNotifications : Status -> Timeline NotificationAggregate -> Timeline NotificationAggregate
+updateStatusFromNotifications status notifications =
+    let
+        updateNotification notification =
+            case notification.status of
+                Just notificationStatus ->
+                    if Mastodon.Helper.statusReferenced status.id notificationStatus then
+                        { notification | status = Just status }
+
+                    else
+                        notification
+
+                Nothing ->
+                    notification
+    in
+    { notifications | entries = List.map updateNotification notifications.entries }
+
+
 deleteStatusFromNotifications : StatusId -> Timeline NotificationAggregate -> Timeline NotificationAggregate
 deleteStatusFromNotifications statusId notifications =
     let
@@ -114,6 +196,22 @@ deleteStatus : StatusId -> Timeline Status -> Timeline Status
 deleteStatus statusId ({ entries } as timeline) =
     { timeline
         | entries = List.filter (not << Mastodon.Helper.statusReferenced statusId) entries
+    }
+
+
+updateStatusInTimeline : Status -> Timeline Status -> Timeline Status
+updateStatusInTimeline status ({ entries } as timeline) =
+    { timeline
+        | entries =
+            List.map
+                (\oldStatus ->
+                    if Mastodon.Helper.statusReferenced status.id oldStatus then
+                        status
+
+                    else
+                        oldStatus
+                )
+                entries
     }
 
 

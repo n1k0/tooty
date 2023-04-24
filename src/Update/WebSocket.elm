@@ -37,10 +37,7 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            ( model
-                              --@TODO: update existing status, new since mastodon 3.5.0
-                              --|> (\m -> { m | homeTimeline = Update.Timeline.prepend status m.homeTimeline })
-                              --|> updateCurrentViewWithStatus status
+                            ( Update.Timeline.updateStatusFromAllTimelines status model
                             , Cmd.none
                             )
 
@@ -102,10 +99,7 @@ update msg model =
                 Mastodon.WebSocket.StatusUpdateEvent result ->
                     case result of
                         Ok status ->
-                            ( model
-                              --@TODO: update existing status instead of prepending, new since Mastodon 3.5.0
-                              --|> (\m -> { m | localTimeline = Update.Timeline.prepend status m.localTimeline })
-                              --|> updateCurrentViewWithStatus status
+                            ( Update.Timeline.updateStatusFromAllTimelines status model
                             , Cmd.none
                             )
 
@@ -137,6 +131,18 @@ update msg model =
                             ( model
                                 |> (\m -> { m | globalTimeline = Update.Timeline.prepend status m.globalTimeline })
                                 |> updateCurrentViewWithStatus status
+                            , Cmd.none
+                            )
+
+                        Err error ->
+                            ( { model | errors = addErrorNotification error model }
+                            , Cmd.none
+                            )
+
+                Mastodon.WebSocket.StatusUpdateEvent result ->
+                    case result of
+                        Ok status ->
+                            ( Update.Timeline.updateStatusFromAllTimelines status model
                             , Cmd.none
                             )
 

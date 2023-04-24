@@ -188,6 +188,7 @@ type alias Status =
     , application : Maybe Application
     , content : String
     , created_at : String
+    , edited_at : Maybe String
     , favourited : Maybe Bool
     , favourites_count : Int
     , id : StatusId
