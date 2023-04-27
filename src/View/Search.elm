@@ -47,7 +47,7 @@ searchResultsView results =
 
                 hashtags ->
                     hashtags
-                        |> List.map (\h -> a [ class "list-group-item", href <| "#hashtag/" ++ h ] [ text <| "#" ++ h ])
+                        |> List.map (\h -> a [ class "list-group-item", href <| "#hashtag/" ++ h.name ] [ text <| "#" ++ h.name ])
                         |> div [ class "list-group" ]
     in
     div [ class "timeline" ]

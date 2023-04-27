@@ -149,7 +149,7 @@ searchResultsDecoder =
     Decode.succeed SearchResults
         |> Pipe.required "accounts" (Decode.list accountDecoder)
         |> Pipe.required "statuses" (Decode.list statusDecoder)
-        |> Pipe.required "hashtags" (Decode.list Decode.string)
+        |> Pipe.required "hashtags" (Decode.list hashtagDecoder)
 
 
 idDecoder : Decode.Decoder String
@@ -191,6 +191,22 @@ statusDecoder =
         |> Pipe.required "uri" Decode.string
         |> Pipe.required "url" (Decode.nullable Decode.string)
         |> Pipe.required "visibility" Decode.string
+
+
+hashtagHistoryDecoder : Decode.Decoder HashtagHistory
+hashtagHistoryDecoder =
+    Decode.succeed HashtagHistory
+        |> Pipe.required "day" Decode.string
+        |> Pipe.required "uses" Decode.string
+        |> Pipe.required "accounts" Decode.string
+
+
+hashtagDecoder : Decode.Decoder Hashtag
+hashtagDecoder =
+    Decode.succeed Hashtag
+        |> Pipe.required "name" Decode.string
+        |> Pipe.required "url" Decode.string
+        |> Pipe.required "history" (Decode.list hashtagHistoryDecoder)
 
 
 webSocketEventDecoder : Decode.Decoder WebSocketMessage
