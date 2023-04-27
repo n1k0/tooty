@@ -42,6 +42,11 @@ apiPrefix =
     "/api/v1"
 
 
+apiV2Prefix : String
+apiV2Prefix =
+    "/api/v2"
+
+
 apps : String
 apps =
     apiPrefix ++ "/apps"
@@ -104,7 +109,7 @@ userAccount =
 
 search : String
 search =
-    apiPrefix ++ "/search"
+    apiV2Prefix ++ "/search"
 
 
 searchAccount : String

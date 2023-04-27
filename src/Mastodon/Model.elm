@@ -8,6 +8,8 @@ module Mastodon.Model exposing
     , Client
     , Context
     , Error(..)
+    , Hashtag
+    , HashtagHistory
     , Mention
     , Notification
     , NotificationAggregate
@@ -179,7 +181,7 @@ type alias Relationship =
 type alias SearchResults =
     { accounts : List Account
     , statuses : List Status
-    , hashtags : List String
+    , hashtags : List Hashtag
     }
 
 
@@ -226,4 +228,18 @@ type alias StatusRequestBody =
 type alias Tag =
     { name : String
     , url : String
+    }
+
+
+type alias HashtagHistory =
+    { day : String
+    , uses : String
+    , accounts : String
+    }
+
+
+type alias Hashtag =
+    { name : String
+    , url : String
+    , history : List HashtagHistory
     }
