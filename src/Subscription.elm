@@ -55,7 +55,7 @@ subscriptions { currentView } =
             Browser.Events.onKeyDown (keyDecoder KeyDown)
 
         keyUpsSub =
-            Browser.Events.onKeyDown (keyDecoder KeyUp)
+            Browser.Events.onKeyUp (keyDecoder KeyUp)
     in
     Sub.batch
         [ timeSub
