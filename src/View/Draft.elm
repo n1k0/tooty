@@ -1,5 +1,6 @@
 module View.Draft exposing (draftView)
 
+import EmojiPicker
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -168,6 +169,9 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
 
         limitExceeded =
             charCount > 500
+
+        picker =
+            Html.map (DraftEvent << EmojiMsg) <| EmojiPicker.view model.draft.emojiModel
     in
     div [ class "panel panel-default draft" ]
         [ div [ class "panel-heading" ]
@@ -179,7 +183,7 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                 else
                     "Post a message"
             ]
-        , div [ class "panel-body timeline" ]
+        , div [ class "panel-body timeline", style "overflow" "visible" ]
             [ currentUserView currentUser
             , draftReplyToView draft
             , Html.form [ class "form", onSubmit SubmitDraft ]
@@ -293,6 +297,15 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                                 ]
                                 [ text "NSFW" ]
                             , fileUploadField draft
+                            , button
+                                [ type_ "button"
+                                , class <|
+                                    "btn btn-default btn-nsfw "
+                                , title "Open the emoji picker"
+                                , onClick <| DraftEvent (EmojiMsg EmojiPicker.Toggle)
+                                ]
+                                [ text "😀" ]
+                            , picker
                             ]
                         ]
                     , if limitExceeded then

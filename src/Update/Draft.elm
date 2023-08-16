@@ -5,6 +5,7 @@ module Update.Draft exposing
     )
 
 import Command
+import EmojiPicker exposing (PickerConfig)
 import Json.Decode as Decode
 import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
@@ -39,6 +40,14 @@ autocompleteUpdateConfig =
         }
 
 
+pickerConfig : PickerConfig
+pickerConfig =
+    { offsetX = 0 -- horizontal offset
+    , offsetY = 0 -- vertical offset
+    , closeOnSelect = True -- close after clicking an emoji
+    }
+
+
 empty : Draft
 empty =
     { status = ""
@@ -56,6 +65,7 @@ empty =
     , autoMaxResults = 4
     , autoAccounts = []
     , showAutoMenu = False
+    , emojiModel = EmojiPicker.init pickerConfig
     }
 
 
@@ -82,6 +92,36 @@ update draftMsg currentUser ({ draft } as model) =
             ( { model | draft = empty }
             , Command.updateDomStatus empty.status
             )
+
+        EmojiMsg subMsg ->
+            case subMsg of
+                EmojiPicker.Select selectedEmoji ->
+                    -- @TODO: insert the emoji value into the input
+                    let
+                        subModel =
+                            draft.emojiModel
+
+                        ( newSubModel, _ ) =
+                            EmojiPicker.update subMsg subModel
+
+                        newStatus =
+                            draft.status ++ selectedEmoji
+                    in
+                    ( { model | draft = { draft | emojiModel = newSubModel, status = newStatus } }
+                    , Command.updateDomStatus newStatus
+                    )
+
+                _ ->
+                    let
+                        subModel =
+                            draft.emojiModel
+
+                        ( newSubModel, _ ) =
+                            EmojiPicker.update subMsg subModel
+                    in
+                    ( { model | draft = { draft | emojiModel = newSubModel } }
+                    , Cmd.none
+                    )
 
         ToggleSpoiler enabled ->
             let

@@ -27,6 +27,7 @@ module Types exposing
 
 import Browser
 import Browser.Navigation as Navigation
+import EmojiPicker
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import Menu
@@ -56,6 +57,7 @@ type DraftMsg
     | UploadError String
     | UploadMedia String
     | UploadResult String
+    | EmojiMsg EmojiPicker.Msg
 
 
 type ViewerMsg
@@ -220,6 +222,9 @@ type alias Draft =
     , autoMaxResults : Int
     , autoAccounts : List Account
     , showAutoMenu : Bool
+
+    -- EmojiPicker state
+    , emojiModel : EmojiPicker.Model
     }
 
 
@@ -294,8 +299,6 @@ type alias Model =
     , search : Search
     , ctrlPressed : Bool
     , key : Navigation.Key
-
-    --, portsFunnels : State
     }
 
 
