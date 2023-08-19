@@ -148,6 +148,16 @@ statusActionsView status currentUser showApp =
 
           else
             text ""
+        , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
+            button
+                [ class <| baseBtnClasses ++ " btn-edit"
+                , href ""
+                , onClickWithPreventAndStop <| GetStatusSource sourceStatus.id
+                ]
+                [ Common.icon "edit" ]
+
+          else
+            text ""
         ]
 
 

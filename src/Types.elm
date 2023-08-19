@@ -102,6 +102,7 @@ type MastodonMsg
     | SearchResultsReceived (MastodonResult SearchResults)
     | StatusDeleted (MastodonResult StatusId)
     | StatusPosted (MastodonResult Status)
+    | StatusSourceFetched (MastodonResult StatusId)
     | ThreadStatusLoaded StatusId (MastodonResult Status)
     | ThreadContextLoaded StatusId (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
@@ -140,9 +141,9 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
+    | GetStatusSource StatusId
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
-    | TimelineLoadNext String String
     | LinkClicked Browser.UrlRequest
     | MastodonEvent MastodonMsg
     | Mute Account
@@ -158,6 +159,7 @@ type Msg
     | SubmitDraft
     | SwitchClient Client
     | Tick Posix
+    | TimelineLoadNext String String
     | UnfollowAccount Account
     | Unblock Account
     | Unmute Account

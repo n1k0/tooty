@@ -350,6 +350,22 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
+        StatusSourceFetched result ->
+            case result of
+                Ok { decoded } ->
+                    let
+                        _ =
+                            Debug.log "Decoded" decoded
+                    in
+                    ( model
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
+
         Unreblogged result ->
             case result of
                 Ok _ ->

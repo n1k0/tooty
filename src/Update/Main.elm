@@ -219,6 +219,11 @@ update msg model =
             , Command.deleteStatus (List.head model.clients) id
             )
 
+        GetStatusSource id ->
+            ( model
+            , Command.getStatusSource (List.head model.clients) id
+            )
+
         ReblogStatus status ->
             ( Update.Timeline.processReblog status True model
             , Command.reblogStatus (List.head model.clients) status.id

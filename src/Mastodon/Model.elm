@@ -19,6 +19,7 @@ module Mastodon.Model exposing
     , Status
     , StatusId(..)
     , StatusRequestBody
+    , StatusSource
     , Tag
     )
 
@@ -207,6 +208,13 @@ type alias Status =
     , uri : String
     , url : Maybe String
     , visibility : String
+    }
+
+
+type alias StatusSource =
+    { id : String
+    , text : String
+    , spoiler_text : String
     }
 
 

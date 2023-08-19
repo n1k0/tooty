@@ -22,6 +22,7 @@ module Mastodon.ApiUrl exposing
     , relationships
     , search
     , searchAccount
+    , source
     , status
     , statuses
     , streaming
@@ -205,6 +206,15 @@ favourite (StatusId id) =
 unfavourite : StatusId -> String
 unfavourite (StatusId id) =
     statuses ++ "/" ++ id ++ "/unfavourite"
+
+
+
+-- https://docs.joinmastodon.org/methods/statuses/#source
+
+
+source : StatusId -> String
+source (StatusId id) =
+    statuses ++ "/" ++ id ++ "/source"
 
 
 streaming : String

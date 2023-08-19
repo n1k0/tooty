@@ -13,6 +13,7 @@ module Mastodon.Decoder exposing
     , relationshipDecoder
     , searchResultsDecoder
     , statusDecoder
+    , statusSourceDecoder
     , tagDecoder
     , webSocketEventDecoder
     )
@@ -191,6 +192,14 @@ statusDecoder =
         |> Pipe.required "uri" Decode.string
         |> Pipe.required "url" (Decode.nullable Decode.string)
         |> Pipe.required "visibility" Decode.string
+
+
+statusSourceDecoder : Decode.Decoder StatusSource
+statusSourceDecoder =
+    Decode.succeed StatusSource
+        |> Pipe.required "id" Decode.string
+        |> Pipe.required "text" Decode.string
+        |> Pipe.required "spoiler_text" Decode.string
 
 
 hashtagHistoryDecoder : Decode.Decoder HashtagHistory

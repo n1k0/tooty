@@ -4,6 +4,7 @@ module Command exposing
     , favouriteStatus
     , focusId
     , follow
+    , getStatusSource
     , initCommands
     , loadAccount
     , loadAccountFollowers
@@ -566,6 +567,19 @@ deleteStatus client id =
             HttpBuilder.delete (ApiUrl.status id)
                 |> withClient c
                 |> withBodyDecoder (MastodonEvent << StatusDeleted) (Decode.succeed id)
+                |> send
+
+        Nothing ->
+            Cmd.none
+
+
+getStatusSource : Maybe Client -> StatusId -> Cmd Msg
+getStatusSource client id =
+    case client of
+        Just c ->
+            HttpBuilder.get (ApiUrl.source id)
+                |> withClient c
+                |> withBodyDecoder (MastodonEvent << StatusSourceFetched) (Decode.succeed id)
                 |> send
 
         Nothing ->
