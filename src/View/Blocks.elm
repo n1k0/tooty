@@ -18,7 +18,8 @@ type alias CurrentUser =
 blockView : CurrentUser -> Account -> Html Msg
 blockView currentUser account =
     let
-        ( isCurrentUser, entryClass ) =
+        -- isCurrentUser / entryClass
+        ( _, entryClass ) =
             case currentUser of
                 Just user ->
                     if sameAccount account user then
@@ -59,7 +60,7 @@ blockView currentUser account =
 
 
 blocksView : Model -> Html Msg
-blocksView { currentUser, currentView, blocks, location } =
+blocksView { currentUser, blocks, location } =
     let
         keyedEntry account =
             ( account.id

@@ -70,7 +70,7 @@ replaceHref : String -> List ( String, String ) -> List (Attribute Msg)
 replaceHref newHref attrs =
     attrs
         -- Replace original href by tooty internal link
-        |> List.filter (\( attribute, value ) -> attribute /= "href")
+        |> List.filter (\( attribute, _ ) -> attribute /= "href")
         |> (++) [ ( "href", newHref ) ]
         |> List.map toAttribute
         |> List.append [ onClickWithPreventAndStop <| Navigate newHref ]
