@@ -197,7 +197,7 @@ statusDecoder =
 statusSourceDecoder : Decode.Decoder StatusSource
 statusSourceDecoder =
     Decode.succeed StatusSource
-        |> Pipe.required "id" Decode.string
+        |> Pipe.required "id" statusIdDecoder
         |> Pipe.required "text" Decode.string
         |> Pipe.required "spoiler_text" Decode.string
 

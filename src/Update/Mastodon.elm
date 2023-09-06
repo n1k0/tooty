@@ -351,13 +351,25 @@ update msg ({ accountInfo, search } as model) =
                     )
 
         StatusSourceFetched result ->
+            let
+                draft =
+                    model.draft
+            in
             case result of
                 Ok { decoded } ->
-                    let
-                        _ =
-                            Debug.log "Decoded" decoded
-                    in
-                    ( model
+                    ( { model
+                        | draft =
+                            { draft
+                                | statusSource = Just decoded
+                                , status = decoded.text
+                                , spoilerText =
+                                    if decoded.spoiler_text == "" then
+                                        Nothing
+
+                                    else
+                                        Just decoded.spoiler_text
+                            }
+                      }
                     , Cmd.none
                     )
 

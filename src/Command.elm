@@ -579,7 +579,7 @@ getStatusSource client id =
         Just c ->
             HttpBuilder.get (ApiUrl.source id)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << StatusSourceFetched) (Decode.succeed id)
+                |> withBodyDecoder (MastodonEvent << StatusSourceFetched) statusSourceDecoder
                 |> send
 
         Nothing ->

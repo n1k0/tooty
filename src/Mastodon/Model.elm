@@ -212,7 +212,7 @@ type alias Status =
 
 
 type alias StatusSource =
-    { id : String
+    { id : StatusId
     , text : String
     , spoiler_text : String
     }

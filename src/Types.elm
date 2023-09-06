@@ -104,7 +104,7 @@ type MastodonMsg
     | SearchResultsReceived (MastodonResult SearchResults)
     | StatusDeleted (MastodonResult StatusId)
     | StatusPosted (MastodonResult Status)
-    | StatusSourceFetched (MastodonResult StatusId)
+    | StatusSourceFetched (MastodonResult StatusSource)
     | ThreadStatusLoaded StatusId (MastodonResult Status)
     | ThreadContextLoaded StatusId (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
@@ -209,12 +209,13 @@ type CurrentAccountView
 
 type DraftType
     = InReplyTo Status
-    | Editing Status
+    | Editing Status (Maybe String) (Maybe String)
     | NewDraft
 
 
 type alias Draft =
     { status : String
+    , statusSource : Maybe StatusSource
     , type_ : DraftType
     , spoilerText : Maybe String
     , sensitive : Bool
