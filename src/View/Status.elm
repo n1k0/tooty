@@ -152,7 +152,7 @@ statusActionsView status currentUser showApp =
             button
                 [ class <| baseBtnClasses ++ " btn-edit"
                 , href ""
-                , onClickWithPreventAndStop <| EditStatus sourceStatus
+                , onClickWithPreventAndStop <| DraftEvent (EditStatus sourceStatus)
                 ]
                 [ Common.icon "edit" ]
 

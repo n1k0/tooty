@@ -104,8 +104,8 @@ currentUserView currentUser =
 
 draftReplyToView : Draft -> Html Msg
 draftReplyToView draft =
-    case draft.inReplyTo of
-        Just status ->
+    case draft.type_ of
+        InReplyTo status ->
             div [ class "in-reply-to" ]
                 [ p []
                     [ strong []
@@ -121,7 +121,23 @@ draftReplyToView draft =
                 , div [ class "well" ] [ Lazy.lazy2 statusView "draft" status ]
                 ]
 
-        Nothing ->
+        Editing status ->
+            div [ class "in-reply-to" ]
+                [ p []
+                    [ strong []
+                        [ text "Editing this toot ("
+                        , a
+                            [ href ""
+                            , onClickWithPreventAndStop <| DraftEvent ClearDraft
+                            ]
+                            [ Common.icon "remove" ]
+                        , text ")"
+                        ]
+                    ]
+                , div [ class "well" ] [ Lazy.lazy2 statusView "draft" status ]
+                ]
+
+        _ ->
             text ""
 
 
@@ -177,11 +193,15 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
         [ div [ class "panel-heading" ]
             [ Common.icon "envelope"
             , text <|
-                if draft.inReplyTo /= Nothing then
-                    "Post a reply"
+                case draft.type_ of
+                    InReplyTo _ ->
+                        "Post a reply"
 
-                else
-                    "Post a message"
+                    Editing _ ->
+                        "Edit a message"
+
+                    _ ->
+                        "Post a message"
             ]
         , div [ class "panel-body timeline", style "overflow" "visible" ]
             [ currentUserView currentUser

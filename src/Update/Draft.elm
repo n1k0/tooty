@@ -51,9 +51,9 @@ pickerConfig =
 empty : Draft
 empty =
     { status = ""
-    , inReplyTo = Nothing
     , spoilerText = Nothing
     , sensitive = False
+    , type_ = NewDraft
     , visibility = "public"
     , attachments = []
     , mediaUploading = False
@@ -91,6 +91,11 @@ update draftMsg currentUser ({ draft } as model) =
         ClearDraft ->
             ( { model | draft = empty }
             , Command.updateDomStatus empty.status
+            )
+
+        EditStatus status ->
+            ( { model | draft = { draft | type_ = Editing status } }
+            , Command.getStatusSource (List.head model.clients) status.id
             )
 
         EmojiMsg subMsg ->
@@ -162,7 +167,7 @@ update draftMsg currentUser ({ draft } as model) =
             ( { model
                 | draft =
                     { draft
-                        | inReplyTo = Just status
+                        | type_ = InReplyTo status
                         , status = newStatus
                         , sensitive = Maybe.withDefault False status.sensitive
                         , spoilerText =

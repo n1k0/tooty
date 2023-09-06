@@ -22,7 +22,13 @@ import Url
 toStatusRequestBody : Draft -> StatusRequestBody
 toStatusRequestBody draft =
     { status = draft.status
-    , in_reply_to_id = Maybe.map (\s -> s.id) draft.inReplyTo
+    , in_reply_to_id =
+        case draft.type_ of
+            InReplyTo status ->
+                Just status.id
+
+            _ ->
+                Nothing
     , spoiler_text = draft.spoilerText
     , sensitive = draft.sensitive
     , visibility = draft.visibility
@@ -78,11 +84,6 @@ update msg model =
                     ( model
                     , Cmd.none
                     )
-
-        EditStatus status ->
-            ( model
-            , Command.getStatusSource (List.head model.clients) status.id
-            )
 
         FilterNotifications filter ->
             ( { model | notificationFilter = filter }

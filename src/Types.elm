@@ -5,6 +5,7 @@ module Types exposing
     , CurrentView(..)
     , Draft
     , DraftMsg(..)
+    , DraftType(..)
     , ErrorNotification
     , Flags
     , InputInformation
@@ -44,6 +45,7 @@ type alias Flags =
 type DraftMsg
     = ClearDraft
     | CloseAutocomplete
+    | EditStatus Status
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
@@ -137,7 +139,6 @@ type Msg
     | ClearError Int
     | ConfirmCancelled Msg
     | Confirmed Msg
-    | EditStatus Status
     | DeleteStatus StatusId
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
@@ -206,9 +207,15 @@ type CurrentAccountView
     | AccountFollowingView
 
 
+type DraftType
+    = InReplyTo Status
+    | Editing Status
+    | NewDraft
+
+
 type alias Draft =
     { status : String
-    , inReplyTo : Maybe Status
+    , type_ : DraftType
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String
