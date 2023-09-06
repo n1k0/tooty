@@ -33,30 +33,65 @@ toStatusRequestBody draft =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model
-            , Cmd.none
+        AddFavorite status ->
+            ( Update.Timeline.processFavourite status True model
+            , Command.favouriteStatus (List.head model.clients) status.id
             )
 
-        UrlChanged location ->
-            Update.Route.update { model | location = location }
+        AskConfirm message onClick onCancel ->
+            ( { model | confirm = Just <| Confirm message onClick onCancel }
+            , Cmd.none
+            )
 
         Back ->
             ( model
             , Navigation.back model.key 1
             )
 
-        Navigate href ->
+        Block account ->
             ( model
-            , Navigation.pushUrl model.key href
+            , Command.block (List.head model.clients) account
             )
 
-        Tick newTime ->
-            ( { model
-                | currentTime = newTime
-                , errors = Update.Error.cleanErrors newTime model.errors
-              }
+        ClearError index ->
+            ( { model | errors = removeAt index model.errors }
             , Cmd.none
+            )
+
+        ConfirmCancelled onCancel ->
+            update onCancel { model | confirm = Nothing }
+
+        Confirmed onConfirm ->
+            update onConfirm { model | confirm = Nothing }
+
+        DeleteStatus id ->
+            ( model
+            , Command.deleteStatus (List.head model.clients) id
+            )
+
+        DraftEvent draftMsg ->
+            case model.currentUser of
+                Just user ->
+                    Update.Draft.update draftMsg user model
+
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
+
+        EditStatus status ->
+            ( model
+            , Command.getStatusSource (List.head model.clients) status.id
+            )
+
+        FilterNotifications filter ->
+            ( { model | notificationFilter = filter }
+            , Cmd.none
+            )
+
+        FollowAccount account ->
+            ( model
+            , Command.follow (List.head model.clients) account
             )
 
         KeyMsg event keyType ->
@@ -90,44 +125,22 @@ update msg model =
                     , Cmd.none
                     )
 
-        ClearError index ->
-            ( { model | errors = removeAt index model.errors }
-            , Cmd.none
-            )
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    case url.fragment of
+                        Nothing ->
+                            ( model, Cmd.none )
 
-        AskConfirm message onClick onCancel ->
-            ( { model | confirm = Just <| Confirm message onClick onCancel }
-            , Cmd.none
-            )
+                        Just _ ->
+                            ( model
+                            , Navigation.pushUrl model.key (Url.toString url)
+                            )
 
-        ConfirmCancelled onCancel ->
-            update onCancel { model | confirm = Nothing }
-
-        Confirmed onConfirm ->
-            update onConfirm { model | confirm = Nothing }
-
-        SwitchClient client ->
-            let
-                newClients =
-                    client :: List.filter (\c -> c.token /= client.token) model.clients
-            in
-            ( { model
-                | clients = newClients
-                , homeTimeline = Update.Timeline.empty "home-timeline"
-                , localTimeline = Update.Timeline.empty "local-timeline"
-                , globalTimeline = Update.Timeline.empty "global-timeline"
-                , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
-                , accountInfo = Update.AccountInfo.empty
-                , mutes = Update.Timeline.empty "mutes-timeline"
-                , blocks = Update.Timeline.empty "blocks-timeline"
-                , notifications = Update.Timeline.empty "notifications"
-                , currentView = AccountSelectorView
-              }
-            , Cmd.batch
-                [ Command.loadUserAccount <| Just client
-                , Command.loadTimelines <| Just client
-                ]
-            )
+                Browser.External href ->
+                    ( model
+                    , Navigation.load href
+                    )
 
         LogoutClient client ->
             let
@@ -157,26 +170,19 @@ update msg model =
             , commands
             )
 
-        SearchEvent sMsg ->
-            Update.Search.update sMsg model
-
-        WebSocketEvent wMsg ->
-            let
-                ( newModel, commands ) =
-                    Update.WebSocket.update wMsg model
-            in
-            ( newModel
-            , commands
-            )
-
-        ServerChange server ->
-            ( { model | server = server }
-            , Cmd.none
-            )
-
-        Register ->
+        Mute account ->
             ( model
-            , Command.registerApp model
+            , Command.mute (List.head model.clients) account
+            )
+
+        Navigate href ->
+            ( model
+            , Navigation.pushUrl model.key href
+            )
+
+        NoOp ->
+            ( model
+            , Cmd.none
             )
 
         OpenThread status ->
@@ -184,44 +190,9 @@ update msg model =
             , Navigation.pushUrl model.key ("#thread/" ++ extractStatusId status.id)
             )
 
-        FollowAccount account ->
+        Register ->
             ( model
-            , Command.follow (List.head model.clients) account
-            )
-
-        UnfollowAccount account ->
-            ( model
-            , Command.unfollow (List.head model.clients) account
-            )
-
-        Mute account ->
-            ( model
-            , Command.mute (List.head model.clients) account
-            )
-
-        Unmute account ->
-            ( model
-            , Command.unmute (List.head model.clients) account
-            )
-
-        Block account ->
-            ( model
-            , Command.block (List.head model.clients) account
-            )
-
-        Unblock account ->
-            ( model
-            , Command.unblock (List.head model.clients) account
-            )
-
-        DeleteStatus id ->
-            ( model
-            , Command.deleteStatus (List.head model.clients) id
-            )
-
-        GetStatusSource id ->
-            ( model
-            , Command.getStatusSource (List.head model.clients) id
+            , Command.registerApp model
             )
 
         ReblogStatus status ->
@@ -229,30 +200,93 @@ update msg model =
             , Command.reblogStatus (List.head model.clients) status.id
             )
 
-        UnreblogStatus status ->
-            ( Update.Timeline.processReblog status False model
-            , Command.unreblogStatus (List.head model.clients) status.id
-            )
-
-        AddFavorite status ->
-            ( Update.Timeline.processFavourite status True model
-            , Command.favouriteStatus (List.head model.clients) status.id
-            )
-
         RemoveFavorite status ->
             ( Update.Timeline.processFavourite status False model
             , Command.unfavouriteStatus (List.head model.clients) status.id
             )
 
-        DraftEvent draftMsg ->
-            case model.currentUser of
-                Just user ->
-                    Update.Draft.update draftMsg user model
+        SearchEvent sMsg ->
+            Update.Search.update sMsg model
 
-                Nothing ->
-                    ( model
-                    , Cmd.none
-                    )
+        ServerChange server ->
+            ( { model | server = server }
+            , Cmd.none
+            )
+
+        ScrollColumn ScrollBottom column ->
+            ( model
+            , Command.scrollColumnToBottom column
+            )
+
+        ScrollColumn ScrollTop column ->
+            ( model
+            , Command.scrollColumnToTop column
+            )
+
+        SubmitDraft ->
+            ( model
+            , Command.postStatus (List.head model.clients) <|
+                toStatusRequestBody model.draft
+            )
+
+        SwitchClient client ->
+            let
+                newClients =
+                    client :: List.filter (\c -> c.token /= client.token) model.clients
+            in
+            ( { model
+                | clients = newClients
+                , homeTimeline = Update.Timeline.empty "home-timeline"
+                , localTimeline = Update.Timeline.empty "local-timeline"
+                , globalTimeline = Update.Timeline.empty "global-timeline"
+                , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
+                , accountInfo = Update.AccountInfo.empty
+                , mutes = Update.Timeline.empty "mutes-timeline"
+                , blocks = Update.Timeline.empty "blocks-timeline"
+                , notifications = Update.Timeline.empty "notifications"
+                , currentView = AccountSelectorView
+              }
+            , Cmd.batch
+                [ Command.loadUserAccount <| Just client
+                , Command.loadTimelines <| Just client
+                ]
+            )
+
+        Tick newTime ->
+            ( { model
+                | currentTime = newTime
+                , errors = Update.Error.cleanErrors newTime model.errors
+              }
+            , Cmd.none
+            )
+
+        TimelineLoadNext id next ->
+            ( Update.Timeline.markAsLoading True id model
+            , Command.loadNextTimeline model id next
+            )
+
+        Unblock account ->
+            ( model
+            , Command.unblock (List.head model.clients) account
+            )
+
+        UnfollowAccount account ->
+            ( model
+            , Command.unfollow (List.head model.clients) account
+            )
+
+        Unmute account ->
+            ( model
+            , Command.unmute (List.head model.clients) account
+            )
+
+        UnreblogStatus status ->
+            ( Update.Timeline.processReblog status False model
+            , Command.unreblogStatus (List.head model.clients) status.id
+            )
+
+        UrlChanged location ->
+            Update.Route.update { model | location = location }
 
         ViewerEvent viewerMsg ->
             let
@@ -263,45 +297,11 @@ update msg model =
             , commands
             )
 
-        SubmitDraft ->
-            ( model
-            , Command.postStatus (List.head model.clients) <|
-                toStatusRequestBody model.draft
+        WebSocketEvent wMsg ->
+            let
+                ( newModel, commands ) =
+                    Update.WebSocket.update wMsg model
+            in
+            ( newModel
+            , commands
             )
-
-        TimelineLoadNext id next ->
-            ( Update.Timeline.markAsLoading True id model
-            , Command.loadNextTimeline model id next
-            )
-
-        FilterNotifications filter ->
-            ( { model | notificationFilter = filter }
-            , Cmd.none
-            )
-
-        ScrollColumn ScrollTop column ->
-            ( model
-            , Command.scrollColumnToTop column
-            )
-
-        ScrollColumn ScrollBottom column ->
-            ( model
-            , Command.scrollColumnToBottom column
-            )
-
-        LinkClicked urlRequest ->
-            case urlRequest of
-                Browser.Internal url ->
-                    case url.fragment of
-                        Nothing ->
-                            ( model, Cmd.none )
-
-                        Just _ ->
-                            ( model
-                            , Navigation.pushUrl model.key (Url.toString url)
-                            )
-
-                Browser.External href ->
-                    ( model
-                    , Navigation.load href
-                    )

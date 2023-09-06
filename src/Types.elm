@@ -137,11 +137,11 @@ type Msg
     | ClearError Int
     | ConfirmCancelled Msg
     | Confirmed Msg
+    | EditStatus Status
     | DeleteStatus StatusId
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | GetStatusSource StatusId
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | LinkClicked Browser.UrlRequest
