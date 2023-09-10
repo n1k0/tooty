@@ -342,7 +342,15 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                         , class "draft-actions-submit btn btn-warning btn-toot"
                         , disabled limitExceeded
                         ]
-                        [ text "Toot" ]
+                        [ text
+                            (case draft.type_ of
+                                Editing _ _ _ ->
+                                    "Save"
+
+                                _ ->
+                                    "Toot"
+                            )
+                        ]
                     ]
                 ]
             ]
