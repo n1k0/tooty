@@ -95,7 +95,13 @@ update draftMsg currentUser ({ draft } as model) =
             )
 
         EditStatus status ->
-            ( { model | draft = { draft | type_ = Editing status Nothing Nothing } }
+            ( { model
+                | draft =
+                    { draft
+                        | type_ = Editing status Nothing Nothing
+                        , attachments = status.media_attachments
+                    }
+              }
             , Command.getStatusSource (List.head model.clients) status.id
             )
 
