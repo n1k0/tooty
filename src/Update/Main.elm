@@ -36,6 +36,15 @@ toStatusRequestBody draft =
     }
 
 
+toStatusEditRequestBody : Draft -> StatusEditRequestBody
+toStatusEditRequestBody draft =
+    { status = draft.status
+    , spoiler_text = draft.spoilerText
+    , sensitive = draft.sensitive
+    , media_ids = List.map .id draft.attachments
+    }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -228,7 +237,8 @@ update msg model =
             ( model
             , case model.draft.type_ of
                 Editing editStatus ->
-                    Cmd.none
+                    Command.editStatus (List.head model.clients) editStatus.status.id <|
+                        toStatusEditRequestBody model.draft
 
                 _ ->
                     Command.postStatus (List.head model.clients) <|

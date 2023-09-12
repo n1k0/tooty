@@ -1,6 +1,7 @@
 module Command exposing
     ( block
     , deleteStatus
+    , editStatus
     , favouriteStatus
     , focusId
     , follow
@@ -556,12 +557,12 @@ postStatus client draft =
 
 
 editStatus : Maybe Client -> StatusId -> StatusEditRequestBody -> Cmd Msg
-editStatus client id draft =
+editStatus client id status =
     case client of
         Just c ->
             HttpBuilder.put (ApiUrl.status id)
                 |> withClient c
-                |> HttpBuilder.withJsonBody (statusRequestBodyEncoder draft)
+                |> HttpBuilder.withJsonBody (statusEditRequestBodyEncoder status)
                 |> withBodyDecoder (MastodonEvent << StatusPosted) statusDecoder
                 |> send
 

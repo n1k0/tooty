@@ -3,6 +3,7 @@ module Mastodon.Encoder exposing
     , authorizationCodeEncoder
     , clientEncoder
     , registrationEncoder
+    , statusEditRequestBodyEncoder
     , statusRequestBodyEncoder
     )
 
@@ -94,5 +95,15 @@ statusRequestBodyEncoder statusData =
         , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
         , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "visibility", Encode.string statusData.visibility )
+        , ( "media_ids", Encode.list Encode.string statusData.media_ids )
+        ]
+
+
+statusEditRequestBodyEncoder : StatusEditRequestBody -> Encode.Value
+statusEditRequestBodyEncoder statusData =
+    Encode.object
+        [ ( "status", Encode.string statusData.status )
+        , ( "spoiler_text", encodeMaybe Encode.string statusData.spoiler_text )
+        , ( "sensitive", Encode.bool statusData.sensitive )
         , ( "media_ids", Encode.list Encode.string statusData.media_ids )
         ]
