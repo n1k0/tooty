@@ -100,6 +100,7 @@ update draftMsg currentUser ({ draft } as model) =
                     { draft
                         | type_ = Editing { status = status, spoiler_text = Nothing, text = Nothing }
                         , attachments = status.media_attachments
+                        , sensitive = Maybe.withDefault False status.sensitive
                     }
               }
             , Command.getStatusSource (List.head model.clients) status.id
