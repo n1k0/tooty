@@ -555,6 +555,20 @@ postStatus client draft =
             Cmd.none
 
 
+editStatus : Maybe Client -> StatusId -> StatusEditRequestBody -> Cmd Msg
+editStatus client id draft =
+    case client of
+        Just c ->
+            HttpBuilder.put (ApiUrl.status id)
+                |> withClient c
+                |> HttpBuilder.withJsonBody (statusRequestBodyEncoder draft)
+                |> withBodyDecoder (MastodonEvent << StatusPosted) statusDecoder
+                |> send
+
+        Nothing ->
+            Cmd.none
+
+
 updateDomStatus : String -> Cmd Msg
 updateDomStatus statusText =
     Ports.setStatus { id = "status", status = statusText }

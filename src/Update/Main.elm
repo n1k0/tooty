@@ -226,8 +226,13 @@ update msg model =
 
         SubmitDraft ->
             ( model
-            , Command.postStatus (List.head model.clients) <|
-                toStatusRequestBody model.draft
+            , case model.draft.type_ of
+                Editing editStatus ->
+                    Cmd.none
+
+                _ ->
+                    Command.postStatus (List.head model.clients) <|
+                        toStatusRequestBody model.draft
             )
 
         SwitchClient client ->

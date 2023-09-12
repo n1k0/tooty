@@ -98,7 +98,7 @@ update draftMsg currentUser ({ draft } as model) =
             ( { model
                 | draft =
                     { draft
-                        | type_ = Editing status Nothing Nothing
+                        | type_ = Editing { status = status, spoiler_text = Nothing, text = Nothing }
                         , attachments = status.media_attachments
                     }
               }

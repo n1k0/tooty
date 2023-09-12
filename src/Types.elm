@@ -209,7 +209,7 @@ type CurrentAccountView
 
 type DraftType
     = InReplyTo Status
-    | Editing Status (Maybe String) (Maybe String)
+    | Editing StatusEdit
     | NewDraft
 
 

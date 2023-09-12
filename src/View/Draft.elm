@@ -121,7 +121,7 @@ draftReplyToView draft =
                 , div [ class "well" ] [ Lazy.lazy2 statusView "draft" status ]
                 ]
 
-        Editing status _ _ ->
+        Editing statusEdit ->
             div [ class "in-reply-to" ]
                 [ p []
                     [ strong []
@@ -134,7 +134,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ Lazy.lazy2 statusView "draft" status ]
+                , div [ class "well" ] [ Lazy.lazy2 statusView "draft" statusEdit.status ]
                 ]
 
         _ ->
@@ -197,7 +197,7 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                     InReplyTo _ ->
                         "Post a reply"
 
-                    Editing _ _ _ ->
+                    Editing _ ->
                         "Edit a message"
 
                     _ ->
@@ -344,7 +344,7 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                         ]
                         [ text
                             (case draft.type_ of
-                                Editing _ _ _ ->
+                                Editing _ ->
                                     "Save"
 
                                 _ ->
