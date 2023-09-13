@@ -17,8 +17,11 @@ module Mastodon.Model exposing
     , Relationship
     , SearchResults
     , Status
+    , StatusEdit
+    , StatusEditRequestBody
     , StatusId(..)
     , StatusRequestBody
+    , StatusSource
     , Tag
     )
 
@@ -210,6 +213,20 @@ type alias Status =
     }
 
 
+type alias StatusSource =
+    { id : StatusId
+    , text : String
+    , spoiler_text : String
+    }
+
+
+type alias StatusEdit =
+    { status : Status
+    , text : Maybe String
+    , spoiler_text : Maybe String
+    }
+
+
 type alias StatusRequestBody =
     -- status: The text of the status
     -- in_reply_to_id: local ID of the status you want to reply to
@@ -221,6 +238,17 @@ type alias StatusRequestBody =
     , spoiler_text : Maybe String
     , sensitive : Bool
     , visibility : String
+    , media_ids : List String
+    }
+
+
+type alias StatusEditRequestBody =
+    -- status: The text of the status
+    -- sensitive: set this to mark the media of the status as NSFW
+    -- spoiler_text: text to be shown as a warning before the actual content
+    { status : String
+    , spoiler_text : Maybe String
+    , sensitive : Bool
     , media_ids : List String
     }
 

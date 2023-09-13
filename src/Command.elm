@@ -1,9 +1,11 @@
 module Command exposing
     ( block
     , deleteStatus
+    , editStatus
     , favouriteStatus
     , focusId
     , follow
+    , getStatusSource
     , initCommands
     , loadAccount
     , loadAccountFollowers
@@ -554,6 +556,20 @@ postStatus client draft =
             Cmd.none
 
 
+editStatus : Maybe Client -> StatusId -> StatusEditRequestBody -> Cmd Msg
+editStatus client id status =
+    case client of
+        Just c ->
+            HttpBuilder.put (ApiUrl.status id)
+                |> withClient c
+                |> HttpBuilder.withJsonBody (statusEditRequestBodyEncoder status)
+                |> withBodyDecoder (MastodonEvent << StatusPosted) statusDecoder
+                |> send
+
+        Nothing ->
+            Cmd.none
+
+
 updateDomStatus : String -> Cmd Msg
 updateDomStatus statusText =
     Ports.setStatus { id = "status", status = statusText }
@@ -566,6 +582,19 @@ deleteStatus client id =
             HttpBuilder.delete (ApiUrl.status id)
                 |> withClient c
                 |> withBodyDecoder (MastodonEvent << StatusDeleted) (Decode.succeed id)
+                |> send
+
+        Nothing ->
+            Cmd.none
+
+
+getStatusSource : Maybe Client -> StatusId -> Cmd Msg
+getStatusSource client id =
+    case client of
+        Just c ->
+            HttpBuilder.get (ApiUrl.source id)
+                |> withClient c
+                |> withBodyDecoder (MastodonEvent << StatusSourceFetched) statusSourceDecoder
                 |> send
 
         Nothing ->

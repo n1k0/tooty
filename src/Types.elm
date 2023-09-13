@@ -5,6 +5,7 @@ module Types exposing
     , CurrentView(..)
     , Draft
     , DraftMsg(..)
+    , DraftType(..)
     , ErrorNotification
     , Flags
     , InputInformation
@@ -44,6 +45,7 @@ type alias Flags =
 type DraftMsg
     = ClearDraft
     | CloseAutocomplete
+    | EditStatus Status
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
@@ -102,6 +104,7 @@ type MastodonMsg
     | SearchResultsReceived (MastodonResult SearchResults)
     | StatusDeleted (MastodonResult StatusId)
     | StatusPosted (MastodonResult Status)
+    | StatusSourceFetched (MastodonResult StatusSource)
     | ThreadStatusLoaded StatusId (MastodonResult Status)
     | ThreadContextLoaded StatusId (MastodonResult Context)
     | Unreblogged (MastodonResult Status)
@@ -142,7 +145,6 @@ type Msg
     | FollowAccount Account
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
-    | TimelineLoadNext String String
     | LinkClicked Browser.UrlRequest
     | MastodonEvent MastodonMsg
     | Mute Account
@@ -158,6 +160,7 @@ type Msg
     | SubmitDraft
     | SwitchClient Client
     | Tick Posix
+    | TimelineLoadNext String String
     | UnfollowAccount Account
     | Unblock Account
     | Unmute Account
@@ -204,9 +207,16 @@ type CurrentAccountView
     | AccountFollowingView
 
 
+type DraftType
+    = InReplyTo Status
+    | Editing StatusEdit
+    | NewDraft
+
+
 type alias Draft =
     { status : String
-    , inReplyTo : Maybe Status
+    , statusSource : Maybe StatusSource
+    , type_ : DraftType
     , spoilerText : Maybe String
     , sensitive : Bool
     , visibility : String

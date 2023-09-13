@@ -18,7 +18,8 @@ type alias CurrentUser =
 muteView : CurrentUser -> Account -> Html Msg
 muteView currentUser account =
     let
-        ( isCurrentUser, entryClass ) =
+        -- currentUser / entryClass
+        ( _, entryClass ) =
             case currentUser of
                 Just user ->
                     if sameAccount account user then
@@ -59,7 +60,7 @@ muteView currentUser account =
 
 
 mutesView : Model -> Html Msg
-mutesView { currentUser, currentView, mutes, location } =
+mutesView { currentUser, mutes, location } =
     let
         keyedEntry account =
             ( account.id

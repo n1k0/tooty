@@ -51,9 +51,10 @@ pickerConfig =
 empty : Draft
 empty =
     { status = ""
-    , inReplyTo = Nothing
+    , statusSource = Nothing
     , spoilerText = Nothing
     , sensitive = False
+    , type_ = NewDraft
     , visibility = "public"
     , attachments = []
     , mediaUploading = False
@@ -93,10 +94,21 @@ update draftMsg currentUser ({ draft } as model) =
             , Command.updateDomStatus empty.status
             )
 
+        EditStatus status ->
+            ( { model
+                | draft =
+                    { draft
+                        | type_ = Editing { status = status, spoiler_text = Nothing, text = Nothing }
+                        , attachments = status.media_attachments
+                        , sensitive = Maybe.withDefault False status.sensitive
+                    }
+              }
+            , Command.getStatusSource (List.head model.clients) status.id
+            )
+
         EmojiMsg subMsg ->
             case subMsg of
                 EmojiPicker.Select selectedEmoji ->
-                    -- @TODO: insert the emoji value into the input
                     let
                         subModel =
                             draft.emojiModel
@@ -162,7 +174,7 @@ update draftMsg currentUser ({ draft } as model) =
             ( { model
                 | draft =
                     { draft
-                        | inReplyTo = Just status
+                        | type_ = InReplyTo status
                         , status = newStatus
                         , sensitive = Maybe.withDefault False status.sensitive
                         , spoilerText =

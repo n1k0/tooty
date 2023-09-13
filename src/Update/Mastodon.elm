@@ -350,6 +350,34 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
+        StatusSourceFetched result ->
+            let
+                draft =
+                    model.draft
+            in
+            case result of
+                Ok { decoded } ->
+                    ( { model
+                        | draft =
+                            { draft
+                                | statusSource = Just decoded
+                                , status = decoded.text
+                                , spoilerText =
+                                    if decoded.spoiler_text == "" then
+                                        Nothing
+
+                                    else
+                                        Just decoded.spoiler_text
+                            }
+                      }
+                    , Command.updateDomStatus decoded.text
+                    )
+
+                Err error ->
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
+
         Unreblogged result ->
             case result of
                 Ok _ ->
