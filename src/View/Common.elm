@@ -162,7 +162,7 @@ confirmView { message, onConfirm, onCancel } =
 dateFormatter : Zone -> Posix -> String
 dateFormatter =
     DateFormat.format
-        [ DateFormat.monthNameFull
+        [ DateFormat.monthNameAbbreviated
         , DateFormat.text " "
         , DateFormat.dayOfMonthSuffix
         , DateFormat.text ", "
