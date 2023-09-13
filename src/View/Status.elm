@@ -33,6 +33,13 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
                 [ img
                     [ class "attachment-image"
                     , src preview_url
+                    , alt <|
+                        case attachment.description of
+                            Just description ->
+                                description
+
+                            Nothing ->
+                                ""
                     , onClickWithPreventAndStop <|
                         ViewerEvent (OpenViewer attachments attachment)
                     ]
