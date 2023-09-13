@@ -27,14 +27,17 @@ attachmentPreview context sensitive attachments ({ url, preview_url } as attachm
             "att" ++ attachment.id ++ context
 
         media =
-            span
-                [ class "attachment-image"
-                , href url
-                , onClickWithPreventAndStop <|
-                    ViewerEvent (OpenViewer attachments attachment)
-                , style "background" ("url(" ++ preview_url ++ ") center center / cover no-repeat")
+            a
+                [ href url
                 ]
-                []
+                [ img
+                    [ class "attachment-image"
+                    , src preview_url
+                    , onClickWithPreventAndStop <|
+                        ViewerEvent (OpenViewer attachments attachment)
+                    ]
+                    []
+                ]
     in
     li [ class "attachment-entry" ] <|
         if Maybe.withDefault False sensitive then
