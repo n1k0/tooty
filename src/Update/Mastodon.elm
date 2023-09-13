@@ -370,7 +370,7 @@ update msg ({ accountInfo, search } as model) =
                                         Just decoded.spoiler_text
                             }
                       }
-                    , Cmd.none
+                    , Command.updateDomStatus decoded.text
                     )
 
                 Err error ->
