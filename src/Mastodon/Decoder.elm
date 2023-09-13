@@ -76,6 +76,7 @@ attachmentDecoder =
         |> Pipe.optional "remote_url" Decode.string ""
         |> Pipe.required "preview_url" Decode.string
         |> Pipe.required "text_url" (Decode.nullable Decode.string)
+        |> Pipe.required "description" (Decode.nullable Decode.string)
 
 
 contextDecoder : Decode.Decoder Context
