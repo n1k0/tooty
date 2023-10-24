@@ -73,6 +73,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: calc(100vh - 44px);
+  height: calc(100vh - 44px);
   overflow: hidden;
   overflow-y: scroll;
 }

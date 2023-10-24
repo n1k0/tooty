@@ -29,6 +29,7 @@ module Types exposing
 import Browser
 import Browser.Navigation as Navigation
 import EmojiPicker
+import InfiniteScroll
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import Menu
@@ -143,6 +144,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
+    | InfiniteScrollMsg InfiniteScroll.Msg
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | LinkClicked Browser.UrlRequest
@@ -286,29 +288,30 @@ type alias ErrorNotification =
 
 type alias Model =
     { server : String
-    , currentTime : Posix
-    , registration : Maybe AppRegistration
-    , clients : List Client
-    , homeTimeline : Timeline Status
-    , localTimeline : Timeline Status
-    , globalTimeline : Timeline Status
-    , favoriteTimeline : Timeline Status
-    , hashtagTimeline : Timeline Status
-    , mutes : Timeline Account
-    , blocks : Timeline Account
     , accountInfo : AccountInfo
-    , notifications : Timeline NotificationAggregate
+    , blocks : Timeline Account
+    , clients : List Client
+    , confirm : Maybe Confirm
+    , ctrlPressed : Bool
+    , currentUser : Maybe Account
+    , currentTime : Posix
+    , currentView : CurrentView
     , draft : Draft
     , errors : List ErrorNotification
-    , location : Url.Url
-    , viewer : Maybe Viewer
-    , currentUser : Maybe Account
-    , currentView : CurrentView
-    , notificationFilter : NotificationFilter
-    , confirm : Maybe Confirm
-    , search : Search
-    , ctrlPressed : Bool
+    , favoriteTimeline : Timeline Status
+    , globalTimeline : Timeline Status
+    , hashtagTimeline : Timeline Status
+    , homeTimeline : Timeline Status
+    , infiniteScroll : InfiniteScroll.Model Msg
     , key : Navigation.Key
+    , localTimeline : Timeline Status
+    , location : Url.Url
+    , mutes : Timeline Account
+    , notificationFilter : NotificationFilter
+    , notifications : Timeline NotificationAggregate
+    , registration : Maybe AppRegistration
+    , search : Search
+    , viewer : Maybe Viewer
     }
 
 

@@ -2,7 +2,9 @@ module Init exposing (init)
 
 import Browser.Navigation as Navigation
 import Command
+import InfiniteScroll
 import Mastodon.Decoder exposing (decodeClients)
+import Mastodon.Model exposing (Client)
 import Time
 import Types exposing (..)
 import Update.AccountInfo
@@ -10,6 +12,11 @@ import Update.Draft
 import Update.Route
 import Update.Timeline
 import Url
+
+
+loadMore : Maybe Client -> Maybe String -> InfiniteScroll.Direction -> Cmd Msg
+loadMore client url direction =
+    Command.loadHomeTimeline client url
 
 
 init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -21,29 +28,30 @@ init { registration, clients } location key =
         ( model, commands ) =
             Update.Route.update
                 { server = ""
-                , currentTime = Time.millisToPosix 0
-                , registration = registration
-                , clients = decodedClients
-                , homeTimeline = Update.Timeline.empty "home-timeline"
-                , localTimeline = Update.Timeline.empty "local-timeline"
-                , globalTimeline = Update.Timeline.empty "global-timeline"
-                , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
-                , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
-                , mutes = Update.Timeline.empty "mutes-timeline"
-                , blocks = Update.Timeline.empty "blocks-timeline"
                 , accountInfo = Update.AccountInfo.empty
-                , notifications = Update.Timeline.empty "notifications"
-                , draft = Update.Draft.empty
-                , errors = []
-                , location = location
-                , viewer = Nothing
+                , blocks = Update.Timeline.empty "blocks-timeline"
+                , clients = decodedClients
+                , confirm = Nothing
+                , currentTime = Time.millisToPosix 0
                 , currentView = LocalTimelineView
                 , currentUser = Nothing
-                , notificationFilter = NotificationAll
-                , confirm = Nothing
-                , search = Search "" Nothing
                 , ctrlPressed = False
+                , draft = Update.Draft.empty
+                , errors = []
+                , favoriteTimeline = Update.Timeline.empty "favorite-timeline"
+                , globalTimeline = Update.Timeline.empty "global-timeline"
+                , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
+                , homeTimeline = Update.Timeline.empty "home-timeline"
+                , infiniteScroll = InfiniteScroll.init <| loadMore (List.head decodedClients) Nothing
                 , key = key
+                , localTimeline = Update.Timeline.empty "local-timeline"
+                , location = location
+                , mutes = Update.Timeline.empty "mutes-timeline"
+                , notificationFilter = NotificationAll
+                , notifications = Update.Timeline.empty "notifications"
+                , registration = registration
+                , search = Search "" Nothing
+                , viewer = Nothing
                 }
     in
     ( model

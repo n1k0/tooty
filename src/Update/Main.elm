@@ -104,6 +104,9 @@ update msg model =
             , Command.follow (List.head model.clients) account
             )
 
+        InfiniteScrollMsg msg_ ->
+            ( model, Cmd.none )
+
         KeyMsg event keyType ->
             case ( event, keyType, model.viewer ) of
                 -- Esc
@@ -278,7 +281,7 @@ update msg model =
 
         TimelineLoadNext id next ->
             ( Update.Timeline.markAsLoading True id model
-            , Command.loadNextTimeline model id next
+            , Command.loadNextTimeline model.clients model.currentView model.accountInfo id next
             )
 
         Unblock account ->

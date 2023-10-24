@@ -484,8 +484,8 @@ subscribeToWs client streamType =
         |> Maybe.withDefault Cmd.none
 
 
-loadNextTimeline : Model -> String -> String -> Cmd Msg
-loadNextTimeline { clients, currentView, accountInfo } id next =
+loadNextTimeline : List Client -> CurrentView -> AccountInfo -> String -> String -> Cmd Msg
+loadNextTimeline clients currentView accountInfo id next =
     let
         client =
             List.head clients
