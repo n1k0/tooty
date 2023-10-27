@@ -3,6 +3,7 @@ module Update.Main exposing (update)
 import Browser
 import Browser.Navigation as Navigation
 import Command
+import InfiniteScroll
 import List.Extra exposing (removeAt)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
@@ -104,8 +105,15 @@ update msg model =
             , Command.follow (List.head model.clients) account
             )
 
-        InfiniteScrollMsg msg_ ->
-            ( model, Cmd.none )
+        InfiniteScrollMsg timeline msg_ ->
+            let
+                ( infiniteScroll, cmd ) =
+                    InfiniteScroll.update (InfiniteScrollMsg timeline) msg_ model.infiniteScrollHome
+
+                newModel =
+                    { model | homeTimeline = Update.Timeline.setLoading True timeline }
+            in
+            ( { newModel | infiniteScrollHome = infiniteScroll }, cmd )
 
         KeyMsg event keyType ->
             case ( event, keyType, model.viewer ) of

@@ -97,7 +97,7 @@ type MastodonMsg
     | FavoriteTimeline Bool (MastodonResult (List Status))
     | GlobalTimeline Bool (MastodonResult (List Status))
     | HashtagTimeline Bool (MastodonResult (List Status))
-    | HomeTimeline Bool (MastodonResult (List Status))
+    | HomeTimeline (MastodonResult (List Status))
     | LocalTimeline Bool (MastodonResult (List Status))
     | Mutes Bool (MastodonResult (List Account))
     | Notifications Bool (MastodonResult (List Notification))
@@ -144,7 +144,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | InfiniteScrollMsg InfiniteScroll.Msg
+    | InfiniteScrollMsg (Timeline Status) InfiniteScroll.Msg
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | LinkClicked Browser.UrlRequest
@@ -302,7 +302,7 @@ type alias Model =
     , globalTimeline : Timeline Status
     , hashtagTimeline : Timeline Status
     , homeTimeline : Timeline Status
-    , infiniteScroll : InfiniteScroll.Model Msg
+    , infiniteScrollHome : InfiniteScroll.Model Msg
     , key : Navigation.Key
     , localTimeline : Timeline Status
     , location : Url.Url

@@ -15,7 +15,7 @@ import Url
 
 
 loadMore : Maybe Client -> Maybe String -> InfiniteScroll.Direction -> Cmd Msg
-loadMore client url direction =
+loadMore client url _ =
     Command.loadHomeTimeline client url
 
 
@@ -42,7 +42,7 @@ init { registration, clients } location key =
                 , globalTimeline = Update.Timeline.empty "global-timeline"
                 , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
                 , homeTimeline = Update.Timeline.empty "home-timeline"
-                , infiniteScroll = InfiniteScroll.init <| loadMore (List.head decodedClients) Nothing
+                , infiniteScrollHome = InfiniteScroll.startLoading (InfiniteScroll.init <| loadMore (List.head decodedClients) Nothing)
                 , key = key
                 , localTimeline = Update.Timeline.empty "local-timeline"
                 , location = location

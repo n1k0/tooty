@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
+import InfiniteScroll
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -53,7 +54,7 @@ timelineView currentUser timeline =
         entries =
             List.map keyedEntry timeline.entries
     in
-    Keyed.ul [ id timeline.id, class "list-group timeline" ] <|
+    Keyed.ul [ id timeline.id, class "list-group timeline", InfiniteScroll.infiniteScroll (InfiniteScrollMsg timeline) ] <|
         (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
 

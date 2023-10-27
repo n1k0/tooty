@@ -335,7 +335,7 @@ loadHomeTimeline client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << HomeTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                |> withBodyDecoder (MastodonEvent << HomeTimeline) (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 

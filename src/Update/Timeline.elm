@@ -243,7 +243,7 @@ empty id =
     { id = id
     , entries = []
     , links = Links Nothing Nothing
-    , loading = False
+    , loading = True
     }
 
 
@@ -371,18 +371,10 @@ setLoading flag timeline =
     { timeline | loading = flag }
 
 
-update : Bool -> List a -> Links -> Timeline a -> Timeline a
-update append entries links timeline =
-    let
-        newEntries =
-            if append then
-                List.concat [ timeline.entries, entries ]
-
-            else
-                entries
-    in
+update : List a -> Links -> Timeline a -> Timeline a
+update entries links timeline =
     { timeline
-        | entries = newEntries
+        | entries = List.concat [ timeline.entries, entries ]
         , links = links
         , loading = False
     }
