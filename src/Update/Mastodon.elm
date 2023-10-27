@@ -243,12 +243,22 @@ update msg ({ accountInfo, search } as model) =
         LocalTimeline result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | localTimeline = Update.Timeline.update decoded links model.localTimeline }
+                    let
+                        loadMore client _ =
+                            Command.loadLocalTimeline client links.next
+                    in
+                    ( { model
+                        | localTimeline = Update.Timeline.update decoded links model.localTimeline |> Update.Timeline.setLoading False
+                        , infiniteScrollLocal = InfiniteScroll.stopLoading (model.infiniteScrollLocal |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
+                      }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | errors = addErrorNotification (errorText error) model }
+                    ( { model
+                        | errors = addErrorNotification (errorText error) model
+                        , infiniteScrollLocal = InfiniteScroll.stopLoading model.infiniteScrollLocal
+                      }
                     , Cmd.none
                     )
 

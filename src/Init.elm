@@ -4,7 +4,6 @@ import Browser.Navigation as Navigation
 import Command
 import InfiniteScroll
 import Mastodon.Decoder exposing (decodeClients)
-import Mastodon.Model exposing (Client)
 import Time
 import Types exposing (..)
 import Update.AccountInfo
@@ -12,11 +11,6 @@ import Update.Draft
 import Update.Route
 import Update.Timeline
 import Url
-
-
-loadMore : Maybe Client -> Maybe String -> InfiniteScroll.Direction -> Cmd Msg
-loadMore client url _ =
-    Command.loadHomeTimeline client url
 
 
 init : Flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Msg )
@@ -42,9 +36,18 @@ init { registration, clients } location key =
                 , globalTimeline = Update.Timeline.empty "global-timeline"
                 , hashtagTimeline = Update.Timeline.empty "hashtag-timeline"
                 , homeTimeline = Update.Timeline.empty "home-timeline"
-                , infiniteScrollHome = InfiniteScroll.startLoading (InfiniteScroll.init <| loadMore (List.head decodedClients) Nothing)
+                , infiniteScrollHome =
+                    InfiniteScroll.startLoading
+                        (InfiniteScroll.init <|
+                            Command.loadMore Command.loadHomeTimeline (List.head decodedClients) Nothing
+                        )
                 , key = key
                 , localTimeline = Update.Timeline.empty "local-timeline"
+                , infiniteScrollLocal =
+                    InfiniteScroll.startLoading
+                        (InfiniteScroll.init <|
+                            Command.loadMore Command.loadLocalTimeline (List.head decodedClients) Nothing
+                        )
                 , location = location
                 , mutes = Update.Timeline.empty "mutes-timeline"
                 , notificationFilter = NotificationAll

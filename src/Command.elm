@@ -17,6 +17,7 @@ module Command exposing
     , loadHashtagTimeline
     , loadHomeTimeline
     , loadLocalTimeline
+    , loadMore
     , loadMutes
     , loadNextTimeline
     , loadNotifications
@@ -50,6 +51,7 @@ module Command exposing
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import HttpBuilder
+import InfiniteScroll
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Mastodon.ApiUrl as ApiUrl
@@ -308,6 +310,11 @@ loadRelationships client ids =
 
     else
         Cmd.none
+
+
+loadMore : (Maybe Client -> Maybe String -> Cmd Msg) -> Maybe Client -> Maybe String -> InfiniteScroll.Direction -> Cmd Msg
+loadMore loadCmd client url _ =
+    loadCmd client url
 
 
 loadThread : Maybe Client -> StatusId -> Cmd Msg

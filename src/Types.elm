@@ -17,6 +17,7 @@ module Types exposing
     , Msg(..)
     , NotificationFilter(..)
     , ScrollDirection(..)
+    , ScrollElement(..)
     , Search
     , SearchMsg(..)
     , Thread
@@ -132,6 +133,13 @@ type KeyType
     | KeyControl String
 
 
+type ScrollElement
+    = ScrollContextualTimeline
+    | ScrollHashtagTimeline
+    | ScrollHomeTimeline
+    | ScrollLocalTimeline
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -144,7 +152,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
-    | InfiniteScrollMsg (Timeline Status) InfiniteScroll.Msg
+    | InfiniteScrollMsg ScrollElement InfiniteScroll.Msg
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | LinkClicked Browser.UrlRequest
@@ -303,6 +311,7 @@ type alias Model =
     , hashtagTimeline : Timeline Status
     , homeTimeline : Timeline Status
     , infiniteScrollHome : InfiniteScroll.Model Msg
+    , infiniteScrollLocal : InfiniteScroll.Model Msg
     , key : Navigation.Key
     , localTimeline : Timeline Status
     , location : Url.Url

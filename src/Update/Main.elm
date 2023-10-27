@@ -105,13 +105,21 @@ update msg model =
             , Command.follow (List.head model.clients) account
             )
 
-        InfiniteScrollMsg timeline msg_ ->
+        InfiniteScrollMsg scrollElement msg_ ->
             let
+                scrollModel =
+                    case scrollElement of
+                        ScrollHomeTimeline ->
+                            model.infiniteScrollHome
+
+                        _ ->
+                            model.infiniteScrollLocal
+
                 ( infiniteScroll, cmd ) =
-                    InfiniteScroll.update (InfiniteScrollMsg timeline) msg_ model.infiniteScrollHome
+                    InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ scrollModel
 
                 newModel =
-                    { model | homeTimeline = Update.Timeline.setLoading True timeline }
+                    { model | homeTimeline = Update.Timeline.setLoading True model.homeTimeline }
             in
             ( { newModel | infiniteScrollHome = infiniteScroll }, cmd )
 
