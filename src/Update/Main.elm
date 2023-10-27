@@ -106,22 +106,45 @@ update msg model =
             )
 
         InfiniteScrollMsg scrollElement msg_ ->
-            let
-                scrollModel =
-                    case scrollElement of
-                        ScrollHomeTimeline ->
-                            model.infiniteScrollHome
+            case scrollElement of
+                ScrollHomeTimeline ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollHome
+                    in
+                    ( { model
+                        | homeTimeline = Update.Timeline.setLoading True model.homeTimeline
+                        , infiniteScrollHome = infiniteScroll
+                      }
+                    , cmd
+                    )
 
-                        _ ->
-                            model.infiniteScrollLocal
+                ScrollNotifications ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollNotifications
+                    in
+                    ( { model
+                        | notifications = Update.Timeline.setLoading True model.notifications
+                        , infiniteScrollNotifications = infiniteScroll
+                      }
+                    , cmd
+                    )
 
-                ( infiniteScroll, cmd ) =
-                    InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ scrollModel
+                ScrollLocalTimeline ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollNotifications
+                    in
+                    ( { model
+                        | localTimeline = Update.Timeline.setLoading True model.localTimeline
+                        , infiniteScrollLocal = infiniteScroll
+                      }
+                    , cmd
+                    )
 
-                newModel =
-                    { model | homeTimeline = Update.Timeline.setLoading True model.homeTimeline }
-            in
-            ( { newModel | infiniteScrollHome = infiniteScroll }, cmd )
+                _ ->
+                    ( model, Cmd.none )
 
         KeyMsg event keyType ->
             case ( event, keyType, model.viewer ) of

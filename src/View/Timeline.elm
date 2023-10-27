@@ -45,8 +45,8 @@ closeableColumn ( label, iconName, timelineId ) content =
         ]
 
 
-timelineView : CurrentUser -> Timeline Status -> ScrollElement -> Html Msg
-timelineView currentUser timeline scrollElement =
+timelineViewInfiniteScroll : CurrentUser -> Timeline Status -> ScrollElement -> Html Msg
+timelineViewInfiniteScroll currentUser timeline scrollElement =
     let
         keyedEntry status =
             ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
@@ -58,6 +58,19 @@ timelineView currentUser timeline scrollElement =
         (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
 
 
+timelineView : CurrentUser -> Timeline Status -> Html Msg
+timelineView currentUser timeline =
+    let
+        keyedEntry status =
+            ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
+
+        entries =
+            List.map keyedEntry timeline.entries
+    in
+    Keyed.ul [ id timeline.id, class "list-group timeline" ] <|
+        (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+
+
 homeTimelineView : CurrentUser -> Timeline Status -> Html Msg
 homeTimelineView currentUser timeline =
     Lazy.lazy2 topScrollableColumn
@@ -65,7 +78,7 @@ homeTimelineView currentUser timeline =
         , "home"
         , timeline.id
         )
-        (timelineView currentUser timeline ScrollHomeTimeline)
+        (timelineViewInfiniteScroll currentUser timeline ScrollHomeTimeline)
 
 
 hashtagTimelineView : String -> CurrentUser -> Timeline Status -> Html Msg
@@ -75,7 +88,7 @@ hashtagTimelineView hashtag currentUser timeline =
         , "tags"
         , timeline.id
         )
-        (timelineView currentUser timeline ScrollHashtagTimeline)
+        (timelineViewInfiniteScroll currentUser timeline ScrollHashtagTimeline)
 
 
 contextualTimelineMenu : String -> Html Msg
@@ -111,6 +124,6 @@ contextualTimelineView : String -> String -> String -> CurrentUser -> Timeline S
 contextualTimelineView hash title iconName currentUser timeline =
     div []
         [ contextualTimelineMenu hash
-        , timelineView currentUser timeline ScrollContextualTimeline
+        , timelineView currentUser timeline
         ]
         |> Lazy.lazy2 topScrollableColumn ( title, iconName, timeline.id )

@@ -5,6 +5,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
+import InfiniteScroll
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
@@ -200,7 +201,7 @@ notificationListView currentUser filter notifications =
                 [ href "", onClickWithPreventAndStop <| ScrollColumn ScrollTop "notifications" ]
                 [ div [ class "panel-heading" ] [ Common.icon "bell", text "Notifications" ] ]
             , notificationFilterView filter
-            , Keyed.ul [ id "notifications", class "list-group timeline" ] <|
+            , Keyed.ul [ id "notifications", class "list-group timeline", InfiniteScroll.infiniteScroll (InfiniteScrollMsg ScrollNotifications) ] <|
                 (entries ++ [ ( "load-more", Common.loadMoreBtn notifications ) ])
             ]
         ]

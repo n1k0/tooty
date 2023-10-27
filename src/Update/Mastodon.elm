@@ -268,13 +268,22 @@ update msg ({ accountInfo, search } as model) =
                     let
                         aggregated =
                             Mastodon.Helper.aggregateNotifications decoded
+
+                        loadMore client _ =
+                            Command.loadNotifications client links.next
                     in
-                    ( { model | notifications = Update.Timeline.update aggregated links model.notifications }
+                    ( { model
+                        | notifications = Update.Timeline.update aggregated links model.notifications |> Update.Timeline.setLoading False
+                        , infiniteScrollNotifications = InfiniteScroll.stopLoading (model.infiniteScrollNotifications |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
+                      }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | errors = addErrorNotification (errorText error) model }
+                    ( { model
+                        | errors = addErrorNotification (errorText error) model
+                        , infiniteScrollNotifications = InfiniteScroll.stopLoading model.infiniteScrollLocal
+                      }
                     , Cmd.none
                     )
 

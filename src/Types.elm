@@ -138,6 +138,7 @@ type ScrollElement
     | ScrollHashtagTimeline
     | ScrollHomeTimeline
     | ScrollLocalTimeline
+    | ScrollNotifications
 
 
 type Msg
@@ -310,8 +311,10 @@ type alias Model =
     , globalTimeline : Timeline Status
     , hashtagTimeline : Timeline Status
     , homeTimeline : Timeline Status
+    , infiniteScrollHashtag : InfiniteScroll.Model Msg
     , infiniteScrollHome : InfiniteScroll.Model Msg
     , infiniteScrollLocal : InfiniteScroll.Model Msg
+    , infiniteScrollNotifications : InfiniteScroll.Model Msg
     , key : Navigation.Key
     , localTimeline : Timeline Status
     , location : Url.Url

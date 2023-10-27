@@ -110,6 +110,7 @@ li.load-more {
 
 .notifications-panel .timeline {
   max-height: calc(100vh - 81px);
+  height: calc(100vh - 44px);
 }
 
 .panel a {
