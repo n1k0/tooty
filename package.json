@@ -28,7 +28,7 @@
     "elm": "^0.19.1-5",
     "elm-live": "^4.0.1",
     "elm-test": "^0.19.1-revision12",
-    "gh-pages": "^2.1.1",
+    "gh-pages": "^6.0.0",
     "rimraf": "^3.0.0",
     "uglify-js": "^3.7.1"
   },
