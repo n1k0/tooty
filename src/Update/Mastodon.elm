@@ -228,7 +228,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        HashtagTimeline append result ->
+        HashtagTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | hashtagTimeline = Update.Timeline.update decoded links model.hashtagTimeline }
@@ -240,7 +240,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        LocalTimeline append result ->
+        LocalTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | localTimeline = Update.Timeline.update decoded links model.localTimeline }
@@ -252,7 +252,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        Notifications append result ->
+        Notifications result ->
             case result of
                 Ok { decoded, links } ->
                     let
@@ -268,7 +268,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        GlobalTimeline append result ->
+        GlobalTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | globalTimeline = Update.Timeline.update decoded links model.globalTimeline }
@@ -280,7 +280,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        FavoriteTimeline append result ->
+        FavoriteTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | favoriteTimeline = Update.Timeline.update decoded links model.favoriteTimeline }
@@ -292,7 +292,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        Mutes append result ->
+        Mutes result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | mutes = Update.Timeline.update decoded links model.mutes }
@@ -304,7 +304,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        Blocks append result ->
+        Blocks result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model | blocks = Update.Timeline.update decoded links model.blocks }
@@ -403,7 +403,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountTimeline append result ->
+        AccountTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
@@ -420,7 +420,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountFollowers append result ->
+        AccountFollowers result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
@@ -437,7 +437,7 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountFollowing append result ->
+        AccountFollowing result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
