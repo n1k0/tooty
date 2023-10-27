@@ -2,6 +2,7 @@ module Update.Mastodon exposing (update)
 
 import Browser.Navigation as Navigation
 import Command
+import InfiniteScroll
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -227,10 +228,10 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        HashtagTimeline append result ->
+        HashtagTimeline result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | hashtagTimeline = Update.Timeline.update append decoded links model.hashtagTimeline }
+                    ( { model | hashtagTimeline = Update.Timeline.update decoded links model.hashtagTimeline }
                     , Cmd.none
                     )
 
@@ -239,26 +240,57 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        LocalTimeline append result ->
+        LocalTimeline result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | localTimeline = Update.Timeline.update append decoded links model.localTimeline }
+                    let
+                        loadMore client _ =
+                            Command.loadLocalTimeline client links.next
+                    in
+                    ( { model
+                        | localTimeline = Update.Timeline.update decoded links model.localTimeline |> Update.Timeline.setLoading False
+                        , infiniteScrollLocal = InfiniteScroll.stopLoading (model.infiniteScrollLocal |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
+                      }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | errors = addErrorNotification (errorText error) model }
+                    ( { model
+                        | errors = addErrorNotification (errorText error) model
+                        , infiniteScrollLocal = InfiniteScroll.stopLoading model.infiniteScrollLocal
+                      }
                     , Cmd.none
                     )
 
-        Notifications append result ->
+        Notifications result ->
             case result of
                 Ok { decoded, links } ->
                     let
                         aggregated =
                             Mastodon.Helper.aggregateNotifications decoded
+
+                        loadMore client _ =
+                            Command.loadNotifications client links.next
                     in
-                    ( { model | notifications = Update.Timeline.update append aggregated links model.notifications }
+                    ( { model
+                        | notifications = Update.Timeline.update aggregated links model.notifications |> Update.Timeline.setLoading False
+                        , infiniteScrollNotifications = InfiniteScroll.stopLoading (model.infiniteScrollNotifications |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
+                      }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model
+                        | errors = addErrorNotification (errorText error) model
+                        , infiniteScrollNotifications = InfiniteScroll.stopLoading model.infiniteScrollLocal
+                      }
+                    , Cmd.none
+                    )
+
+        GlobalTimeline result ->
+            case result of
+                Ok { decoded, links } ->
+                    ( { model | globalTimeline = Update.Timeline.update decoded links model.globalTimeline }
                     , Cmd.none
                     )
 
@@ -267,10 +299,10 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        GlobalTimeline append result ->
+        FavoriteTimeline result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | globalTimeline = Update.Timeline.update append decoded links model.globalTimeline }
+                    ( { model | favoriteTimeline = Update.Timeline.update decoded links model.favoriteTimeline }
                     , Cmd.none
                     )
 
@@ -279,10 +311,10 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        FavoriteTimeline append result ->
+        Mutes result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | favoriteTimeline = Update.Timeline.update append decoded links model.favoriteTimeline }
+                    ( { model | mutes = Update.Timeline.update decoded links model.mutes }
                     , Cmd.none
                     )
 
@@ -291,22 +323,10 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        Mutes append result ->
+        Blocks result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | mutes = Update.Timeline.update append decoded links model.mutes }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    ( { model | errors = addErrorNotification (errorText error) model }
-                    , Cmd.none
-                    )
-
-        Blocks append result ->
-            case result of
-                Ok { decoded, links } ->
-                    ( { model | blocks = Update.Timeline.update append decoded links model.blocks }
+                    ( { model | blocks = Update.Timeline.update decoded links model.blocks }
                     , Cmd.none
                     )
 
@@ -402,13 +422,13 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountTimeline append result ->
+        AccountTimeline result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
                         | accountInfo =
                             { accountInfo
-                                | timeline = Update.Timeline.update append decoded links accountInfo.timeline
+                                | timeline = Update.Timeline.update decoded links accountInfo.timeline
                             }
                       }
                     , Cmd.none
@@ -419,13 +439,13 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountFollowers append result ->
+        AccountFollowers result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
                         | accountInfo =
                             { accountInfo
-                                | followers = Update.Timeline.update append decoded links accountInfo.followers
+                                | followers = Update.Timeline.update decoded links accountInfo.followers
                             }
                       }
                     , Command.loadRelationships (List.head model.clients) <| List.map .id decoded
@@ -436,13 +456,13 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        AccountFollowing append result ->
+        AccountFollowing result ->
             case result of
                 Ok { decoded, links } ->
                     ( { model
                         | accountInfo =
                             { accountInfo
-                                | following = Update.Timeline.update append decoded links accountInfo.following
+                                | following = Update.Timeline.update decoded links accountInfo.following
                             }
                       }
                     , Command.loadRelationships (List.head model.clients) <| List.map .id decoded
@@ -484,15 +504,25 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
-        HomeTimeline append result ->
+        HomeTimeline result ->
             case result of
                 Ok { decoded, links } ->
-                    ( { model | homeTimeline = Update.Timeline.update append decoded links model.homeTimeline }
+                    let
+                        loadMore client _ =
+                            Command.loadHomeTimeline client links.next
+                    in
+                    ( { model
+                        | homeTimeline = Update.Timeline.update decoded links model.homeTimeline |> Update.Timeline.setLoading False
+                        , infiniteScrollHome = InfiniteScroll.stopLoading (model.infiniteScrollHome |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
+                      }
                     , Cmd.none
                     )
 
                 Err error ->
-                    ( { model | errors = addErrorNotification (errorText error) model }
+                    ( { model
+                        | errors = addErrorNotification (errorText error) model
+                        , infiniteScrollHome = InfiniteScroll.stopLoading model.infiniteScrollHome
+                      }
                     , Cmd.none
                     )
 

@@ -17,6 +17,7 @@ module Types exposing
     , Msg(..)
     , NotificationFilter(..)
     , ScrollDirection(..)
+    , ScrollElement(..)
     , Search
     , SearchMsg(..)
     , Thread
@@ -29,6 +30,7 @@ module Types exposing
 import Browser
 import Browser.Navigation as Navigation
 import EmojiPicker
+import InfiniteScroll
 import Mastodon.Http exposing (Links, Response)
 import Mastodon.Model exposing (..)
 import Menu
@@ -76,30 +78,30 @@ type alias MastodonResult a =
 type MastodonMsg
     = AccessToken (MastodonResult AccessTokenResult)
     | AccountFollowed Account (MastodonResult Relationship)
-    | AccountFollowers Bool (MastodonResult (List Account))
-    | AccountFollowing Bool (MastodonResult (List Account))
+    | AccountFollowers (MastodonResult (List Account))
+    | AccountFollowing (MastodonResult (List Account))
     | AccountBlocked Account (MastodonResult Relationship)
     | AccountMuted Account (MastodonResult Relationship)
     | AccountReceived (MastodonResult Account)
     | AccountRelationship (MastodonResult (List Relationship))
     | AccountRelationships (MastodonResult (List Relationship))
-    | AccountTimeline Bool (MastodonResult (List Status))
+    | AccountTimeline (MastodonResult (List Status))
     | AccountUnfollowed Account (MastodonResult Relationship)
     | AccountUnblocked Account (MastodonResult Relationship)
     | AccountUnmuted Account (MastodonResult Relationship)
     | AppRegistered (MastodonResult AppRegistration)
     | AutoSearch (MastodonResult (List Account))
-    | Blocks Bool (MastodonResult (List Account))
+    | Blocks (MastodonResult (List Account))
     | CurrentUser (MastodonResult Account)
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
-    | FavoriteTimeline Bool (MastodonResult (List Status))
-    | GlobalTimeline Bool (MastodonResult (List Status))
-    | HashtagTimeline Bool (MastodonResult (List Status))
-    | HomeTimeline Bool (MastodonResult (List Status))
-    | LocalTimeline Bool (MastodonResult (List Status))
-    | Mutes Bool (MastodonResult (List Account))
-    | Notifications Bool (MastodonResult (List Notification))
+    | FavoriteTimeline (MastodonResult (List Status))
+    | GlobalTimeline (MastodonResult (List Status))
+    | HashtagTimeline (MastodonResult (List Status))
+    | HomeTimeline (MastodonResult (List Status))
+    | LocalTimeline (MastodonResult (List Status))
+    | Mutes (MastodonResult (List Account))
+    | Notifications (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
     | SearchResultsReceived (MastodonResult SearchResults)
     | StatusDeleted (MastodonResult StatusId)
@@ -131,6 +133,14 @@ type KeyType
     | KeyControl String
 
 
+type ScrollElement
+    = ScrollContextualTimeline
+    | ScrollHashtagTimeline
+    | ScrollHomeTimeline
+    | ScrollLocalTimeline
+    | ScrollNotifications
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -143,6 +153,7 @@ type Msg
     | DraftEvent DraftMsg
     | FilterNotifications NotificationFilter
     | FollowAccount Account
+    | InfiniteScrollMsg ScrollElement InfiniteScroll.Msg
     | KeyMsg KeyEvent KeyType
     | LogoutClient Client
     | LinkClicked Browser.UrlRequest
@@ -286,29 +297,33 @@ type alias ErrorNotification =
 
 type alias Model =
     { server : String
-    , currentTime : Posix
-    , registration : Maybe AppRegistration
-    , clients : List Client
-    , homeTimeline : Timeline Status
-    , localTimeline : Timeline Status
-    , globalTimeline : Timeline Status
-    , favoriteTimeline : Timeline Status
-    , hashtagTimeline : Timeline Status
-    , mutes : Timeline Account
-    , blocks : Timeline Account
     , accountInfo : AccountInfo
-    , notifications : Timeline NotificationAggregate
+    , blocks : Timeline Account
+    , clients : List Client
+    , confirm : Maybe Confirm
+    , ctrlPressed : Bool
+    , currentUser : Maybe Account
+    , currentTime : Posix
+    , currentView : CurrentView
     , draft : Draft
     , errors : List ErrorNotification
-    , location : Url.Url
-    , viewer : Maybe Viewer
-    , currentUser : Maybe Account
-    , currentView : CurrentView
-    , notificationFilter : NotificationFilter
-    , confirm : Maybe Confirm
-    , search : Search
-    , ctrlPressed : Bool
+    , favoriteTimeline : Timeline Status
+    , globalTimeline : Timeline Status
+    , hashtagTimeline : Timeline Status
+    , homeTimeline : Timeline Status
+    , infiniteScrollHashtag : InfiniteScroll.Model Msg
+    , infiniteScrollHome : InfiniteScroll.Model Msg
+    , infiniteScrollLocal : InfiniteScroll.Model Msg
+    , infiniteScrollNotifications : InfiniteScroll.Model Msg
     , key : Navigation.Key
+    , localTimeline : Timeline Status
+    , location : Url.Url
+    , mutes : Timeline Account
+    , notificationFilter : NotificationFilter
+    , notifications : Timeline NotificationAggregate
+    , registration : Maybe AppRegistration
+    , search : Search
+    , viewer : Maybe Viewer
     }
 
 

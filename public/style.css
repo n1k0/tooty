@@ -73,6 +73,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   max-height: calc(100vh - 44px);
+  height: calc(100vh - 44px);
   overflow: hidden;
   overflow-y: scroll;
 }
@@ -109,6 +110,7 @@ li.load-more {
 
 .notifications-panel .timeline {
   max-height: calc(100vh - 81px);
+  height: calc(100vh - 44px);
 }
 
 .panel a {

@@ -10,6 +10,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Keyed as Keyed
 import Html.Lazy as Lazy
+import InfiniteScroll
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -44,6 +45,19 @@ closeableColumn ( label, iconName, timelineId ) content =
         ]
 
 
+timelineViewInfiniteScroll : CurrentUser -> Timeline Status -> ScrollElement -> Html Msg
+timelineViewInfiniteScroll currentUser timeline scrollElement =
+    let
+        keyedEntry status =
+            ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
+
+        entries =
+            List.map keyedEntry timeline.entries
+    in
+    Keyed.ul [ id timeline.id, class "list-group timeline", InfiniteScroll.infiniteScroll (InfiniteScrollMsg scrollElement) ] <|
+        (entries ++ [ ( "load-more", Common.loadMoreBtn timeline ) ])
+
+
 timelineView : CurrentUser -> Timeline Status -> Html Msg
 timelineView currentUser timeline =
     let
@@ -64,7 +78,7 @@ homeTimelineView currentUser timeline =
         , "home"
         , timeline.id
         )
-        (timelineView currentUser timeline)
+        (timelineViewInfiniteScroll currentUser timeline ScrollHomeTimeline)
 
 
 hashtagTimelineView : String -> CurrentUser -> Timeline Status -> Html Msg
@@ -74,7 +88,7 @@ hashtagTimelineView hashtag currentUser timeline =
         , "tags"
         , timeline.id
         )
-        (timelineView currentUser timeline)
+        (timelineViewInfiniteScroll currentUser timeline ScrollHashtagTimeline)
 
 
 contextualTimelineMenu : String -> Html Msg

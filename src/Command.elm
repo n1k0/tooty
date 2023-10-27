@@ -17,6 +17,7 @@ module Command exposing
     , loadHashtagTimeline
     , loadHomeTimeline
     , loadLocalTimeline
+    , loadMore
     , loadMutes
     , loadNextTimeline
     , loadNotifications
@@ -50,6 +51,7 @@ module Command exposing
 import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import HttpBuilder
+import InfiniteScroll
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Mastodon.ApiUrl as ApiUrl
@@ -173,7 +175,7 @@ loadNotifications client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.notifications url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << Notifications (url /= Nothing)) (Decode.list notificationDecoder)
+                |> withBodyDecoder (MastodonEvent << Notifications) (Decode.list notificationDecoder)
                 |> withQueryParams [ ( "limit", "30" ) ]
                 |> send
 
@@ -217,7 +219,7 @@ loadAccountFollowers client accountId url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.followers accountId) url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << AccountFollowers (url /= Nothing)) (Decode.list accountDecoder)
+                |> withBodyDecoder (MastodonEvent << AccountFollowers) (Decode.list accountDecoder)
                 |> send
 
         Nothing ->
@@ -230,7 +232,7 @@ loadAccountFollowing client accountId url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.following accountId) url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << AccountFollowing (url /= Nothing)) (Decode.list accountDecoder)
+                |> withBodyDecoder (MastodonEvent << AccountFollowing) (Decode.list accountDecoder)
                 |> send
 
         Nothing ->
@@ -310,6 +312,11 @@ loadRelationships client ids =
         Cmd.none
 
 
+loadMore : (Maybe Client -> Maybe String -> Cmd Msg) -> Maybe Client -> Maybe String -> InfiniteScroll.Direction -> Cmd Msg
+loadMore loadCmd client url _ =
+    loadCmd client url
+
+
 loadThread : Maybe Client -> StatusId -> Cmd Msg
 loadThread client id =
     case client of
@@ -335,7 +342,7 @@ loadHomeTimeline client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.homeTimeline url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << HomeTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                |> withBodyDecoder (MastodonEvent << HomeTimeline) (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -350,7 +357,7 @@ loadLocalTimeline client url =
             Cmd.batch
                 [ HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                     |> withClient c
-                    |> withBodyDecoder (MastodonEvent << LocalTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                    |> withBodyDecoder (MastodonEvent << LocalTimeline) (Decode.list statusDecoder)
                     |> withQueryParams [ ( "local", "true" ), ( "limit", "60" ) ]
                     |> send
                 , subscribeToWs client LocalPublicStream
@@ -367,7 +374,7 @@ loadGlobalTimeline client url =
             Cmd.batch
                 [ HttpBuilder.get (Maybe.withDefault ApiUrl.publicTimeline url)
                     |> withClient c
-                    |> withBodyDecoder (MastodonEvent << GlobalTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                    |> withBodyDecoder (MastodonEvent << GlobalTimeline) (Decode.list statusDecoder)
                     |> withQueryParams [ ( "limit", "60" ) ]
                     |> send
                 , subscribeToWs client GlobalPublicStream
@@ -383,7 +390,7 @@ loadAccountTimeline client accountId url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.accountTimeline accountId) url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << AccountTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                |> withBodyDecoder (MastodonEvent << AccountTimeline) (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -397,7 +404,7 @@ loadFavoriteTimeline client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.favouriteTimeline url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << FavoriteTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                |> withBodyDecoder (MastodonEvent << FavoriteTimeline) (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -411,7 +418,7 @@ loadHashtagTimeline client hashtag url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault (ApiUrl.hashtag hashtag) url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << HashtagTimeline (url /= Nothing)) (Decode.list statusDecoder)
+                |> withBodyDecoder (MastodonEvent << HashtagTimeline) (Decode.list statusDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -425,7 +432,7 @@ loadMutes client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.mutes url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << Mutes (url /= Nothing)) (Decode.list accountDecoder)
+                |> withBodyDecoder (MastodonEvent << Mutes) (Decode.list accountDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -439,7 +446,7 @@ loadBlocks client url =
         Just c ->
             HttpBuilder.get (Maybe.withDefault ApiUrl.blocks url)
                 |> withClient c
-                |> withBodyDecoder (MastodonEvent << Blocks (url /= Nothing)) (Decode.list accountDecoder)
+                |> withBodyDecoder (MastodonEvent << Blocks) (Decode.list accountDecoder)
                 |> withQueryParams [ ( "limit", "60" ) ]
                 |> send
 
@@ -484,8 +491,8 @@ subscribeToWs client streamType =
         |> Maybe.withDefault Cmd.none
 
 
-loadNextTimeline : Model -> String -> String -> Cmd Msg
-loadNextTimeline { clients, currentView, accountInfo } id next =
+loadNextTimeline : List Client -> CurrentView -> AccountInfo -> String -> String -> Cmd Msg
+loadNextTimeline clients currentView accountInfo id next =
     let
         client =
             List.head clients

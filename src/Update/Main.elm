@@ -3,6 +3,7 @@ module Update.Main exposing (update)
 import Browser
 import Browser.Navigation as Navigation
 import Command
+import InfiniteScroll
 import List.Extra exposing (removeAt)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
@@ -103,6 +104,47 @@ update msg model =
             ( model
             , Command.follow (List.head model.clients) account
             )
+
+        InfiniteScrollMsg scrollElement msg_ ->
+            case scrollElement of
+                ScrollHomeTimeline ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollHome
+                    in
+                    ( { model
+                        | homeTimeline = Update.Timeline.setLoading True model.homeTimeline
+                        , infiniteScrollHome = infiniteScroll
+                      }
+                    , cmd
+                    )
+
+                ScrollNotifications ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollNotifications
+                    in
+                    ( { model
+                        | notifications = Update.Timeline.setLoading True model.notifications
+                        , infiniteScrollNotifications = infiniteScroll
+                      }
+                    , cmd
+                    )
+
+                ScrollLocalTimeline ->
+                    let
+                        ( infiniteScroll, cmd ) =
+                            InfiniteScroll.update (InfiniteScrollMsg scrollElement) msg_ model.infiniteScrollNotifications
+                    in
+                    ( { model
+                        | localTimeline = Update.Timeline.setLoading True model.localTimeline
+                        , infiniteScrollLocal = infiniteScroll
+                      }
+                    , cmd
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         KeyMsg event keyType ->
             case ( event, keyType, model.viewer ) of
@@ -278,7 +320,7 @@ update msg model =
 
         TimelineLoadNext id next ->
             ( Update.Timeline.markAsLoading True id model
-            , Command.loadNextTimeline model id next
+            , Command.loadNextTimeline model.clients model.currentView model.accountInfo id next
             )
 
         Unblock account ->
