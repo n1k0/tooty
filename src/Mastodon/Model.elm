@@ -110,7 +110,7 @@ type alias Attachment =
     , type_ : String
     , url : String
     , remote_url : String
-    , preview_url : String
+    , preview_url : Maybe String
     , text_url : Maybe String
     , description : Maybe String
     }

@@ -22,44 +22,50 @@ type alias CurrentUser =
 
 attachmentPreview : String -> Maybe Bool -> List Attachment -> Attachment -> Html Msg
 attachmentPreview context sensitive attachments ({ url, preview_url } as attachment) =
-    let
-        attId =
-            "att" ++ attachment.id ++ context
+    --@TODO: manage other attachment types like audio
+    case preview_url of
+        Just p_url ->
+            let
+                attId =
+                    "att" ++ attachment.id ++ context
 
-        media =
-            a
-                [ href url
-                ]
-                [ img
-                    [ class "attachment-image"
-                    , src preview_url
-                    , alt <|
-                        case attachment.description of
-                            Just description ->
-                                description
+                media =
+                    a
+                        [ href url
+                        ]
+                        [ img
+                            [ class "attachment-image"
+                            , src <| p_url
+                            , alt <|
+                                case attachment.description of
+                                    Just description ->
+                                        description
 
-                            Nothing ->
-                                ""
-                    , onClickWithPreventAndStop <|
-                        ViewerEvent (OpenViewer attachments attachment)
+                                    Nothing ->
+                                        ""
+                            , onClickWithPreventAndStop <|
+                                ViewerEvent (OpenViewer attachments attachment)
+                            ]
+                            []
+                        ]
+            in
+            li [ class "attachment-entry" ] <|
+                if Maybe.withDefault False sensitive then
+                    [ input [ type_ "radio", id attId ] []
+                    , label [ for attId ]
+                        [ text "Sensitive content"
+                        , br [] []
+                        , br [] []
+                        , text "click to show image"
+                        ]
+                    , media
                     ]
-                    []
-                ]
-    in
-    li [ class "attachment-entry" ] <|
-        if Maybe.withDefault False sensitive then
-            [ input [ type_ "radio", id attId ] []
-            , label [ for attId ]
-                [ text "Sensitive content"
-                , br [] []
-                , br [] []
-                , text "click to show image"
-                ]
-            , media
-            ]
 
-        else
-            [ media ]
+                else
+                    [ media ]
+
+        Nothing ->
+            em [] [ text <| "Attachement type " ++ attachment.type_ ++ " not implemented." ]
 
 
 attachmentListView : String -> Status -> Html Msg

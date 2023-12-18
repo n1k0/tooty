@@ -363,7 +363,9 @@ draftAttachments attachments =
         attachmentPreview attachment =
             li
                 [ class "draft-attachment-entry"
-                , style "background" ("url(" ++ attachment.preview_url ++ ") center center / cover no-repeat")
+
+                --@TODO: manage other attachment types like audio. For the audio type, the preview_url can be null
+                , style "background" ("url(" ++ Maybe.withDefault "" attachment.preview_url ++ ") center center / cover no-repeat")
                 ]
                 [ a
                     [ href ""
