@@ -42,7 +42,7 @@ accountLink external account =
         [ href account.url
         , accountHref
         ]
-        [ text <| "@" ++ account.username ]
+        [ text <| "@" ++ account.acct ]
 
 
 accountAvatarLink : Bool -> Account -> Html Msg

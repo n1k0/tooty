@@ -257,7 +257,7 @@ statusView context ({ account, reblog } as status) =
                 , div [ class "username" ]
                     [ a accountLinkAttributes
                         [ text account.display_name
-                        , span [ class "acct" ] [ text <| " @" ++ account.username ]
+                        , span [ class "acct" ] [ text <| " @" ++ account.acct ]
                         ]
                     ]
                 , Lazy.lazy2 statusContentView context status
