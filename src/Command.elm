@@ -115,7 +115,7 @@ navigateToAuthUrl registration =
 
 
 registerApp : Model -> Cmd Msg
-registerApp { server, location } =
+registerApp { server, location, clientName } =
     let
         -- The redirect URI should not have a fragment or Mastodon will not accept it
         locationWithoutFragment =
@@ -137,9 +137,6 @@ registerApp { server, location } =
 
             else
                 server
-
-        clientName =
-            "tooty"
 
         scope =
             "read write follow"

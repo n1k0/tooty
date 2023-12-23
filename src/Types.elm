@@ -147,6 +147,7 @@ type Msg
     | Back
     | Block Account
     | ClearError Int
+    | ClientNameChange String
     | ConfirmCancelled Msg
     | Confirmed Msg
     | DeleteStatus StatusId
@@ -296,9 +297,9 @@ type alias ErrorNotification =
 
 
 type alias Model =
-    { server : String
-    , accountInfo : AccountInfo
+    { accountInfo : AccountInfo
     , blocks : Timeline Account
+    , clientName : String
     , clients : List Client
     , confirm : Maybe Confirm
     , ctrlPressed : Bool
@@ -323,6 +324,7 @@ type alias Model =
     , notifications : Timeline NotificationAggregate
     , registration : Maybe AppRegistration
     , search : Search
+    , server : String
     , viewer : Maybe Viewer
     }
 

@@ -74,6 +74,11 @@ update msg model =
             , Cmd.none
             )
 
+        ClientNameChange clientName ->
+            ( { model | clientName = clientName }
+            , Cmd.none
+            )
+
         ConfirmCancelled onCancel ->
             update onCancel { model | confirm = Nothing }
 

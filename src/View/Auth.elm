@@ -28,6 +28,17 @@ authForm model =
                         ++ "We don't have access to your password."
                 ]
             ]
+        , label [ for "client-name" ] [ text "Client name" ]
+        , input
+            [ type_ "text"
+            , class "form-control"
+            , id "client-name"
+            , required True
+            , placeholder "Tooty"
+            , value model.clientName
+            , onInput ClientNameChange
+            ]
+            []
         , button [ class "btn btn-primary", type_ "submit" ]
             [ text "Sign into Tooty" ]
         ]

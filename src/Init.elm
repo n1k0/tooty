@@ -30,6 +30,7 @@ init { registration, clients } location key =
         ( model, commands ) =
             Update.Route.update
                 { server = ""
+                , clientName = "Tooty"
                 , accountInfo = Update.AccountInfo.empty
                 , blocks = Update.Timeline.empty "blocks-timeline"
                 , clients = decodedClients
