@@ -4,6 +4,7 @@ module Update.Draft exposing
     , update
     )
 
+import Browser.Dom as Dom
 import Command
 import EmojiPicker exposing (PickerConfig)
 import Json.Decode as Decode
@@ -12,6 +13,7 @@ import Mastodon.Helper
 import Mastodon.Model exposing (..)
 import Menu
 import String.Extra
+import Task
 import Types exposing (..)
 import Update.Error exposing (addErrorNotification)
 import Util
@@ -132,7 +134,7 @@ update draftMsg currentUser ({ draft } as model) =
                             EmojiPicker.update subMsg subModel
                     in
                     ( { model | draft = { draft | emojiModel = newSubModel } }
-                    , Cmd.none
+                    , Dom.focus "search-text" |> Task.attempt (\_ -> NoOp)
                     )
 
         ToggleSpoiler enabled ->

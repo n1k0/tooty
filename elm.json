@@ -8,7 +8,6 @@
         "direct": {
             "ContaSystemer/elm-menu": "1.1.2",
             "FabienHenon/elm-infinite-scroll": "3.0.3",
-            "Holmusk/elmoji": "1.0.4",
             "NoRedInk/elm-json-decode-pipeline": "1.0.1",
             "billstclair/elm-port-funnel": "1.2.0",
             "billstclair/elm-websocket-client": "4.1.0",
@@ -27,7 +26,8 @@
             "lukewestby/elm-http-builder": "8.0.0",
             "rtfeldman/elm-iso8601-date-strings": "1.1.4",
             "ryannhg/date-format": "2.3.0",
-            "sporto/qs": "2.0.0"
+            "sporto/qs": "2.0.0",
+            "vjousse/elm-emoji": "1.0.0"
         },
         "indirect": {
             "Janiczek/cmd-extra": "1.1.0",
