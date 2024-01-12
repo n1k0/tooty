@@ -307,22 +307,34 @@ processFavourite status added model =
 
         newModel =
             { model | favoriteTimeline = favoriteTimeline }
-    in
-    updateWithBoolFlag status.id
-        added
-        (\s ->
-            { s
+
+        changeFavourite oldStatus =
+            { oldStatus
                 | favourited = Just added
                 , favourites_count =
                     if added then
-                        s.favourites_count + 1
+                        oldStatus.favourites_count + 1
 
-                    else if s.favourites_count > 0 then
-                        s.favourites_count - 1
+                    else if oldStatus.favourites_count > 0 then
+                        oldStatus.favourites_count - 1
 
                     else
                         0
             }
+    in
+    updateWithBoolFlag status.id
+        added
+        (\s ->
+            case s.reblog of
+                Just (Reblog rebloggedStatus) ->
+                    { s
+                        | reblog =
+                            Just
+                                (Reblog <| changeFavourite rebloggedStatus)
+                    }
+
+                _ ->
+                    changeFavourite status
         )
         newModel
 
