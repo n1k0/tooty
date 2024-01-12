@@ -1,10 +1,10 @@
 # tooty
 
-An experimental multi-account [Mastodon Web client](https://n1k0.github.io/tooty/) written in Elm.
+An experimental multi-account [Mastodon Web client](https://n1k0.github.io/tooty/v2/) written in Elm.
 
 ![](tooty.png)
 
-Tooty is a fully static Web application running in recent browsers, you don't need any custom server setup to use it. Just serve it and you're done, or use the [public version hosted on Github Pages](https://n1k0.github.io/tooty/).
+Tooty is a fully static Web application running in recent browsers, you don't need any custom server setup to use it. Just serve it and you're done, or use the [public version hosted on Github Pages](https://n1k0.github.io/tooty/v2/).
 
 If you want to self host Tooty, just [grab a build](https://github.com/n1k0/tooty/archive/gh-pages.zip) and serve it over HTTP.
 
