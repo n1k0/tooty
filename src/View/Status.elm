@@ -95,7 +95,7 @@ statusActionsView status currentUser showApp =
             "btn btn-sm btn-default"
 
         ( reblogClasses, reblogEvent ) =
-            case status.reblogged of
+            case sourceStatus.reblogged of
                 Just True ->
                     ( baseBtnClasses ++ " reblogged", UnreblogStatus sourceStatus )
 
@@ -103,7 +103,7 @@ statusActionsView status currentUser showApp =
                     ( baseBtnClasses, ReblogStatus sourceStatus )
 
         ( favClasses, favEvent ) =
-            case status.favourited of
+            case sourceStatus.favourited of
                 Just True ->
                     ( baseBtnClasses ++ " favourited", RemoveFavorite sourceStatus )
 
@@ -113,14 +113,14 @@ statusActionsView status currentUser showApp =
     div [ class "btn-group actions" ]
         [ button
             [ class baseBtnClasses
-            , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo status)
+            , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo sourceStatus)
             ]
             [ Common.icon "share-alt" ]
-        , if status.visibility == "private" then
+        , if sourceStatus.visibility == "private" then
             span [ class <| reblogClasses ++ " disabled" ]
                 [ span [ title "Private" ] [ Common.icon "lock" ] ]
 
-          else if status.visibility == "direct" then
+          else if sourceStatus.visibility == "direct" then
             span [ class <| reblogClasses ++ " disabled" ]
                 [ span [ title "Direct" ] [ Common.icon "envelope" ] ]
 
@@ -144,12 +144,12 @@ statusActionsView status currentUser showApp =
             text ""
         , a
             [ class baseBtnClasses
-            , href (Maybe.withDefault "#" status.url)
+            , href (Maybe.withDefault "#" sourceStatus.url)
             , target "_blank"
-            , title (status.edited_at |> Maybe.map (\edited_at -> "Edited - " ++ Common.formatDate edited_at) |> Maybe.withDefault "")
+            , title (sourceStatus.edited_at |> Maybe.map (\edited_at -> "Edited - " ++ Common.formatDate edited_at) |> Maybe.withDefault "")
             ]
-            [ Common.icon "time", text <| Common.formatDate status.created_at ]
-        , case status.edited_at of
+            [ Common.icon "time", text <| Common.formatDate sourceStatus.created_at ]
+        , case sourceStatus.edited_at of
             Just edited_at ->
                 em
                     [ class baseBtnClasses
@@ -160,7 +160,7 @@ statusActionsView status currentUser showApp =
             _ ->
                 text ""
         , if showApp then
-            Common.appLink (baseBtnClasses ++ " applink") status.application
+            Common.appLink (baseBtnClasses ++ " applink") sourceStatus.application
 
           else
             text ""

@@ -307,43 +307,68 @@ processFavourite status added model =
 
         newModel =
             { model | favoriteTimeline = favoriteTimeline }
-    in
-    updateWithBoolFlag status.id
-        added
-        (\s ->
-            { s
+
+        changeFavourite oldStatus =
+            { oldStatus
                 | favourited = Just added
                 , favourites_count =
                     if added then
-                        s.favourites_count + 1
+                        oldStatus.favourites_count + 1
 
-                    else if s.favourites_count > 0 then
-                        s.favourites_count - 1
+                    else if oldStatus.favourites_count > 0 then
+                        oldStatus.favourites_count - 1
 
                     else
                         0
             }
+    in
+    updateWithBoolFlag status.id
+        added
+        (\s ->
+            case s.reblog of
+                Just (Reblog rebloggedStatus) ->
+                    { s
+                        | reblog =
+                            Just
+                                (Reblog <| changeFavourite rebloggedStatus)
+                    }
+
+                _ ->
+                    changeFavourite status
         )
         newModel
 
 
 processReblog : Status -> Bool -> Model -> Model
 processReblog status added model =
-    updateWithBoolFlag status.id
-        added
-        (\s ->
-            { s
+    let
+        changeReblog oldStatus =
+            { oldStatus
                 | reblogged = Just added
                 , reblogs_count =
                     if added then
-                        s.reblogs_count + 1
+                        oldStatus.reblogs_count + 1
 
-                    else if s.reblogs_count > 0 then
-                        s.reblogs_count - 1
+                    else if oldStatus.reblogs_count > 0 then
+                        oldStatus.reblogs_count - 1
 
                     else
                         0
             }
+    in
+    updateWithBoolFlag status.id
+        added
+        (\s ->
+            case s.reblog of
+                Just (Reblog rebloggedStatus) ->
+                    { s
+                        | reblog =
+                            Just
+                                (Reblog <| changeReblog rebloggedStatus)
+                    }
+
+                _ ->
+                    changeReblog status
         )
         model
 
