@@ -48,11 +48,13 @@ type DraftMsg
     = ClearDraft
     | CloseAutocomplete
     | EditStatus Status
+    | EmojiMsg EmojiPicker.Msg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SelectAccount String
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
+    | UpdateAttachmentDescription String String
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
     | UpdateSpoiler String
@@ -61,14 +63,13 @@ type DraftMsg
     | UploadError String
     | UploadMedia String
     | UploadResult String
-    | EmojiMsg EmojiPicker.Msg
 
 
 type ViewerMsg
     = CloseViewer
+    | NextAttachment
     | OpenViewer (List Attachment) Attachment
     | PrevAttachment
-    | NextAttachment
 
 
 type alias MastodonResult a =

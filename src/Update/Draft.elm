@@ -153,6 +153,26 @@ update draftMsg currentUser ({ draft } as model) =
             , Cmd.none
             )
 
+        UpdateAttachmentDescription attachmentId description ->
+            let
+                newDraft =
+                    { draft
+                        | attachments =
+                            List.map
+                                (\a ->
+                                    if a.id == attachmentId then
+                                        { a | description = Just description }
+
+                                    else
+                                        a
+                                )
+                                draft.attachments
+                    }
+            in
+            ( { model | draft = newDraft }
+            , Cmd.none
+            )
+
         UpdateSensitive sensitive ->
             ( { model | draft = { draft | sensitive = sensitive } }
             , Cmd.none

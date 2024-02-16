@@ -31,6 +31,7 @@ module Mastodon.ApiUrl exposing
     , unfollow
     , unmute
     , unreblog
+    , updateMedia
     , uploadMedia
     , userAccount
     )
@@ -225,3 +226,8 @@ streaming =
 uploadMedia : String
 uploadMedia =
     apiPrefix ++ "/media"
+
+
+updateMedia : String -> String
+updateMedia id =
+    apiPrefix ++ "/media/" ++ id

@@ -362,16 +362,29 @@ draftAttachments attachments =
     let
         attachmentPreview attachment =
             li
-                [ class "draft-attachment-entry"
-
-                --@TODO: manage other attachment types like audio. For the audio type, the preview_url can be null
-                , style "background" ("url(" ++ Maybe.withDefault "" attachment.preview_url ++ ") center center / cover no-repeat")
-                ]
-                [ a
-                    [ href ""
-                    , onClickWithPreventAndStop <| DraftEvent (RemoveMedia attachment.id)
+                [ class "draft-attachment-entry" ]
+                [ div
+                    [ --@TODO: manage other attachment types like audio. For the audio type, the preview_url can be null
+                      style "background" ("url(" ++ Maybe.withDefault "" attachment.preview_url ++ ") center center / cover no-repeat")
                     ]
-                    [ text "×" ]
+                    [ a
+                        [ href ""
+                        , onClickWithPreventAndStop <| DraftEvent (RemoveMedia attachment.id)
+                        ]
+                        [ text "×" ]
+                    ]
+                , div [ class "form-group" ]
+                    [ label [ for ("attachment-" ++ attachment.id) ] [ text "Attachment description" ]
+                    , input
+                        [ type_ "text"
+                        , class "form-control"
+                        , id ("attachment-" ++ attachment.id)
+                        , required True
+                        , placeholder "Your attachment description"
+                        , onInput <| \description -> DraftEvent (UpdateAttachmentDescription attachment.id description)
+                        ]
+                        []
+                    ]
                 ]
     in
     div [ class "draft-attachments-field" ]
