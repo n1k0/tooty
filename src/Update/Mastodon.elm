@@ -311,6 +311,11 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
+        MediaUpdated _ ->
+            ( model
+            , Cmd.none
+            )
+
         Mutes result ->
             case result of
                 Ok { decoded, links } ->

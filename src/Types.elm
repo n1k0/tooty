@@ -48,11 +48,14 @@ type DraftMsg
     = ClearDraft
     | CloseAutocomplete
     | EditStatus Status
+    | EmojiMsg EmojiPicker.Msg
     | RemoveMedia String
     | ResetAutocomplete Bool
+    | SaveAttachmentDescription String
     | SelectAccount String
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
+    | UpdateAttachmentDescription String String
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
     | UpdateSpoiler String
@@ -61,14 +64,13 @@ type DraftMsg
     | UploadError String
     | UploadMedia String
     | UploadResult String
-    | EmojiMsg EmojiPicker.Msg
 
 
 type ViewerMsg
     = CloseViewer
+    | NextAttachment
     | OpenViewer (List Attachment) Attachment
     | PrevAttachment
-    | NextAttachment
 
 
 type alias MastodonResult a =
@@ -100,6 +102,7 @@ type MastodonMsg
     | HashtagTimeline (MastodonResult (List Status))
     | HomeTimeline (MastodonResult (List Status))
     | LocalTimeline (MastodonResult (List Status))
+    | MediaUpdated (MastodonResult Status)
     | Mutes (MastodonResult (List Account))
     | Notifications (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)
