@@ -45,6 +45,7 @@ module Command exposing
     , unmute
     , unreblogStatus
     , updateDomStatus
+    , updateMedia
     , uploadMedia
     )
 
@@ -752,6 +753,20 @@ uploadMedia client fileInputId =
 focusId : String -> Cmd Msg
 focusId id =
     Dom.focus id |> Task.attempt (\_ -> NoOp)
+
+
+updateMedia : Maybe Client -> String -> MediaRequestBody -> Cmd Msg
+updateMedia client mediaId requestBody =
+    case client of
+        Just c ->
+            HttpBuilder.put (ApiUrl.updateMedia mediaId)
+                |> withClient c
+                |> HttpBuilder.withJsonBody (mediaRequestBodyEncoder requestBody)
+                |> withBodyDecoder (MastodonEvent << MediaUpdated) statusDecoder
+                |> send
+
+        Nothing ->
+            Cmd.none
 
 
 scrollColumnToTop : String -> Cmd Msg

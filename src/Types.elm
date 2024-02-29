@@ -51,6 +51,7 @@ type DraftMsg
     | EmojiMsg EmojiPicker.Msg
     | RemoveMedia String
     | ResetAutocomplete Bool
+    | SaveAttachmentDescription String
     | SelectAccount String
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
@@ -101,6 +102,7 @@ type MastodonMsg
     | HashtagTimeline (MastodonResult (List Status))
     | HomeTimeline (MastodonResult (List Status))
     | LocalTimeline (MastodonResult (List Status))
+    | MediaUpdated (MastodonResult Status)
     | Mutes (MastodonResult (List Account))
     | Notifications (MastodonResult (List Notification))
     | Reblogged (MastodonResult Status)

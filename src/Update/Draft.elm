@@ -137,6 +137,25 @@ update draftMsg currentUser ({ draft } as model) =
                     , Dom.focus "search-text" |> Task.attempt (\_ -> NoOp)
                     )
 
+        SaveAttachmentDescription attachmentId ->
+            let
+                attachmentToSave =
+                    Debug.log "Should save " (List.head <| List.filter (\a -> a.id == attachmentId) draft.attachments)
+            in
+            ( model
+            , case attachmentToSave of
+                Just a ->
+                    case a.description of
+                        Just description ->
+                            Command.updateMedia (List.head model.clients) a.id { description = description }
+
+                        Nothing ->
+                            Cmd.none
+
+                Nothing ->
+                    Cmd.none
+            )
+
         ToggleSpoiler enabled ->
             let
                 newDraft =

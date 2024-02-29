@@ -382,6 +382,7 @@ draftAttachments attachments =
                         , required True
                         , placeholder "Your attachment description"
                         , onInput <| \description -> DraftEvent (UpdateAttachmentDescription attachment.id description)
+                        , onBlur <| DraftEvent (SaveAttachmentDescription attachment.id)
                         ]
                         []
                     ]
