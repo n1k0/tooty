@@ -1,6 +1,6 @@
 # tooty
 
-An experimental multi-account [Mastodon Web client](https://n1k0.github.io/tooty/v2/) written in Elm.
+An experimental multi-account [Mastodon Web client](https://n1k0.github.io/tooty/v2/) written in Elm. You can find the [Mastodon lib in this repo](https://github.com/vjousse/elm-mastodon-tooty/).
 
 ![](tooty.png)
 
