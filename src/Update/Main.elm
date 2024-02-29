@@ -177,8 +177,9 @@ update msg model =
                     , Cmd.none
                     )
 
+                -- Always reset ctrlPressed to try to fix https://github.com/n1k0/tooty/issues/215
                 _ ->
-                    ( model
+                    ( { model | ctrlPressed = False }
                     , Cmd.none
                     )
 
