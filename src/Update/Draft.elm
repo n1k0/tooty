@@ -140,7 +140,7 @@ update draftMsg currentUser ({ draft } as model) =
         SaveAttachmentDescription attachmentId ->
             let
                 attachmentToSave =
-                    Debug.log "Should save " (List.head <| List.filter (\a -> a.id == attachmentId) draft.attachments)
+                    List.head <| List.filter (\a -> a.id == attachmentId) draft.attachments
             in
             ( model
             , case attachmentToSave of
