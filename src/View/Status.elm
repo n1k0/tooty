@@ -114,6 +114,7 @@ statusActionsView status currentUser showApp =
         [ button
             [ class baseBtnClasses
             , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo sourceStatus)
+            , title "Reply"
             ]
             [ Common.icon "share-alt" ]
         , if sourceStatus.visibility == "private" then
@@ -126,15 +127,16 @@ statusActionsView status currentUser showApp =
 
           else
             button
-                [ class reblogClasses, onClickWithPreventAndStop reblogEvent ]
+                [ class reblogClasses, onClickWithPreventAndStop reblogEvent, title "Retoot" ]
                 [ Common.icon "fire", text (String.fromInt sourceStatus.reblogs_count) ]
         , button
-            [ class favClasses, onClickWithPreventAndStop favEvent ]
+            [ class favClasses, onClickWithPreventAndStop favEvent, title "Add to favorites" ]
             [ Common.icon "star", text (String.fromInt sourceStatus.favourites_count) ]
         , if Mastodon.Helper.sameAccount sourceStatus.account currentUser then
             button
                 [ class <| baseBtnClasses ++ " btn-delete"
                 , href ""
+                , title "Delete toot"
                 , onClickWithPreventAndStop <|
                     AskConfirm "Are you sure you want to delete this toot?" (DeleteStatus sourceStatus.id) NoOp
                 ]
@@ -169,11 +171,24 @@ statusActionsView status currentUser showApp =
                 [ class <| baseBtnClasses ++ " btn-edit"
                 , href ""
                 , onClickWithPreventAndStop <| DraftEvent (EditStatus sourceStatus)
+                , title "Edit status"
                 ]
                 [ Common.icon "edit" ]
 
           else
             text ""
+        , case sourceStatus.url of
+            Just url ->
+                a
+                    [ class <| baseBtnClasses
+                    , href url
+                    , target "_blank"
+                    , title "Open original toot"
+                    ]
+                    [ Common.icon "link" ]
+
+            _ ->
+                text ""
         ]
 
 
