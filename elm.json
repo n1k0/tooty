@@ -26,7 +26,7 @@
       "ryan-haskell/date-format": "1.0.0",
       "sporto/qs": "2.0.0",
       "vjousse/elm-emoji": "1.0.0",
-      "vjousse/elm-mastodon-tooty": "1.1.0"
+      "vjousse/elm-mastodon-tooty": "1.1.1"
     },
     "indirect": {
       "Janiczek/cmd-extra": "1.1.0",
