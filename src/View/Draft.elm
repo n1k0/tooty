@@ -383,6 +383,7 @@ draftAttachments attachments =
                         , placeholder "Your attachment description"
                         , onInput <| \description -> DraftEvent (UpdateAttachmentDescription attachment.id description)
                         , onBlur <| DraftEvent (SaveAttachmentDescription attachment.id)
+                        , value <| Maybe.withDefault "" attachment.description
                         ]
                         []
                     ]
