@@ -70,6 +70,7 @@ init { registration, clients } location key =
                 , location = location
                 , mutes = Update.Timeline.empty "mutes-timeline"
                 , notificationFilter = NotificationAll
+                , rawNotifications = []
                 , notifications = Update.Timeline.empty "notifications"
                 , registration = registration
                 , search = Search "" Nothing

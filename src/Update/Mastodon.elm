@@ -273,7 +273,8 @@ update msg ({ accountInfo, search } as model) =
                             Command.loadNotifications client links.next
                     in
                     ( { model
-                        | notifications = Update.Timeline.update aggregated links model.notifications |> Update.Timeline.setLoading False
+                        | rawNotifications = decoded
+                        , notifications = Update.Timeline.update aggregated links model.notifications |> Update.Timeline.setLoading False
                         , infiniteScrollNotifications = InfiniteScroll.stopLoading (model.infiniteScrollNotifications |> InfiniteScroll.loadMoreCmd (loadMore (List.head model.clients)))
                       }
                     , Cmd.none

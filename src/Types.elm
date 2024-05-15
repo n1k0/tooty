@@ -324,6 +324,7 @@ type alias Model =
     , location : Url.Url
     , mutes : Timeline Account
     , notificationFilter : NotificationFilter
+    , rawNotifications : List Notification
     , notifications : Timeline NotificationAggregate
     , registration : Maybe AppRegistration
     , search : Search

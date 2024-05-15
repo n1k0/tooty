@@ -55,18 +55,21 @@ update msg model =
                     case result of
                         Ok notification ->
                             let
-                                oldNotifications =
-                                    model.notifications
-
                                 newNotifications =
-                                    { oldNotifications
-                                        | entries =
-                                            Mastodon.Helper.addNotificationToAggregates
-                                                notification
-                                                oldNotifications.entries
-                                    }
+                                    notification :: model.rawNotifications
+
+                                aggregated =
+                                    Mastodon.Helper.aggregateNotifications newNotifications
                             in
-                            ( { model | notifications = newNotifications }
+                            ( { model
+                                | notifications =
+                                    Update.Timeline.update
+                                        aggregated
+                                        { prev = Nothing, next = Nothing }
+                                        (Update.Timeline.empty "notifications")
+                                        |> Update.Timeline.setLoading False
+                                , rawNotifications = newNotifications
+                              }
                             , Command.notifyNotification notification
                             )
 
