@@ -13,7 +13,7 @@ import Types exposing (..)
 import Util
 import View.Common as Common
 import View.Events exposing (..)
-import View.Formatter exposing (formatContent)
+import View.Formatter exposing (formatContentWithEmojis, getDisplayNameForAccount)
 import View.Status exposing (statusView)
 
 
@@ -88,14 +88,22 @@ currentUserView currentUser =
             div [ class "current-user" ]
                 [ Common.accountAvatarLink False user
                 , div [ class "username" ]
-                    [ Common.accountLink False user
-                    , span []
-                        [ text " ("
-                        , a [ href "#accounts" ] [ text "switch account" ]
-                        , text ")"
-                        ]
-                    ]
-                , p [ class "status-text" ] <| formatContent user.note []
+                    ((if user.display_name /= "" then
+                        getDisplayNameForAccount user
+
+                      else
+                        []
+                     )
+                        ++ [ text " - "
+                           , Common.accountLink False user
+                           , span []
+                                [ text " ("
+                                , a [ href "#accounts" ] [ text "switch account" ]
+                                , text ")"
+                                ]
+                           ]
+                    )
+                , p [ class "status-text" ] <| formatContentWithEmojis user.note [] user.emojis
                 ]
 
         Nothing ->
