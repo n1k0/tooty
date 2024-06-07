@@ -95,6 +95,7 @@ type MastodonMsg
     | AutoSearch (MastodonResult (List Account))
     | Blocks (MastodonResult (List Account))
     | CurrentUser (MastodonResult Account)
+    | CustomEmojis (MastodonResult (List CustomEmoji))
     | FavoriteAdded (MastodonResult Status)
     | FavoriteRemoved (MastodonResult Status)
     | FavoriteTimeline (MastodonResult (List Status))
@@ -309,6 +310,7 @@ type alias Model =
     , currentUser : Maybe Account
     , currentTime : Posix
     , currentView : CurrentView
+    , customEmojis : List CustomEmoji
     , draft : Draft
     , errors : List ErrorNotification
     , favoriteTimeline : Timeline Status

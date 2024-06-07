@@ -38,6 +38,7 @@ init { registration, clients } location key =
                 , currentTime = Time.millisToPosix 0
                 , currentView = LocalTimelineView
                 , currentUser = Nothing
+                , customEmojis = []
                 , ctrlPressed = False
                 , draft = Update.Draft.empty
                 , errors = []

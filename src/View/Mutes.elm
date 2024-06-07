@@ -8,6 +8,7 @@ import Mastodon.Helper exposing (..)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
+import View.Formatter exposing (getDisplayNameForAccount)
 import View.Timeline exposing (contextualTimelineMenu, topScrollableColumn)
 
 
@@ -38,13 +39,12 @@ muteView currentUser account =
                 [ strong []
                     [ a
                         [ href <| "#account/" ++ account.id ]
-                        [ text <|
-                            if account.display_name /= "" then
-                                account.display_name
+                        (if account.display_name /= "" then
+                            getDisplayNameForAccount account
 
-                            else
-                                account.username
-                        ]
+                         else
+                            [ text account.username ]
+                        )
                     ]
                 , br [] []
                 , text <| "@" ++ account.acct

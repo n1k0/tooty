@@ -26,6 +26,7 @@
   "homepage": "https://github.com/n1k0/tooty#readme",
   "devDependencies": {
     "elm": "^0.19.1-5",
+    "elm-json": "^0.2.13",
     "elm-live": "^4.0.1",
     "elm-test": "^0.19.1-revision12",
     "gh-pages": "^6.0.0",

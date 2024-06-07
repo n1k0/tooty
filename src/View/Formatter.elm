@@ -1,4 +1,4 @@
-module View.Formatter exposing (formatContent, textContent)
+module View.Formatter exposing (formatContent, formatContentWithEmojis, getDisplayNameForAccount, stringToHtml, textContent)
 
 import Dict
 import Html exposing (..)
@@ -19,6 +19,39 @@ formatContent content mentions =
         |> Html.Parser.run
         |> Result.withDefault []
         |> toVirtualDom mentions
+
+
+formatContentWithEmojis : String -> List Mention -> List CustomEmoji -> List (Html Msg)
+formatContentWithEmojis content mentions emojis =
+    formatContent (replaceEmojis emojis content) mentions
+
+
+stringToHtml : String -> List (Html Msg)
+stringToHtml content =
+    content
+        |> Html.Parser.run
+        |> Result.withDefault []
+        |> toVirtualDom []
+
+
+replaceEmojis : List CustomEmoji -> String -> String
+replaceEmojis emojis displayName =
+    emojis
+        |> List.foldl
+            (\emoji string ->
+                String.replace
+                    (":" ++ emoji.shortcode ++ ":")
+                    ("<img class=\"emoji-custom\" src=\"" ++ emoji.url ++ "\" alt=\"" ++ (":" ++ emoji.shortcode ++ ":") ++ "\" title=\"" ++ (":" ++ emoji.shortcode ++ ":") ++ "\"/>")
+                    string
+            )
+            displayName
+
+
+getDisplayNameForAccount : Account -> List (Html Msg)
+getDisplayNameForAccount account =
+    account.display_name
+        |> replaceEmojis account.emojis
+        |> stringToHtml
 
 
 
@@ -64,6 +97,27 @@ textContent html =
 toVirtualDom : List Mention -> List Html.Parser.Node -> List (Html Msg)
 toVirtualDom mentions nodes =
     List.map (toVirtualDomEach mentions) nodes
+
+
+toVirtualDomEach : List Mention -> Html.Parser.Node -> Html Msg
+toVirtualDomEach mentions node =
+    case node of
+        Html.Parser.Element "a" attrs children ->
+            createLinkNode attrs children mentions
+
+        Html.Parser.Element name attrs children ->
+            Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
+
+        Html.Parser.Text s ->
+            text s
+
+        Html.Parser.Comment _ ->
+            text ""
+
+
+toAttribute : ( String, String ) -> Attribute msg
+toAttribute ( name, value ) =
+    attribute name value
 
 
 replaceHref : String -> List ( String, String ) -> List (Attribute Msg)
@@ -137,24 +191,3 @@ getMentionForLink attrs mentions =
                     |> List.filter (\m -> m.url == href)
                     |> List.head
             )
-
-
-toVirtualDomEach : List Mention -> Html.Parser.Node -> Html Msg
-toVirtualDomEach mentions node =
-    case node of
-        Html.Parser.Element "a" attrs children ->
-            createLinkNode attrs children mentions
-
-        Html.Parser.Element name attrs children ->
-            Html.node name (List.map toAttribute attrs) (toVirtualDom mentions children)
-
-        Html.Parser.Text s ->
-            text s
-
-        Html.Parser.Comment _ ->
-            text ""
-
-
-toAttribute : ( String, String ) -> Attribute msg
-toAttribute ( name, value ) =
-    attribute name value
