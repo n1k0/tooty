@@ -1002,3 +1002,12 @@ input.form-control[type="file"] {
   height: 18px;
   margin: 0 1px;
 }
+
+.account-detail img.emoji-custom,
+img.emoji-custom {
+  height: 18px;
+  display: inline;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
