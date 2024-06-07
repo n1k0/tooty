@@ -12,6 +12,7 @@ module Command exposing
     , loadAccountFollowing
     , loadAccountTimeline
     , loadBlocks
+    , loadCustomEmojis
     , loadFavoriteTimeline
     , loadGlobalTimeline
     , loadHashtagTimeline
@@ -99,7 +100,11 @@ initCommands registration client location =
                         [ Navigation.load rootLocation ]
 
             Nothing ->
-                [ loadUserAccount client, loadTimelines client, subscribeToWs client UserStream ]
+                [ loadUserAccount client
+                , loadTimelines client
+                , loadCustomEmojis client
+                , subscribeToWs client UserStream
+                ]
 
 
 getAccessToken : AppRegistration -> String -> Cmd Msg
@@ -165,6 +170,19 @@ saveRegistration registration =
     registrationEncoder registration
         |> Encode.encode 0
         |> Ports.saveRegistration
+
+
+loadCustomEmojis : Maybe Client -> Cmd Msg
+loadCustomEmojis client =
+    case client of
+        Just c ->
+            HttpBuilder.get ApiUrl.customEmojis
+                |> withClient c
+                |> withBodyDecoder (MastodonEvent << CustomEmojis) (Decode.list customEmojiDecoder)
+                |> send
+
+        Nothing ->
+            Cmd.none
 
 
 loadNotifications : Maybe Client -> Maybe String -> Cmd Msg

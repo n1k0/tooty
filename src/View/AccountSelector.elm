@@ -8,6 +8,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Auth exposing (authForm)
 import View.Common exposing (..)
+import View.Formatter exposing (getDisplayNameForAccount)
 import View.Timeline exposing (contextualTimelineMenu)
 
 
@@ -36,13 +37,12 @@ accountIdentityView currentUser client =
                 [ accountAvatar "" account
                 , span []
                     [ strong []
-                        [ text <|
-                            if account.display_name /= "" then
-                                account.display_name
+                        (if account.display_name /= "" then
+                            getDisplayNameForAccount account
 
-                            else
-                                account.username
-                        ]
+                         else
+                            [ text account.username ]
+                        )
                     , br [] []
                     , account.url
                         |> String.replace "https://" "@"

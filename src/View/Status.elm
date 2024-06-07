@@ -13,7 +13,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
 import View.Events exposing (..)
-import View.Formatter exposing (formatContent)
+import View.Formatter exposing (formatContent, formatContentWithEmojis, getDisplayNameForAccount)
 
 
 type alias CurrentUser =
@@ -197,7 +197,7 @@ statusContentView context status =
     case status.spoiler_text of
         "" ->
             div [ class "status-text" ]
-                [ div [ onClickWithStop <| OpenThread status ] <| formatContent status.content status.mentions
+                [ div [ onClickWithStop <| OpenThread status ] <| formatContentWithEmojis status.content status.mentions status.emojis
                 , attachmentListView context status
                 ]
 
@@ -271,9 +271,10 @@ statusView context ({ account, reblog } as status) =
                 [ Common.accountAvatarLink False account
                 , div [ class "username" ]
                     [ a accountLinkAttributes
-                        [ text account.display_name
-                        , span [ class "acct" ] [ text <| " @" ++ account.acct ]
-                        ]
+                        (getDisplayNameForAccount account
+                            ++ [ span [ class "acct" ] [ text <| " @" ++ account.acct ]
+                               ]
+                        )
                     ]
                 , Lazy.lazy2 statusContentView context status
                 ]

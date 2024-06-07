@@ -137,6 +137,18 @@ update msg ({ accountInfo, search } as model) =
                     , Cmd.none
                     )
 
+        CustomEmojis result ->
+            case result of
+                Ok { decoded } ->
+                    ( { model | customEmojis = decoded }
+                    , Cmd.none
+                    )
+
+                Err error ->
+                    ( { model | errors = addErrorNotification (errorText error) model }
+                    , Cmd.none
+                    )
+
         ThreadStatusLoaded id result ->
             case result of
                 Ok { decoded } ->

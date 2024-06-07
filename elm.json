@@ -19,21 +19,19 @@
       "elm-community/dict-extra": "2.4.0",
       "elm-community/list-extra": "8.7.0",
       "elm-community/string-extra": "4.0.1",
-      "elm-explorations/test": "2.1.1",
       "hecrj/html-parser": "2.4.0",
       "lukewestby/elm-http-builder": "8.0.0",
       "rtfeldman/elm-iso8601-date-strings": "1.1.4",
       "ryan-haskell/date-format": "1.0.0",
       "sporto/qs": "2.0.0",
       "vjousse/elm-emoji": "1.0.0",
-      "vjousse/elm-mastodon-tooty": "1.1.2"
+      "vjousse/elm-mastodon-tooty": "2.0.0"
     },
     "indirect": {
       "Janiczek/cmd-extra": "1.1.0",
       "elm/bytes": "1.0.8",
       "elm/file": "1.0.5",
       "elm/parser": "1.1.0",
-      "elm/random": "1.0.0",
       "elm/regex": "1.0.0",
       "elm/svg": "1.0.1",
       "elm/virtual-dom": "1.0.3",
@@ -43,7 +41,11 @@
     }
   },
   "test-dependencies": {
-    "direct": {},
-    "indirect": {}
+    "direct": {
+      "elm-explorations/test": "2.2.0"
+    },
+    "indirect": {
+      "elm/random": "1.0.0"
+    }
   }
 }

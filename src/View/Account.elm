@@ -10,7 +10,7 @@ import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
-import View.Formatter exposing (formatContent)
+import View.Formatter exposing (formatContentWithEmojis, getDisplayNameForAccount)
 import View.Status exposing (statusEntryView)
 
 
@@ -65,13 +65,12 @@ followView currentUser relationship account =
             [ strong []
                 [ a
                     [ href <| "#account/" ++ account.id ]
-                    [ text <|
-                        if account.display_name /= "" then
-                            account.display_name
+                    (if account.display_name /= "" then
+                        getDisplayNameForAccount account
 
-                        else
-                            account.username
-                    ]
+                     else
+                        [ text account.username ]
+                    )
                 ]
             , br [] []
             , text <| "@" ++ account.acct
@@ -267,7 +266,7 @@ accountView subView currentUser accountInfo =
                                 , muteButton currentUser accountInfo.relationship account
                                 , blockButton currentUser accountInfo.relationship account
                                 , Common.accountAvatarLink True account
-                                , span [ class "account-display-name" ] [ text account.display_name ]
+                                , span [ class "account-display-name" ] (getDisplayNameForAccount account)
                                 , span [ class "account-username" ]
                                     [ Common.accountLink True account
                                     , case accountInfo.relationship of
@@ -295,7 +294,7 @@ accountView subView currentUser accountInfo =
                                         Nothing ->
                                             text ""
                                     ]
-                                , span [ class "account-note" ] (formatContent account.note [])
+                                , span [ class "account-note" ] (formatContentWithEmojis account.note [] account.emojis)
                                 ]
                             ]
                         , counterLinks subView account
