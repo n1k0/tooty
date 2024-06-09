@@ -61,12 +61,13 @@ empty =
     , attachments = []
     , mediaUploading = False
     , statusLength = 0
+    , autocompleteType = Nothing
     , autoState = Menu.empty
-    , autoAtPosition = Nothing
+    , autoStartPosition = Nothing
     , autoQuery = ""
-    , autoCursorPosition = 0
     , autoMaxResults = 4
     , autoAccounts = []
+    , autoEmojis = []
     , showAutoMenu = False
     , emojiModel = EmojiPicker.init pickerConfig
     }
@@ -238,41 +239,61 @@ update draftMsg currentUser ({ draft } as model) =
                 stringToPos =
                     String.slice 0 selectionStart status
 
-                atPosition =
-                    case String.right 1 stringToPos of
-                        "@" ->
-                            Just selectionStart
-
-                        " " ->
-                            Nothing
+                getQuery position =
+                    case position of
+                        Just p ->
+                            String.slice p (String.length stringToPos) stringToPos
 
                         _ ->
-                            model.draft.autoAtPosition
-
-                query =
-                    case atPosition of
-                        Just position ->
-                            String.slice position (String.length stringToPos) stringToPos
-
-                        Nothing ->
                             ""
+
+                ( startAutocompletePosition, autocompleteType, query ) =
+                    case String.right 1 stringToPos of
+                        "@" ->
+                            ( Just selectionStart, Just AccountAuto, getQuery <| Just selectionStart )
+
+                        ":" ->
+                            case model.draft.autocompleteType of
+                                -- End of an already existing emoji
+                                Just EmojiAuto ->
+                                    ( model.draft.autoStartPosition, Just EmojiAuto, getQuery model.draft.autoStartPosition )
+
+                                -- New Emoji
+                                _ ->
+                                    ( Just selectionStart, Just EmojiAuto, getQuery <| Just selectionStart )
+
+                        -- Space is pressed, cancel auto state
+                        " " ->
+                            ( Nothing, Nothing, "" )
+
+                        -- Middle of a word
+                        _ ->
+                            case model.draft.autocompleteType of
+                                Nothing ->
+                                    ( Nothing, Nothing, "" )
+
+                                autoType ->
+                                    ( model.draft.autoStartPosition
+                                    , autoType
+                                    , getQuery model.draft.autoStartPosition
+                                    )
 
                 newDraft =
                     { draft
                         | status = status
                         , statusLength = String.length status
-                        , autoCursorPosition = selectionStart
-                        , autoAtPosition = atPosition
+                        , autoStartPosition = startAutocompletePosition
                         , autoQuery = query
+                        , autocompleteType = autocompleteType
                         , showAutoMenu =
                             showAutoMenu
                                 draft.autoAccounts
-                                draft.autoAtPosition
+                                draft.autoStartPosition
                                 draft.autoQuery
                     }
             in
             ( { model | draft = newDraft }
-            , if query /= "" && atPosition /= Nothing then
+            , if query /= "" && startAutocompletePosition /= Nothing && autocompleteType == Just AccountAuto then
                 Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False
 
               else
@@ -286,7 +307,7 @@ update draftMsg currentUser ({ draft } as model) =
                         |> List.head
 
                 newStatus =
-                    case draft.autoAtPosition of
+                    case draft.autoStartPosition of
                         Just atPosition ->
                             String.Extra.replaceSlice
                                 (case account of
@@ -306,7 +327,8 @@ update draftMsg currentUser ({ draft } as model) =
                 newDraft =
                     { draft
                         | status = newStatus
-                        , autoAtPosition = Nothing
+                        , autoStartPosition = Nothing
+                        , autocompleteType = Nothing
                         , autoQuery = ""
                         , autoState = Menu.empty
                         , autoAccounts = []

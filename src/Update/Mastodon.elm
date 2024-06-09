@@ -569,7 +569,7 @@ update msg ({ accountInfo, search } as model) =
                                 | showAutoMenu =
                                     Update.Draft.showAutoMenu
                                         decoded
-                                        draft.autoAtPosition
+                                        draft.autoStartPosition
                                         draft.autoQuery
                                 , autoAccounts = decoded
                             }

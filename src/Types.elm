@@ -1,5 +1,6 @@
 module Types exposing
     ( AccountInfo
+    , AutocompleteType(..)
     , Confirm
     , CurrentAccountView(..)
     , CurrentView(..)
@@ -145,6 +146,11 @@ type ScrollElement
     | ScrollNotifications
 
 
+type AutocompleteType
+    = AccountAuto
+    | EmojiAuto
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -239,14 +245,21 @@ type alias Draft =
     , attachments : List Attachment
     , mediaUploading : Bool
     , statusLength : Int
+    , autocompleteType : Maybe AutocompleteType
 
     -- Autocomplete values
     , autoState : Menu.State
-    , autoCursorPosition : Int
-    , autoAtPosition : Maybe Int
+
+    -- Index of the @ or : for the user/emoji autoComplete
+    , autoStartPosition : Maybe Int
     , autoQuery : String
     , autoMaxResults : Int
+
+    -- List of the accounts to display in autoComplete
     , autoAccounts : List Account
+
+    -- List of the emojis to display in autoComplete
+    , autoEmojis : List CustomEmoji
     , showAutoMenu : Bool
 
     -- EmojiPicker state
