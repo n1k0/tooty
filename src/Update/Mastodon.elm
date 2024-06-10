@@ -569,9 +569,11 @@ update msg ({ accountInfo, search } as model) =
                                 | showAutoMenu =
                                     Update.Draft.showAutoMenu
                                         decoded
+                                        []
                                         draft.autoStartPosition
                                         draft.autoQuery
                                 , autoAccounts = decoded
+                                , autoEmojis = []
                             }
                       }
                     , -- Force selection of the first item after each

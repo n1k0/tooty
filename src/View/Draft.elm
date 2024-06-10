@@ -42,7 +42,7 @@ viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
         [ Html.map (DraftEvent << SetAutoState)
-            (Menu.view viewConfig
+            (Menu.view autoAccountViewConfig
                 draft.autoMaxResults
                 draft.autoState
                 (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
@@ -50,8 +50,12 @@ viewAutocompleteMenu draft =
         ]
 
 
-viewConfig : Menu.ViewConfig Mastodon.Model.Account
-viewConfig =
+
+-- @TODO : Do the same for emojis
+
+
+autoAccountViewConfig : Menu.ViewConfig Mastodon.Model.Account
+autoAccountViewConfig =
     let
         customizedLi keySelected mouseSelected account =
             { attributes =

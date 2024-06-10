@@ -6,7 +6,9 @@ module Update.Draft exposing
 
 import Browser.Dom as Dom
 import Command
+import Dict
 import EmojiPicker exposing (PickerConfig)
+import Emojis
 import Json.Decode as Decode
 import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
@@ -17,6 +19,13 @@ import Task
 import Types exposing (..)
 import Update.Error exposing (addErrorNotification)
 import Util
+
+
+emojis : List Emoji
+emojis =
+    Emojis.emojiDict
+        |> Dict.toList
+        |> List.map (\( k, v ) -> { shortcode = k, value = v.native, imgUrl = Nothing })
 
 
 autocompleteUpdateConfig : Menu.UpdateConfig Msg Account
@@ -73,9 +82,9 @@ empty =
     }
 
 
-showAutoMenu : List Account -> Maybe Int -> String -> Bool
-showAutoMenu accounts atPosition query =
-    case ( List.isEmpty accounts, atPosition, query ) of
+showAutoMenu : List Account -> List Emoji -> Maybe Int -> String -> Bool
+showAutoMenu accounts emojiList atPosition query =
+    case ( List.isEmpty accounts && List.isEmpty emojiList, atPosition, query ) of
         ( _, Nothing, _ ) ->
             False
 
@@ -278,16 +287,38 @@ update draftMsg currentUser ({ draft } as model) =
                                     , getQuery model.draft.autoStartPosition
                                     )
 
+                autoEmojis =
+                    if query /= "" && startAutocompletePosition /= Nothing && autocompleteType == Just EmojiAuto then
+                        emojis
+                            |> List.filter
+                                (\emoji ->
+                                    String.contains
+                                        (String.toLower query)
+                                        (String.toLower emoji.shortcode)
+                                )
+
+                    else
+                        draft.autoEmojis
+
+                autoAccounts =
+                    if autocompleteType == Just EmojiAuto then
+                        []
+
+                    else
+                        draft.autoAccounts
+
                 newDraft =
                     { draft
                         | status = status
                         , statusLength = String.length status
                         , autoStartPosition = startAutocompletePosition
                         , autoQuery = query
+                        , autoEmojis = autoEmojis
                         , autocompleteType = autocompleteType
                         , showAutoMenu =
                             showAutoMenu
-                                draft.autoAccounts
+                                autoAccounts
+                                autoEmojis
                                 draft.autoStartPosition
                                 draft.autoQuery
                     }

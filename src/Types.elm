@@ -7,6 +7,7 @@ module Types exposing
     , Draft
     , DraftMsg(..)
     , DraftType(..)
+    , Emoji
     , ErrorNotification
     , Flags
     , InputInformation
@@ -235,6 +236,13 @@ type DraftType
     | NewDraft
 
 
+type alias Emoji =
+    { shortcode : String
+    , value : String
+    , imgUrl : Maybe String
+    }
+
+
 type alias Draft =
     { status : String
     , statusSource : Maybe StatusSource
@@ -259,7 +267,7 @@ type alias Draft =
     , autoAccounts : List Account
 
     -- List of the emojis to display in autoComplete
-    , autoEmojis : List CustomEmoji
+    , autoEmojis : List Emoji
     , showAutoMenu : Bool
 
     -- EmojiPicker state
