@@ -41,17 +41,28 @@ visibilities =
 viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
-        [ Html.map (DraftEvent << SetAutoState)
-            (Menu.view autoAccountViewConfig
-                draft.autoMaxResults
-                draft.autoState
-                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-            )
+        [ case draft.autocompleteType of
+            Just AccountAuto ->
+                Html.map (DraftEvent << SetAutoState)
+                    (Menu.view
+                        autoAccountViewConfig
+                        draft.autoMaxResults
+                        draft.autoState
+                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                    )
+
+            Just EmojiAuto ->
+                Html.map (DraftEvent << SetAutoState)
+                    (Menu.view
+                        autoEmojiViewConfig
+                        draft.autoMaxResults
+                        draft.autoState
+                        draft.autoEmojis
+                    )
+
+            _ ->
+                text ""
         ]
-
-
-
--- @TODO : Do the same for emojis
 
 
 autoAccountViewConfig : Menu.ViewConfig Mastodon.Model.Account
@@ -80,6 +91,31 @@ autoAccountViewConfig =
     in
     Menu.viewConfig
         { toId = .id
+        , ul = [ class "list-group autocomplete-list" ]
+        , li = customizedLi
+        }
+
+
+autoEmojiViewConfig : Menu.ViewConfig Emoji
+autoEmojiViewConfig =
+    let
+        customizedLi keySelected mouseSelected emoji =
+            { attributes =
+                [ classList
+                    [ ( "list-group-item autocomplete-item", True )
+                    , ( "active", keySelected || mouseSelected )
+                    ]
+                ]
+            , children =
+                [ text emoji.value
+                , span [ class "emoji-shortcode-auto" ]
+                    [ text <| " :" ++ emoji.shortcode ++ ":"
+                    ]
+                ]
+            }
+    in
+    Menu.viewConfig
+        { toId = .shortcode
         , ul = [ class "list-group autocomplete-list" ]
         , li = customizedLi
         }

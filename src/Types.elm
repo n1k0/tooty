@@ -54,7 +54,7 @@ type DraftMsg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SaveAttachmentDescription String
-    | SelectAccount String
+    | SelectAutoItem String
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
     | UpdateAttachmentDescription String String
