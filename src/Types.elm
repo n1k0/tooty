@@ -240,6 +240,7 @@ type alias Emoji =
     { shortcode : String
     , value : String
     , imgUrl : Maybe String
+    , keywords : List String
     }
 
 

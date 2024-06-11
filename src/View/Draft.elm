@@ -48,7 +48,7 @@ viewAutocompleteMenu draft =
                         autoAccountViewConfig
                         draft.autoMaxResults
                         draft.autoState
-                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                        (Util.acceptableAutoItems draft.autoQuery .username draft.autoAccounts)
                     )
 
             Just EmojiAuto ->
@@ -107,9 +107,23 @@ autoEmojiViewConfig =
                     ]
                 ]
             , children =
-                [ text emoji.value
+                [ case emoji.imgUrl of
+                    Just url ->
+                        img [ src url, title emoji.shortcode, alt emoji.shortcode ] []
+
+                    _ ->
+                        text emoji.value
                 , span [ class "emoji-shortcode-auto" ]
-                    [ text <| " :" ++ emoji.shortcode ++ ":"
+                    [ text <|
+                        " :"
+                            ++ emoji.shortcode
+                            ++ ":"
+                            ++ (if List.isEmpty emoji.keywords then
+                                    ""
+
+                                else
+                                    " (" ++ String.join ", " emoji.keywords ++ ")"
+                               )
                     ]
                 ]
             }
@@ -280,6 +294,9 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                                 (\code ->
                                     if code == 38 || code == 40 then
                                         Ok NoOp
+
+                                    else if code == 9 then
+                                        Ok <| DraftEvent (ResetAutocomplete True)
 
                                     else if code == 27 then
                                         Ok <| DraftEvent CloseAutocomplete
