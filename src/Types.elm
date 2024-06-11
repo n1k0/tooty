@@ -1,11 +1,13 @@
 module Types exposing
     ( AccountInfo
+    , AutocompleteType(..)
     , Confirm
     , CurrentAccountView(..)
     , CurrentView(..)
     , Draft
     , DraftMsg(..)
     , DraftType(..)
+    , Emoji
     , ErrorNotification
     , Flags
     , InputInformation
@@ -52,7 +54,7 @@ type DraftMsg
     | RemoveMedia String
     | ResetAutocomplete Bool
     | SaveAttachmentDescription String
-    | SelectAccount String
+    | SelectAutoItem String
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
     | UpdateAttachmentDescription String String
@@ -145,6 +147,11 @@ type ScrollElement
     | ScrollNotifications
 
 
+type AutocompleteType
+    = AccountAuto
+    | EmojiAuto
+
+
 type Msg
     = AddFavorite Status
     | AskConfirm String Msg Msg
@@ -229,6 +236,14 @@ type DraftType
     | NewDraft
 
 
+type alias Emoji =
+    { shortcode : String
+    , value : String
+    , imgUrl : Maybe String
+    , keywords : List String
+    }
+
+
 type alias Draft =
     { status : String
     , statusSource : Maybe StatusSource
@@ -239,14 +254,21 @@ type alias Draft =
     , attachments : List Attachment
     , mediaUploading : Bool
     , statusLength : Int
+    , autocompleteType : Maybe AutocompleteType
 
     -- Autocomplete values
     , autoState : Menu.State
-    , autoCursorPosition : Int
-    , autoAtPosition : Maybe Int
+
+    -- Index of the @ or : for the user/emoji autoComplete
+    , autoStartPosition : Maybe Int
     , autoQuery : String
     , autoMaxResults : Int
+
+    -- List of the accounts to display in autoComplete
     , autoAccounts : List Account
+
+    -- List of the emojis to display in autoComplete
+    , autoEmojis : List Emoji
     , showAutoMenu : Bool
 
     -- EmojiPicker state

@@ -1,5 +1,5 @@
 module Util exposing
-    ( acceptableAccounts
+    ( acceptableAutoItems
     , extractAuthCode
     )
 
@@ -9,8 +9,8 @@ import QS
 import Url
 
 
-acceptableAccounts : String -> List Account -> List Account
-acceptableAccounts query accounts =
+acceptableAutoItems : String -> (a -> String) -> List a -> List a
+acceptableAutoItems query toString items =
     let
         lowerQuery =
             String.toLower query
@@ -19,7 +19,7 @@ acceptableAccounts query accounts =
         []
 
     else
-        List.filter (String.contains lowerQuery << String.toLower << .username) accounts
+        List.filter (String.contains lowerQuery << String.toLower << toString) items
 
 
 extractAuthCode : Url.Url -> Maybe String

@@ -6,8 +6,11 @@ module Update.Draft exposing
 
 import Browser.Dom as Dom
 import Command
+import Dict
 import EmojiPicker exposing (PickerConfig)
+import Emojis
 import Json.Decode as Decode
+import List.Extra exposing (uniqueBy)
 import Mastodon.Decoder exposing (attachmentDecoder)
 import Mastodon.Helper
 import Mastodon.Model exposing (..)
@@ -19,17 +22,42 @@ import Update.Error exposing (addErrorNotification)
 import Util
 
 
-autocompleteUpdateConfig : Menu.UpdateConfig Msg Account
-autocompleteUpdateConfig =
+emojis : List CustomEmoji -> List Emoji
+emojis customEmojis =
+    (Emojis.emojiDict
+        |> Dict.toList
+        |> List.map
+            (\( k, v ) ->
+                { shortcode = String.toLower k
+                , value = v.native
+                , imgUrl = Nothing
+                , keywords = v.keywords |> List.map String.toLower
+                }
+            )
+    )
+        ++ (customEmojis
+                |> List.map
+                    (\cu ->
+                        { shortcode = String.toLower cu.shortcode
+                        , value = ":" ++ String.toLower cu.shortcode ++ ":"
+                        , imgUrl = Just cu.url
+                        , keywords = []
+                        }
+                    )
+           )
+
+
+autocompleteUpdateConfig : (a -> String) -> Menu.UpdateConfig Msg a
+autocompleteUpdateConfig getId =
     Menu.updateConfig
-        { toId = .id
+        { toId = getId
         , onKeyDown =
             \code maybeId ->
                 if code == 38 || code == 40 then
                     Nothing
 
                 else if code == 13 then
-                    Maybe.map (DraftEvent << SelectAccount) maybeId
+                    Maybe.map (DraftEvent << SelectAutoItem) maybeId
 
                 else
                     Just <| (DraftEvent << ResetAutocomplete) False
@@ -37,7 +65,7 @@ autocompleteUpdateConfig =
         , onTooHigh = Just <| (DraftEvent << ResetAutocomplete) False
         , onMouseEnter = \_ -> Nothing
         , onMouseLeave = \_ -> Nothing
-        , onMouseClick = \id -> Just <| (DraftEvent << SelectAccount) id
+        , onMouseClick = \id -> Just <| (DraftEvent << SelectAutoItem) id
         , separateSelections = False
         }
 
@@ -61,20 +89,21 @@ empty =
     , attachments = []
     , mediaUploading = False
     , statusLength = 0
+    , autocompleteType = Nothing
     , autoState = Menu.empty
-    , autoAtPosition = Nothing
+    , autoStartPosition = Nothing
     , autoQuery = ""
-    , autoCursorPosition = 0
     , autoMaxResults = 4
     , autoAccounts = []
+    , autoEmojis = []
     , showAutoMenu = False
     , emojiModel = EmojiPicker.init pickerConfig
     }
 
 
-showAutoMenu : List Account -> Maybe Int -> String -> Bool
-showAutoMenu accounts atPosition query =
-    case ( List.isEmpty accounts, atPosition, query ) of
+showAutoMenu : List Account -> List Emoji -> Maybe Int -> String -> Bool
+showAutoMenu accounts emojiList atPosition query =
+    case ( List.isEmpty accounts && List.isEmpty emojiList, atPosition, query ) of
         ( _, Nothing, _ ) ->
             False
 
@@ -238,65 +267,147 @@ update draftMsg currentUser ({ draft } as model) =
                 stringToPos =
                     String.slice 0 selectionStart status
 
-                atPosition =
-                    case String.right 1 stringToPos of
-                        "@" ->
-                            Just selectionStart
-
-                        " " ->
-                            Nothing
+                getQuery position =
+                    case position of
+                        Just p ->
+                            String.slice p (String.length stringToPos) stringToPos |> String.toLower
 
                         _ ->
-                            model.draft.autoAtPosition
-
-                query =
-                    case atPosition of
-                        Just position ->
-                            String.slice position (String.length stringToPos) stringToPos
-
-                        Nothing ->
                             ""
+
+                ( startAutocompletePosition, autocompleteType, query ) =
+                    case String.right 1 stringToPos of
+                        "@" ->
+                            ( Just selectionStart, Just AccountAuto, getQuery <| Just selectionStart )
+
+                        ":" ->
+                            case model.draft.autocompleteType of
+                                -- End of an already existing emoji
+                                Just EmojiAuto ->
+                                    ( model.draft.autoStartPosition, Just EmojiAuto, getQuery model.draft.autoStartPosition )
+
+                                -- New Emoji
+                                _ ->
+                                    ( Just selectionStart, Just EmojiAuto, getQuery <| Just selectionStart )
+
+                        -- Space is pressed, cancel auto state
+                        " " ->
+                            ( Nothing, Nothing, "" )
+
+                        -- Middle of a word
+                        _ ->
+                            case model.draft.autocompleteType of
+                                Nothing ->
+                                    ( Nothing, Nothing, "" )
+
+                                autoType ->
+                                    ( model.draft.autoStartPosition
+                                    , autoType
+                                    , getQuery model.draft.autoStartPosition
+                                    )
+
+                autoEmojis =
+                    if query /= "" && startAutocompletePosition /= Nothing && autocompleteType == Just EmojiAuto then
+                        -- First the emojis where the shortcode startswith the query
+                        (emojis model.customEmojis
+                            |> List.filter (\e -> String.startsWith query e.shortcode)
+                            |> List.sortBy .shortcode
+                        )
+                            -- Then the emojis where one of the keywords startswith
+                            ++ (emojis model.customEmojis
+                                    |> List.filter (\e -> List.any (\k -> String.startsWith query k) e.keywords)
+                                    |> List.sortBy .shortcode
+                               )
+                            -- Then only if shortcode or keywords contain the query
+                            ++ (emojis model.customEmojis
+                                    |> List.filter (\e -> String.contains query <| e.shortcode ++ " " ++ String.join " " e.keywords)
+                                    |> List.sortBy .shortcode
+                               )
+                            |> uniqueBy .shortcode
+                            |> List.take draft.autoMaxResults
+
+                    else
+                        []
+
+                autoAccounts =
+                    if autocompleteType == Just EmojiAuto then
+                        []
+
+                    else
+                        draft.autoAccounts
 
                 newDraft =
                     { draft
                         | status = status
                         , statusLength = String.length status
-                        , autoCursorPosition = selectionStart
-                        , autoAtPosition = atPosition
+                        , autoStartPosition = startAutocompletePosition
                         , autoQuery = query
-                        , showAutoMenu =
-                            showAutoMenu
-                                draft.autoAccounts
-                                draft.autoAtPosition
-                                draft.autoQuery
+                        , autoEmojis = autoEmojis
+                        , autocompleteType = autocompleteType
+                        , autoAccounts = autoAccounts
+                        , showAutoMenu = autocompleteType /= Nothing
                     }
+
+                newModel =
+                    { model | draft = newDraft }
             in
-            ( { model | draft = newDraft }
-            , if query /= "" && atPosition /= Nothing then
-                Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False
+            if autocompleteType == Just EmojiAuto then
+                -- Force selection of the first item after each
+                -- Successfull request
+                -- Old Elm 0.18
+                --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
+                case model.currentUser of
+                    Just user ->
+                        let
+                            ( updatedModel, msgs ) =
+                                update (ResetAutocomplete True) user newModel
+                        in
+                        ( updatedModel, Cmd.batch [ msgs, Task.attempt (\_ -> NoOp) (Dom.focus "autocomplete-menu") ] )
 
-              else
-                Cmd.none
-            )
+                    Nothing ->
+                        ( newModel
+                        , Cmd.none
+                        )
 
-        SelectAccount id ->
+            else
+                ( newModel
+                , if query /= "" && startAutocompletePosition /= Nothing && autocompleteType == Just AccountAuto then
+                    Command.searchAccounts (List.head model.clients) query model.draft.autoMaxResults False
+
+                  else
+                    Cmd.none
+                )
+
+        SelectAutoItem id ->
             let
-                account =
-                    List.filter (\a -> a.id == id) draft.autoAccounts
-                        |> List.head
+                stringToPutInPlace =
+                    (case draft.autocompleteType of
+                        Just AccountAuto ->
+                            List.filter (\a -> a.id == id) draft.autoAccounts
+                                |> List.head
+                                |> Maybe.map (\a -> a.acct ++ " ")
+
+                        Just EmojiAuto ->
+                            List.filter (\e -> e.shortcode == id) draft.autoEmojis
+                                |> List.head
+                                |> Maybe.map (\e -> e.value ++ " ")
+
+                        _ ->
+                            Nothing
+                    )
+                        |> Maybe.withDefault ""
 
                 newStatus =
-                    case draft.autoAtPosition of
+                    case draft.autoStartPosition of
                         Just atPosition ->
                             String.Extra.replaceSlice
-                                (case account of
-                                    Just a ->
-                                        a.acct ++ " "
+                                stringToPutInPlace
+                                (if draft.autocompleteType == Just EmojiAuto then
+                                    atPosition - 1
 
-                                    Nothing ->
-                                        ""
+                                 else
+                                    atPosition
                                 )
-                                atPosition
                                 (String.length draft.autoQuery + atPosition)
                                 draft.status
 
@@ -306,10 +417,12 @@ update draftMsg currentUser ({ draft } as model) =
                 newDraft =
                     { draft
                         | status = newStatus
-                        , autoAtPosition = Nothing
+                        , autoStartPosition = Nothing
+                        , autocompleteType = Nothing
                         , autoQuery = ""
                         , autoState = Menu.empty
                         , autoAccounts = []
+                        , autoEmojis = []
                         , showAutoMenu = False
                     }
             in
@@ -322,12 +435,21 @@ update draftMsg currentUser ({ draft } as model) =
         SetAutoState autoMsg ->
             let
                 ( newState, maybeMsg ) =
-                    Menu.update
-                        autocompleteUpdateConfig
-                        autoMsg
-                        draft.autoMaxResults
-                        draft.autoState
-                        (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                    if draft.autocompleteType == Just EmojiAuto then
+                        Menu.update
+                            (autocompleteUpdateConfig .shortcode)
+                            autoMsg
+                            draft.autoMaxResults
+                            draft.autoState
+                            (Util.acceptableAutoItems draft.autoQuery .shortcode draft.autoEmojis)
+
+                    else
+                        Menu.update
+                            (autocompleteUpdateConfig .id)
+                            autoMsg
+                            draft.autoMaxResults
+                            draft.autoState
+                            (Util.acceptableAutoItems draft.autoQuery .username draft.autoAccounts)
 
                 newModel =
                     { model | draft = { draft | autoState = newState } }
@@ -346,7 +468,16 @@ update draftMsg currentUser ({ draft } as model) =
                 newDraft =
                     { draft
                         | showAutoMenu = False
-                        , autoState = Menu.reset autocompleteUpdateConfig draft.autoState
+                        , autoState =
+                            Menu.reset
+                                (autocompleteUpdateConfig <|
+                                    if draft.autocompleteType == Just EmojiAuto then
+                                        .shortcode
+
+                                    else
+                                        .id
+                                )
+                                draft.autoState
                     }
             in
             ( { model | draft = newDraft }
@@ -359,22 +490,41 @@ update draftMsg currentUser ({ draft } as model) =
                     { draft
                         | autoState =
                             if toTop then
-                                Menu.resetToFirstItem
-                                    autocompleteUpdateConfig
-                                    (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                if draft.autocompleteType == Just EmojiAuto then
+                                    Menu.resetToFirstItem
+                                        (autocompleteUpdateConfig .shortcode)
+                                        draft.autoEmojis
+                                        draft.autoMaxResults
+                                        draft.autoState
+
+                                else
+                                    Menu.resetToFirstItem
+                                        (autocompleteUpdateConfig .id)
+                                        (Util.acceptableAutoItems draft.autoQuery .username draft.autoAccounts)
+                                        draft.autoMaxResults
+                                        draft.autoState
+
+                            else if draft.autocompleteType == Just EmojiAuto then
+                                Menu.resetToLastItem
+                                    (autocompleteUpdateConfig .shortcode)
+                                    draft.autoEmojis
                                     draft.autoMaxResults
                                     draft.autoState
 
                             else
                                 Menu.resetToLastItem
-                                    autocompleteUpdateConfig
-                                    (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
+                                    (autocompleteUpdateConfig .id)
+                                    (Util.acceptableAutoItems
+                                        draft.autoQuery
+                                        .username
+                                        draft.autoAccounts
+                                    )
                                     draft.autoMaxResults
                                     draft.autoState
                     }
             in
             ( { model | draft = newDraft }
-            , Cmd.none
+            , Task.attempt (\_ -> NoOp) (Dom.focus "autocomplete-menu")
             )
 
         RemoveMedia id ->

@@ -41,17 +41,32 @@ visibilities =
 viewAutocompleteMenu : Draft -> Html Msg
 viewAutocompleteMenu draft =
     div [ class "autocomplete-menu" ]
-        [ Html.map (DraftEvent << SetAutoState)
-            (Menu.view viewConfig
-                draft.autoMaxResults
-                draft.autoState
-                (Util.acceptableAccounts draft.autoQuery draft.autoAccounts)
-            )
+        [ case draft.autocompleteType of
+            Just AccountAuto ->
+                Html.map (DraftEvent << SetAutoState)
+                    (Menu.view
+                        autoAccountViewConfig
+                        draft.autoMaxResults
+                        draft.autoState
+                        (Util.acceptableAutoItems draft.autoQuery .username draft.autoAccounts)
+                    )
+
+            Just EmojiAuto ->
+                Html.map (DraftEvent << SetAutoState)
+                    (Menu.view
+                        autoEmojiViewConfig
+                        draft.autoMaxResults
+                        draft.autoState
+                        draft.autoEmojis
+                    )
+
+            _ ->
+                text ""
         ]
 
 
-viewConfig : Menu.ViewConfig Mastodon.Model.Account
-viewConfig =
+autoAccountViewConfig : Menu.ViewConfig Mastodon.Model.Account
+autoAccountViewConfig =
     let
         customizedLi keySelected mouseSelected account =
             { attributes =
@@ -76,6 +91,45 @@ viewConfig =
     in
     Menu.viewConfig
         { toId = .id
+        , ul = [ class "list-group autocomplete-list" ]
+        , li = customizedLi
+        }
+
+
+autoEmojiViewConfig : Menu.ViewConfig Emoji
+autoEmojiViewConfig =
+    let
+        customizedLi keySelected mouseSelected emoji =
+            { attributes =
+                [ classList
+                    [ ( "list-group-item autocomplete-item", True )
+                    , ( "active", keySelected || mouseSelected )
+                    ]
+                ]
+            , children =
+                [ case emoji.imgUrl of
+                    Just url ->
+                        img [ src url, title emoji.shortcode, alt emoji.shortcode ] []
+
+                    _ ->
+                        text emoji.value
+                , span [ class "emoji-shortcode-auto" ]
+                    [ text <|
+                        " :"
+                            ++ emoji.shortcode
+                            ++ ":"
+                            ++ (if List.isEmpty emoji.keywords then
+                                    ""
+
+                                else
+                                    " (" ++ String.join ", " emoji.keywords ++ ")"
+                               )
+                    ]
+                ]
+            }
+    in
+    Menu.viewConfig
+        { toId = .shortcode
         , ul = [ class "list-group autocomplete-list" ]
         , li = customizedLi
         }
@@ -240,6 +294,9 @@ draftView ({ draft, currentUser, ctrlPressed } as model) =
                                 (\code ->
                                     if code == 38 || code == 40 then
                                         Ok NoOp
+
+                                    else if code == 9 then
+                                        Ok <| DraftEvent (ResetAutocomplete True)
 
                                     else if code == 27 then
                                         Ok <| DraftEvent CloseAutocomplete

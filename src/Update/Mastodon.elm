@@ -563,22 +563,34 @@ update msg ({ accountInfo, search } as model) =
             in
             case result of
                 Ok { decoded } ->
-                    ( { model
-                        | draft =
-                            { draft
-                                | showAutoMenu =
-                                    Update.Draft.showAutoMenu
-                                        decoded
-                                        draft.autoAtPosition
-                                        draft.autoQuery
-                                , autoAccounts = decoded
+                    let
+                        newModel =
+                            { model
+                                | draft =
+                                    { draft
+                                        | showAutoMenu =
+                                            Update.Draft.showAutoMenu
+                                                decoded
+                                                []
+                                                draft.autoStartPosition
+                                                draft.autoQuery
+                                        , autoAccounts = decoded
+                                        , autoEmojis = []
+                                    }
                             }
-                      }
-                    , -- Force selection of the first item after each
-                      -- Successfull request
-                      --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
-                      Cmd.none
-                    )
+                    in
+                    -- Force selection of the first item after each
+                    -- Successfull request
+                    -- Old Elm 0.18
+                    --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
+                    case model.currentUser of
+                        Just user ->
+                            Update.Draft.update (ResetAutocomplete True) user newModel
+
+                        Nothing ->
+                            ( newModel
+                            , Cmd.none
+                            )
 
                 Err error ->
                     ( { model
