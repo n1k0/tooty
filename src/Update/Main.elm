@@ -91,14 +91,7 @@ update msg model =
             )
 
         DraftEvent draftMsg ->
-            case model.currentUser of
-                Just user ->
-                    Update.Draft.update draftMsg user model
-
-                Nothing ->
-                    ( model
-                    , Cmd.none
-                    )
+            Update.Draft.update draftMsg model
 
         FilterNotifications filter ->
             ( { model | notificationFilter = filter }
