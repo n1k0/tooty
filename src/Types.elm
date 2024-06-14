@@ -58,6 +58,7 @@ type DraftMsg
     | SetAutoState Menu.Msg
     | ToggleSpoiler Bool
     | UpdateAttachmentDescription String String
+    | UpdateCustomEmojis (List CustomEmoji)
     | UpdateInputInformation InputInformation
     | UpdateSensitive Bool
     | UpdateSpoiler String

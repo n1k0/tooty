@@ -3,6 +3,7 @@ module Update.Mastodon exposing (update)
 import Browser.Navigation as Navigation
 import Command
 import InfiniteScroll
+import Mastodon.ApiUrl exposing (customEmojis)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
@@ -140,9 +141,11 @@ update msg ({ accountInfo, search } as model) =
         CustomEmojis result ->
             case result of
                 Ok { decoded } ->
-                    ( { model | customEmojis = decoded }
-                    , Cmd.none
-                    )
+                    let
+                        newModel =
+                            { model | customEmojis = decoded }
+                    in
+                    Update.Draft.update (UpdateCustomEmojis decoded) newModel
 
                 Err error ->
                     ( { model | errors = addErrorNotification (errorText error) model }
@@ -583,14 +586,7 @@ update msg ({ accountInfo, search } as model) =
                     -- Successfull request
                     -- Old Elm 0.18
                     --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
-                    case model.currentUser of
-                        Just user ->
-                            Update.Draft.update (ResetAutocomplete True) user newModel
-
-                        Nothing ->
-                            ( newModel
-                            , Cmd.none
-                            )
+                    Update.Draft.update (ResetAutocomplete True) newModel
 
                 Err error ->
                     ( { model

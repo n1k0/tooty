@@ -70,11 +70,14 @@ autocompleteUpdateConfig getId =
         }
 
 
-pickerConfig : PickerConfig
-pickerConfig =
+pickerConfig : List Emojis.Emoji -> PickerConfig
+pickerConfig customEmojis =
     { offsetX = 0 -- horizontal offset
     , offsetY = 0 -- vertical offset
     , closeOnSelect = True -- close after clicking an emoji
+    , customEmojis = customEmojis
+    , customEmojisWidth = Nothing
+    , customEmojisHeight = Nothing
     }
 
 
@@ -93,11 +96,11 @@ empty =
     , autoState = Menu.empty
     , autoStartPosition = Nothing
     , autoQuery = ""
-    , autoMaxResults = 4
+    , autoMaxResults = 6
     , autoAccounts = []
     , autoEmojis = []
     , showAutoMenu = False
-    , emojiModel = EmojiPicker.init pickerConfig
+    , emojiModel = EmojiPicker.init <| pickerConfig []
     }
 
 
@@ -117,8 +120,8 @@ showAutoMenu accounts emojiList atPosition query =
             True
 
 
-update : DraftMsg -> Account -> Model -> ( Model, Cmd Msg )
-update draftMsg currentUser ({ draft } as model) =
+update : DraftMsg -> Model -> ( Model, Cmd Msg )
+update draftMsg ({ draft } as model) =
     case draftMsg of
         ClearDraft ->
             ( { model | draft = empty }
@@ -221,6 +224,28 @@ update draftMsg currentUser ({ draft } as model) =
             , Cmd.none
             )
 
+        UpdateCustomEmojis customEmojis ->
+            let
+                -- Convert CustomEmoji to Picker Emoji type
+                emojisToDisplayInPicker =
+                    customEmojis
+                        |> List.filter .visible_in_picker
+                        |> List.indexedMap
+                            (\i e ->
+                                { name = ":" ++ e.shortcode ++ ":"
+                                , native = ":" ++ e.shortcode ++ ":"
+                                , sortOrder = i
+                                , skinVariations = Dict.fromList []
+                                , keywords = []
+                                , imgUrl = Just e.url
+                                }
+                            )
+
+                newDraft =
+                    { draft | emojiModel = EmojiPicker.init <| pickerConfig emojisToDisplayInPicker }
+            in
+            ( { model | draft = newDraft }, Cmd.none )
+
         UpdateSensitive sensitive ->
             ( { model | draft = { draft | sensitive = sensitive } }
             , Cmd.none
@@ -237,30 +262,35 @@ update draftMsg currentUser ({ draft } as model) =
             )
 
         UpdateReplyTo status ->
-            let
-                newStatus =
-                    Mastodon.Helper.getReplyPrefix currentUser status
-            in
-            ( { model
-                | draft =
-                    { draft
-                        | type_ = InReplyTo status
-                        , status = newStatus
-                        , sensitive = Maybe.withDefault False status.sensitive
-                        , spoilerText =
-                            if status.spoiler_text == "" then
-                                Nothing
+            case model.currentUser of
+                Just currentUser ->
+                    let
+                        newStatus =
+                            Mastodon.Helper.getReplyPrefix currentUser status
+                    in
+                    ( { model
+                        | draft =
+                            { draft
+                                | type_ = InReplyTo status
+                                , status = newStatus
+                                , sensitive = Maybe.withDefault False status.sensitive
+                                , spoilerText =
+                                    if status.spoiler_text == "" then
+                                        Nothing
 
-                            else
-                                Just status.spoiler_text
-                        , visibility = status.visibility
-                    }
-              }
-            , Cmd.batch
-                [ Command.focusId "status"
-                , Command.updateDomStatus newStatus
-                ]
-            )
+                                    else
+                                        Just status.spoiler_text
+                                , visibility = status.visibility
+                            }
+                      }
+                    , Cmd.batch
+                        [ Command.focusId "status"
+                        , Command.updateDomStatus newStatus
+                        ]
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
         UpdateInputInformation { status, selectionStart } ->
             let
@@ -356,18 +386,11 @@ update draftMsg currentUser ({ draft } as model) =
                 -- Successfull request
                 -- Old Elm 0.18
                 --Task.perform identity (Task.succeed ((DraftEvent << ResetAutocomplete) True))
-                case model.currentUser of
-                    Just user ->
-                        let
-                            ( updatedModel, msgs ) =
-                                update (ResetAutocomplete True) user newModel
-                        in
-                        ( updatedModel, Cmd.batch [ msgs, Task.attempt (\_ -> NoOp) (Dom.focus "autocomplete-menu") ] )
-
-                    Nothing ->
-                        ( newModel
-                        , Cmd.none
-                        )
+                let
+                    ( updatedModel, msgs ) =
+                        update (ResetAutocomplete True) newModel
+                in
+                ( updatedModel, Cmd.batch [ msgs, Task.attempt (\_ -> NoOp) (Dom.focus "autocomplete-menu") ] )
 
             else
                 ( newModel
@@ -456,7 +479,7 @@ update draftMsg currentUser ({ draft } as model) =
             in
             case maybeMsg of
                 Just (DraftEvent updateMsg) ->
-                    update updateMsg currentUser newModel
+                    update updateMsg newModel
 
                 _ ->
                     ( newModel
