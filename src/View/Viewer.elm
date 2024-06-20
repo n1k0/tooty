@@ -43,6 +43,7 @@ viewerView ({ attachment } as viewer) =
                     , preload "auto"
                     , autoplay True
                     , loop True
+                    , controls True
                     ]
                     [ source [ src attachment.url ] [] ]
         , navLink "❯" "next" next <| ViewerEvent NextAttachment
