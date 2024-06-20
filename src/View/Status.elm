@@ -116,7 +116,13 @@ statusActionsView status currentUser showApp =
             , onClickWithPreventAndStop <| DraftEvent (UpdateReplyTo sourceStatus)
             , title "Reply"
             ]
-            [ Common.icon "share-alt" ]
+            [ Common.icon "share-alt"
+            , if sourceStatus.replies_count > 0 then
+                text <| String.fromInt sourceStatus.replies_count
+
+              else
+                text ""
+            ]
         , if sourceStatus.visibility == "private" then
             span [ class <| reblogClasses ++ " disabled" ]
                 [ span [ title "Private" ] [ Common.icon "lock" ] ]
