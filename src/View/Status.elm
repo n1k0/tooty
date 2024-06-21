@@ -198,12 +198,21 @@ statusActionsView status currentUser showApp =
         ]
 
 
-statusContentView : String -> Status -> Html Msg
-statusContentView context status =
+statusContentView : String -> Bool -> Status -> Html Msg
+statusContentView context isThreadTarget status =
     case status.spoiler_text of
         "" ->
             div [ class "status-text" ]
-                [ div [ onClickWithStop <| OpenThread status ] <| formatContentWithEmojis status.content status.mentions status.emojis
+                [ div
+                    [ onClickWithStop <|
+                        if isThreadTarget then
+                            NoOp
+
+                        else
+                            OpenThread status
+                    ]
+                  <|
+                    formatContentWithEmojis status.content status.mentions status.emojis
                 , attachmentListView context status
                 ]
 
@@ -216,7 +225,12 @@ statusContentView context status =
             div [ class "status-text spoiled" ]
                 [ div
                     [ class "spoiler"
-                    , onClickWithStop <| OpenThread status
+                    , onClickWithStop <|
+                        if isThreadTarget then
+                            NoOp
+
+                        else
+                            OpenThread status
                     ]
                     [ text status.spoiler_text ]
                 , input [ type_ "checkbox", id statusId, class "spoiler-toggler" ] []
@@ -228,8 +242,8 @@ statusContentView context status =
                 ]
 
 
-statusEntryView : String -> String -> CurrentUser -> Status -> Html Msg
-statusEntryView context className currentUser status =
+statusEntryView : String -> String -> Bool -> CurrentUser -> Status -> Html Msg
+statusEntryView context className isThreadTarget currentUser status =
     let
         nsfwClass =
             case status.sensitive of
@@ -249,13 +263,13 @@ statusEntryView context className currentUser status =
                    )
     in
     li liAttributes
-        [ Lazy.lazy2 statusView context status
-        , Lazy.lazy3 statusActionsView status currentUser (className == "thread-target")
+        [ Lazy.lazy3 statusView context isThreadTarget status
+        , Lazy.lazy3 statusActionsView status currentUser isThreadTarget
         ]
 
 
-statusView : String -> Status -> Html Msg
-statusView context ({ account, reblog } as status) =
+statusView : String -> Bool -> Status -> Html Msg
+statusView context isThreadTarget ({ account, reblog } as status) =
     let
         accountLinkAttributes =
             [ href <| "#account/" ++ account.id ]
@@ -269,7 +283,7 @@ statusView context ({ account, reblog } as status) =
                         [ text <| " @" ++ account.username ]
                     , text " boosted"
                     ]
-                , Lazy.lazy2 statusView context r
+                , Lazy.lazy3 statusView context isThreadTarget r
                 ]
 
         Nothing ->
@@ -282,5 +296,5 @@ statusView context ({ account, reblog } as status) =
                                ]
                         )
                     ]
-                , Lazy.lazy2 statusContentView context status
+                , Lazy.lazy3 statusContentView context isThreadTarget status
                 ]

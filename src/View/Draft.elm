@@ -180,7 +180,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ Lazy.lazy2 statusView "draft" status ]
+                , div [ class "well" ] [ Lazy.lazy3 statusView "draft" False status ]
                 ]
 
         Editing statusEdit ->
@@ -196,7 +196,7 @@ draftReplyToView draft =
                         , text ")"
                         ]
                     ]
-                , div [ class "well" ] [ Lazy.lazy2 statusView "draft" statusEdit.status ]
+                , div [ class "well" ] [ Lazy.lazy3 statusView "draft" False statusEdit.status ]
                 ]
 
         _ ->

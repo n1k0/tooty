@@ -187,7 +187,7 @@ accountTimelineView currentUser accountInfo =
     let
         keyedEntry status =
             ( extractStatusId status.id
-            , Lazy.lazy (statusEntryView "account" "status" currentUser) status
+            , Lazy.lazy (statusEntryView "account" "status" False currentUser) status
             )
 
         entries =

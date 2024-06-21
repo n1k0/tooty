@@ -49,7 +49,7 @@ timelineViewInfiniteScroll : CurrentUser -> Timeline Status -> ScrollElement -> 
 timelineViewInfiniteScroll currentUser timeline scrollElement =
     let
         keyedEntry status =
-            ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
+            ( extractStatusId status.id, statusEntryView timeline.id "" False currentUser status )
 
         entries =
             List.map keyedEntry timeline.entries
@@ -62,7 +62,7 @@ timelineView : CurrentUser -> Timeline Status -> Html Msg
 timelineView currentUser timeline =
     let
         keyedEntry status =
-            ( extractStatusId status.id, statusEntryView timeline.id "" currentUser status )
+            ( extractStatusId status.id, statusEntryView timeline.id "" False currentUser status )
 
         entries =
             List.map keyedEntry timeline.entries

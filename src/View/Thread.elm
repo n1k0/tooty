@@ -34,6 +34,7 @@ threadStatuses currentUser thread =
                          else
                             ""
                         )
+                        (status == threadStatus)
                         currentUser
                         status
 

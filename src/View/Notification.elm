@@ -109,7 +109,7 @@ notificationStatusView { context, currentUser, status, notificationAggregate } =
 
             _ ->
                 text ""
-        , Lazy.lazy2 statusView context status
+        , Lazy.lazy3 statusView context False status
         , Lazy.lazy3 statusActionsView status currentUser False
         ]
 
