@@ -15,7 +15,7 @@ accountListView accounts =
     let
         profileView account =
             li [ class "list-group-item status follow-profile" ]
-                [ Common.accountAvatarLink False account
+                [ Common.accountAvatarLink False Nothing account
                 , div [ class "username" ] [ Common.accountLink False account ]
                 , formatContent account.note []
                     |> div

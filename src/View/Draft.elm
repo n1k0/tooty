@@ -140,7 +140,7 @@ currentUserView currentUser =
     case currentUser of
         Just user ->
             div [ class "current-user" ]
-                [ Common.accountAvatarLink False user
+                [ Common.accountAvatarLink False Nothing user
                 , div [ class "username" ]
                     ((if user.display_name /= "" then
                         getDisplayNameForAccount user

@@ -34,7 +34,7 @@ blockView currentUser account =
     in
     li [ class <| "list-group-item status " ++ entryClass ]
         [ div [ class "follow-entry" ]
-            [ Common.accountAvatarLink False account
+            [ Common.accountAvatarLink False Nothing account
             , div [ class "userinfo" ]
                 [ strong []
                     [ a

@@ -34,7 +34,7 @@ accountIdentityView currentUser client =
                             ( False, "" )
             in
             li [ class <| "list-group-item account-selector-item " ++ entryClass ]
-                [ accountAvatar "" account
+                [ accountAvatar [ "" ] account
                 , span []
                     [ strong []
                         (if account.display_name /= "" then

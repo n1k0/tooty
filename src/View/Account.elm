@@ -60,7 +60,7 @@ followButton currentUser relationship account =
 followView : CurrentUser -> Maybe Relationship -> Account -> Html Msg
 followView currentUser relationship account =
     div [ class "follow-entry" ]
-        [ Common.accountAvatarLink False account
+        [ Common.accountAvatarLink False Nothing account
         , div [ class "userinfo" ]
             [ strong []
                 [ a
@@ -207,18 +207,15 @@ counterLink href_ label count active =
     a
         [ href href_
         , class <|
-            "col-md-4"
+            "btn col-md-4"
                 ++ (if active then
-                        " active"
+                        " btn-default"
 
                     else
                         ""
                    )
         ]
-        [ text label
-        , br [] []
-        , text <| String.fromInt count
-        ]
+        [ span [ class "count" ] [ text <| String.fromInt count ], text " ", text label ]
 
 
 counterLinks : CurrentAccountView -> Account -> Html Msg
@@ -259,42 +256,94 @@ accountView subView currentUser accountInfo =
                     , div [ id "account", class "timeline" ]
                         [ div
                             [ class "account-detail"
-                            , style "background-image" ("url('" ++ account.header ++ "')")
+
+                            --, style "background-image" ("url('" ++ account.header ++ "')")
                             ]
-                            [ div [ class "opacity-layer" ]
-                                [ followButton currentUser accountInfo.relationship account
-                                , muteButton currentUser accountInfo.relationship account
-                                , blockButton currentUser accountInfo.relationship account
-                                , Common.accountAvatarLink True account
-                                , span [ class "account-display-name" ] (getDisplayNameForAccount account)
-                                , span [ class "account-username" ]
+                            [ div
+                                [ class
+                                    ("account-header-image"
+                                        -- It looks like mastodon always returns a header image even if none was setup
+                                        -- and it's called missing.png
+                                        ++ (if String.contains "missing.png" account.header then
+                                                " missing-header"
+
+                                            else
+                                                ""
+                                           )
+                                    )
+                                ]
+                                [ img [ src account.header ] [] ]
+                            , div [ class "account-header-bar" ]
+                                [ Common.accountAvatarLink True (Just [ "avatar-detailed" ]) account
+                                , div [ class "account-header-actions" ]
+                                    [ followButton currentUser accountInfo.relationship account
+                                    , muteButton currentUser accountInfo.relationship account
+                                    , blockButton currentUser accountInfo.relationship account
+                                    ]
+                                ]
+                            , div [ class "account-header-content" ]
+                                [ div [ class "account-display-name" ]
+                                    [ div [] (getDisplayNameForAccount account)
+                                    , div [ class "relationship" ]
+                                        [ case accountInfo.relationship of
+                                            Just relationship ->
+                                                span []
+                                                    [ if relationship.followed_by && relationship.following then
+                                                        span [ class "badge followed-by" ] [ text "Following each other" ]
+
+                                                      else if relationship.followed_by then
+                                                        span [ class "badge followed-by" ] [ text "Follows you" ]
+
+                                                      else if relationship.following then
+                                                        span [ class "badge followed-by" ] [ text "Following" ]
+
+                                                      else
+                                                        text ""
+                                                    , text " "
+                                                    , if relationship.muting then
+                                                        span [ class "badge muting" ] [ text "Muted" ]
+
+                                                      else
+                                                        text ""
+                                                    , text " "
+                                                    , if relationship.blocking then
+                                                        span [ class "badge blocking" ] [ text "Blocked" ]
+
+                                                      else
+                                                        text ""
+                                                    ]
+
+                                            Nothing ->
+                                                text ""
+                                        ]
+                                    ]
+                                , div [ class "account-username" ]
                                     [ Common.accountLink True account
-                                    , case accountInfo.relationship of
-                                        Just relationship ->
-                                            span []
-                                                [ if relationship.followed_by then
-                                                    span [ class "badge followed-by" ] [ text "Follows you" ]
-
-                                                  else
-                                                    text ""
-                                                , text " "
-                                                , if relationship.muting then
-                                                    span [ class "badge muting" ] [ text "Muted" ]
-
-                                                  else
-                                                    text ""
-                                                , text " "
-                                                , if relationship.blocking then
-                                                    span [ class "badge blocking" ] [ text "Blocked" ]
-
-                                                  else
-                                                    text ""
-                                                ]
-
-                                        Nothing ->
-                                            text ""
+                                    , span [ class "joined-date" ] [ text "joined on ", text <| Common.formatDate account.created_at ]
                                     ]
                                 , span [ class "account-note" ] (formatContentWithEmojis account.note [] account.emojis)
+                                , if List.isEmpty account.fields then
+                                    text ""
+
+                                  else
+                                    div [ class "account-fields" ]
+                                        (List.map
+                                            (\field ->
+                                                div []
+                                                    (formatContentWithEmojis (String.toUpper field.name) [] account.emojis
+                                                        ++ text " | "
+                                                        :: formatContentWithEmojis field.value [] account.emojis
+                                                        ++ (case field.verified_at of
+                                                                Just verified_at ->
+                                                                    [ span [ class "check-mark", title ("Verified at " ++ Common.formatDate verified_at) ] [ Common.icon "ok" ] ]
+
+                                                                Nothing ->
+                                                                    [ text "" ]
+                                                           )
+                                                    )
+                                            )
+                                            account.fields
+                                        )
                                 ]
                             ]
                         , counterLinks subView account

@@ -677,24 +677,8 @@ input.form-control[type="file"] {
 }
 
 /* Account rules */
-.account-detail {
-  position: relative;
-  text-align: center;
-}
-
-.account-detail .opacity-layer {
-  background: rgba(49, 53, 67, 0.9);
-}
-
-.account-detail img {
-  border-radius: 90px;
-  padding: 20px;
-  display: block;
-  margin: 0 auto 0;
-}
 
 .account-detail .btn {
-  position: absolute;
   top: 10px;
   right: 10px;
   width: 42px;
@@ -712,17 +696,36 @@ input.form-control[type="file"] {
 
 .account-detail .account-display-name {
   display: block;
-  font-size: 130%;
+  font-size: 140%;
   font-weight: bold;
+  color: #fff;
+
+  display: flex;
 }
 
-.account-detail .account-username {
-  display: block;
+.account-detail .account-display-name .relationship {
+  flex-grow: 1;
+  text-align: right;
+  padding-right: 20px;
 }
 
 .account-detail .account-note {
   display: block;
-  padding: 5px 15px 15px 15px;
+  padding: 5px 20px 5px 0px;
+  color: #fff;
+}
+
+.account-detail .account-fields {
+  padding: 10px 10px 10px 10px;
+  color: #fff;
+  background-color: #62686d;
+  border-radius: 5px;
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+
+.account-detail .account-fields .check-mark {
+  margin-left: 10px;
 }
 
 .account-infos {
@@ -731,7 +734,8 @@ input.form-control[type="file"] {
 }
 
 .account-infos.row {
-  margin-right: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .account-infos a {
@@ -742,6 +746,68 @@ input.form-control[type="file"] {
 .account-infos a.active {
   text-decoration: none;
   color: #fff;
+}
+
+.account-infos .count {
+  font-weight: 700;
+}
+
+.account-infos .btn {
+  border-radius: 0;
+  border-bottom: none;
+}
+
+.account-detail img.avatar-detailed {
+  display: block;
+  width: 90px;
+  border-radius: 5px;
+  border: 2px solid #d9e1e8;
+  padding: 0;
+}
+
+.account-detail .account-header-image {
+  position: relative;
+}
+
+.account-detail .account-header-image img {
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  height: 200px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.account-detail .account-header-image.missing-header {
+  height: 80px;
+  background: rgba(49, 53, 67, 0.9);
+}
+
+.account-detail .account-header-bar {
+  margin-top: -40px;
+  padding: 0 20px;
+  position: relative;
+  display: flex;
+}
+
+.account-detail .account-header-actions {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-end;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.account-detail .account-header-content {
+  padding-left: 20px;
+  padding-top: 20px;
+  position: relative;
+}
+
+.account-detail .account-username .joined-date {
+  color: #a0a0a0;
+  margin-left: 10px;
+  font-style: italic;
 }
 
 .followed-by {

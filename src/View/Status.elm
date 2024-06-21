@@ -154,14 +154,14 @@ statusActionsView status currentUser showApp =
             [ class baseBtnClasses
             , href (Maybe.withDefault "#" sourceStatus.url)
             , target "_blank"
-            , title (sourceStatus.edited_at |> Maybe.map (\edited_at -> "Edited - " ++ Common.formatDate edited_at) |> Maybe.withDefault "")
+            , title (sourceStatus.edited_at |> Maybe.map (\edited_at -> "Edited - " ++ Common.formatDateAndTime edited_at) |> Maybe.withDefault "")
             ]
-            [ Common.icon "time", text <| Common.formatDate sourceStatus.created_at ]
+            [ Common.icon "time", text <| Common.formatDateAndTime sourceStatus.created_at ]
         , case sourceStatus.edited_at of
             Just edited_at ->
                 em
                     [ class baseBtnClasses
-                    , title <| "Edited - " ++ Common.formatDate edited_at
+                    , title <| "Edited - " ++ Common.formatDateAndTime edited_at
                     ]
                     [ text "Edited *" ]
 
@@ -274,7 +274,7 @@ statusView context ({ account, reblog } as status) =
 
         Nothing ->
             div [ class "status" ]
-                [ Common.accountAvatarLink False account
+                [ Common.accountAvatarLink False Nothing account
                 , div [ class "username" ]
                     [ a accountLinkAttributes
                         (getDisplayNameForAccount account

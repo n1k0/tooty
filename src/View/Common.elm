@@ -6,6 +6,7 @@ module View.Common exposing
     , closeablePanelheading
     , confirmView
     , formatDate
+    , formatDateAndTime
     , icon
     , justifiedButtonGroup
     , loadMoreBtn
@@ -23,9 +24,9 @@ import Types exposing (..)
 import View.Events exposing (..)
 
 
-accountAvatar : String -> Account -> Html Msg
-accountAvatar avatarClass account =
-    img [ class avatarClass, src account.avatar ] []
+accountAvatar : List String -> Account -> Html Msg
+accountAvatar avatarClasses account =
+    img (src account.avatar :: (avatarClasses |> List.map (\avatarClass -> class avatarClass))) []
 
 
 accountLink : Bool -> Account -> Html Msg
@@ -45,8 +46,8 @@ accountLink external account =
         [ text <| "@" ++ account.acct ]
 
 
-accountAvatarLink : Bool -> Account -> Html Msg
-accountAvatarLink external account =
+accountAvatarLink : Bool -> Maybe (List String) -> Account -> Html Msg
+accountAvatarLink external cssClasses account =
     let
         accountHref =
             if external then
@@ -55,19 +56,27 @@ accountAvatarLink external account =
             else
                 href <| "#account/" ++ account.id
 
-        avatarClass =
+        externalClass =
             if external then
                 ""
 
             else
                 "avatar"
+
+        avatarClasses =
+            case cssClasses of
+                Just classes ->
+                    externalClass :: classes
+
+                Nothing ->
+                    [ externalClass ]
     in
     a
         [ href account.url
         , accountHref
         , title <| "@" ++ account.username
         ]
-        [ accountAvatar avatarClass account ]
+        [ accountAvatar avatarClasses account ]
 
 
 appLink : String -> Maybe Application -> Html Msg
@@ -159,8 +168,8 @@ confirmView { message, onConfirm, onCancel } =
         ]
 
 
-dateFormatter : Zone -> Posix -> String
-dateFormatter =
+dateAndTimeFormatter : Zone -> Posix -> String
+dateAndTimeFormatter =
     DateFormat.format
         [ DateFormat.monthNameAbbreviated
         , DateFormat.text " "
@@ -174,8 +183,26 @@ dateFormatter =
         ]
 
 
+formatDateAndTime : String -> String
+formatDateAndTime dateString =
+    Iso8601.toTime dateString
+        |> Result.withDefault (Time.millisToPosix 0)
+        |> dateAndTimeFormatter utc
+
+
 formatDate : String -> String
 formatDate dateString =
+    let
+        dateFormatter : Zone -> Posix -> String
+        dateFormatter =
+            DateFormat.format
+                [ DateFormat.monthNameAbbreviated
+                , DateFormat.text " "
+                , DateFormat.dayOfMonthSuffix
+                , DateFormat.text ", "
+                , DateFormat.yearNumber
+                ]
+    in
     Iso8601.toTime dateString
         |> Result.withDefault (Time.millisToPosix 0)
         |> dateFormatter utc

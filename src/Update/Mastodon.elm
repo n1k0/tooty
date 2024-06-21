@@ -3,7 +3,6 @@ module Update.Mastodon exposing (update)
 import Browser.Navigation as Navigation
 import Command
 import InfiniteScroll
-import Mastodon.ApiUrl exposing (customEmojis)
 import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)

@@ -87,7 +87,7 @@ notificationHeading accountsAndDate str iconType =
     in
     div [ class "status-info" ]
         [ div [ class "avatars" ] <|
-            List.map (Common.accountAvatarLink False) (List.map .account accountsAndDate)
+            List.map (Common.accountAvatarLink False Nothing) (List.map .account accountsAndDate)
         , p [ class "status-info-text" ] <|
             List.intersperse (text " ")
                 [ Common.icon iconType
@@ -120,7 +120,7 @@ notificationFollowView _ { accounts } =
         profileView : AccountNotificationDate -> Html Msg
         profileView { account, created_at } =
             div [ class "status follow-profile" ]
-                [ Common.accountAvatarLink False account
+                [ Common.accountAvatarLink False Nothing account
                 , div [ class "username" ]
                     [ Common.accountLink False account
                     , span [ class "btn-sm follow-profile-date" ]
