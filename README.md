@@ -20,6 +20,10 @@ If you want to self host Tooty, just [grab a build](https://github.com/n1k0/toot
 
     $ npm run debug
 
+### Starting the dev server in live debug mode and watch for css changes
+
+    $ npm run debug:all
+
 ### Building
 
     $ npm run build
