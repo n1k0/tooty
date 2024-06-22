@@ -769,6 +769,10 @@ input.form-control[type="file"] {
   position: relative;
 }
 
+.account-detail .account-header-image a {
+  cursor: pointer;
+}
+
 .account-detail .account-header-image img {
   border-radius: 0;
   margin: 0;
@@ -784,10 +788,13 @@ input.form-control[type="file"] {
 }
 
 .account-detail .account-header-bar {
-  margin-top: -40px;
   padding: 0 20px;
   position: relative;
   display: flex;
+}
+
+.account-detail .account-header-bar > a {
+  margin-top: -40px;
 }
 
 .account-detail .account-header-actions {
@@ -834,8 +841,6 @@ input.form-control[type="file"] {
 .viewer-content {
   display: block;
   margin: auto;
-  min-width: 30vw;
-  min-height: 30vh;
   max-width: 80vw;
   max-height: 90vh;
   animation-name: zoom;
