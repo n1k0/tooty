@@ -10,6 +10,7 @@ import Mastodon.Helper exposing (extractStatusId)
 import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
+import View.Events exposing (onClickWithPreventAndStop)
 import View.Formatter exposing (formatContentWithEmojis, getDisplayNameForAccount)
 import View.Status exposing (statusEntryView)
 
@@ -272,7 +273,30 @@ accountView subView currentUser accountInfo =
                                            )
                                     )
                                 ]
-                                [ img [ src account.header ] [] ]
+                                [ a
+                                    []
+                                    [ img
+                                        [ let
+                                            attachment =
+                                                { id = "header"
+                                                , type_ = "image"
+                                                , url = account.header
+                                                , remote_url = Nothing
+                                                , preview_url = Nothing
+                                                , text_url = Nothing
+                                                , description = Nothing
+                                                }
+
+                                            attachments =
+                                                [ attachment ]
+                                          in
+                                          onClickWithPreventAndStop <|
+                                            ViewerEvent (OpenViewer attachments attachment)
+                                        , src account.header
+                                        ]
+                                        []
+                                    ]
+                                ]
                             , div [ class "account-header-bar" ]
                                 [ Common.accountAvatarLink True (Just [ "avatar-detailed" ]) account
                                 , div [ class "account-header-actions" ]
