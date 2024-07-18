@@ -10,7 +10,7 @@ import Mastodon.Model exposing (..)
 import Types exposing (..)
 import View.Common as Common
 import View.Events exposing (..)
-import View.Formatter exposing (formatContent)
+import View.Formatter exposing (formatContentWithEmojis, getDisplayNameForAccount)
 import View.Status exposing (statusActionsView, statusView)
 
 
@@ -122,11 +122,17 @@ notificationFollowView _ { accounts } =
             div [ class "status follow-profile" ]
                 [ Common.accountAvatarLink False Nothing account
                 , div [ class "username" ]
-                    [ Common.accountLink False account
+                    [ a
+                        [ href <| "#account/" ++ account.id
+                        ]
+                        (getDisplayNameForAccount account
+                            ++ [ span [ class "acct" ] [ text <| " @" ++ account.acct ]
+                               ]
+                        )
                     , span [ class "btn-sm follow-profile-date" ]
                         [ Common.icon "time", text <| Common.formatDate created_at ]
                     ]
-                , formatContent account.note []
+                , formatContentWithEmojis account.note [] account.emojis
                     |> div
                         [ class "status-text"
                         , onClick <| Navigate ("#account/" ++ account.id)
