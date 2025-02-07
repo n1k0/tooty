@@ -4,7 +4,7 @@
   "description": "An alternative Web client for Mastodon.",
   "scripts": {
     "build": "npm run copy-assets && elm make src/Main.elm --optimize --output=build/v2/app.js",
-    "copy-assets": "rimraf build && mkdir -p build/v2 && cp -r public/* build/v2 && cp public/.nojekyll build/v2/.",
+    "copy-assets": "rimraf build && mkdir -p build/v2 && cp -r public/* build/v2 && touch build/v2/.nojekyll",
     "debug": "elm-live src/Main.elm --warn --dir=public/ --port=3000 -- --output=public/app.js --debug",
     "debug:all": "./scripts/watch-live.sh",
     "deploy": "npm run build && npm run optimize && gh-pages --dotfiles --dist build/v2",
