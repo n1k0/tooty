@@ -25,9 +25,9 @@
             "lukewestby/elm-http-builder": "8.0.0",
             "rtfeldman/elm-iso8601-date-strings": "1.1.4",
             "ryan-haskell/date-format": "1.0.0",
-            "sporto/qs": "2.0.0",
+            "sporto/qs": "2.0.1",
             "vjousse/elm-emoji": "2.0.1",
-            "vjousse/elm-mastodon-tooty": "4.0.0"
+            "vjousse/elm-mastodon-tooty": "4.0.1"
         },
         "indirect": {
             "Janiczek/cmd-extra": "1.1.0",
